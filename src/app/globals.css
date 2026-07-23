@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #F5ECD7;        /* Base Cream Page Background */
+    --card-surface: #EBE2CD;   /* Soft Beige Card & Button Surface */
+    --card-hover: #E2D7BE;     /* Darker Soft Beige Hover Surface */
+    --border-color: #D6CBB1;   /* Natural Subtle Border */
+    --text-primary: #353535;   /* Charcoal Text */
+    --text-secondary: #5F5F5F; /* Slate Grey Text */
+    --accent-green: #24613B;   /* Dark Green */
+    --accent-mid-green: #68A67D; /* Mid Green */
+    --accent-orange: #F18F01;  /* Signature Orange */
+    --accent-deep-brown: #833500; /* Deep Brown */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-main: #353535;        /* Charcoal Dark Page Background */
+      --card-surface: #464646;   /* Slate Card Surface */
+      --card-hover: #5F5F5F;     /* Slate Hover Surface */
+      --border-color: #555555;   /* Dark Subtle Border */
+      --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
+      --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
+      --accent-green: #8FBF9F;   /* Light Green */
+      --accent-mid-green: #68A67D; /* Mid Green */
+      --accent-orange: #F18F01;  /* Signature Orange */
+      --accent-deep-brown: #833500; /* Deep Brown */
+    }
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+}
+
+/* Material Design 3 Surface & Utility Tokens */
+.m3-card {
+  background-color: var(--card-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 1rem; /* rounded-2xl */
+}
+
+.m3-card-hover:hover {
+  background-color: var(--card-hover);
+}
+
+.m3-text-secondary {
+  color: var(--text-secondary);
+}
+
+.m3-accent-green {
+  color: var(--accent-green);
+}
+
+.m3-accent-orange {
+  color: var(--accent-orange);
+}
+
+.m3-badge-level {
+  background-color: var(--accent-green);
+  color: #FFFFFF;
+}
+
+/* Custom Smooth Transitions & Animated Dynamic Mesh Gradients */
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float-pulse {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fadeOutOverlay {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-overlay {
+  animation: fadeInOverlay 0.25s ease-out forwards;
+}
+
+.animate-fade-out-overlay {
+  animation: fadeOutOverlay 0.25s ease-in forwards;
+}
+
+.animated-mesh-bg {
+  background: linear-gradient(-45deg, rgba(241, 143, 1, 0.12), rgba(104, 166, 125, 0.12), rgba(36, 97, 59, 0.1), rgba(235, 226, 205, 0.2));
+  background-size: 300% 300%;
+  animation: gradient-flow 12s ease infinite;
+}
+
+.dark .animated-mesh-bg,
+@media (prefers-color-scheme: dark) {
+  .animated-mesh-bg {
+    background: linear-gradient(-45deg, rgba(241, 143, 1, 0.15), rgba(104, 166, 125, 0.15), rgba(53, 53, 53, 0.8), rgba(95, 95, 95, 0.6));
+    background-size: 300% 300%;
+    animation: gradient-flow 12s ease infinite;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
