@@ -235,7 +235,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "1강. 종목 선택",
         subtitle: "개별 기업 모으기의 위험성과 S&P 500 미국 시장 전체 구매의 힘",
         youtubeId: "UI2ga-MHlpQ",
-        duration: "5:20",
+        duration: "4:52",
         summary: [
           "과거 전 세계 1등 기업 시스코(Cisco)의 사례로 본 개별 기업 맹신의 위험성",
           "우량 기업을 알아서 교체해주는 전 세계 1등 미국 시장(S&P 500) 시스템의 강점",
