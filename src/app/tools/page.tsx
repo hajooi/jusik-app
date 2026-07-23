@@ -1,28 +1,14 @@
 import Link from 'next/link';
-import { Sparkles, Calculator, PieChart, ShieldCheck } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function ToolsPage() {
   const tools = [
     {
-      title: '투자 성향 진단 (MBTI)',
-      description: '30초 테스트로 나만의 올웨더 자산배분 비중 산출',
-      href: '/lesson/lv3-2',
+      title: '투자 성향 진단',
+      description: '정밀한 테스트를 통해서 나만의 투자 성향 산출',
+      href: '/mbti',
       icon: Sparkles,
-      tag: 'Lv. 3 연동',
-    },
-    {
-      title: '포트폴리오 백테스터 & 계산기',
-      description: '월별 목표 적립금액 및 리밸런싱 매수/매도 수량 자동 계산',
-      href: '/lesson/lv4-2',
-      icon: Calculator,
-      tag: 'Lv. 4 연동',
-    },
-    {
-      title: '절세 계좌 시뮬레이터 (ISA / 연금저축)',
-      description: '세금 0원 만들기 계좌 조합 추천 및 절세 혜택 계산',
-      href: '/lesson/lv2-1',
-      icon: ShieldCheck,
-      tag: 'Lv. 2 연동',
+      tag: '진단 도구',
     },
   ];
 

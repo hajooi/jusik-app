@@ -33,7 +33,8 @@ export default function Accordion({ levels }: AccordionProps) {
   // Default first level open
   const [openLevelId, setOpenLevelId] = useState<string | null>('lv0');
 
-  const toggleLevel = (id: string) => {
+  const toggleLevel = (id: string, isComingSoon?: boolean) => {
+    if (isComingSoon) return;
     setOpenLevelId((prev) => (prev === id ? null : id));
   };
 
@@ -54,8 +55,10 @@ export default function Accordion({ levels }: AccordionProps) {
           >
             {/* Header / Accordion Button */}
             <button
-              onClick={() => toggleLevel(level.id)}
-              className="group/btn w-full px-4 py-4 sm:px-6 sm:py-5 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 active:scale-[0.99]"
+              onClick={() => toggleLevel(level.id, level.isComingSoon)}
+              className={`group/btn w-full px-4 py-4 sm:px-6 sm:py-5 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
+                level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
+              }`}
             >
               <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 {/* Level Icon Container - No static borders */}
@@ -70,28 +73,42 @@ export default function Accordion({ levels }: AccordionProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                     <span className={`text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full font-mono transition-colors ${
-                      isOpen ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
+                      level.isComingSoon 
+                        ? 'bg-[var(--text-secondary)]/20 text-[var(--text-secondary)]'
+                        : isOpen 
+                        ? 'bg-[var(--accent-orange)] text-white' 
+                        : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
                     }`}>
                       Lv. {level.levelNumber}
                     </span>
                     <span className="text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] truncate">
-                      {level.badgeText} · {level.lessons.length}개 강의
+                      {level.badgeText} · {level.isComingSoon ? '오픈 예정' : `${level.lessons.length}개 강의`}
                     </span>
                   </div>
                   <h3 className={`text-base sm:text-lg font-bold tracking-tight leading-snug truncate transition-colors ${
-                    isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
+                    level.isComingSoon 
+                      ? 'text-[var(--text-secondary)]' 
+                      : isOpen 
+                      ? 'text-[var(--accent-orange)]' 
+                      : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
                   }`}>
                     {level.title}
                   </h3>
                 </div>
               </div>
 
-              {/* Arrow Indicator */}
-              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform duration-300 shrink-0 ${
-                isOpen ? 'rotate-180 text-[var(--accent-orange)] bg-[var(--accent-orange)]/15' : 'text-[var(--text-secondary)] bg-[var(--bg-main)] group-hover/btn:text-[var(--accent-orange)]'
-              }`}>
-                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
+              {/* Status Indicator: Coming Soon Badge or Arrow */}
+              {level.isComingSoon ? (
+                <span className="text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] border border-[var(--border-color)] font-mono shrink-0">
+                  COMING SOON
+                </span>
+              ) : (
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform duration-300 shrink-0 ${
+                  isOpen ? 'rotate-180 text-[var(--accent-orange)] bg-[var(--accent-orange)]/15' : 'text-[var(--text-secondary)] bg-[var(--bg-main)] group-hover/btn:text-[var(--accent-orange)]'
+                }`}>
+                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+              )}
             </button>
 
             {/* Accordion Content - Lesson List without inner dividers */}
