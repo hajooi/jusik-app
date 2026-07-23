@@ -233,7 +233,7 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv1",
         lessonNumber: 1,
         title: "1강. 종목 선택",
-        subtitle: "개별 기업 모으기의 위험성과 S&P 500 미국 시장 전체 구매의 힘",
+        subtitle: "개별 기업이 아닌 미국 시장 자체를 통째로 사야 하는 이유",
         youtubeId: "UI2ga-MHlpQ",
         duration: "4:52",
         summary: [
