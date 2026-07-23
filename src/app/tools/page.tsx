@@ -15,13 +15,13 @@ export default function ToolsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Consistent Animated Dynamic AI Gradient Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden p-6 sm:p-8 animated-mesh-bg border border-[var(--border-color)] shadow-sm">
+      <div className="relative rounded-3xl overflow-hidden p-6 sm:p-8 animated-mesh-bg shadow-sm">
         <div className="relative z-10 flex flex-col gap-1">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)]">
-              투자 도구
+              투자도구
             </h1>
-            <span className="text-xs font-mono font-bold bg-[var(--card-surface)] border border-[var(--border-color)] px-3.5 py-1.5 rounded-full text-[var(--text-primary)] shrink-0 shadow-xs">
+            <span className="text-xs font-mono font-bold bg-[var(--card-surface)] px-3.5 py-1.5 rounded-full text-[var(--text-primary)] shrink-0 shadow-xs">
               {tools.length}개 모듈
             </span>
           </div>
@@ -38,7 +38,7 @@ export default function ToolsPage() {
             <Link
               key={idx}
               href={tool.href}
-              className="bg-[var(--card-surface)] border border-[var(--border-color)] p-6 rounded-3xl flex flex-col justify-between hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)] transition-all duration-300 group shadow-xs hover:shadow-md active:scale-[0.99]"
+              className="bg-[var(--card-surface)] p-6 rounded-3xl flex flex-col justify-between hover:bg-[var(--card-hover)] transition-all duration-300 group shadow-xs hover:shadow-md active:scale-[0.99]"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

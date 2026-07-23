@@ -1,3 +1,44 @@
+export type ModuleType = 'guide_steps' | 'resources' | 'cta';
+
+export interface GuideStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+}
+
+export interface GuideStepsModule {
+  type: 'guide_steps';
+  title: string;
+  description?: string;
+  steps: GuideStep[];
+}
+
+export interface ResourceLink {
+  label: string;
+  url: string;
+  type?: 'link' | 'file' | 'reference';
+  description?: string;
+}
+
+export interface ResourcesModule {
+  type: 'resources';
+  title: string;
+  description?: string;
+  links: ResourceLink[];
+}
+
+export interface CTAModule {
+  type: 'cta';
+  title: string;
+  description: string;
+  buttonText: string;
+  buttonUrl: string;
+  badge?: string;
+  isExternal?: boolean;
+}
+
+export type LessonModule = GuideStepsModule | ResourcesModule | CTAModule;
+
 export interface Lesson {
   id: string; // e.g. "lv0-1"
   levelId: string; // "lv0"
@@ -9,6 +50,7 @@ export interface Lesson {
   summary: string[];
   cardNewsTitles: string[];
   interactiveToolType?: 'db_cta' | 'mbti_test' | 'calc' | 'ai_prompt';
+  modules?: LessonModule[];
 }
 
 export interface Level {
@@ -37,18 +79,47 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv0",
         lessonNumber: 1,
         title: "1강. 투자의 동기",
-        subtitle: "",
+        subtitle: "월급만으로는 부족한 이유와 자본소득 시스템 구축하기",
         youtubeId: "50KkWkqqKkQ",
         duration: "4:12",
         summary: [
-          "월급만으로는 물가상승률과 자산 인플레이션을 따라잡기 힘든 현실 분석",
-          "자본주의 사회에서 노동 소득을 자본 소득으로 전환하는 시스템 구축의 필요성",
-          "투자는 위험한 도박이 아니라, 우상향하는 경제 성장에 올라타는 파트너십"
+          "AI와 로봇이 인간의 노동을 대체하면서 월급만으로는 살아남을 수 없는 시대의 도래",
+          "1769년 방직기 혁명과 동일한 자본가들의 부의 독식 메커니즘 분석",
+          "스마트폰으로 미국 1등 혁신 기업의 주식을 구매해 스스로 '자본가'가 되는 해결책"
         ],
         cardNewsTitles: [
-          "노동소득 VS 자본소득의 격차",
-          "물가상승률과 내 월급의 진실",
-          "성공적인 투자의 시작점 3가지"
+          "당신의 월급이 0원이 되는 이유",
+          "방직기 혁명이 증명한 자본가의 법칙",
+          "AI 시대의 유일한 생존법: 미국 주식"
+        ],
+        modules: [
+          {
+            type: 'guide_steps',
+            title: '강의 노트: 자본소득 시스템 구축 4단계 가이드',
+            description: '노동소득에만 의존하는 삶에서 벗어나 주식 투자를 통해 자본소득 시스템을 구축하는 핵심 원리입니다.',
+            steps: [
+              {
+                stepNumber: 1,
+                title: '노동의 종말과 현대판 노예',
+                description: 'AI와 로봇이 인간의 노동을 대체하는 시대, 노동 소득만으로는 내 밥줄을 남에게 넘겨준 현대판 노예로 전락하게 됩니다. 던져주는 푼돈에 목숨줄을 걸지 않으려면 자본의 소유자가 되어야 합니다.'
+              },
+              {
+                stepNumber: 2,
+                title: '역사적 증명: 방직기 혁명의 교훈',
+                description: '1769년 방직기 혁명 때 생산량은 100배 늘었지만 노동자는 더 가난해졌고 부는 공장주(자본가)가 독식했습니다. AI가 전문직 일자리까지 대체하는 지금, 단순 저축은 가장 확실하게 가난해지는 길입니다.'
+              },
+              {
+                stepNumber: 3,
+                title: '미국 주식을 사야 하는 이유',
+                description: '내 노동 가치가 0원이 되는 세상의 유일한 해결책은 스스로 자본가가 되는 것입니다. 세계 1등 혁신을 주도하는 미국의 빅테크 기업(엔비디아, 구글, 마이크로소프트 등)의 주식을 소유하여 24시간 나 대신 일하게 만드세요.'
+              },
+              {
+                stepNumber: 4,
+                title: '위기는 자본가들의 사냥 시간이다',
+                description: '과거와 달리 지금은 주식 시장을 통해 누구나 손쉽게 자본가의 자리에 올라탈 수 있습니다. 거인의 어깨 위에 올라타 1등 기업의 동업자가 되세요. 다가올 미래의 계급은 지금 여러분의 선택에 달려있습니다.'
+              }
+            ]
+          }
         ]
       },
       {
@@ -56,18 +127,47 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv0",
         lessonNumber: 2,
         title: "2강. 복리와 시간",
-        subtitle: "",
+        subtitle: "현금 10억 VS 월 500만 원: 돈의 현재가치와 복리의 마법",
         youtubeId: "vDo857gB1j0",
         duration: "5:39",
         summary: [
-          "아인슈타인이 인류 세계 8대 불가사의라 칭한 '복리(Compound Interest)'의 매커니즘",
-          "하루라도 일찍 투자를 시작해야 하는 시간 프리미엄 효과 분석",
-          "소액 적립식 투자자가 장기 복리로 승리하는 실증 데이터 공개"
+          "현금 10억 일시불 vs 매달 500만 원 밸런스 게임으로 풀어보는 돈의 현재가치(PV) 개념",
+          "인플레이션으로 인한 화폐 가치 하락과 자본이 스스로 일하게 만드는 복리의 메커니즘",
+          "30년 뒤 30억 원 이상의 자산 격차를 만드는 '일하는 돈' 확보의 중요성"
         ],
         cardNewsTitles: [
-          "단리 vs 복리 수익률 그래프",
-          "10년 일찍 시작한 투자자의 차이",
-          "복리 효과를 극대화하는 규칙"
+          "10억 vs 월 500만 원의 진실",
+          "돈의 시간 가치: 현재가치(PV)",
+          "30년 후 30억 차이 만드는 복리의 힘"
+        ],
+        modules: [
+          {
+            type: 'guide_steps',
+            title: '강의 노트: 돈의 시간 가치와 복리 4단계 가이드',
+            description: '현재가치(Present Value)와 복리의 메커니즘을 이해하고 돈의 주인이 되는 핵심 원리입니다.',
+            steps: [
+              {
+                stepNumber: 1,
+                title: '우리를 시험에 들게 한 밸런스 게임',
+                description: '현금 10억 일시불과 매달 500만 원 중 무엇을 선택할 것인가? 월급날의 안도감이 주는 프레임을 깨고 돈의 본질적인 시간 가치를 바라보아야 합니다.'
+              },
+              {
+                stepNumber: 2,
+                title: '놓치고 있는 단 한 가지: 돈의 시간 (현재가치)',
+                description: '오늘의 500만 원과 20년 뒤의 500만 원은 인플레이션 때문에 전혀 다른 가치입니다. 경제학의 현재가치(Present Value) 개념을 통해 미래 소득의 가치를 객관적으로 평가해야 합니다.'
+              },
+              {
+                stepNumber: 3,
+                title: '잠자는 돈 vs 일하는 돈 (복리의 스노우볼)',
+                description: '10억 원을 연 8% S&P 500 ETF에 투자하면 매월 667만 원의 수익을 냅니다. 원금과 이자가 함께 불어나는 복리 효과로 30년 후 자산 격차는 30억 원 이상 벌어집니다.'
+              },
+              {
+                stepNumber: 4,
+                title: '돈의 주인이 되는 선택',
+                description: '안정감이라는 이름 아래 매달 돈을 기다리는 소비자로 남을 것인가, 돈이 스스로 일하게 만드는 투자자가 될 것인가? 가치를 미래로 증식시키는 돈의 주인이 되어야 합니다.'
+              }
+            ]
+          }
         ]
       },
       {
@@ -75,18 +175,47 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv0",
         lessonNumber: 3,
         title: "3강. 투자와 철학",
-        subtitle: "",
+        subtitle: "흔들리지 않는 원칙과 멘탈 사수법",
         youtubeId: "hPDV4XWN9AU",
         duration: "4:37",
         summary: [
-          "시장 변동성 앞에서 멘탈을 유지하는 굳건한 원칙 수립",
-          "워렌 버핏과 찰리 멍거의 핵심 마인드셋 구조 분석",
-          "단기 시세에 일희일비하지 않고 위기를 기회로 바꾸는 심리 제어법"
+          "장이 열리고 숫자가 춤출 때 이성을 마비시키는 '도파민 본능'의 덫 분석",
+          "손실 회피 공포와 고점 구매 조급함을 부수는 스피노자의 '3초 질문' 철학 필터",
+          "시장을 이기기 전에 나 자신을 해석하여 진짜 주체성을 회복하는 심리 제어법"
         ],
         cardNewsTitles: [
-          "투자 심리 4단계 변화",
-          "대중과 반대로 움직이는 거인의 철학",
-          "주식부엉 마인드셋 체크리스트"
+          "우리가 돈 대신 도파민을 산 이유",
+          "주식 구매 전 3초 질문법",
+          "시장을 이기는 철학적 자기 객관화"
+        ],
+        modules: [
+          {
+            type: 'guide_steps',
+            title: '강의 노트: 투자 심리와 철학적 멘탈 사수 4단계 가이드',
+            description: '본능의 덫에서 벗어나 자기 객관화와 철학적 필터로 판단의 주체성을 회복하는 핵심 원리입니다.',
+            steps: [
+              {
+                stepNumber: 1,
+                title: '밤이 되면 시작되는 유령의 시간 (본능의 덫)',
+                description: '주식에서 실패하는 것은 지능이 부족해서가 아니라 성격과 감정에 휘둘리기 때문입니다. 장이 열리면 이성은 마비되고 본능의 덫에 걸려들게 됩니다.'
+              },
+              {
+                stepNumber: 2,
+                title: '당신은 돈이 아니라 도파민을 샀다',
+                description: '손실 회피 공포로 물리고, 나만 빠질까 봐 생기는 조급함으로 고점에 사고, 공포에 눌려 바닥에 던지는 파멸의 굴레. 감정이 시키는 투자를 부술 수 있는 유일한 열쇠가 바로 철학입니다.'
+              },
+              {
+                stepNumber: 3,
+                title: '주체성을 회복하는 주식 구매 전 3초의 질문',
+                description: '주식 구매 버튼을 누르기 전 3초간 "이 욕망은 내 것인가, 시장의 것인가?" 물어보세요. 스피노자의 말처럼 감정을 명확히 인식할 때 시장의 유혹을 끊고 판단의 주체가 됩니다.'
+              },
+              {
+                stepNumber: 4,
+                title: '투자는 나 자신을 해석하는 전쟁이다',
+                description: '숫자는 거짓말을 하지 않지만 숫자를 해석하는 내 마음은 거짓말을 합니다. 시장을 이기려 하기 전에 시장보다 복잡한 나 자신을 먼저 해석하는 단단한 철학을 구축하세요.'
+              }
+            ]
+          }
         ]
       }
     ]

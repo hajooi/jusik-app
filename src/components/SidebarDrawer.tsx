@@ -81,7 +81,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
       {/* Top Header Left-aligned Drawer Trigger Button */}
       <button
         onClick={handleOpen}
-        className="inline-flex items-center gap-2 font-bold text-xs sm:text-sm text-[var(--text-primary)] hover:text-[var(--accent-orange)] transition-all bg-[var(--card-surface)] border border-[var(--border-color)] px-4 py-2 rounded-full shadow-xs active:scale-95 hover:bg-[var(--card-hover)]"
+        className="inline-flex items-center gap-2 font-bold text-xs sm:text-sm text-[var(--text-primary)] hover:text-[var(--accent-orange)] transition-all bg-[var(--card-surface)] px-4 py-2 rounded-full shadow-xs active:scale-95 hover:bg-[var(--card-hover)]"
       >
         <List className="w-4 h-4 text-[var(--accent-orange)]" />
         <span>전체 목차</span>
@@ -99,7 +99,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           />
 
           {/* Sliding Panel with Smooth Side Animation & Brand Base Cream Surface */}
-          <div className={`relative z-10 w-full max-w-xs bg-[var(--card-surface)] border-r border-[var(--border-color)] h-full p-5 shadow-2xl overflow-y-auto ${
+          <div className={`relative z-10 w-full max-w-xs bg-[var(--card-surface)] h-full p-5 shadow-2xl overflow-y-auto ${
             isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
           }`}>
             {renderContent()}

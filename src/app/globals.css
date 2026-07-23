@@ -7,7 +7,7 @@
     --bg-main: #F5ECD7;        /* Base Cream Page Background */
     --card-surface: #EBE2CD;   /* Soft Beige Card & Button Surface */
     --card-hover: #E2D7BE;     /* Darker Soft Beige Hover Surface */
-    --border-color: #D6CBB1;   /* Natural Subtle Border */
+    --border-color: transparent; /* No Visible Borders */
     --text-primary: #353535;   /* Charcoal Text */
     --text-secondary: #5F5F5F; /* Slate Grey Text */
     --accent-green: #24613B;   /* Dark Green */
@@ -21,7 +21,7 @@
       --bg-main: #353535;        /* Charcoal Dark Page Background */
       --card-surface: #464646;   /* Slate Card Surface */
       --card-hover: #5F5F5F;     /* Slate Hover Surface */
-      --border-color: #555555;   /* Dark Subtle Border */
+      --border-color: transparent; /* No Visible Borders */
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
       --accent-green: #8FBF9F;   /* Light Green */

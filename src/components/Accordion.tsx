@@ -47,7 +47,7 @@ export default function Accordion({ levels }: AccordionProps) {
         return (
           <div
             key={level.id}
-            className={`rounded-3xl overflow-hidden transition-all duration-300 bg-[var(--card-surface)] border border-[var(--border-color)] ${
+            className={`rounded-3xl overflow-hidden transition-all duration-300 bg-[var(--card-surface)] ${
               isOpen 
                 ? 'ring-2 ring-[var(--accent-orange)] shadow-md' 
                 : 'hover:bg-[var(--card-hover)] shadow-xs'
@@ -99,7 +99,7 @@ export default function Accordion({ levels }: AccordionProps) {
 
               {/* Status Indicator: Coming Soon Badge or Arrow */}
               {level.isComingSoon ? (
-                <span className="text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] border border-[var(--border-color)] font-mono shrink-0">
+                <span className="text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-mono shrink-0">
                   COMING SOON
                 </span>
               ) : (

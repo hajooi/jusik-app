@@ -1,7 +1,9 @@
 import Accordion from '@/components/Accordion';
-import { CURRICULUM_DATA } from '@/data/curriculum';
+import { CURRICULUM_DATA, getAllLessons } from '@/data/curriculum';
 
 export default function HomePage() {
+  const totalLessons = getAllLessons().length;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Consistent Animated Dynamic AI Gradient Hero Banner */}
@@ -12,7 +14,7 @@ export default function HomePage() {
               커리큘럼
             </h1>
             <span className="text-xs font-mono font-bold bg-[var(--card-surface)] px-3.5 py-1.5 rounded-full text-[var(--text-primary)] shrink-0">
-              총 18개 강의
+              총 {totalLessons}개 강의
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-1">

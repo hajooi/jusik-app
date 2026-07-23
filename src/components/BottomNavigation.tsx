@@ -15,7 +15,7 @@ export default function BottomNavigation() {
       exact: true,
     },
     {
-      label: '투자 도구',
+      label: '투자도구',
       href: '/tools',
       icon: Wrench,
       exact: false,
@@ -62,13 +62,20 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-colors duration-200 active:scale-95 ${
+                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 active:scale-95 ${
                   isActive
-                    ? 'text-[var(--accent-orange)] font-bold'
+                    ? 'text-neutral-900 dark:text-white font-bold'
                     : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'
                 }`}
               >
-                <Icon className={`w-4.5 h-4.5 transition-transform duration-300 ${isActive ? 'stroke-[2.5px] text-[var(--accent-orange)] scale-110' : 'stroke-2'}`} />
+                <Icon 
+                  fill={isActive ? 'currentColor' : 'none'} 
+                  className={`w-4.5 h-4.5 transition-all duration-200 ${
+                    isActive 
+                      ? 'stroke-[2.2px] text-neutral-900 dark:text-white scale-105' 
+                      : 'stroke-[1.8px]'
+                  }`} 
+                />
                 <span className="text-xs sm:text-sm tracking-tight">{item.label}</span>
               </Link>
             );
