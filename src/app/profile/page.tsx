@@ -15,7 +15,7 @@ export default function ProfilePage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-1">
-            내 강좌 수강 진도율과 저장된 투자 성향, 나만의 포트폴리오를 한눈에 관리하는 공간입니다.
+            내 강의 수강 진도율과 저장된 투자 성향, 나만의 포트폴리오를 한눈에 관리하는 공간입니다.
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default function ProfilePage() {
           <p className="text-2xl font-black text-[var(--accent-orange)]">16%</p>
         </div>
         <div className="bg-[var(--card-surface)] border border-[var(--border-color)] p-5 rounded-2xl space-y-1 text-center shadow-xs">
-          <span className="text-xs text-[var(--text-secondary)] font-medium">완료한 강좌</span>
+          <span className="text-xs text-[var(--text-secondary)] font-medium">완료한 강의</span>
           <p className="text-2xl font-black text-[var(--text-primary)]">3 / 18</p>
         </div>
         <div className="bg-[var(--card-surface)] border border-[var(--border-color)] p-5 rounded-2xl space-y-1 text-center col-span-2 sm:col-span-1 shadow-xs">

@@ -1,5 +1,6 @@
 import { getLessonById, getAllLessons } from '@/data/curriculum';
 import SidebarDrawer from '@/components/SidebarDrawer';
+import VideoCoverPlayer from '@/components/VideoCoverPlayer';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { 
@@ -58,7 +59,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
         <div className="space-y-6 min-w-0">
           
           {/* Header Info */}
-          <div className="space-y-2 border-b border-[var(--border-color)]/60 pb-5">
+          <div className="space-y-2 pb-2">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] font-mono">
                 Lv. {level.levelNumber} - {level.badgeText}
@@ -78,16 +79,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             )}
           </div>
 
-          {/* TOP: 16:9 Responsive YouTube Video Player Embed */}
-          <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-lg bg-black border-0">
-            <iframe
-              className="absolute top-0 left-0 w-full h-full"
-              src={`https://www.youtube-nocookie.com/embed/${lesson.youtubeId}?autoplay=0&rel=0`}
-              title={lesson.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
+          {/* TOP: M3 Styled Interactive YouTube Video Cover & Player */}
+          <VideoCoverPlayer
+            youtubeId={lesson.youtubeId}
+            title={lesson.title}
+            duration={lesson.duration}
+            iconName={level.iconName}
+          />
 
           {/* BODY: Lesson Summary Section */}
           <div className="bg-[var(--card-surface)]/90 backdrop-blur-md p-6 rounded-3xl space-y-3.5 shadow-md">
@@ -312,43 +310,45 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           )}
 
           {/* Navigation Buttons */}
-          <div className="pt-4 border-t border-[var(--border-color)]/50">
+          <div className="pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {prevLesson ? (
                 <Link
                   href={`/lesson/${prevLesson.id}`}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--card-surface)]/90 hover:bg-[var(--card-hover)] transition-all duration-300 text-left group shadow-xs active:scale-[0.99]"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-[#EBE2CD] dark:bg-[#464646] hover:bg-[#E2D7BE] dark:hover:bg-[#5F5F5F] border border-[var(--border-color)] transition-all duration-300 text-left group shadow-2xs hover:shadow-xs active:scale-[0.98]"
                 >
                   <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:-translate-x-1 transition-transform" />
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-[var(--text-secondary)] block">이전 강좌</span>
+                    <span className="text-[10px] font-bold text-[var(--text-secondary)] block">이전 강의</span>
                     <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate block">
                       {prevLesson.title}
                     </span>
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center">
-                  첫 번째 강좌입니다.
+                <div className="p-4 rounded-2xl bg-[#EBE2CD]/50 dark:bg-[#464646]/50 border border-[var(--border-color)]/50 text-[var(--text-secondary)] text-xs flex items-center">
+                  첫 번째 강의입니다.
                 </div>
               )}
 
               {nextLesson ? (
                 <Link
                   href={`/lesson/${nextLesson.id}`}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card-surface)]/90 hover:bg-[var(--card-hover)] transition-all duration-300 text-right group shadow-xs active:scale-[0.99]"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-[#EBE2CD] dark:bg-[#464646] hover:bg-[#E2D7BE] dark:hover:bg-[#5F5F5F] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/80 transition-all duration-300 text-right group shadow-2xs hover:shadow-md active:scale-[0.98]"
                 >
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-[var(--text-secondary)] block">다음 강좌</span>
+                    <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
                     <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
                       {nextLesson.title}
                     </span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-[var(--accent-orange)] group-hover:translate-x-1 transition-transform" />
+                  <div className="w-8 h-8 rounded-full bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0 ml-2 group-hover:translate-x-1 transition-all">
+                    <ArrowRight className="w-4 h-4 text-[var(--accent-orange)]" />
+                  </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center justify-end">
-                  마지막 강좌입니다.
+                <div className="p-4 rounded-2xl bg-[#EBE2CD]/50 dark:bg-[#464646]/50 border border-[var(--border-color)]/50 text-[var(--text-secondary)] text-xs flex items-center justify-end">
+                  마지막 강의입니다.
                 </div>
               )}
             </div>

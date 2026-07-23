@@ -75,7 +75,7 @@ export default function Accordion({ levels }: AccordionProps) {
                       Lv. {level.levelNumber}
                     </span>
                     <span className="text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] truncate">
-                      {level.badgeText} · {level.lessons.length}개 강좌
+                      {level.badgeText} · {level.lessons.length}개 강의
                     </span>
                   </div>
                   <h3 className={`text-base sm:text-lg font-bold tracking-tight leading-snug truncate transition-colors ${

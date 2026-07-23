@@ -12,7 +12,7 @@ export default function HomePage() {
               커리큘럼
             </h1>
             <span className="text-xs font-mono font-bold bg-[var(--card-surface)] px-3.5 py-1.5 rounded-full text-[var(--text-primary)] shrink-0">
-              총 18개 강좌
+              총 18개 강의
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-1">
