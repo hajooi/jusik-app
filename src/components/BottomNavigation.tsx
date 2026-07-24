@@ -37,7 +37,7 @@ export default function BottomNavigation() {
           {/* Animated Liquid Sliding Pill Highlight with Orange Glow Border */}
           {activeIndex !== -1 && (
             <div 
-              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)] border-2 border-[var(--accent-orange)] transition-transform duration-300 ease-out shadow-sm pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-[var(--accent-orange)] border-2 border-[var(--accent-orange)] transition-transform duration-300 ease-out shadow-md pointer-events-none"
               style={{
                 width: `${100 / navItems.length}%`,
                 left: 0,
@@ -58,7 +58,7 @@ export default function BottomNavigation() {
                 href={item.href}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-[var(--accent-orange)] font-black'
+                    ? 'text-white font-extrabold'
                     : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--accent-orange)]'
                 }`}
               >
@@ -66,7 +66,7 @@ export default function BottomNavigation() {
                   fill={isActive ? 'currentColor' : 'none'} 
                   className={`w-4.5 h-4.5 transition-all duration-300 ${
                     isActive 
-                      ? 'stroke-[2.2px] text-[var(--accent-orange)] scale-105' 
+                      ? 'stroke-[2.2px] text-white scale-105' 
                       : 'stroke-[1.8px]'
                   }`} 
                 />

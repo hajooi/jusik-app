@@ -58,15 +58,15 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     key={lesson.id}
                     href={`/lesson/${lesson.id}`}
                     onClick={handleClose}
-                    className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-200 ${
+                    className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-300 ${
                       isActive
-                        ? 'bg-[var(--accent-orange)] text-white font-extrabold shadow-md scale-[1.02] translate-x-1'
+                        ? 'glass-card border-2 border-[var(--accent-orange)] text-[var(--accent-orange)] font-extrabold shadow-md scale-[1.02] translate-x-1'
                         : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                       isActive 
-                        ? 'bg-white/20 text-white' 
+                        ? 'bg-[var(--accent-orange)] text-white shadow-2xs' 
                         : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/10'
                     }`}>
                       <PlayCircle className="w-4 h-4 stroke-[2.2]" />
@@ -75,7 +75,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     <span className="truncate flex-1">{lesson.title}</span>
 
                     {isActive ? (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white shrink-0 font-mono">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
                         학습 중
                       </span>
                     ) : (
