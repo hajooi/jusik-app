@@ -7,9 +7,16 @@ export const metadata: Metadata = {
   description: '주식 초보를 위한 에듀테크/핀테크 플랫폼',
   keywords: ['jusik.app', '주식부엉', '주식 초보', '주식 설명서', '자산배분', '투자 커리큘럼'],
   icons: {
-    icon: '/icon.png',
-    shortcut: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: ['/favicon.ico', '/icon.png'],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   openGraph: {
     title: 'jusik.app',
