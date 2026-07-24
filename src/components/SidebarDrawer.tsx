@@ -78,10 +78,10 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                   >
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                       isActive 
-                        ? 'bg-[var(--accent-orange)] text-white shadow-xs' 
+                        ? 'bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-bold' 
                         : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/10'
                     }`}>
-                      <PlayCircle className="w-4 h-4 stroke-[2.2]" />
+                      <PlayCircle className="w-4 h-4 stroke-[2]" />
                     </div>
 
                     <span className="truncate flex-1">{lesson.title}</span>

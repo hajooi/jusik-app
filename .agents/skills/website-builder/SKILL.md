@@ -36,13 +36,15 @@ Always use predefined CSS variables from `src/app/globals.css`:
   - Active Icons: Solid Filled (`fill="currentColor"`, `stroke-[2.2px]`).
   - Inactive Icons: Outline (`stroke-[1.8px]`, `fill="none"`).
 
-### 4. Modern Refined Liquid Glassmorphism (Apple HIG & M3 Polish)
+### 4. Modern Refined Liquid Glassmorphism (De-boxing & Minimal Layout)
+- **De-boxed Clean Headers**: Top hero banners (`/` and `/tools`) use clean left-aligned typography directly on page background without heavy background box containers.
+- **De-boxed Lesson Page**: Remove outer box containers around lesson modules. Guide steps use clean article-style layout with soft translucent vertical guide line (`border-[var(--border-color)]`).
 - **Delicate 1px Glass Borders**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`, translucent 0.04 opacity) to prevent heavy boxy frames.
 - **Corner Radius**: Keep card corner radius compact (`rounded-2xl` / `16px~18px`) to avoid bulky rounded boxes.
 - **Backdrop Blur & Surface**: High-vibrancy glassmorphism (`backdrop-filter: blur(20px)` + translucent surface).
 - **Typography & Density**: Apply tight negative letter-spacing (`tracking-[-0.025em]`) and slim font-weights (`font-semibold`) on main titles.
+- **Soft Icon Highlights**: Hover/Active play icon states use subtle translucent orange tint (`bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]`) rather than solid heavy orange fill.
 - **Bottom Navigation**: Glowing orange border pill highlight (`border-[rgba(241,143,1,0.45)]`) for active tab button.
-- **Curriculum Accordion**: Single-row layout with icon & title only. Right accordion indicator uses a clean minimal chevron without heavy circle container background.
 
 ### 5. Key Components
 - `Navbar.tsx`: Centered brand header with popover menu.

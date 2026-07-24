@@ -58,22 +58,18 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
         {/* Main Content Column */}
         <div className="space-y-6 min-w-0">
           
-          {/* Header Info */}
-          <div className="space-y-2 pb-2">
+          {/* Modern Minimal Header Info */}
+          <div className="space-y-1.5 pb-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] font-mono">
-                Lv. {level.levelNumber} - {level.badgeText}
-              </span>
-              <span className="flex items-center gap-1 text-xs text-[var(--text-secondary)] glass-card px-2.5 py-1 rounded-full font-mono shadow-2xs">
-                <Clock className="w-3.5 h-3.5" />
-                {lesson.duration}
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono">
+                Lv. {level.levelNumber}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
               {lesson.title}
             </h1>
             {lesson.subtitle && (
-              <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
                 {lesson.subtitle}
               </p>
             )}
@@ -95,14 +91,14 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="glass-card p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xs"
+                      className="space-y-4 py-2"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="p-1.5 rounded-xl bg-[var(--accent-green)]/15 text-[var(--accent-green)]">
                             <BookOpen className="w-4.5 h-4.5 stroke-[1.7]" />
                           </span>
-                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                         </div>
@@ -113,21 +109,21 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                         )}
                       </div>
 
-                      {/* Step Cards Stack */}
-                      <div className="space-y-3 pt-1">
+                      {/* Pure Article Style Step Stack with Soft Translucent Accent Line */}
+                      <div className="space-y-4 pt-1 pl-2 border-l border-[var(--border-color)] ml-2">
                         {module.steps.map((step) => (
                           <div 
                             key={step.stepNumber}
-                            className="bg-[var(--bg-main)]/60 backdrop-blur-md p-4 sm:p-4.5 rounded-xl flex items-start gap-3.5 border border-[var(--border-color)] shadow-2xs"
+                            className="flex items-start gap-3.5 pl-2"
                           >
-                            <div className="w-6 h-6 rounded-lg bg-[var(--accent-green)] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono shadow-2xs mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] flex items-center justify-center font-bold text-xs shrink-0 font-mono mt-0.5">
                               {step.stepNumber}
                             </div>
                             <div className="space-y-1 min-w-0 flex-1">
-                              <h4 className="text-sm font-bold text-[var(--text-primary)]">
+                              <h4 className="text-base font-bold text-[var(--text-primary)]">
                                 {step.title}
                               </h4>
-                              <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
+                              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
                                 {step.description}
                               </p>
                             </div>
@@ -142,14 +138,14 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="glass-card p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xs"
+                      className="space-y-4 py-2"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                             <ExternalLink className="w-4.5 h-4.5 stroke-[1.7]" />
                           </span>
-                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                         </div>
@@ -161,7 +157,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                       </div>
 
                       {/* Resource Links Stack */}
-                      <div className="space-y-2.5 pt-1">
+                      <div className="space-y-2 pt-1">
                         {module.links.map((link, linkIdx) => {
                           const isExt = link.url.startsWith('http');
                           return (
@@ -174,7 +170,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                             >
                               <div className="space-y-0.5 min-w-0 flex-1 pr-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
+                                  <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
                                     {link.label}
                                   </span>
                                 </div>
@@ -199,7 +195,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4"
+                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2"
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       
@@ -210,7 +206,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               {module.badge}
                             </span>
                           )}
-                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                          <h3 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
@@ -249,13 +245,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             </div>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="pt-2">
+          {/* Navigation Buttons - Clean Modern Floating Cards */}
+          <div className="pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {prevLesson ? (
                 <Link
                   href={`/lesson/${prevLesson.id}`}
-                  className="flex items-center gap-3 p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 text-left group shadow-2xs active:scale-[0.98]"
+                  className="flex items-center gap-3 p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-left group shadow-2xs active:scale-[0.98]"
                 >
                   <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:-translate-x-1 transition-all" />
                   <div className="min-w-0 flex-1">
@@ -266,7 +262,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center">
+                <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center">
                   첫 번째 강의입니다.
                 </div>
               )}
@@ -274,7 +270,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {nextLesson ? (
                 <Link
                   href={`/lesson/${nextLesson.id}`}
-                  className="flex items-center justify-between p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 text-right group shadow-2xs active:scale-[0.98]"
+                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-right group shadow-2xs active:scale-[0.98]"
                 >
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
@@ -282,12 +278,12 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                       {nextLesson.title}
                     </span>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0 ml-2 group-hover:translate-x-1 transition-all">
+                  <div className="w-7 h-7 rounded-full bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0 ml-2 group-hover:translate-x-1 transition-all">
                     <ArrowRight className="w-4 h-4 text-[var(--accent-orange)]" />
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center justify-end">
+                <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center justify-end">
                   마지막 강의입니다.
                 </div>
               )}
