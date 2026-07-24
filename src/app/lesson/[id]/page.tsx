@@ -95,14 +95,14 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm"
+                      className="glass-card p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xs"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="p-1.5 rounded-xl bg-[var(--accent-green)]/15 text-[var(--accent-green)]">
-                            <BookOpen className="w-4.5 h-4.5" />
+                            <BookOpen className="w-4.5 h-4.5 stroke-[1.7]" />
                           </span>
-                          <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
+                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                         </div>
@@ -118,9 +118,9 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                         {module.steps.map((step) => (
                           <div 
                             key={step.stepNumber}
-                            className="bg-[var(--bg-main)]/60 backdrop-blur-md p-4 sm:p-4.5 rounded-2xl flex items-start gap-3.5 border border-[var(--border-color)] shadow-2xs"
+                            className="bg-[var(--bg-main)]/60 backdrop-blur-md p-4 sm:p-4.5 rounded-xl flex items-start gap-3.5 border border-[var(--border-color)] shadow-2xs"
                           >
-                            <div className="w-7 h-7 rounded-xl bg-[var(--accent-green)] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono shadow-xs mt-0.5">
+                            <div className="w-6 h-6 rounded-lg bg-[var(--accent-green)] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono shadow-2xs mt-0.5">
                               {step.stepNumber}
                             </div>
                             <div className="space-y-1 min-w-0 flex-1">
@@ -142,14 +142,14 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm"
+                      className="glass-card p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xs"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                            <ExternalLink className="w-4.5 h-4.5" />
+                            <ExternalLink className="w-4.5 h-4.5 stroke-[1.7]" />
                           </span>
-                          <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
+                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                         </div>
@@ -170,7 +170,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               href={link.url}
                               target={isExt ? '_blank' : '_self'}
                               rel={isExt ? 'noopener noreferrer' : undefined}
-                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 shadow-2xs active:scale-[0.99]"
+                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 shadow-2xs active:scale-[0.99]"
                             >
                               <div className="space-y-0.5 min-w-0 flex-1 pr-3">
                                 <div className="flex items-center gap-2">
@@ -184,8 +184,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                                   </p>
                                 )}
                               </div>
-                              <div className="w-7 h-7 rounded-full bg-[var(--card-surface)] group-hover:bg-[var(--accent-orange)] text-[var(--text-secondary)] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                                <ExternalLink className="w-3.5 h-3.5" />
+                              <div className="w-6 h-6 rounded-full bg-[var(--card-surface)] group-hover:bg-[var(--accent-orange)] text-[var(--text-secondary)] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                                <ExternalLink className="w-3.5 h-3.5 stroke-[1.7]" />
                               </div>
                             </a>
                           );
@@ -199,7 +199,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="relative overflow-hidden glass-card p-6 sm:p-7 rounded-3xl shadow-sm space-y-4"
+                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4"
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       
@@ -210,7 +210,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               {module.badge}
                             </span>
                           )}
-                          <h3 className="text-base sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
+                          <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
                             {module.title}
                           </h3>
                           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
@@ -224,18 +224,18 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               href={module.buttonUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-extrabold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-3 rounded-full transition-all shadow-md"
+                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
                             >
                               {module.buttonText}
-                              <ExternalLink className="w-4 h-4" />
+                              <ExternalLink className="w-4 h-4 stroke-[1.7]" />
                             </a>
                           ) : (
                             <Link
                               href={module.buttonUrl}
-                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-extrabold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-3 rounded-full transition-all shadow-md"
+                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
                             >
                               {module.buttonText}
-                              <ArrowRight className="w-4 h-4" />
+                              <ArrowRight className="w-4 h-4 stroke-[1.7]" />
                             </Link>
                           )}
                         </div>

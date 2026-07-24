@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Youtube, Mail, Check } from 'lucide-react';
 
 export default function Navbar() {
@@ -74,19 +73,12 @@ export default function Navbar() {
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14 sm:h-16">
           
-          {/* Left: Brand Name & Logo */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden bg-[#353535] shrink-0 group-hover:scale-105 transition-transform relative">
-                <Image 
-                  src="/logo.png" 
-                  alt="jusik.app logo" 
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-cover rounded-full"
-                  priority
-                />
-              </div>
+          {/* Left: Spacer to keep title centered */}
+          <div className="w-16 sm:w-20" />
+
+          {/* Center: Brand Name */}
+          <div className="flex items-center justify-center">
+            <Link href="/" className="flex items-center group">
               <span className="text-xl sm:text-2xl font-black tracking-tight font-mono text-[var(--text-primary)]">
                 jusik.app
               </span>

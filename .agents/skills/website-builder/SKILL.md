@@ -23,20 +23,31 @@ Always use predefined CSS variables from `src/app/globals.css`:
 - `--text-secondary`: Slate Grey (`#5F5F5F`) in Light / Dark Beige (`#C2BAA6`) in Dark
 - Primary Brand Accent: Light/Dark Green (`#24613B`, `#8FBF9F`) & Signature Orange (`#F18F01`)
 
-### 3. Navigation & Layout
+### 3. Header & Navigation Layout
+- **Navbar Header**:
+  - No top-left logo image; title `jusik.app` is clean and centered in the header.
+  - Dropdown popover menu on the right ("by 주식부엉").
+- **Hero Banners (Curriculum & Tools)**:
+  - Title and sub-description text are preserved and left-aligned (`"초보자도 쉽게 따라 하는 단계별 주식 강좌입니다."`).
+  - Total item count badges (e.g. `총 4개 강의`, `1개 모듈`) are removed for a cleaner minimal look.
 - **Bottom Navigation**:
   - Keep 2 fixed tabs: 커리큘럼 (`/`), 투자도구 (`/tools`).
   - Active Tab Style: Pure White (`text-white`) in Dark Mode / Charcoal (`text-neutral-900`) in Light Mode.
   - Active Icons: Solid Filled (`fill="currentColor"`, `stroke-[2.2px]`).
   - Inactive Icons: Outline (`stroke-[1.8px]`, `fill="none"`).
-- **Header & Cards**:
-  - Glassmorphism design system (`backdrop-blur-md bg-[var(--card-surface)]/90 border border-[var(--border-color)]/20 shadow-sm`).
-  - Unified across main curriculum page, lesson detail pages (modules & next/prev buttons), and navigation elements.
 
-### 4. Key Components
+### 4. Modern Refined Liquid Glassmorphism (Minimal UI Polish)
+- **Delicate 1px Glass Borders**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`, translucent 0.08 opacity) to prevent heavy boxy frames.
+- **Corner Radius**: Keep card corner radius compact (`rounded-2xl` / `16px~18px`) to avoid bulky rounded boxes.
+- **Icon Containers**: Prefer subtle transparent background or light tint for icons (`stroke-[1.5~1.8]`) without solid heavy square background fill.
+- **Typography & Spacing**: Apply negative letter-spacing (`tracking-[-0.02em]`) and slim font-weights (`font-semibold`) on main titles.
+- **Curriculum Accordion**: Display level title with icon only—do NOT bloat accordion rows with redundant level badges or lesson count tags.
+
+### 5. Key Components
+- `Navbar.tsx`: Centered brand header with popover menu.
 - `BottomNavigation.tsx`: Mobile fixed 2-tab navigation bar.
 - `VideoCoverPlayer.tsx`: Custom M3-styled cover overlay player with owl logo and play button.
-- `Accordion.tsx`: Main curriculum accordion & Table of contents drawer.
+- `Accordion.tsx`: Clean, single-row curriculum accordion.
 
 ### 5. Development & Verification Workflow
 - Ensure TypeScript compilation passes: `npx tsc --noEmit`.

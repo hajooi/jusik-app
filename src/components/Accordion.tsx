@@ -47,49 +47,35 @@ export default function Accordion({ levels }: AccordionProps) {
         return (
           <div
             key={level.id}
-            className={`rounded-3xl overflow-hidden transition-all duration-300 glass-card ${
+            className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
               isOpen 
-                ? 'ring-2 ring-[var(--accent-orange)] shadow-lg' 
-                : 'glass-card-hover shadow-xs'
+                ? 'ring-1 ring-[var(--accent-orange)]/60 shadow-md' 
+                : 'glass-card-hover shadow-2xs'
             }`}
           >
             {/* Header / Accordion Button */}
             <button
               onClick={() => toggleLevel(level.id, level.isComingSoon)}
-              className={`group/btn w-full px-4 py-4 sm:px-6 sm:py-5 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
+              className={`group/btn w-full px-4 py-3.5 sm:px-5 sm:py-4 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
                 level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
               }`}
             >
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                {/* Level Icon Container - No static borders */}
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-300 ${
+              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                {/* Level Icon Container - Transparent background with sleek thin icon */}
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                   isOpen 
-                    ? 'bg-[var(--accent-orange)] text-white shadow-xs scale-105' 
-                    : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] group-hover/btn:bg-[var(--accent-orange)]/10'
+                    ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105' 
+                    : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
                 }`}>
-                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <IconComponent className="w-5 h-5 sm:w-5 sm:h-5 stroke-[1.7]" />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className={`text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full font-mono transition-colors ${
-                      level.isComingSoon 
-                        ? 'bg-[var(--text-secondary)]/20 text-[var(--text-secondary)]'
-                        : isOpen 
-                        ? 'bg-[var(--accent-orange)] text-white font-bold' 
-                        : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold'
-                    }`}>
-                      Lv. {level.levelNumber}
-                    </span>
-                    <span className="text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] truncate">
-                      {level.isComingSoon ? '오픈 예정' : `${level.lessons.length}개 강의`}
-                    </span>
-                  </div>
-                  <h3 className={`text-base sm:text-lg font-bold tracking-tight leading-snug truncate transition-colors ${
+                  <h3 className={`text-base sm:text-lg font-semibold tracking-[-0.02em] leading-snug truncate transition-colors ${
                     level.isComingSoon 
                       ? 'text-[var(--text-secondary)]' 
                       : isOpen 
-                      ? 'text-[var(--accent-orange)]' 
+                      ? 'text-[var(--accent-orange)] font-bold' 
                       : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
                   }`}>
                     {level.title}
@@ -99,14 +85,14 @@ export default function Accordion({ levels }: AccordionProps) {
 
               {/* Status Indicator: Coming Soon Badge or Arrow */}
               {level.isComingSoon ? (
-                <span className="text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-mono shrink-0">
+                <span className="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-mono shrink-0">
                   COMING SOON
                 </span>
               ) : (
-                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform duration-300 shrink-0 ${
-                  isOpen ? 'rotate-180 text-[var(--accent-orange)] bg-[var(--accent-orange)]/15' : 'text-[var(--text-secondary)] bg-[var(--bg-main)] group-hover/btn:text-[var(--accent-orange)]'
+                <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-transform duration-300 shrink-0 ${
+                  isOpen ? 'rotate-180 text-[var(--accent-orange)] bg-[var(--accent-orange)]/15' : 'text-[var(--text-secondary)] opacity-60 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
                 }`}>
-                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronDown className="w-4 h-4" />
                 </div>
               )}
             </button>
