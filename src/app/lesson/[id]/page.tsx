@@ -47,7 +47,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
         <Link 
           href="/" 
-          className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors bg-[var(--card-surface)]/90 backdrop-blur-md px-3.5 py-2 rounded-full shadow-2xs border border-[var(--border-color)]/30 active:scale-95"
+          className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
           홈으로 돌아가기
@@ -64,7 +64,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] font-mono">
                 Lv. {level.levelNumber} - {level.badgeText}
               </span>
-              <span className="flex items-center gap-1 text-xs text-[var(--text-secondary)] bg-[var(--card-surface)]/90 backdrop-blur-md px-2.5 py-1 rounded-full font-mono shadow-2xs">
+              <span className="flex items-center gap-1 text-xs text-[var(--text-secondary)] glass-card px-2.5 py-1 rounded-full font-mono shadow-2xs">
                 <Clock className="w-3.5 h-3.5" />
                 {lesson.duration}
               </span>
@@ -95,7 +95,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm border border-[var(--border-color)]/20"
+                      className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                         {module.steps.map((step) => (
                           <div 
                             key={step.stepNumber}
-                            className="bg-[var(--bg-main)] p-4 sm:p-4.5 rounded-2xl flex items-start gap-3.5 shadow-2xs"
+                            className="bg-[var(--bg-main)]/60 backdrop-blur-md p-4 sm:p-4.5 rounded-2xl flex items-start gap-3.5 border border-[var(--border-color)] shadow-2xs"
                           >
                             <div className="w-7 h-7 rounded-xl bg-[var(--accent-green)] text-white flex items-center justify-center font-bold text-xs shrink-0 font-mono shadow-xs mt-0.5">
                               {step.stepNumber}
@@ -142,7 +142,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm border border-[var(--border-color)]/20"
+                      className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               href={link.url}
                               target={isExt ? '_blank' : '_self'}
                               rel={isExt ? 'noopener noreferrer' : undefined}
-                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)] hover:bg-[var(--card-hover)] transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-[0.99]"
+                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 shadow-2xs active:scale-[0.99]"
                             >
                               <div className="space-y-0.5 min-w-0 flex-1 pr-3">
                                 <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="relative overflow-hidden bg-[var(--card-surface)]/90 backdrop-blur-md p-6 sm:p-7 rounded-3xl shadow-sm border border-[var(--border-color)]/20 space-y-4"
+                      className="relative overflow-hidden glass-card p-6 sm:p-7 rounded-3xl shadow-sm space-y-4"
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       
@@ -255,18 +255,18 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {prevLesson ? (
                 <Link
                   href={`/lesson/${prevLesson.id}`}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md hover:bg-[var(--card-hover)] transition-all duration-300 text-left group shadow-2xs hover:shadow-xs active:scale-[0.98] border border-[var(--border-color)]/20"
+                  className="flex items-center gap-3 p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 text-left group shadow-2xs active:scale-[0.98]"
                 >
-                  <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:-translate-x-1 transition-transform" />
+                  <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:-translate-x-1 transition-all" />
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-bold text-[var(--text-secondary)] block">이전 강의</span>
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate block">
+                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
                       {prevLesson.title}
                     </span>
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center border border-[var(--border-color)]/10">
+                <div className="p-4 rounded-2xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center">
                   첫 번째 강의입니다.
                 </div>
               )}
@@ -274,7 +274,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {nextLesson ? (
                 <Link
                   href={`/lesson/${nextLesson.id}`}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md hover:bg-[var(--card-hover)] transition-all duration-300 text-right group shadow-2xs hover:shadow-sm active:scale-[0.98] border border-[var(--border-color)]/20"
+                  className="flex items-center justify-between p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 text-right group shadow-2xs active:scale-[0.98]"
                 >
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
@@ -287,7 +287,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center justify-end border border-[var(--border-color)]/10">
+                <div className="p-4 rounded-2xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center justify-end">
                   마지막 강의입니다.
                 </div>
               )}
