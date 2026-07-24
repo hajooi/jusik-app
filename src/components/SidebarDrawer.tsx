@@ -116,7 +116,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
       {/* Left Slide-over Modal with Backdrop Blur Overlay (z-[100] covers bottom nav) */}
       {(isMobileOpen || isClosing) && (
-        <div className={`fixed inset-0 z-[100] flex justify-start bg-black/40 backdrop-blur-sm ${
+        <div className={`fixed inset-0 z-[100] flex justify-start bg-black/15 backdrop-blur-[2px] ${
           isClosing ? 'animate-fade-out-overlay' : 'animate-fade-in-overlay'
         }`}>
           {/* Backdrop Overlay Click to Close */}
@@ -125,8 +125,8 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
             onClick={() => handleClose()} 
           />
 
-          {/* Sliding Panel with Smooth Side Animation & Brand Base Cream Surface */}
-          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)]/95 backdrop-blur-xl border-r border-[var(--border-color)] h-full p-5 shadow-2xl overflow-y-auto ${
+          {/* Sliding Panel with Smooth Side Animation & Pure Brand Base Cream Surface */}
+          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)] border-r border-[var(--border-color)] h-full p-5 shadow-2xl overflow-y-auto ${
             isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
           }`}>
             {renderContent()}
