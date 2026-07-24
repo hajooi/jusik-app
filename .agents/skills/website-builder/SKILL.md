@@ -25,16 +25,18 @@ Always use predefined CSS variables from `src/app/globals.css`:
 
 ### 3. Navigation & Layout
 - **Bottom Navigation**:
-  - Keep 3 fixed tabs: 커리큘럼 (`/`), 투자도구 (`/tools`), 마이페이지 (`/profile`).
+  - Keep 2 fixed tabs: 커리큘럼 (`/`), 투자도구 (`/tools`).
   - Active Tab Style: Pure White (`text-white`) in Dark Mode / Charcoal (`text-neutral-900`) in Light Mode.
   - Active Icons: Solid Filled (`fill="currentColor"`, `stroke-[2.2px]`).
   - Inactive Icons: Outline (`stroke-[1.8px]`, `fill="none"`).
-- **Header**: Minimal glassmorphism (`backdrop-blur-md bg-[var(--bg-main)]/80`).
+- **Header & Cards**:
+  - Glassmorphism design system (`backdrop-blur-md bg-[var(--card-surface)]/90 border border-[var(--border-color)]/20 shadow-sm`).
+  - Unified across main curriculum page, lesson detail pages (modules & next/prev buttons), and navigation elements.
 
 ### 4. Key Components
-- `BottomNavigation.tsx`: Mobile fixed tab navigation bar.
-- `YouTubePlayerCover.tsx`: Custom cover overlay player with owl logo and play button.
-- `Accordion.tsx`: Curriculum drawer / table of contents drawer with smooth animations.
+- `BottomNavigation.tsx`: Mobile fixed 2-tab navigation bar.
+- `VideoCoverPlayer.tsx`: Custom M3-styled cover overlay player with owl logo and play button.
+- `Accordion.tsx`: Main curriculum accordion & Table of contents drawer.
 
 ### 5. Development & Verification Workflow
 - Ensure TypeScript compilation passes: `npx tsc --noEmit`.

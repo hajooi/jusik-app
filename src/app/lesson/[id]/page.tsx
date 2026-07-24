@@ -47,7 +47,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
         <Link 
           href="/" 
-          className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors bg-[var(--card-surface)]/90 backdrop-blur-md px-3.5 py-2 rounded-full shadow-2xs"
+          className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors bg-[var(--card-surface)]/90 backdrop-blur-md px-3.5 py-2 rounded-full shadow-2xs border border-[var(--border-color)]/30 active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
           홈으로 돌아가기
@@ -95,7 +95,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-md"
+                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm border border-[var(--border-color)]/20"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-md"
+                      className="bg-[var(--card-surface)]/90 backdrop-blur-md p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm border border-[var(--border-color)]/20"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="relative overflow-hidden bg-gradient-to-br from-[var(--card-surface)] via-[var(--bg-main)] to-[var(--card-surface)] p-6 sm:p-7 rounded-3xl shadow-lg space-y-4"
+                      className="relative overflow-hidden bg-[var(--card-surface)]/90 backdrop-blur-md p-6 sm:p-7 rounded-3xl shadow-sm border border-[var(--border-color)]/20 space-y-4"
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       
@@ -255,7 +255,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {prevLesson ? (
                 <Link
                   href={`/lesson/${prevLesson.id}`}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-[#EBE2CD] dark:bg-[#464646] hover:bg-[#E2D7BE] dark:hover:bg-[#5F5F5F] transition-all duration-300 text-left group shadow-2xs hover:shadow-xs active:scale-[0.98]"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md hover:bg-[var(--card-hover)] transition-all duration-300 text-left group shadow-2xs hover:shadow-xs active:scale-[0.98] border border-[var(--border-color)]/20"
                 >
                   <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:-translate-x-1 transition-transform" />
                   <div className="min-w-0 flex-1">
@@ -266,7 +266,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[#EBE2CD]/50 dark:bg-[#464646]/50 text-[var(--text-secondary)] text-xs flex items-center">
+                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center border border-[var(--border-color)]/10">
                   첫 번째 강의입니다.
                 </div>
               )}
@@ -274,7 +274,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {nextLesson ? (
                 <Link
                   href={`/lesson/${nextLesson.id}`}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[#EBE2CD] dark:bg-[#464646] hover:bg-[#E2D7BE] dark:hover:bg-[#5F5F5F] transition-all duration-300 text-right group shadow-2xs hover:shadow-md active:scale-[0.98]"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md hover:bg-[var(--card-hover)] transition-all duration-300 text-right group shadow-2xs hover:shadow-sm active:scale-[0.98] border border-[var(--border-color)]/20"
                 >
                   <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
@@ -287,7 +287,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   </div>
                 </Link>
               ) : (
-                <div className="p-4 rounded-2xl bg-[#EBE2CD]/50 dark:bg-[#464646]/50 text-[var(--text-secondary)] text-xs flex items-center justify-end">
+                <div className="p-4 rounded-2xl bg-[var(--card-surface)]/50 text-[var(--text-secondary)] text-xs flex items-center justify-end border border-[var(--border-color)]/10">
                   마지막 강의입니다.
                 </div>
               )}
