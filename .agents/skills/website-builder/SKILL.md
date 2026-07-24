@@ -36,16 +36,17 @@ Always use predefined CSS variables from `src/app/globals.css`:
   - Active Icons: Solid Filled (`fill="currentColor"`, `stroke-[2.2px]`).
   - Inactive Icons: Outline (`stroke-[1.8px]`, `fill="none"`).
 
-### 4. Modern Refined Liquid Glassmorphism (Minimal UI Polish)
-- **Delicate 1px Glass Borders**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`, translucent 0.08 opacity) to prevent heavy boxy frames.
+### 4. Modern Refined Liquid Glassmorphism (Apple HIG & M3 Polish)
+- **Delicate 1px Glass Borders**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`, translucent 0.04 opacity) to prevent heavy boxy frames.
 - **Corner Radius**: Keep card corner radius compact (`rounded-2xl` / `16px~18px`) to avoid bulky rounded boxes.
-- **Icon Containers**: Prefer subtle transparent background or light tint for icons (`stroke-[1.5~1.8]`) without solid heavy square background fill.
-- **Typography & Spacing**: Apply negative letter-spacing (`tracking-[-0.02em]`) and slim font-weights (`font-semibold`) on main titles.
-- **Curriculum Accordion**: Display level title with icon only—do NOT bloat accordion rows with redundant level badges or lesson count tags.
+- **Backdrop Blur & Surface**: High-vibrancy glassmorphism (`backdrop-filter: blur(20px)` + translucent surface).
+- **Typography & Density**: Apply tight negative letter-spacing (`tracking-[-0.025em]`) and slim font-weights (`font-semibold`) on main titles.
+- **Bottom Navigation**: Glowing orange border pill highlight (`border-[rgba(241,143,1,0.45)]`) for active tab button.
+- **Curriculum Accordion**: Single-row layout with icon & title only. Right accordion indicator uses a clean minimal chevron without heavy circle container background.
 
 ### 5. Key Components
 - `Navbar.tsx`: Centered brand header with popover menu.
-- `BottomNavigation.tsx`: Mobile fixed 2-tab navigation bar.
+- `BottomNavigation.tsx`: Mobile fixed 2-tab navigation bar with glowing active pill.
 - `VideoCoverPlayer.tsx`: Custom M3-styled cover overlay player with owl logo and play button.
 - `Accordion.tsx`: Clean, single-row curriculum accordion.
 

@@ -83,16 +83,16 @@ export default function Accordion({ levels }: AccordionProps) {
                 </div>
               </div>
 
-              {/* Status Indicator: Crisp High-Contrast COMING SOON Badge */}
+              {/* Status Indicator: Coming Soon Badge or Clean Minimal Arrow */}
               {level.isComingSoon ? (
                 <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider shrink-0 border border-[var(--border-color)]">
                   COMING SOON
                 </span>
               ) : (
-                <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-transform duration-300 shrink-0 ${
-                  isOpen ? 'rotate-180 text-[var(--accent-orange)] bg-[var(--accent-orange)]/15' : 'text-[var(--text-secondary)] opacity-60 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
+                <div className={`transition-transform duration-300 shrink-0 ${
+                  isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
                 }`}>
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-5 h-5 stroke-[1.8]" />
                 </div>
               )}
             </button>
