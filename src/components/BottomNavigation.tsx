@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Wrench, User } from 'lucide-react';
+import { BookOpen, Wrench } from 'lucide-react';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
@@ -20,12 +20,6 @@ export default function BottomNavigation() {
       icon: Wrench,
       exact: false,
     },
-    {
-      label: '마이페이지',
-      href: '/profile',
-      icon: User,
-      exact: false,
-    },
   ];
 
   // Active tab index for animated sliding pill effect
@@ -37,7 +31,7 @@ export default function BottomNavigation() {
     <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
       <nav 
         aria-label="하단 내비게이션"
-        className="pointer-events-auto w-full max-w-sm sm:max-w-md bg-[var(--card-surface)]/90 backdrop-blur-xl rounded-full p-1.5 shadow-lg transition-all duration-300 relative overflow-hidden"
+        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--card-surface)]/90 backdrop-blur-xl rounded-full p-1.5 shadow-lg transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight */}

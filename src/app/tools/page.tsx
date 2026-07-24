@@ -40,7 +40,7 @@ export default function ToolsPage() {
             return (
               <div
                 key={idx}
-                className="bg-[var(--card-surface)]/70 p-6 rounded-3xl flex flex-col justify-between opacity-80 cursor-not-allowed shadow-xs relative overflow-hidden"
+                className="glass-card p-6 rounded-3xl flex flex-col justify-between opacity-85 cursor-not-allowed shadow-xs relative overflow-hidden"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -72,7 +72,7 @@ export default function ToolsPage() {
             <Link
               key={idx}
               href={tool.href}
-              className="bg-[var(--card-surface)] p-6 rounded-3xl flex flex-col justify-between hover:bg-[var(--card-hover)] transition-all duration-300 group shadow-xs hover:shadow-md active:scale-[0.99]"
+              className="glass-card glass-card-hover p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 group shadow-xs hover:shadow-md active:scale-[0.99]"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

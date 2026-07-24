@@ -47,10 +47,10 @@ export default function Accordion({ levels }: AccordionProps) {
         return (
           <div
             key={level.id}
-            className={`rounded-3xl overflow-hidden transition-all duration-300 bg-[var(--card-surface)] ${
+            className={`rounded-3xl overflow-hidden transition-all duration-300 glass-card ${
               isOpen 
-                ? 'ring-2 ring-[var(--accent-orange)] shadow-md' 
-                : 'hover:bg-[var(--card-hover)] shadow-xs'
+                ? 'ring-2 ring-[var(--accent-orange)] shadow-lg' 
+                : 'glass-card-hover shadow-xs'
             }`}
           >
             {/* Header / Accordion Button */}
@@ -119,12 +119,12 @@ export default function Accordion({ levels }: AccordionProps) {
             >
               <div className="overflow-hidden bg-[var(--card-hover)]/30">
                 <div className="p-3 sm:p-5 space-y-2">
-                  {level.lessons.map((lesson) => (
-                    <Link
-                      key={lesson.id}
-                      href={`/lesson/${lesson.id}`}
-                      className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl bg-[var(--bg-main)] hover:bg-[var(--card-hover)] transition-all duration-300 shadow-2xs hover:shadow-xs active:scale-[0.98]"
-                    >
+                    {level.lessons.map((lesson) => (
+                      <Link
+                        key={lesson.id}
+                        href={`/lesson/${lesson.id}`}
+                        className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 backdrop-blur-md border border-[var(--border-color)] hover:bg-[var(--card-hover)] transition-all duration-300 shadow-2xs hover:shadow-xs active:scale-[0.98]"
+                      >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors shrink-0">
                           <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6" />

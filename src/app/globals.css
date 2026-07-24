@@ -5,29 +5,35 @@
 @layer base {
   :root {
     --bg-main: #F5ECD7;        /* Base Cream Page Background */
-    --card-surface: #EBE2CD;   /* Soft Beige Card & Button Surface */
-    --card-hover: #E2D7BE;     /* Darker Soft Beige Hover Surface */
-    --border-color: transparent; /* No Visible Borders */
+    --card-surface: rgba(235, 226, 205, 0.65);   /* Soft Glass Surface */
+    --card-hover: rgba(226, 215, 190, 0.85);     /* Darker Soft Glass Hover */
+    --border-color: rgba(131, 53, 0, 0.1);      /* Subtle Glass Border (Deep Brown tint) */
+    --border-highlight: rgba(255, 255, 255, 0.5); /* Top border highlight */
     --text-primary: #353535;   /* Charcoal Text */
     --text-secondary: #5F5F5F; /* Slate Grey Text */
     --accent-green: #24613B;   /* Dark Green */
     --accent-mid-green: #68A67D; /* Mid Green */
     --accent-orange: #F18F01;  /* Signature Orange */
     --accent-deep-brown: #833500; /* Deep Brown */
+    --glow-color: rgba(241, 143, 1, 0.15); /* Orange Glow in Light Mode */
+    --glow-color-secondary: rgba(104, 166, 125, 0.18); /* Green Secondary Glow */
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-main: #353535;        /* Charcoal Dark Page Background */
-      --card-surface: #464646;   /* Slate Card Surface */
-      --card-hover: #5F5F5F;     /* Slate Hover Surface */
-      --border-color: transparent; /* No Visible Borders */
+      --bg-main: #2A2A2A;        /* Deep Charcoal Dark Background */
+      --card-surface: rgba(53, 53, 53, 0.55);   /* Dark Glass Surface */
+      --card-hover: rgba(70, 70, 70, 0.75);     /* Slate Glass Hover */
+      --border-color: rgba(255, 255, 255, 0.08); /* Fine Glass Border */
+      --border-highlight: rgba(255, 255, 255, 0.12);
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
       --accent-green: #8FBF9F;   /* Light Green */
       --accent-mid-green: #68A67D; /* Mid Green */
       --accent-orange: #F18F01;  /* Signature Orange */
       --accent-deep-brown: #833500; /* Deep Brown */
+      --glow-color: rgba(241, 143, 1, 0.22); /* Signature Orange Radial Glow */
+      --glow-color-secondary: rgba(104, 166, 125, 0.15); /* Mid Green Glow */
     }
   }
 
@@ -36,15 +42,20 @@
     color: var(--text-primary);
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     transition: background-color 0.25s ease, color 0.25s ease;
+    position: relative;
+    overflow-x: hidden;
   }
 }
 
-/* Material Design 3 Surface & Utility Tokens */
+/* Material Design 3 & AI SaaS Glassmorphism Utility Tokens */
 .m3-card {
   background-color: var(--card-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  border-radius: 1rem; /* rounded-2xl */
+  border-radius: 1.5rem; /* rounded-3xl */
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
 }
 
 .m3-card-hover:hover {
@@ -132,6 +143,38 @@ html {
   }
 }
 
+@keyframes popoverExpand {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popoverShrink {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.85) translateY(-8px);
+  }
+}
+
+.animate-popover-expand {
+  animation: popoverExpand 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top right;
+}
+
+.animate-popover-shrink {
+  animation: popoverShrink 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top right;
+}
+
 .animate-slide-in-left {
   animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -152,6 +195,24 @@ html {
   background: linear-gradient(-45deg, rgba(241, 143, 1, 0.12), rgba(104, 166, 125, 0.12), rgba(36, 97, 59, 0.1), rgba(235, 226, 205, 0.2));
   background-size: 300% 300%;
   animation: gradient-flow 12s ease infinite;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+  background-color: var(--card-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 0 var(--border-highlight);
+}
+
+.glass-card-hover:hover {
+  background-color: var(--card-hover);
+  border-color: rgba(241, 143, 1, 0.25);
+  box-shadow: 0 8px 30px -4px rgba(241, 143, 1, 0.12), inset 0 1px 0 0 var(--border-highlight);
 }
 
 .dark .animated-mesh-bg,

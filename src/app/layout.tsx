@@ -27,12 +27,30 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className="min-h-screen flex flex-col antialiased bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors">
-        <Navbar />
-        <main className="flex-1 pb-28">
-          {children}
-        </main>
-        <BottomNavigation />
+      <body className="min-h-screen flex flex-col antialiased bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors relative selection:bg-[var(--accent-orange)]/20 selection:text-[var(--accent-orange)]">
+        {/* Modern AI SaaS Radial Mesh Glow Background */}
+        <div 
+          className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] sm:w-[1000px] sm:h-[500px] pointer-events-none z-0 opacity-80 blur-[80px] sm:blur-[110px]"
+          style={{
+            background: 'radial-gradient(circle at 50% 20%, var(--glow-color) 0%, var(--glow-color-secondary) 50%, transparent 80%)',
+          }}
+          aria-hidden="true"
+        />
+        <div 
+          className="fixed bottom-0 right-0 w-[500px] h-[400px] pointer-events-none z-0 opacity-40 blur-[100px]"
+          style={{
+            background: 'radial-gradient(circle at 80% 80%, var(--glow-color-secondary) 0%, transparent 70%)',
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-1 pb-28">
+            {children}
+          </main>
+          <BottomNavigation />
+        </div>
       </body>
     </html>
   );
