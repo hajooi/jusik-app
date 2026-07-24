@@ -72,7 +72,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     }}
                     className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-300 ${
                       isActive
-                        ? 'bg-[var(--accent-orange)]/15 border-2 border-[var(--accent-orange)]/50 text-[var(--accent-orange)] font-extrabold shadow-md scale-[1.01]'
+                        ? 'bg-[var(--card-hover)] border border-[rgba(241,143,1,0.5)] shadow-[0_0_15px_rgba(241,143,1,0.2)] text-[var(--accent-orange)] font-extrabold scale-[1.01]'
                         : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
                     }`}
                   >
@@ -87,7 +87,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     <span className="truncate flex-1">{lesson.title}</span>
 
                     {isActive ? (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white shrink-0 font-mono shadow-2xs">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
                         학습 중
                       </span>
                     ) : (

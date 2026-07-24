@@ -34,10 +34,10 @@ export default function BottomNavigation() {
         className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] glass-card rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
-          {/* Animated Liquid Sliding Pill Highlight with Subtle Orange Glow & Border */}
+          {/* Animated Liquid Sliding Pill Highlight with Subtle Glowing Orange Border */}
           {activeIndex !== -1 && (
             <div 
-              className="absolute top-0 bottom-0 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/40 transition-transform duration-300 ease-out shadow-2xs pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)] border border-[rgba(241,143,1,0.5)] shadow-[0_0_15px_rgba(241,143,1,0.25)] transition-transform duration-300 ease-out pointer-events-none"
               style={{
                 width: `${100 / navItems.length}%`,
                 left: 0,
@@ -58,15 +58,15 @@ export default function BottomNavigation() {
                 href={item.href}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-[var(--accent-orange)] font-extrabold'
-                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--accent-orange)]'
+                    ? 'text-white font-black'
+                    : 'text-[var(--text-secondary)] font-semibold hover:text-white'
                 }`}
               >
                 <Icon 
                   fill={isActive ? 'currentColor' : 'none'} 
                   className={`w-4.5 h-4.5 transition-all duration-300 ${
                     isActive 
-                      ? 'stroke-[2.2px] text-[var(--accent-orange)] scale-105' 
+                      ? 'stroke-[2.2px] text-white scale-105' 
                       : 'stroke-[1.8px]'
                   }`} 
                 />
