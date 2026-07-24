@@ -28,7 +28,7 @@ Always use predefined CSS variables from `src/app/globals.css`:
   - No top-left logo image; title `jusik.app` is clean and centered in the header.
   - Dropdown popover menu on the right ("by 주식부엉").
 - **Hero Banners (Curriculum & Tools)**:
-  - Title and sub-description text are preserved and left-aligned (`"초보자도 쉽게 따라 하는 단계별 주식 강좌입니다."`).
+  - Title and sub-description text are preserved and left-aligned (`"초보자도 쉽게 따라 하는 단계별 주식 강의입니다."`).
   - Total item count badges (e.g. `총 4개 강의`, `1개 모듈`) are removed for a cleaner minimal look.
 - **Bottom Navigation**:
   - Keep 2 fixed tabs: 커리큘럼 (`/`), 투자도구 (`/tools`).

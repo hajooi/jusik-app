@@ -5,7 +5,7 @@ export default function ToolsPage() {
   const tools = [
     {
       title: '투자 성향 진단',
-      description: '수익률 목표와 손실 감수 성향을 정밀하게 다차원으로 분석하여, 나에게 꼭 맞는 맞춤형 투자 성향과 자산 배분 가이드를 확인해 보세요.',
+      description: '몇 가지 질문을 통해 나의 투자 스타일을 파악하고, 나에게 딱 맞는 자산 배분 전략을 찾아보세요.',
       href: '/risk-profile',
       icon: Sparkles,
       tag: '진단 도구',
@@ -22,7 +22,7 @@ export default function ToolsPage() {
             투자도구
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-            투자 성향 진단부터 자산 배분 백테스터까지, 실전 투자를 돕는 맞춤형 웹 도구 모음입니다.
+            성공적인 투자를 시작할 수 있도록 돕는 맞춤형 도구 모음입니다.
           </p>
         </div>
       </div>

@@ -12,7 +12,7 @@ export default function HomePage() {
             커리큘럼
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-            초보자도 쉽게 따라 하는 단계별 주식 강좌입니다.
+            초보자도 쉽게 따라 하는 단계별 주식 강의입니다.
           </p>
         </div>
       </div>
