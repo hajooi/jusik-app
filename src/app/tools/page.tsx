@@ -35,11 +35,11 @@ export default function ToolsPage() {
             return (
               <div
                 key={idx}
-                className="glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-85 cursor-not-allowed shadow-2xs relative overflow-hidden"
+                className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-85 transition-all duration-300 group shadow-2xs relative overflow-hidden"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-transparent flex items-center justify-center text-[var(--text-secondary)]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-transparent flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors">
                       <Icon className="w-5 h-5 stroke-[1.7]" />
                     </div>
                     <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)]">
@@ -47,7 +47,7 @@ export default function ToolsPage() {
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                    <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
                       {tool.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed font-medium">
