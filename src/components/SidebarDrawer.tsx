@@ -27,26 +27,26 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
   };
 
   const renderContent = () => (
-    <div className="space-y-4">
-      {/* Top Header Row without harsh divider line */}
+    <div className="space-y-5">
+      {/* Top Header Row */}
       <div className="flex items-center justify-between pb-1">
-        <h3 className="text-sm font-extrabold flex items-center gap-2 text-[var(--text-primary)]">
-          <List className="w-4.5 h-4.5 text-[var(--accent-orange)]" />
+        <h3 className="text-base font-black flex items-center gap-2 text-[var(--text-primary)] tracking-tight">
+          <List className="w-5 h-5 text-[var(--accent-orange)]" />
           전체 목차
         </h3>
         <button
           onClick={handleClose}
-          className="p-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] glass-card glass-card-hover transition-colors"
+          className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-colors active:scale-95"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="space-y-4 max-h-[calc(100vh-140px)] overflow-y-auto px-1 py-1">
+      <div className="space-y-5 max-h-[calc(100vh-140px)] overflow-y-auto px-0.5 py-1">
         {CURRICULUM_DATA.map((level) => (
-          <div key={level.id} className="space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] font-extrabold text-[var(--accent-orange)] px-2 py-0.5 font-mono">
-              <span>Lv. {level.levelNumber} - {level.badgeText}</span>
+          <div key={level.id} className="space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-extrabold text-[var(--text-secondary)] px-2 font-mono uppercase tracking-wider">
+              <span>Lv. {level.levelNumber} · {level.badgeText}</span>
             </div>
 
             <div className="space-y-1">
@@ -58,15 +58,29 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     key={lesson.id}
                     href={`/lesson/${lesson.id}`}
                     onClick={handleClose}
-                    className={`flex items-center gap-2.5 p-3 rounded-2xl text-xs font-bold transition-all duration-300 ${
+                    className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-200 ${
                       isActive
-                        ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border-2 border-[var(--accent-orange)] shadow-xs'
-                        : 'glass-card glass-card-hover text-[var(--text-primary)] hover:text-[var(--accent-orange)]'
+                        ? 'bg-[var(--accent-orange)] text-white font-extrabold shadow-md scale-[1.02] translate-x-1'
+                        : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
                     }`}
                   >
-                    <PlayCircle className={`w-4 h-4 shrink-0 ${isActive ? 'text-[var(--accent-orange)]' : 'text-[var(--text-secondary)]'}`} />
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                      isActive 
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/10'
+                    }`}>
+                      <PlayCircle className="w-4 h-4 stroke-[2.2]" />
+                    </div>
+
                     <span className="truncate flex-1">{lesson.title}</span>
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0 text-[var(--accent-orange)]" />}
+
+                    {isActive ? (
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-white/20 text-white shrink-0 font-mono">
+                        학습 중
+                      </span>
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-100 text-[var(--accent-orange)] transition-opacity" />
+                    )}
                   </Link>
                 );
               })}
