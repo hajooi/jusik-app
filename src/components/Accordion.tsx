@@ -61,17 +61,17 @@ export default function Accordion({ levels }: AccordionProps) {
               }`}
             >
               <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                {/* Level Icon Container - Transparent background with sleek thin icon */}
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                {/* Level Icon Container - Sleek minimal thin icon with balanced ratio */}
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                   isOpen 
                     ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105' 
                     : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
                 }`}>
-                  <IconComponent className="w-5 h-5 sm:w-5 sm:h-5 stroke-[1.7]" />
+                  <IconComponent className="w-4.5 h-4.5 stroke-[1.5]" />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className={`text-base sm:text-lg font-semibold tracking-[-0.02em] leading-snug truncate transition-colors ${
+                  <h3 className={`text-base sm:text-[17px] font-semibold tracking-[-0.02em] leading-snug truncate transition-colors ${
                     level.isComingSoon 
                       ? 'text-[var(--text-secondary)]' 
                       : isOpen 
@@ -83,9 +83,9 @@ export default function Accordion({ levels }: AccordionProps) {
                 </div>
               </div>
 
-              {/* Status Indicator: Coming Soon Badge or Arrow */}
+              {/* Status Indicator: Crisp High-Contrast COMING SOON Badge */}
               {level.isComingSoon ? (
-                <span className="text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-mono shrink-0">
+                <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider shrink-0 border border-[var(--border-color)]">
                   COMING SOON
                 </span>
               ) : (

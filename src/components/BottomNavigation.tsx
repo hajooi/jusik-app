@@ -31,13 +31,13 @@ export default function BottomNavigation() {
     <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
       <nav 
         aria-label="하단 내비게이션"
-        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/70 backdrop-blur-2xl border border-[var(--border-color)] rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
+        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/80 backdrop-blur-2xl border border-[var(--border-color)] rounded-full p-1.5 shadow-lg transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight with Subtle Glowing Orange Border */}
           {activeIndex !== -1 && (
             <div 
-              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)]/80 border border-[rgba(241,143,1,0.5)] shadow-[0_0_15px_rgba(241,143,1,0.25)] transition-transform duration-300 ease-out pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)]/80 border border-[rgba(241,143,1,0.45)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 ease-out pointer-events-none"
               style={{
                 width: `${100 / navItems.length}%`,
                 left: 0,
@@ -58,19 +58,19 @@ export default function BottomNavigation() {
                 href={item.href}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-[var(--accent-orange)] font-black'
-                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--accent-orange)]'
+                    ? 'text-[var(--accent-orange)] font-extrabold'
+                    : 'text-[var(--text-secondary)] font-medium hover:text-[var(--accent-orange)]'
                 }`}
               >
                 <Icon 
                   fill="none" 
-                  className={`w-4.5 h-4.5 transition-all duration-300 ${
+                  className={`w-4 h-4 transition-all duration-300 ${
                     isActive 
-                      ? 'stroke-[2.2px] text-[var(--accent-orange)] scale-105' 
-                      : 'stroke-[1.8px]'
+                      ? 'stroke-[2px] text-[var(--accent-orange)] scale-105' 
+                      : 'stroke-[1.6px]'
                   }`} 
                 />
-                <span className="text-xs sm:text-sm tracking-tight">{item.label}</span>
+                <span className="text-xs sm:text-sm tracking-tight font-sans">{item.label}</span>
               </Link>
             );
           })}

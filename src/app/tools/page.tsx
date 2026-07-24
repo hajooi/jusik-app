@@ -39,10 +39,10 @@ export default function ToolsPage() {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-transparent flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors">
-                      <Icon className="w-5 h-5 stroke-[1.7]" />
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-transparent flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors">
+                      <Icon className="w-4.5 h-4.5 stroke-[1.5]" />
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)]">
+                    <span className="text-[10px] sm:text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] tracking-wider border border-[var(--border-color)]">
                       오픈 예정
                     </span>
                   </div>

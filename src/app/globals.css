@@ -5,10 +5,10 @@
 @layer base {
   :root {
     --bg-main: #F5ECD7;        /* Base Cream Page Background */
-    --card-surface: rgba(235, 226, 205, 0.5);    /* Refined Liquid Soft Glass Surface */
-    --card-hover: rgba(226, 215, 190, 0.7);      /* Glass Hover */
-    --border-color: rgba(131, 53, 0, 0.08);       /* Ultra-fine Delicate Glass Border (1px) */
-    --border-highlight: rgba(255, 255, 255, 0.4); /* Top border highlight */
+    --card-surface: rgba(235, 226, 205, 0.45);   /* Refined Soft Glass Surface */
+    --card-hover: rgba(226, 215, 190, 0.65);     /* Glass Hover */
+    --border-color: rgba(131, 53, 0, 0.04);      /* Ultra-delicate 1px Glass Border (0.04) */
+    --border-highlight: rgba(255, 255, 255, 0.3); /* Translucent Top Highlight */
     --text-primary: #353535;   /* Charcoal Text */
     --text-secondary: #5F5F5F; /* Slate Grey Text */
     --accent-green: #24613B;   /* Dark Green */
