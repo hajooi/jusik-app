@@ -13,11 +13,12 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
-  const handleClose = () => {
+  const handleClose = (onComplete?: () => void) => {
     setIsClosing(true);
     setTimeout(() => {
       setIsMobileOpen(false);
       setIsClosing(false);
+      if (onComplete) onComplete();
     }, 260);
   };
 
@@ -35,7 +36,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           전체 목차
         </h3>
         <button
-          onClick={handleClose}
+          onClick={() => handleClose()}
           className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-colors active:scale-95"
         >
           <X className="w-4 h-4" />
@@ -57,16 +58,27 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                   <Link
                     key={lesson.id}
                     href={`/lesson/${lesson.id}`}
-                    onClick={handleClose}
+                    onClick={(e) => {
+                      if (isActive) {
+                        e.preventDefault();
+                        handleClose();
+                      } else {
+                        // Smooth slide out animation before route navigation
+                        e.preventDefault();
+                        handleClose(() => {
+                          window.location.href = `/lesson/${lesson.id}`;
+                        });
+                      }
+                    }}
                     className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-300 ${
                       isActive
-                        ? 'glass-card border-2 border-[var(--accent-orange)] text-[var(--accent-orange)] font-extrabold shadow-md scale-[1.02] translate-x-1'
+                        ? 'bg-[var(--accent-orange)]/15 border-2 border-[var(--accent-orange)]/50 text-[var(--accent-orange)] font-extrabold shadow-md scale-[1.01]'
                         : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                       isActive 
-                        ? 'bg-[var(--accent-orange)] text-white shadow-2xs' 
+                        ? 'bg-[var(--accent-orange)] text-white shadow-xs' 
                         : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/10'
                     }`}>
                       <PlayCircle className="w-4 h-4 stroke-[2.2]" />
@@ -75,7 +87,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     <span className="truncate flex-1">{lesson.title}</span>
 
                     {isActive ? (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white shrink-0 font-mono shadow-2xs">
                         학습 중
                       </span>
                     ) : (
@@ -110,7 +122,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           {/* Backdrop Overlay Click to Close */}
           <div 
             className="absolute inset-0" 
-            onClick={handleClose} 
+            onClick={() => handleClose()} 
           />
 
           {/* Sliding Panel with Smooth Side Animation & Brand Base Cream Surface */}
