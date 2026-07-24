@@ -58,15 +58,15 @@ export default function BottomNavigation() {
                 href={item.href}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-white font-black'
-                    : 'text-[var(--text-secondary)] font-semibold hover:text-white'
+                    ? 'text-[var(--accent-orange)] font-black'
+                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--accent-orange)]'
                 }`}
               >
                 <Icon 
-                  fill={isActive ? 'currentColor' : 'none'} 
+                  fill="none" 
                   className={`w-4.5 h-4.5 transition-all duration-300 ${
                     isActive 
-                      ? 'stroke-[2.2px] text-white scale-105' 
+                      ? 'stroke-[2.2px] text-[var(--accent-orange)] scale-105' 
                       : 'stroke-[1.8px]'
                   }`} 
                 />
