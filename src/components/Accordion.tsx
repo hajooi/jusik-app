@@ -30,8 +30,8 @@ interface AccordionProps {
 }
 
 export default function Accordion({ levels }: AccordionProps) {
-  // Default first level open
-  const [openLevelId, setOpenLevelId] = useState<string | null>('lv0');
+  // Initially collapsed (no open level)
+  const [openLevelId, setOpenLevelId] = useState<string | null>(null);
 
   const toggleLevel = (id: string, isComingSoon?: boolean) => {
     if (isComingSoon) return;
@@ -71,18 +71,18 @@ export default function Accordion({ levels }: AccordionProps) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full font-mono transition-colors ${
                       level.isComingSoon 
                         ? 'bg-[var(--text-secondary)]/20 text-[var(--text-secondary)]'
                         : isOpen 
-                        ? 'bg-[var(--accent-orange)] text-white' 
-                        : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
+                        ? 'bg-[var(--accent-orange)] text-white font-bold' 
+                        : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold'
                     }`}>
                       Lv. {level.levelNumber}
                     </span>
                     <span className="text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] truncate">
-                      {level.badgeText} · {level.isComingSoon ? '오픈 예정' : `${level.lessons.length}개 강의`}
+                      {level.isComingSoon ? '오픈 예정' : `${level.lessons.length}개 강의`}
                     </span>
                   </div>
                   <h3 className={`text-base sm:text-lg font-bold tracking-tight leading-snug truncate transition-colors ${

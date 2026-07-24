@@ -69,9 +69,9 @@ export const CURRICULUM_DATA: Level[] = [
   {
     id: "lv0",
     levelNumber: 0,
-    title: "주식 투자 전 알아야 할 마인드셋",
+    title: "투자의 원리",
     description: "투자의 기초 동기부여부터 복리의 마법, 그리고 평생 흔들리지 않을 투자 철학 구축하기",
-    badgeText: "투자의 기초",
+    badgeText: "투자의 원리",
     iconName: "Brain",
     lessons: [
       {
@@ -100,23 +100,23 @@ export const CURRICULUM_DATA: Level[] = [
             steps: [
               {
                 stepNumber: 1,
-                title: '노동의 종말과 현대판 노예',
-                description: 'AI와 로봇이 인간의 노동을 대체하는 시대, 노동 소득만으로는 내 밥줄을 남에게 넘겨준 현대판 노예로 전락하게 됩니다. 던져주는 푼돈에 목숨줄을 걸지 않으려면 자본의 소유자가 되어야 합니다.'
+                title: 'AI 시대, 당신의 노동 가치는 떨어집니다',
+                description: '과거에는 성실함만으로 신분 상승이 가능했지만, AI와 자율주행이 급속도로 보급되는 지금은 노동 수익만으로 인플레이션을 이길 수 없습니다. 자본 수익을 만들어야 합니다.'
               },
               {
                 stepNumber: 2,
-                title: '역사적 증명: 방직기 혁명의 교훈',
-                description: '1769년 방직기 혁명 때 생산량은 100배 늘었지만 노동자는 더 가난해졌고 부는 공장주(자본가)가 독식했습니다. AI가 전문직 일자리까지 대체하는 지금, 단순 저축은 가장 확실하게 가난해지는 길입니다.'
+                title: '방직기 혁명: 자본을 가진 자가 부를 독식합니다',
+                description: '산업혁명 당시 손으로 실을 갗던 노동자들은 일자리를 잃었지만 방직기를 소유한 자본가들은 폭발적인 부를 쌓았습니다. 주식을 소유하는 것은 modern 방직기를 갖는 것과 같습니다.'
               },
               {
                 stepNumber: 3,
-                title: '미국 주식을 사야 하는 이유',
-                description: '내 노동 가치가 0원이 되는 세상의 유일한 해결책은 스스로 자본가가 되는 것입니다. 세계 1등 혁신을 주도하는 미국의 빅테크 기업(엔비디아, 구글, 마이크로소프트 등)의 주식을 소유하여 24시간 나 대신 일하게 만드세요.'
+                title: '미국 1등 주식을 사서 스스로 자본가가 되세요',
+                description: '주식을 사는 것은 거창한 기술이 아닙니다. 지금 스마트폰으로 전 세계에서 가장 돈을 잘 버는 혁신 기업의 주주가 되어 그 기업의 성과를 내 것으로 만드는 가장 쉬운 방법입니다.'
               },
               {
                 stepNumber: 4,
-                title: '위기는 자본가들의 사냥 시간이다',
-                description: '과거와 달리 지금은 주식 시장을 통해 누구나 손쉽게 자본가의 자리에 올라탈 수 있습니다. 거인의 어깨 위에 올라타 1등 기업의 동업자가 되세요. 다가올 미래의 계급은 지금 여러분의 선택에 달려있습니다.'
+                title: '노동 주체에서 자본 주체로의 마인드 전환',
+                description: '월급을 받는 것에 만족하지 않고 매달 번 돈의 일부를 자본 시스템에 투입해 나 대신 일할 \'돈 일꾼\'을 만드는 마인드셋 구축이 투자 성공의 첫 번째 단추입니다.'
               }
             ]
           }
@@ -223,7 +223,7 @@ export const CURRICULUM_DATA: Level[] = [
   {
     id: "lv1",
     levelNumber: 1,
-    title: "무작정 따라 하는 첫 주식 구매",
+    title: "첫 구매 실습",
     description: "필수 주식 용어부터 계좌 개설, 주식 모으기 자동 적립까지 실전으로 따라하기",
     badgeText: "첫 구매 실습",
     iconName: "ShoppingBag",
@@ -282,10 +282,10 @@ export const CURRICULUM_DATA: Level[] = [
     id: "lv2",
     levelId: "lv2",
     levelNumber: 2,
-    title: "세금 0원 만드는 주식 절세 전략",
-    description: "ISA, 연금저축, IRP 등 합법적 절세 계좌를 활용해 세금을 최소화하는 노하우",
-    badgeText: "절세 계좌 세팅",
-    iconName: "ShieldCheck",
+    title: "자산 배분",
+    description: "투자 성향 검사부터 올웨더 포트폴리오, 위험 관리 분산 기법까지",
+    badgeText: "자산 배분",
+    iconName: "PieChart",
     isComingSoon: true,
     lessons: []
   },
@@ -293,10 +293,10 @@ export const CURRICULUM_DATA: Level[] = [
     id: "lv3",
     levelId: "lv3",
     levelNumber: 3,
-    title: "안전한 주식 투자를 위한 자산 배분",
-    description: "투자 성향 검사부터 올웨더 포트폴리오, 위험 관리 분산 기법까지",
-    badgeText: "자산 배분 진단",
-    iconName: "PieChart",
+    title: "절세와 계좌",
+    description: "ISA, 연금저축, IRP 등 합법적 절세 계좌를 활용해 세금을 최소화하는 노하우",
+    badgeText: "절세와 계좌",
+    iconName: "ShieldCheck",
     isComingSoon: true,
     lessons: []
   },
@@ -304,9 +304,9 @@ export const CURRICULUM_DATA: Level[] = [
     id: "lv4",
     levelId: "lv4",
     levelNumber: 4,
-    title: "수익률을 극대화하는 적극적 투자 방법",
+    title: "초과 수익 전략",
     description: "적립식 변동 매매, 정기 리밸런싱, 트레이딩뷰 얼러트 웹훅 연동으로 전략 고도화",
-    badgeText: "적극적 투자",
+    badgeText: "초과 수익 전략",
     iconName: "TrendingUp",
     isComingSoon: true,
     lessons: []
@@ -315,9 +315,9 @@ export const CURRICULUM_DATA: Level[] = [
     id: "lv5",
     levelId: "lv5",
     levelNumber: 5,
-    title: "AI를 활용한 주식 분석과 자동 매매",
+    title: "AI 투자 시스템",
     description: "AI 기반 종목 & 공시 스마트 스크리닝, 자동 매매 알고리즘 구축까지 완벽 가이드",
-    badgeText: "AI 자동 매매",
+    badgeText: "AI 투자 시스템",
     iconName: "Cpu",
     isComingSoon: true,
     lessons: []
