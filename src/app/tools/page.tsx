@@ -35,7 +35,7 @@ export default function ToolsPage() {
             return (
               <div
                 key={idx}
-                className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-85 transition-all duration-300 group shadow-2xs relative overflow-hidden"
+                className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-85 cursor-not-allowed transition-all duration-300 group shadow-2xs relative overflow-hidden"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
