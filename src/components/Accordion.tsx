@@ -117,17 +117,17 @@ export default function Accordion({ levels }: AccordionProps) {
                 isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
               }`}
             >
-              <div className="overflow-hidden bg-[var(--card-hover)]/30">
+              <div className="overflow-hidden bg-[var(--card-surface)]/30 backdrop-blur-md">
                 <div className="p-3 sm:p-5 space-y-2">
                     {level.lessons.map((lesson) => (
                       <Link
                         key={lesson.id}
                         href={`/lesson/${lesson.id}`}
-                        className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 backdrop-blur-md border border-[var(--border-color)] hover:bg-[var(--card-hover)] transition-all duration-300 shadow-2xs hover:shadow-xs active:scale-[0.98]"
+                        className="group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 shadow-2xs active:scale-[0.98]"
                       >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors shrink-0">
-                          <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)] text-[var(--text-secondary)] group-hover:text-white flex items-center justify-center shrink-0 transition-all duration-300 shadow-2xs group-hover:scale-105">
+                          <PlayCircle className="w-5 h-5 stroke-[2]" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -147,11 +147,11 @@ export default function Accordion({ levels }: AccordionProps) {
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0 ml-2">
-                        <span className="hidden sm:flex items-center gap-1 text-xs text-[var(--text-secondary)] font-mono bg-[var(--card-surface)] px-2.5 py-1 rounded-lg">
+                        <span className="hidden sm:flex items-center gap-1 text-xs text-[var(--text-secondary)] font-mono glass-card px-2.5 py-1 rounded-lg">
                           <Clock className="w-3.5 h-3.5" />
                           {lesson.duration}
                         </span>
-                        <span className="text-xs sm:text-sm font-bold text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:translate-x-1 transition-all flex items-center gap-0.5">
+                        <span className="text-xs sm:text-sm font-extrabold text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:translate-x-1 transition-all flex items-center gap-0.5">
                           학습하기
                           <span>→</span>
                         </span>

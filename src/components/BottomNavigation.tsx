@@ -34,10 +34,10 @@ export default function BottomNavigation() {
         className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] glass-card rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
-          {/* Animated Liquid Sliding Pill Highlight */}
+          {/* Animated Liquid Sliding Pill Highlight with Orange Glow Border */}
           {activeIndex !== -1 && (
             <div 
-              className="absolute top-0 bottom-0 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 transition-transform duration-300 ease-out shadow-2xs pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)] border-2 border-[var(--accent-orange)] transition-transform duration-300 ease-out shadow-sm pointer-events-none"
               style={{
                 width: `${100 / navItems.length}%`,
                 left: 0,
@@ -58,8 +58,8 @@ export default function BottomNavigation() {
                 href={item.href}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-[var(--accent-orange)] font-bold'
-                    : 'text-[var(--text-secondary)] font-medium hover:text-[var(--accent-orange)]'
+                    ? 'text-[var(--accent-orange)] font-black'
+                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--accent-orange)]'
                 }`}
               >
                 <Icon 
