@@ -113,15 +113,15 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
           onClick={handlePlayClick}
           type="button"
           aria-label={`${title} 영상 재생하기`}
-          className="group absolute inset-0 w-full h-full bg-gradient-to-br from-[var(--card-surface)] via-[var(--bg-main)] to-[var(--card-surface)] text-left cursor-pointer transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)]/50 p-4 sm:p-6 flex flex-col justify-between z-10"
+          className="group absolute inset-0 w-full h-full glass-card text-left cursor-pointer transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--accent-green)]/50 p-4 sm:p-6 flex flex-col justify-between z-10 overflow-hidden"
         >
-          {/* Decorative M3 Mesh Background Shapes */}
-          <div className="absolute -top-12 -right-12 w-40 h-40 sm:w-48 sm:h-48 bg-[var(--accent-green)]/10 rounded-full blur-2xl pointer-events-none group-hover:bg-[var(--accent-green)]/15 transition-all duration-500" />
-          <div className="absolute -bottom-12 -left-12 w-40 h-40 sm:w-48 sm:h-48 bg-[var(--accent-orange)]/10 rounded-full blur-2xl pointer-events-none group-hover:bg-[var(--accent-orange)]/15 transition-all duration-500" />
+          {/* Decorative Warm Ambient Mesh Background Shapes */}
+          <div className="absolute -top-12 -right-12 w-44 h-44 sm:w-52 sm:h-52 bg-[var(--accent-orange)]/20 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-orange)]/30 transition-all duration-500" />
+          <div className="absolute -bottom-12 -left-12 w-44 h-44 sm:w-52 sm:h-52 bg-[var(--accent-green)]/15 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-green)]/25 transition-all duration-500" />
 
           {/* Watermark Icon */}
           <div className="absolute inset-0 m-auto flex items-center justify-center pointer-events-none">
-            <div className="w-32 h-32 sm:w-48 sm:h-48 text-[var(--accent-green)] flex items-center justify-center opacity-15 sm:opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-500">
+            <div className="w-32 h-32 sm:w-48 sm:h-48 text-[var(--accent-orange)] flex items-center justify-center opacity-15 sm:opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-500">
               <IconComponent className="w-24 h-24 sm:w-36 sm:h-36 stroke-[1.2]" />
             </div>
           </div>

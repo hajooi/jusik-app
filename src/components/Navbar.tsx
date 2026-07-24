@@ -98,7 +98,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={togglePopover}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-200 py-1.5 px-3.5 rounded-full bg-[var(--card-surface)]/60 backdrop-blur-xl border border-[var(--border-color)] active:scale-95 shadow-xs"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 py-1.5 px-3.5 rounded-full glass-card glass-card-hover active:scale-95 shadow-2xs"
               title="주식부엉 정보 및 문의"
             >
               <span className="text-[11px] opacity-70">by</span>
@@ -108,7 +108,7 @@ export default function Navbar() {
             {/* Dropdown Popover Menu immediately below button with scale expand/shrink animation */}
             {isOpen && (
               <div 
-                className={`absolute right-0 top-full mt-2 w-max max-w-[280px] sm:max-w-[320px] rounded-2xl p-2 bg-[var(--card-surface)]/80 backdrop-blur-2xl border border-[var(--border-color)] shadow-2xl z-50 space-y-1 ${
+                className={`absolute right-0 top-full mt-2 w-max max-w-[280px] sm:max-w-[320px] rounded-2xl p-2 glass-card shadow-2xl z-50 space-y-1 ${
                   isClosing ? 'animate-popover-shrink' : 'animate-popover-expand'
                 }`}
               >
@@ -117,7 +117,7 @@ export default function Navbar() {
                   href="https://youtube.com/@주식부엉"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-start gap-2 px-3 py-2 rounded-xl bg-[var(--accent-orange)]/15 hover:bg-[var(--accent-orange)] text-[var(--accent-orange)] hover:text-white font-bold text-xs sm:text-sm transition-all duration-200 group whitespace-nowrap text-left"
+                  className="w-full flex items-center justify-start gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent-orange)]/15 hover:bg-[var(--accent-orange)] text-[var(--accent-orange)] hover:text-white font-bold text-xs sm:text-sm transition-all duration-300 group whitespace-nowrap text-left shadow-2xs"
                 >
                   <Youtube className="w-4 h-4 shrink-0" />
                   <span className="whitespace-nowrap flex-1">주식부엉 유튜브</span>
@@ -128,10 +128,10 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  className="w-full flex items-center justify-start gap-2 px-3 py-2 rounded-xl bg-[var(--card-hover)]/40 hover:bg-[var(--card-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm transition-all whitespace-nowrap text-left group"
+                  className="w-full flex items-center justify-start gap-2 px-3 py-2.5 rounded-xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm transition-all duration-300 whitespace-nowrap text-left group shadow-2xs"
                 >
-                  <Mail className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />
-                  <span className="whitespace-nowrap flex-1 font-sans">메일로 문의하기</span>
+                  <Mail className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] shrink-0 transition-colors" />
+                  <span className="whitespace-nowrap flex-1 font-sans group-hover:text-[var(--accent-orange)] transition-colors">메일로 문의하기</span>
                   <span className="shrink-0">
                     {copied ? (
                       <span className="text-[10px] font-bold text-[var(--accent-mid-green)] flex items-center gap-0.5 whitespace-nowrap font-sans">

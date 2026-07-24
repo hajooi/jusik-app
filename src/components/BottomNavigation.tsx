@@ -31,13 +31,13 @@ export default function BottomNavigation() {
     <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
       <nav 
         aria-label="하단 내비게이션"
-        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--card-surface)]/90 backdrop-blur-xl rounded-full p-1.5 shadow-lg transition-all duration-300 relative overflow-hidden"
+        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] glass-card rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight */}
           {activeIndex !== -1 && (
             <div 
-              className="absolute top-0 bottom-0 rounded-full bg-[var(--card-hover)] transition-transform duration-300 ease-out shadow-xs pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 transition-transform duration-300 ease-out shadow-2xs pointer-events-none"
               style={{
                 width: `${100 / navItems.length}%`,
                 left: 0,
@@ -56,17 +56,17 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 active:scale-95 ${
+                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
                   isActive
-                    ? 'text-neutral-900 dark:text-white font-bold'
-                    : 'text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)]'
+                    ? 'text-[var(--accent-orange)] font-bold'
+                    : 'text-[var(--text-secondary)] font-medium hover:text-[var(--accent-orange)]'
                 }`}
               >
                 <Icon 
                   fill={isActive ? 'currentColor' : 'none'} 
-                  className={`w-4.5 h-4.5 transition-all duration-200 ${
+                  className={`w-4.5 h-4.5 transition-all duration-300 ${
                     isActive 
-                      ? 'stroke-[2.2px] text-neutral-900 dark:text-white scale-105' 
+                      ? 'stroke-[2.2px] text-[var(--accent-orange)] scale-105' 
                       : 'stroke-[1.8px]'
                   }`} 
                 />
