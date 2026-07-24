@@ -126,7 +126,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           />
 
           {/* Sliding Panel with Smooth Side Animation & Brand Base Cream Surface */}
-          <div className={`relative z-10 w-full max-w-xs glass-card h-full p-5 shadow-2xl overflow-y-auto ${
+          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)]/95 backdrop-blur-xl border-r border-[var(--border-color)] h-full p-5 shadow-2xl overflow-y-auto ${
             isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
           }`}>
             {renderContent()}
