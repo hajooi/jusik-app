@@ -15,8 +15,8 @@
     --accent-mid-green: #68A67D; /* Mid Green */
     --accent-orange: #F18F01;  /* Signature Orange */
     --accent-deep-brown: #833500; /* Deep Brown */
-    --glow-color: rgba(241, 143, 1, 0.20); /* Soft Organic Ambient Orange Glow */
-    --glow-color-secondary: rgba(104, 166, 125, 0.18); /* Gentle Green Secondary Glow */
+    --glow-color: rgba(241, 143, 1, 0.45); /* Bold Ambient Orange Glow */
+    --glow-color-secondary: rgba(104, 166, 125, 0.40); /* Vibrant Green Secondary Glow */
   }
 
   @media (prefers-color-scheme: dark) {

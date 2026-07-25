@@ -115,44 +115,47 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
           aria-label={`${title} 영상 재생하기`}
           className="group absolute inset-0 w-full h-full bg-[var(--bg-main)] text-left cursor-pointer transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--accent-orange)]/50 p-4 sm:p-6 flex flex-col justify-between z-10 overflow-hidden border border-[var(--border-color)]"
         >
-          {/* Decorative Warm Ambient Mesh Background Shapes */}
-          <div className="absolute -top-12 -right-12 w-48 h-48 sm:w-60 sm:h-60 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-orange)]/35 transition-all duration-500" />
-          <div className="absolute -bottom-12 -left-12 w-48 h-48 sm:w-60 sm:h-60 bg-[var(--accent-green)]/20 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-green)]/30 transition-all duration-500" />
+          {/* Clean Ambient Glass Surface */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--card-surface)] to-[var(--bg-main)] pointer-events-none" />
 
-          {/* Watermark Icon */}
-          <div className="absolute inset-0 m-auto flex items-center justify-center pointer-events-none">
-            <div className="w-32 h-32 sm:w-48 sm:h-48 text-[var(--accent-orange)] flex items-center justify-center opacity-20 sm:opacity-25 group-hover:opacity-40 group-hover:scale-105 transition-all duration-500">
-              <IconComponent className="w-24 h-24 sm:w-36 sm:h-36 stroke-[1.2]" />
-            </div>
-          </div>
+          {/* Decorative Warm Ambient Mesh Background Shapes */}
+          <div className="absolute -top-12 -right-12 w-48 h-48 sm:w-60 sm:h-60 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-orange)]/25 transition-all duration-500" />
+          <div className="absolute -bottom-12 -left-12 w-48 h-48 sm:w-60 sm:h-60 bg-[var(--accent-green)]/15 rounded-full blur-3xl pointer-events-none group-hover:bg-[var(--accent-green)]/25 transition-all duration-500" />
 
           {/* Top Header Row */}
           <div className="relative z-10 flex items-start justify-between w-full gap-2">
             <div className="space-y-0.5 min-w-0 flex-1">
-              <p className="text-[10px] sm:text-[11px] font-bold text-[var(--accent-green)] tracking-wider uppercase">
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-[var(--accent-orange)] px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/10 tracking-wider uppercase font-mono">
+                <IconComponent className="w-3 h-3" />
                 강의 영상
-              </p>
-              <h2 className="text-sm sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight line-clamp-1 group-hover:text-[var(--accent-green)] transition-colors">
+              </span>
+              <h2 className="text-sm sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight line-clamp-1 group-hover:text-[var(--accent-orange)] transition-colors pt-1">
                 {title}
               </h2>
             </div>
 
-            <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] opacity-80 group-hover:opacity-100 transition-opacity shrink-0 pt-0.5 whitespace-nowrap">
+            <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] opacity-80 group-hover:opacity-100 transition-opacity shrink-0 pt-0.5 whitespace-nowrap bg-[var(--card-surface)] px-2.5 py-1 rounded-full border border-[var(--border-color)]">
               클릭하여 재생
             </span>
           </div>
 
-          {/* Center Row: Outlined M3 Play Button */}
-          <div className="relative z-10 flex items-center justify-center my-auto w-full py-1">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[var(--card-surface)]/80 hover:bg-[var(--accent-orange)] text-[var(--accent-orange)] hover:text-white border-2 border-[var(--accent-orange)] flex items-center justify-center shadow-lg backdrop-blur-md transform group-hover:scale-110 transition-all duration-300 group-active:scale-95">
-              <Play className="w-5 h-5 sm:w-7 sm:h-7 stroke-[2.5] fill-none ml-0.5 sm:ml-1" />
+          {/* Center Row: Signature Brand Glassmorphic Play Button */}
+          <div className="relative z-10 flex items-center justify-center my-auto w-full py-2">
+            <div className="relative group/btn flex items-center justify-center">
+              {/* Subtle Pulsing Ambient Outer Ring */}
+              <div className="absolute -inset-2 rounded-full bg-[var(--accent-orange)]/20 blur-md group-hover:bg-[var(--accent-orange)]/40 transition-all duration-500 animate-pulse" />
+              
+              {/* Main Play Button Circle */}
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--accent-orange)] text-white shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 group-active:scale-95 border border-white/20">
+                <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-white stroke-none ml-1" />
+              </div>
             </div>
           </div>
 
           {/* Bottom Row: Duration Pill Tag */}
           <div className="relative z-10 w-full flex items-center justify-start">
-            <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[var(--bg-main)]/80 text-[var(--text-secondary)] backdrop-blur-md shadow-2xs font-mono">
-              <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[var(--accent-green)]" />
+            <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-3 py-1 sm:py-1.5 rounded-full bg-[var(--card-surface)] text-[var(--text-secondary)] backdrop-blur-md border border-[var(--border-color)] font-mono shadow-2xs">
+              <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[var(--accent-orange)]" />
               {duration}
             </span>
           </div>

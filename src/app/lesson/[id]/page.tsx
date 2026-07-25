@@ -83,55 +83,38 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             iconName={level.iconName}
           />
 
-          {/* DYNAMIC CONTENT MODULES BLOCK */}
+          {/* CONCISE SUMMARY CARD */}
+          {lesson.summary && lesson.summary.length > 0 && (
+            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                  <Sparkles className="w-4 h-4 stroke-[2]" />
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
+                  핵심 요약
+                </h3>
+              </div>
+              <ul className="space-y-2.5">
+                {lesson.summary.map((point, index) => (
+                  <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                    <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] flex items-center justify-center text-xs font-bold shrink-0 font-mono mt-0.5">
+                      {index + 1}
+                    </span>
+                    <span className="flex-1 text-[var(--text-primary)]">
+                      {point}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* DYNAMIC CONTENT MODULES BLOCK (Resources, CTA) */}
           {lesson.modules && lesson.modules.length > 0 && (
             <div className="space-y-6">
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
-                  return (
-                    <div 
-                      key={index}
-                      className="space-y-4 py-2"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="p-1.5 rounded-xl bg-[var(--accent-green)]/15 text-[var(--accent-green)]">
-                            <BookOpen className="w-4.5 h-4.5 stroke-[1.7]" />
-                          </span>
-                          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                            {module.title}
-                          </h3>
-                        </div>
-                        {module.description && (
-                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8">
-                            {module.description}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Pure Article Style Step Stack with Soft Translucent Accent Line */}
-                      <div className="space-y-4 pt-1 pl-2 border-l border-[var(--border-color)] ml-2">
-                        {module.steps.map((step) => (
-                          <div 
-                            key={step.stepNumber}
-                            className="flex items-start gap-3.5 pl-2"
-                          >
-                            <div className="w-6 h-6 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] flex items-center justify-center font-bold text-xs shrink-0 font-mono mt-0.5">
-                              {step.stepNumber}
-                            </div>
-                            <div className="space-y-1 min-w-0 flex-1">
-                              <h4 className="text-base font-bold text-[var(--text-primary)]">
-                                {step.title}
-                              </h4>
-                              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
-                                {step.description}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
+                  return null;
                 }
 
                 if (module.type === 'resources') {
