@@ -37,16 +37,16 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col antialiased bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors relative selection:bg-[var(--accent-orange)]/20 selection:text-[var(--accent-orange)]">
         {/* Modern AI SaaS Radial Mesh Glow Background */}
         <div 
-          className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] sm:w-[1000px] sm:h-[500px] pointer-events-none z-0 opacity-80 blur-[80px] sm:blur-[110px]"
+          className="fixed top-[-100px] left-1/2 -translate-x-1/2 w-[900px] h-[550px] sm:w-[1200px] sm:h-[650px] pointer-events-none z-0 opacity-85 blur-[100px] sm:blur-[130px]"
           style={{
-            background: 'radial-gradient(circle at 50% 20%, var(--glow-color) 0%, var(--glow-color-secondary) 50%, transparent 80%)',
+            background: 'radial-gradient(circle at 50% 30%, var(--glow-color) 0%, var(--glow-color-secondary) 50%, transparent 80%)',
           }}
           aria-hidden="true"
         />
         <div 
-          className="fixed bottom-0 right-0 w-[500px] h-[400px] pointer-events-none z-0 opacity-40 blur-[100px]"
+          className="fixed bottom-[-50px] right-[-50px] w-[600px] h-[500px] pointer-events-none z-0 opacity-55 blur-[110px]"
           style={{
-            background: 'radial-gradient(circle at 80% 80%, var(--glow-color-secondary) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at 75% 75%, var(--glow-color-secondary) 0%, var(--glow-color) 50%, transparent 80%)',
           }}
           aria-hidden="true"
         />

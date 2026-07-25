@@ -4,36 +4,36 @@
 
 @layer base {
   :root {
-    --bg-main: #F5ECD7;        /* Base Cream Page Background */
-    --card-surface: rgba(235, 226, 205, 0.4);    /* Refined Liquid Soft Glass Surface */
-    --card-hover: rgba(226, 215, 190, 0.6);      /* Glass Hover */
-    --border-color: rgba(131, 53, 0, 0.04);      /* Ultra-delicate 1px Glass Border (0.04) */
-    --border-highlight: rgba(255, 255, 255, 0.35); /* Translucent Top Highlight */
+    --bg-main: #F4EBD7;        /* Gentle Natural Cream Background */
+    --card-surface: rgba(248, 243, 233, 0.78);  /* Perfectly Balanced Soft Glass Surface */
+    --card-hover: rgba(255, 253, 248, 0.90);    /* Soft Bright Hover */
+    --border-color: rgba(131, 53, 0, 0.07);      /* Balanced Subtle Glass Border */
+    --border-highlight: rgba(255, 255, 255, 0.5); /* Soft Top Highlight */
     --text-primary: #353535;   /* Charcoal Text */
     --text-secondary: #5F5F5F; /* Slate Grey Text */
     --accent-green: #24613B;   /* Dark Green */
     --accent-mid-green: #68A67D; /* Mid Green */
     --accent-orange: #F18F01;  /* Signature Orange */
     --accent-deep-brown: #833500; /* Deep Brown */
-    --glow-color: rgba(241, 143, 1, 0.12); /* Orange Glow in Light Mode */
-    --glow-color-secondary: rgba(104, 166, 125, 0.12); /* Green Secondary Glow */
+    --glow-color: rgba(241, 143, 1, 0.20); /* Soft Organic Ambient Orange Glow */
+    --glow-color-secondary: rgba(104, 166, 125, 0.18); /* Gentle Green Secondary Glow */
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-main: #2A2A2A;        /* Deep Charcoal Dark Background */
-      --card-surface: rgba(53, 53, 53, 0.35);   /* Modern Translucent Glass Surface */
-      --card-hover: rgba(70, 70, 70, 0.55);     /* Slate Glass Hover */
-      --border-color: rgba(255, 255, 255, 0.07); /* Ultra-fine 1px White Glass Border */
-      --border-highlight: rgba(255, 255, 255, 0.12);
+      --bg-main: #242424;        /* Deep Charcoal Dark Background */
+      --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
+      --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
+      --border-color: rgba(255, 255, 255, 0.09); /* Fine White Glass Border */
+      --border-highlight: rgba(255, 255, 255, 0.15);
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
       --accent-green: #8FBF9F;   /* Light Green */
       --accent-mid-green: #68A67D; /* Mid Green */
       --accent-orange: #F18F01;  /* Signature Orange */
       --accent-deep-brown: #833500; /* Deep Brown */
-      --glow-color: rgba(241, 143, 1, 0.18); /* Signature Orange Radial Glow */
-      --glow-color-secondary: rgba(104, 166, 125, 0.12); /* Mid Green Glow */
+      --glow-color: rgba(241, 143, 1, 0.22); /* Smooth Orange Radial Glow */
+      --glow-color-secondary: rgba(104, 166, 125, 0.16); /* Gentle Green Glow */
     }
   }
 
