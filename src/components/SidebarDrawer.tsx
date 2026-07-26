@@ -63,11 +63,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                         e.preventDefault();
                         handleClose();
                       } else {
-                        // Smooth slide out animation before route navigation
-                        e.preventDefault();
-                        handleClose(() => {
-                          window.location.href = `/lesson/${lesson.id}`;
-                        });
+                        // Close modal instantly without artificial navigation delays
+                        setIsMobileOpen(false);
+                        setIsClosing(false);
                       }
                     }}
                     className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-300 ${
