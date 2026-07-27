@@ -24,8 +24,8 @@
       --bg-main: #242424;        /* Deep Charcoal Dark Background */
       --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
       --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
-      --border-color: rgba(255, 255, 255, 0.09); /* Fine White Glass Border */
-      --border-highlight: rgba(255, 255, 255, 0.15);
+      --border-color: rgba(255, 255, 255, 0.08); /* Soft Translucent Glass Border */
+      --border-highlight: rgba(255, 255, 255, 0.05); /* Subtle Top Highlight in Dark Mode */
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
       --accent-green: #8FBF9F;   /* Light Green */
@@ -212,8 +212,8 @@ html {
 
 .glass-card-hover:hover {
   background-color: var(--card-hover);
-  border-color: rgba(241, 143, 1, 0.25);
-  box-shadow: 0 8px 30px -4px rgba(241, 143, 1, 0.12), inset 0 1px 0 0 var(--border-highlight);
+  border-color: rgba(241, 143, 1, 0.4);
+  box-shadow: 0 0 20px rgba(241, 143, 1, 0.18), inset 0 1px 0 0 var(--border-highlight);
 }
 
 .dark .animated-mesh-bg,

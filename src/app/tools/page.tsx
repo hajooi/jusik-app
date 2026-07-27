@@ -4,12 +4,12 @@ import { Sparkles, Clock } from 'lucide-react';
 export default function ToolsPage() {
   const tools = [
     {
-      title: '투자 성향 진단 (MBTI형 4축 모델)',
+      title: '투자 성향 진단',
       description: '수익 vs 안전, 분석 vs 시스템 등 4대 핵심 축으로 나만의 16가지 투자 스타일과 퍼센티지 스펙트럼 리포트를 확인하세요.',
-      href: '/tools/mbti',
+      href: '/tools/type',
       icon: Sparkles,
       tag: '40문항 진단',
-      isComingSoon: false,
+      isComingSoon: true,
     },
   ];
 
@@ -65,7 +65,7 @@ export default function ToolsPage() {
             <Link
               key={idx}
               href={tool.href}
-              className="glass-card glass-card-hover p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 group shadow-xs hover:shadow-md active:scale-[0.99]"
+              className="glass-card p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 group shadow-xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_25px_rgba(241,143,1,0.22)] hover:-translate-y-0.5 active:scale-[0.99] border border-[var(--border-color)]"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

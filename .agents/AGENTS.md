@@ -24,21 +24,24 @@
 iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵심 탭을 고정 배치합니다.
 
 1. **커리큘럼 (`/`)**: [Lv. 0 ~ Lv. 5] 정규 학습 아카이브 ("초보자도 쉽게 따라 하는 단계별 주식 강좌입니다.")
-2. **투자도구 (`/tools`)**: 투자 성향 진단(MBTI), 포트폴리오 백테스터, 계산기 등 실습 모듈 모음
+2. **투자도구 (`/tools`)**: 투자 성향 진단, 포트폴리오 백테스터, 계산기 등 실습 모듈 모음
 
 ## 6. UI/UX Rules & Visual Polish
 - **Bottom Navigation Active State**:
   - **Dark Mode**: 고대비 순백색 (`text-white`) + Bold (`font-bold`)
   - **Light Mode**: 고대비 딥 숯색 (`text-neutral-900`) + Bold (`font-bold`)
   - **Icon Style**: 활성화 탭은 인스타그램 스타일 **Filled Icon** (`fill="currentColor"`, `stroke-[2.2px]`), 비활성화 탭은 **Outline Icon** (`stroke-[1.8px]`).
-- **Unified Design Tokens & Containers**:
+- **Unified Design Tokens & Container Hover Effects**:
   - 하드코딩된 색상 코드(예: `#EBE2CD`, `#464646` 등) 사용을 엄격히 금지하고, 모든 카드, 모듈, 버튼, 팝오버는 반드시 CSS 변수 기반 디자인 토큰(`bg-[var(--card-surface)]/90 backdrop-blur-md`, `hover:bg-[var(--card-hover)]`, `border-[var(--border-color)]/20`)을 사용.
+  - **Ambient Orange Glow Hover Rule**: 모든 인터랙티브 카드, 모듈, 버튼(커리큘럼 레벨, 레슨 항목, 투자도구 카드, 성향 리포트 카드, 비디오 커버, CTA 모듈 등)은 마우스 오버 시 일관되게 은은한 주황색 미세 테두리와 앰비언트 글로우(`hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]`)가 연출되어야 함.
   - 모든 카드와 모듈은 은은한 그림자(`shadow-sm`/`shadow-2xs`)와 절제된 미세 테두리로 통일감을 부여.
 - **Lesson Page Modular Layout**:
   - 정적인 '핵심 요약' 및 '고정 도식'을 배제하고, 각 강의 데이터(`curriculum.ts`)에 따라 유연하게 렌더링되는 **동적 모듈 블록 (Modular Layout System)** 적용.
   - 지원 모듈: `guide_steps` (강의 노트/단계별 Step 가이드), `resources` (참고 데이터/자료 링크), `cta` (도구/외부 링크 이동 강조 카드).
   - 이전/다음 강의 버튼 및 상단 돌아가기 버튼 포함 세부 페이지 전체 요소에 홈 커리큘럼 카드와 동일한 Glassmorphic 디자인 언어 적용.
 - **Video Cover Component**: 레슨 페이지에서는 기본 iFrame 대신 브랜드 부엉이 로고와 재생 버튼이 결합된 YouTube Cover Player 사용 (`playsinline=1` 모바일 자동 재생 지원).
+- **Investment Type Survey & Report**:
+  - 16가지 투자 성향 리포트 4대 세부 비율 스펙트럼은 전체 100% 바에 우세 성향(`Signature Orange` fill + `우세` 뱃지)과 열세 성향(`Soft Slate Gray` fill)이 투톤으로 명확히 구분 및 대조되어야 함.
 - **No Cursor Tracking**: 과도한 마우스 추적 Glow 효과나 조잡한 애니메이션 배제.
 
 ## 7. Color System & Auto Dark/Light Mode

@@ -85,7 +85,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* CONCISE SUMMARY CARD */}
           {lesson.summary && lesson.summary.length > 0 && (
-            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs">
+            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                   <Sparkles className="w-4 h-4 stroke-[2]" />
@@ -149,7 +149,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               href={link.url}
                               target={isExt ? '_blank' : '_self'}
                               rel={isExt ? 'noopener noreferrer' : undefined}
-                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 shadow-2xs active:scale-[0.99]"
+                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card transition-all duration-300 shadow-2xs hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.18)] active:scale-[0.99]"
                             >
                               <div className="space-y-0.5 min-w-0 flex-1 pr-3">
                                 <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <div 
                       key={index}
-                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2"
+                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]"
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       

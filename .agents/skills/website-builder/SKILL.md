@@ -36,10 +36,11 @@ Always use predefined CSS variables from `src/app/globals.css`:
   - Active Icons: Solid Filled (`fill="currentColor"`, `stroke-[2.2px]`).
   - Inactive Icons: Outline (`stroke-[1.8px]`, `fill="none"`).
 
-### 4. Modern Refined Liquid Glassmorphism (De-boxing & Minimal Layout)
+### 4. Modern Refined Liquid Glassmorphic (De-boxing & Minimal Layout)
 - **De-boxed Clean Headers**: Top hero banners (`/` and `/tools`) use clean left-aligned typography directly on page background without heavy background box containers.
 - **De-boxed Lesson Page**: Remove outer box containers around lesson modules. Guide steps use clean article-style layout with soft translucent vertical guide line (`border-[var(--border-color)]`).
-- **Delicate 1px Glass Borders**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`, translucent 0.04 opacity) to prevent heavy boxy frames.
+- **Delicate 1px Glass Borders & Ambient Orange Glow**: Standardize on ultra-thin 1px borders (`border-[var(--border-color)]`). Every interactive card, button, module, and video cover MUST emit subtle signature orange glow on hover (`hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]`).
+- **Investment Report Spectrum Visuals**: 4-axis ratios must be 100% full split filled with `Signature Orange` (`var(--accent-orange)`) for the winning side and `Soft Slate Gray` (`var(--text-secondary)/25`) for the non-winning side.
 - **Corner Radius**: Keep card corner radius compact (`rounded-2xl` / `16px~18px`) to avoid bulky rounded boxes.
 - **Backdrop Blur & Surface**: High-vibrancy glassmorphism (`backdrop-filter: blur(20px)` + translucent surface).
 - **Typography & Density**: Apply tight negative letter-spacing (`tracking-[-0.025em]`) and slim font-weights (`font-semibold`) on main titles.

@@ -124,13 +124,13 @@ export default function Navbar() {
                 >
                   <Mail className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] shrink-0 transition-colors" />
                   <span className="whitespace-nowrap flex-1 font-sans group-hover:text-[var(--accent-orange)] transition-colors">메일로 문의하기</span>
-                  <span className="shrink-0">
+                  <span className="shrink-0 font-sans font-bold text-xs">
                     {copied ? (
-                      <span className="text-[10px] font-bold text-[var(--accent-mid-green)] flex items-center gap-0.5 whitespace-nowrap font-sans">
-                        <Check className="w-3 h-3" /> 복사됨
+                      <span className="text-[var(--accent-green)] flex items-center gap-0.5 whitespace-nowrap">
+                        <Check className="w-3.5 h-3.5" /> 복사됨
                       </span>
                     ) : (
-                      <span className="text-[10px] opacity-70 font-sans font-bold whitespace-nowrap">복사</span>
+                      <span className="text-[var(--text-secondary)] opacity-70 whitespace-nowrap">복사</span>
                     )}
                   </span>
                 </button>
