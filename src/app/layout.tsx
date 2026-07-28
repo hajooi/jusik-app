@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
   title: 'jusik.app',
-  description: '주식 초보를 위한 에듀테크/핀테크 플랫폼',
+  description: '주식 초보를 위한 가장 쉬운 설명서',
   keywords: ['jusik.app', '주식부엉', '주식 초보', '주식 설명서', '자산배분', '투자 커리큘럼'],
   icons: {
     icon: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'jusik.app',
-    description: '주식 초보를 위한 에듀테크/핀테크 플랫폼',
+    description: '주식 초보를 위한 가장 쉬운 설명서',
     type: 'website',
   },
 };

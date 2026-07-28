@@ -67,24 +67,19 @@ export default function InvestmentSurveyPage() {
     localStorage.removeItem('jusik_mbti_completed');
   };
 
-  const getMilestoneLabel = () => {
-    if (currentPage < 2) return '1단계: 목표 축 (공격 vs 방어)';
-    if (currentPage < 4) return '2단계: 실행 축 (분석 vs 시스템)';
-    if (currentPage < 6) return '3단계: 시간 축 (장기 vs 추세)';
-    return '4단계: 심리 축 (원칙 vs 직감)';
-  };
+
 
   if (isCompleted) {
     const resultData = calculateSurveyResult(answers);
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-end">
           <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] glass-card px-3.5 py-2 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
+            href="/"
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
           >
             <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
+            홈으로 돌아가기
           </Link>
         </div>
 
@@ -98,16 +93,9 @@ export default function InvestmentSurveyPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Top Header Navigation */}
       <div className="flex items-center justify-between">
-        <Link
-          href="/tools"
-          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] glass-card px-3.5 py-2 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          투자도구 목록으로
-        </Link>
         <button
           onClick={handleRestart}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.2)] glass-card px-3 py-1.5 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
@@ -115,6 +103,13 @@ export default function InvestmentSurveyPage() {
           <RefreshCw className="w-3.5 h-3.5" />
           처음부터 다시
         </button>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          홈으로 돌아가기
+        </Link>
       </div>
 
       {/* Progress & Milestone Header */}
@@ -122,7 +117,7 @@ export default function InvestmentSurveyPage() {
         <div className="flex items-center justify-between text-xs font-extrabold text-[var(--text-secondary)]">
           <span className="text-[var(--accent-orange)] font-mono flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5" />
-            {getMilestoneLabel()}
+            투자 성향 진단
           </span>
           <span className="font-mono text-xs text-[var(--text-primary)]">
             {currentPage + 1} / {totalPages} 페이지 ({progressPercent}%)

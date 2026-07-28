@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { PersonalityProfile } from '@/data/investmentSurvey';
-import { Sparkles, Share2, RefreshCw, ArrowRight, Compass } from 'lucide-react';
+import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface ResultViewProps {
   profile: PersonalityProfile;
@@ -25,38 +24,39 @@ interface AxisExplanation {
   rightDesc: string;
 }
 
+// 다듬어진 한글 용어 및 직관적인 설명 반영
 const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   GS: {
     leftCode: 'S',
-    leftName: '방어형 (Safety)',
-    leftDesc: '원금 보전과 안정성 최우선',
+    leftName: '안전형 (Safety)',
+    leftDesc: '원금 보전 최우선',
     rightCode: 'G',
-    rightName: '공격형 (Growth)',
-    rightDesc: '위험 감수 및 고수익 지향',
+    rightName: '수익형 (Growth)',
+    rightDesc: '위험 감수 및 높은 수익 추구',
   },
   AP: {
     leftCode: 'P',
-    leftName: '시스템형 (Passive)',
-    leftDesc: '정해진 룰과 자동 적립',
+    leftName: '수동형 (Passive)',
+    leftDesc: '시장 흐름 수동 추종',
     rightCode: 'A',
-    rightName: '분석형 (Active)',
-    rightDesc: '기업 분석 및 데이터 탐색',
+    rightName: '능동형 (Active)',
+    rightDesc: '기업 직접 분석 및 개입',
   },
   LT: {
     leftCode: 'T',
     leftName: '추세형 (Tactical)',
-    leftDesc: '시장의 분위기·트렌드 대응',
+    leftDesc: '단기 트렌드 및 유연 대응',
     rightCode: 'L',
     rightName: '장기형 (Long-term)',
-    rightDesc: '3~5년 이상 자산 축적',
+    rightDesc: '복리 효과 기반 장기 보유',
   },
   RI: {
     leftCode: 'I',
     leftName: '직감형 (Intuitive)',
-    leftDesc: '시장 흐름과 직관적 인사이트',
+    leftDesc: '시각적·직관적 인사이트 판단',
     rightCode: 'R',
     rightName: '원칙형 (Rule-based)',
-    rightDesc: '검증된 규칙 및 매뉴얼',
+    rightDesc: '검증된 룰 및 원칙 매매',
   },
 };
 
@@ -67,9 +67,9 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
     if (navigator.share) {
       navigator.share({
         title: `내 투자 성향: ${profile.name} (${profile.code})`,
-        text: `주식부엉에서 내 투자 성향을 진단해 봤어요! 당신의 유형은 무엇인가요?`,
+        text: `jusik.app에서 내 투자 성향을 진단해 봤어요! 당신의 유형은 무엇인가요?`,
         url: window.location.href,
-      }).catch(() => {});
+      }).catch(() => { });
     } else {
       navigator.clipboard.writeText(window.location.href);
       setCopied(true);
@@ -78,7 +78,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-12">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* Header Badge */}
       <div className="text-center space-y-2 py-2">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs font-bold font-mono">
@@ -127,7 +127,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5 font-mono">
               <Compass className="w-4 h-4 text-[var(--accent-orange)]" />
-              4대 세부 성향 비율 리포트
+              세부 성향 비율 리포트
             </h3>
           </div>
 
@@ -137,20 +137,20 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
               key: 'GS',
               title: '목표 축',
               leftCode: 'S',
-              leftLabel: '방어형',
+              leftLabel: '안전형',
               leftPct: scores.GS.S,
               rightCode: 'G',
-              rightLabel: '공격형',
+              rightLabel: '수익형',
               rightPct: scores.GS.G,
             },
             {
               key: 'AP',
               title: '실행 축',
               leftCode: 'P',
-              leftLabel: '시스템형',
+              leftLabel: '수동형',
               leftPct: scores.AP.P,
               rightCode: 'A',
-              rightLabel: '분석형',
+              rightLabel: '능동형',
               rightPct: scores.AP.A,
             },
             {
@@ -182,7 +182,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
                 {/* Header Labels with Winner Highlight & Percentages */}
                 <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
                   <div className="flex items-center gap-1.5">
-                    <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/80'}>
+                    <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
                       {item.leftLabel}({item.leftCode}) {item.leftPct}%
                     </span>
                     {isLeftWinner && (
@@ -198,40 +198,38 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
                         우세
                       </span>
                     )}
-                    <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/80'}>
+                    <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
                       {item.rightLabel}({item.rightCode}) {item.rightPct}%
                     </span>
                   </div>
                 </div>
 
-                {/* Gauge Bar (Winner: Signature Orange, Loser: Refined Slate Gray) */}
+                {/* Gauge Bar (Winner: Signature Orange Glow, Loser: Soft Translucent Muted Tone) */}
                 <div className="w-full h-3.5 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0.5 border border-[var(--border-color)] shadow-inner">
                   {/* Left Side Fill */}
                   <div
-                    className={`h-full rounded-l-full transition-all duration-1000 ${
-                      isLeftWinner
-                        ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-                        : 'bg-[var(--text-secondary)]/25'
-                    }`}
+                    className={`h-full rounded-l-full transition-all duration-1000 ${isLeftWinner
+                      ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
+                      : 'bg-[var(--text-secondary)]/12'
+                      }`}
                     style={{ width: `${item.leftPct}%` }}
                   />
                   {/* Right Side Fill */}
                   <div
-                    className={`h-full rounded-r-full transition-all duration-1000 ${
-                      !isLeftWinner
-                        ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-                        : 'bg-[var(--text-secondary)]/25'
-                    }`}
+                    className={`h-full rounded-r-full transition-all duration-1000 ${!isLeftWinner
+                      ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
+                      : 'bg-[var(--text-secondary)]/12'
+                      }`}
                     style={{ width: `${item.rightPct}%` }}
                   />
                 </div>
 
                 {/* Always-visible Inline Descriptions */}
                 <div className="grid grid-cols-2 gap-3 text-[11px] pt-1 leading-tight">
-                  <div className={`text-left ${isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/70'}`}>
+                  <div className={`text-left ${isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
                     • {exp.leftDesc}
                   </div>
-                  <div className={`text-right ${!isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/70'}`}>
+                  <div className={`text-right ${!isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
                     • {exp.rightDesc}
                   </div>
                 </div>
@@ -240,6 +238,42 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
           })}
         </div>
       </div>
+
+      {/* Tailored Investment Guidelines Card */}
+      {profile.guidelines && (
+        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
+            <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+              {profile.name} 맞춤 투자 지침서
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
+            {/* Recommendation (나만의 핵심 무기) */}
+            <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-green)]/30 space-y-1.5 transition-all">
+              <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>나만의 핵심 무기</span>
+              </div>
+              <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                {profile.guidelines.recommendation}
+              </p>
+            </div>
+
+            {/* Warning / Caution (이것만은 경계하세요) */}
+            <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)]/30 space-y-1.5 transition-all">
+              <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>이것만은 경계하세요</span>
+              </div>
+              <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                {profile.guidelines.warning}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -258,25 +292,6 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
           <RefreshCw className="w-4 h-4" />
           다시 진단하기
         </button>
-      </div>
-
-      {/* Curriculum CTA */}
-      <div className="glass-card p-5 rounded-2xl flex items-center justify-between gap-4 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/30 hover:shadow-[0_4px_20px_rgba(241,143,1,0.08)] transition-all">
-        <div className="space-y-0.5">
-          <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-            내 성향에 맞는 쉬운 주식 강좌 보러가기
-          </h4>
-          <p className="text-[11px] text-[var(--text-secondary)]">
-            초보자도 따라 할 수 있는 단계별 커리큘럼이 준비되어 있습니다.
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="shrink-0 px-4 py-2.5 rounded-xl bg-[var(--accent-orange)] text-white font-extrabold text-xs shadow-[0_0_12px_rgba(241,143,1,0.3)] hover:shadow-[0_0_18px_rgba(241,143,1,0.5)] hover:scale-[1.03] active:scale-[0.98] flex items-center gap-1 transition-all"
-        >
-          학습하기
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
       </div>
     </div>
   );

@@ -139,8 +139,11 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
             </span>
           </div>
 
-          {/* Center Row: Signature Brand Glassmorphic Play Button */}
+          {/* Center Row: Large Semi-Transparent Background Icon + Signature Play Button */}
           <div className="relative z-10 flex items-center justify-center my-auto w-full py-2">
+            {/* Background Watermark Icon */}
+            <IconComponent className="absolute w-40 h-40 sm:w-52 sm:h-52 text-[var(--accent-orange)] opacity-10 dark:opacity-15 pointer-events-none group-hover:scale-110 group-hover:opacity-20 transition-all duration-500 stroke-[1.2]" />
+
             <div className="relative group/btn flex items-center justify-center">
               {/* Subtle Pulsing Ambient Outer Ring */}
               <div className="absolute -inset-2 rounded-full bg-[var(--accent-orange)]/20 blur-md group-hover:bg-[var(--accent-orange)]/40 transition-all duration-500 animate-pulse" />
