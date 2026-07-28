@@ -178,6 +178,36 @@ export const CURRICULUM_DATA: Level[] = [
           "시가총액과 시장 지수",
           "초보자 필수템 ETF"
         ]
+      },
+      {
+        id: "lv1-3",
+        levelId: "lv1",
+        lessonNumber: 3,
+        title: "3강. 계좌 개설",
+        subtitle: "DB증권 비대면 계좌 개설부터 평생 우대 수수료 혜택 연동까지",
+        youtubeId: "2Ee_qkHL5pE",
+        duration: "5:32",
+        summary: [
+          "해외주식 수수료 0.04%(업계 최저) 및 환전 수수료 0원 평생 우대 혜택 소개",
+          "DB증권 & 자문사 앱 비대면 계좌 개설, 관리지점(강남금융센터/김주호) 및 연동 절차",
+          "해외주식 이용 신청과 수수료 우대 최종 적용을 위한 혜택 신청 폼 작성"
+        ],
+        cardNewsTitles: [
+          "평생 우대 수수료 혜택",
+          "비대면 계좌 개설 & 연동",
+          "해외주식 서비스 신청"
+        ],
+        modules: [
+          {
+            type: "cta",
+            badge: "평생 우대 혜택",
+            title: "DB증권 x 주식부엉 수수료 우대 혜택 신청",
+            description: "해외주식 0.04% · 환전 0원 · 국내주식 0.015% 평생 우대! 계좌 연동 후 혜택 신청 폼을 작성해 주세요.",
+            buttonText: "혜택 신청 폼 작성하기",
+            buttonUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfMK-ZxVqgFSmKq0VyJu-K8IcLQJFjdmyaouG5Pls7hfX8siA/viewform",
+            isExternal: true
+          }
+        ]
       }
     ]
   },
