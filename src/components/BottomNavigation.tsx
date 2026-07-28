@@ -28,10 +28,10 @@ export default function BottomNavigation() {
   );
 
   return (
-    <div className="fixed bottom-4 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
       <nav 
         aria-label="하단 내비게이션"
-        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/80 backdrop-blur-2xl border border-[var(--border-color)] rounded-full p-1.5 shadow-lg transition-all duration-300 relative overflow-hidden"
+        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/85 backdrop-blur-2xl border border-[var(--border-color)] rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight with Subtle Glowing Orange Border */}
@@ -56,7 +56,16 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 ${
+                scroll={true}
+                onClick={(e) => {
+                  if (isActive && pathname === item.href) {
+                    e.preventDefault();
+                  }
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+                  }
+                }}
+                className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-300 active:scale-95 touch-manipulation ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'
                     : 'text-[var(--text-secondary)] font-medium hover:text-[var(--accent-orange)]'
