@@ -9,7 +9,7 @@ export default function ToolsPage() {
       href: '/tools/type',
       icon: Sparkles,
       tag: '40문항 진단',
-      isComingSoon: true,
+      isComingSoon: false,
     },
   ];
 
@@ -65,7 +65,7 @@ export default function ToolsPage() {
             <Link
               key={idx}
               href={tool.href}
-              className="glass-card p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 group shadow-xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_25px_rgba(241,143,1,0.22)] hover:-translate-y-0.5 active:scale-[0.99] border border-[var(--border-color)]"
+              className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group shadow-2xs hover:-translate-y-0.5 active:scale-[0.99]"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
