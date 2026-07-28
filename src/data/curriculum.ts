@@ -186,7 +186,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "3강. 계좌 개설",
         subtitle: "DB증권 비대면 계좌 개설부터 평생 우대 수수료 혜택 연동까지",
         youtubeId: "2Ee_qkHL5pE",
-        duration: "5:32",
+        duration: "3:08",
         summary: [
           "해외주식 수수료 0.04%(업계 최저) 및 환전 수수료 0원 평생 우대 혜택 소개",
           "DB증권 & 자문사 앱 비대면 계좌 개설, 관리지점(강남금융센터/김주호) 및 연동 절차",
