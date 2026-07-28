@@ -70,6 +70,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    'naver-site-verification': '54c4e23bb6d3b18bbcc1924f9f8969f9723e9d63',
+  },
 };
 
 export default function RootLayout({
@@ -90,6 +93,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <meta name="naver-site-verification" content="54c4e23bb6d3b18bbcc1924f9f8969f9723e9d63" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
