@@ -69,16 +69,16 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           return (
             <div
               key={level.id}
-              className={`rounded-2xl transition-all duration-200 ${
+              className={`rounded-2xl transition-all duration-300 overflow-hidden ${
                 containsCurrent
-                  ? 'bg-[var(--card-surface)] border border-[var(--accent-orange)]/30 shadow-[0_0_15px_rgba(241,143,1,0.12)]'
-                  : 'bg-[var(--card-surface)]/50 border border-transparent hover:border-[var(--accent-orange)]/30 hover:bg-[var(--card-hover)]'
+                  ? 'glass-card border border-[var(--accent-orange)]/50 shadow-[0_0_18px_rgba(241,143,1,0.18)]'
+                  : 'glass-card glass-card-hover'
               }`}
             >
               {/* Level Accordion Header Button */}
               <button
                 onClick={() => toggleLevel(level.id)}
-                className="w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition-all text-left active:scale-[0.99]"
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl text-xs font-bold transition-all text-left active:scale-[0.99]"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span
@@ -102,7 +102,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
                 <div className="flex items-center gap-1.5 shrink-0 ml-1">
                   {level.isComingSoon && (
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] font-bold">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] font-bold border border-[var(--border-color)]">
                       준비 중
                     </span>
                   )}
@@ -116,7 +116,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
               {/* Accordion Content (Lessons List) */}
               {isOpen && (
-                <div className="space-y-1 p-2 pt-0">
+                <div className="space-y-1.5 p-2 pt-0 border-t border-[var(--border-color)]/30">
                   {hasLessons ? (
                     level.lessons.map((lesson) => {
                       const isActive = lesson.id === currentLessonId;
@@ -136,8 +136,8 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           }}
                           className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                             isActive
-                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)]/30'
-                              : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
+                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)]/40 shadow-[0_0_12px_rgba(241,143,1,0.18)]'
+                              : 'text-[var(--text-primary)] glass-card glass-card-hover font-medium'
                           }`}
                         >
                           <div

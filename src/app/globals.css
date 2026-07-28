@@ -19,12 +19,13 @@
     --glow-color-secondary: rgba(104, 166, 125, 0.40); /* Vibrant Green Secondary Glow */
   }
 
+  .dark,
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root, .dark {
       --bg-main: #242424;        /* Deep Charcoal Dark Background */
       --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
       --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
-      --border-color: rgba(255, 255, 255, 0.03); /* Subtle Soft Translucent Dark Glass Border */
+      --border-color: rgba(241, 143, 1, 0.15); /* Subtle Warm Translucent Glass Border (No White Lines) */
       --border-highlight: rgba(0, 0, 0, 0.2); /* Soft Dark Inner Highlight in Dark Mode */
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
@@ -208,11 +209,13 @@ html {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), inset 0 1px 0 0 var(--border-highlight);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.glass-card:hover,
 .glass-card-hover:hover {
   background-color: var(--card-hover);
-  border-color: rgba(241, 143, 1, 0.4);
+  border-color: rgba(241, 143, 1, 0.45);
   box-shadow: 0 0 20px rgba(241, 143, 1, 0.18), inset 0 1px 0 0 var(--border-highlight);
 }
 
