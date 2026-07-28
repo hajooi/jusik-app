@@ -86,7 +86,7 @@ export default function ToolsPage() {
                 </div>
               </div>
               <div className="pt-4 flex items-center justify-end text-xs font-bold text-[var(--accent-orange)] group-hover:translate-x-1 transition-transform">
-                실습 실행 →
+                지금 알아보기 →
               </div>
             </Link>
           );
