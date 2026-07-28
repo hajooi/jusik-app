@@ -187,7 +187,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "3강. 계좌 개설",
         subtitle: "DB증권 비대면 계좌 개설부터 평생 우대 수수료 혜택 연동까지",
         youtubeId: "2Ee_qkHL5pE",
-        duration: "3:08",
+        duration: "3:09",
         summary: [
           "비싼 해외주식 거래·환전 수수료를 아끼는 것이 장기 투자 수익률의 첫걸음",
           "주식부엉 X DB증권 강남금융센터 단독 제휴로 준비한 업계 최저 수수료 혜택",
@@ -224,7 +224,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "4강. 주식 구매 실습",
         subtitle: "앱 퀵메뉴 세팅부터 SPYM 구매 & 소수점 구매, 주식 팔기까지 완벽 실습",
         youtubeId: "LUDPgG6Kf54",
-        duration: "4:55",
+        duration: "4:08",
         summary: [
           "증권사 앱 인지 부하를 줄이는 퀵메뉴 세팅과 해외주식 거래·실시간 시세 신청",
           "미국 S&P 500 대표 주식(SPYM) 지정가 구매 및 소액 투자자를 위한 소수점 구매 실습",
