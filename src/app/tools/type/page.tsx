@@ -19,16 +19,31 @@ export default function InvestmentSurveyPage() {
     try {
       const savedAnswers = localStorage.getItem('jusik_mbti_answers');
       const savedCompleted = localStorage.getItem('jusik_mbti_completed');
+      const savedPage = localStorage.getItem('jusik_mbti_current_page');
+
       if (savedAnswers) {
-        setAnswers(JSON.parse(savedAnswers));
-      }
-      if (savedCompleted === 'true') {
-        setIsCompleted(true);
+        const parsedAnswers = JSON.parse(savedAnswers);
+        setAnswers(parsedAnswers);
+
+        if (savedCompleted === 'true') {
+          setIsCompleted(true);
+        } else if (savedPage !== null) {
+          const pageNum = parseInt(savedPage, 10);
+          if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
+            setCurrentPage(pageNum);
+          }
+        } else {
+          // If no page saved, automatically jump to the page of the first unanswered question
+          const firstUnansweredIndex = QUESTIONS.findIndex((q) => parsedAnswers[q.id] === undefined);
+          if (firstUnansweredIndex !== -1) {
+            setCurrentPage(Math.floor(firstUnansweredIndex / PAGE_SIZE));
+          }
+        }
       }
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [totalPages]);
 
   const pageQuestions = QUESTIONS.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const answeredCount = Object.keys(answers).length;
@@ -44,7 +59,9 @@ export default function InvestmentSurveyPage() {
 
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      localStorage.setItem('jusik_mbti_current_page', nextPage.toString());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setIsCompleted(true);
@@ -54,7 +71,9 @@ export default function InvestmentSurveyPage() {
 
   const handlePrevPage = () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+      const prevPage = currentPage - 1;
+      setCurrentPage(prevPage);
+      localStorage.setItem('jusik_mbti_current_page', prevPage.toString());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -65,6 +84,7 @@ export default function InvestmentSurveyPage() {
     setIsCompleted(false);
     localStorage.removeItem('jusik_mbti_answers');
     localStorage.removeItem('jusik_mbti_completed');
+    localStorage.removeItem('jusik_mbti_current_page');
   };
 
 
