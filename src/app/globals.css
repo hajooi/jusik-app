@@ -19,13 +19,12 @@
     --glow-color-secondary: rgba(104, 166, 125, 0.40); /* Vibrant Green Secondary Glow */
   }
 
-  .dark,
   @media (prefers-color-scheme: dark) {
-    :root, .dark {
+    :root {
       --bg-main: #242424;        /* Deep Charcoal Dark Background */
       --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
       --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
-      --border-color: rgba(241, 143, 1, 0.15); /* Subtle Warm Translucent Glass Border (No White Lines) */
+      --border-color: rgba(241, 143, 1, 0.18); /* Warm Subtle Translucent Glass Border (Zero White Lines) */
       --border-highlight: rgba(0, 0, 0, 0.2); /* Soft Dark Inner Highlight in Dark Mode */
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
@@ -36,6 +35,22 @@
       --glow-color: rgba(241, 143, 1, 0.22); /* Smooth Orange Radial Glow */
       --glow-color-secondary: rgba(104, 166, 125, 0.16); /* Gentle Green Glow */
     }
+  }
+
+  .dark {
+    --bg-main: #242424;
+    --card-surface: rgba(48, 48, 48, 0.70);
+    --card-hover: rgba(60, 60, 60, 0.85);
+    --border-color: rgba(241, 143, 1, 0.18);
+    --border-highlight: rgba(0, 0, 0, 0.2);
+    --text-primary: #F5ECD7;
+    --text-secondary: #C2BAA6;
+    --accent-green: #8FBF9F;
+    --accent-mid-green: #68A67D;
+    --accent-orange: #F18F01;
+    --accent-deep-brown: #833500;
+    --glow-color: rgba(241, 143, 1, 0.22);
+    --glow-color-secondary: rgba(104, 166, 125, 0.16);
   }
 
   body {
