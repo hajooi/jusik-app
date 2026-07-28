@@ -27,12 +27,12 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
     setIsMobileOpen(true);
   };
 
-  // Find current level to auto-expand it by default
+  // Find current level to auto-expand ONLY the current level by default
   const [openLevels, setOpenLevels] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     CURRICULUM_DATA.forEach((lvl) => {
       const containsCurrent = lvl.lessons.some((l) => l.id === currentLessonId);
-      initial[lvl.id] = containsCurrent || lvl.levelNumber === 0 || lvl.levelNumber === 1;
+      initial[lvl.id] = containsCurrent;
     });
     return initial;
   });
