@@ -52,7 +52,14 @@ Always use predefined CSS variables from `src/app/globals.css`:
 - `BottomNavigation.tsx`: Mobile fixed 2-tab navigation bar with glowing active pill.
 - `VideoCoverPlayer.tsx`: Custom M3-styled cover overlay player with owl logo and play button.
 - `Accordion.tsx`: Clean, single-row curriculum accordion.
+- `sitemap.ts`: Dynamic Next.js sitemap automatically registering all curriculum lessons and routes.
+- `robots.ts`: Next.js robots configuration for Google and Naver Yeti crawlers.
 
-### 5. Development & Verification Workflow
+### 6. Dynamic Sitemap Automation & SEO
+- **Zero Manual Sitemap Edits for Lessons**: `src/app/sitemap.ts` dynamically imports `CURRICULUM_DATA` from `src/data/curriculum.ts`. Adding new lessons automatically updates `sitemap.xml`.
+- **New Tools / Top-level Routes**: When introducing new pages, ensure `sitemap.ts` includes the new URL entry.
+- **Site Branding**: Site name is **'주식앱'** (`jusik.app`) with slogan **"주식 초보를 위한 가장 쉬운 설명서"**.
+
+### 7. Development & Verification Workflow
 - Ensure TypeScript compilation passes: `npx tsc --noEmit`.
 - Ensure dev server is responsive and mobile layout displays properly without horizontal overflow.

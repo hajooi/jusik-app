@@ -48,3 +48,10 @@ iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵�
 - **Palette**: Charcoal(`#353535`), Slate(`#5F5F5F`), Dark Green(`#24613B`), Mid Green(`#68A67D`), Light Green(`#8FBF9F`), Base Cream(`#F5ECD7`), Soft Beige(`#EBE2CD`), Dark Beige(`#C2BAA6`), Orange(`#F18F01`), Deep Brown(`#833500`)
 - **Light Mode**: Base Cream 배경 / Soft Beige 카드 / Charcoal 텍스트
 - **Dark Mode**: Charcoal 배경 / Slate 카드 / Base Cream 텍스트 (자동 감지)
+
+## 8. SEO & Dynamic Sitemap Automation Rules
+- **자동 사이트맵 (Dynamic Sitemap)**:
+  - `src/app/sitemap.ts`는 `curriculum.ts` 데이터를 동적으로 불러와 새로운 강의가 추가될 때마다 `sitemap.xml`이 **100% 자동 업데이트**됩니다.
+  - 새로 추가되는 모든 정적/동적 라우트(예: 신규 투자도구 페이지 등)는 `sitemap.ts`에 라우트 경로를 누락 없이 유지합니다.
+- **브랜드 표기**:
+  - 사이트 메인명은 **'주식앱'** (`jusik.app`), 슬로건은 **"주식 초보를 위한 가장 쉬운 설명서"**를 준수합니다.
