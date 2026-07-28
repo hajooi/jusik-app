@@ -216,6 +216,25 @@ export const CURRICULUM_DATA: Level[] = [
             isExternal: true
           }
         ]
+      },
+      {
+        id: "lv1-4",
+        levelId: "lv1",
+        lessonNumber: 4,
+        title: "4강. 주식 구매 실습",
+        subtitle: "앱 퀵메뉴 세팅부터 SPYM 구매 & 소수점 구매, 주식 팔기까지 완벽 실습",
+        youtubeId: "LUDPgG6Kf54",
+        duration: "4:55",
+        summary: [
+          "증권사 앱 인지 부하를 줄이는 퀵메뉴 세팅과 해외주식 거래·실시간 시세 신청",
+          "미국 S&P 500 대표 주식(SPYM) 지정가 구매 및 소액 투자자를 위한 소수점 구매 실습",
+          "자동 환전되는 통합증거금의 작동 원리와 주식 판매 후 2일 뒤 결제 정산 이해"
+        ],
+        cardNewsTitles: [
+          "증권사 앱 깔끔한 세팅",
+          "미국 주식 지정가 & 소수점 구매",
+          "통합증거금과 주식 판매 정산"
+        ]
       }
     ]
   },
