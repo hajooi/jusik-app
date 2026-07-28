@@ -14,8 +14,57 @@ import {
   Calculator, 
   Copy, 
   ExternalLink,
-  HelpCircle
+  HelpCircle,
+  Bot,
+  History,
+  Lightbulb,
+  TrendingUp,
+  ShieldAlert,
+  Cpu,
+  Zap,
+  Target,
+  Scale,
+  Ghost,
+  RefreshCw
 } from 'lucide-react';
+
+function renderStepIcon(iconName?: string) {
+  const iconProps = { className: "w-4 h-4 text-[var(--accent-orange)] shrink-0 stroke-[2.2]" };
+  switch (iconName) {
+    case 'Bot':
+      return <Bot {...iconProps} />;
+    case 'History':
+      return <History {...iconProps} />;
+    case 'Lightbulb':
+      return <Lightbulb {...iconProps} />;
+    case 'TrendingUp':
+      return <TrendingUp {...iconProps} />;
+    case 'ShieldAlert':
+      return <ShieldAlert {...iconProps} />;
+    case 'Cpu':
+      return <Cpu {...iconProps} />;
+    case 'Zap':
+      return <Zap {...iconProps} />;
+    case 'Target':
+      return <Target {...iconProps} />;
+    case 'Clock':
+      return <Clock {...iconProps} />;
+    case 'Scale':
+      return <Scale {...iconProps} />;
+    case 'Ghost':
+      return <Ghost {...iconProps} />;
+    case 'RefreshCw':
+      return <RefreshCw {...iconProps} />;
+    case 'HelpCircle':
+      return <HelpCircle {...iconProps} />;
+    case 'BookOpen':
+      return <BookOpen {...iconProps} />;
+    case 'Award':
+      return <Award {...iconProps} />;
+    default:
+      return <Sparkles {...iconProps} />;
+  }
+}
 
 export async function generateStaticParams() {
   const lessons = getAllLessons();
@@ -114,7 +163,53 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             <div className="space-y-6">
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
-                  return null;
+                  return (
+                    <div key={index} className="space-y-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                          <BookOpen className="w-4 h-4 stroke-[2]" />
+                        </span>
+                        <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
+                          {module.title}
+                        </h3>
+                      </div>
+                      {module.description && (
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+                          {module.description}
+                        </p>
+                      )}
+                      <div className="space-y-3">
+                        {module.steps.map((step, stepIdx) => (
+                          <div
+                            key={stepIdx}
+                            className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl space-y-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]"
+                          >
+                            <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
+                              <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">
+                                {renderStepIcon(step.icon)}
+                              </span>
+                              <span>{step.title}</span>
+                            </h4>
+                            {step.description && (
+                              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-4">
+                                {step.description}
+                              </p>
+                            )}
+                            {step.bullets && step.bullets.length > 0 && (
+                              <ul className="space-y-1.5 pl-4 pt-1">
+                                {step.bullets.map((bullet, bulletIdx) => (
+                                  <li key={bulletIdx} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium leading-relaxed">
+                                    <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-0.5">•</span>
+                                    <span>{bullet}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
                 }
 
                 if (module.type === 'resources') {
