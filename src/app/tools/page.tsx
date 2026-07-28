@@ -5,7 +5,7 @@ export default function ToolsPage() {
   const tools = [
     {
       title: '투자 성향 진단',
-      description: '수익 vs 안전, 분석 vs 시스템 등 4대 핵심 축으로 나만의 16가지 투자 스타일과 퍼센티지 스펙트럼 리포트를 확인하세요.',
+      description: '손실이 무서운 사람부터 적극적인 사람까지! 나의 진짜 투자 스타일과 위험 관리법 진단',
       href: '/tools/type',
       icon: Sparkles,
       tag: '40문항 진단',
