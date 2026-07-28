@@ -69,32 +69,40 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           return (
             <div
               key={level.id}
-              className="space-y-1.5 border border-[var(--border-color)] rounded-2xl p-1.5 transition-all bg-[var(--bg-main)]/50 hover:border-[var(--accent-orange)]/30"
+              className={`rounded-2xl transition-all duration-200 ${
+                containsCurrent
+                  ? 'bg-[var(--card-surface)] border border-[var(--accent-orange)]/30 shadow-[0_0_15px_rgba(241,143,1,0.12)]'
+                  : 'bg-[var(--card-surface)]/50 border border-transparent hover:border-[var(--accent-orange)]/30 hover:bg-[var(--card-hover)]'
+              }`}
             >
               {/* Level Accordion Header Button */}
               <button
                 onClick={() => toggleLevel(level.id)}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-bold transition-all text-left ${
-                  containsCurrent
-                    ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 font-extrabold'
-                    : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)]'
-                }`}
+                className="w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition-all text-left active:scale-[0.99]"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono shrink-0">
+                  <span
+                    className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full font-mono shrink-0 ${
+                      containsCurrent
+                        ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
+                        : 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
+                    }`}
+                  >
                     Lv. {level.levelNumber}
                   </span>
-                  <span className="truncate text-xs font-bold">{level.title}</span>
+                  <span className={`truncate text-xs font-extrabold ${containsCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
+                    {level.title}
+                  </span>
                   {hasLessons && (
-                    <span className="text-[10px] text-[var(--text-secondary)] font-normal shrink-0">
+                    <span className="text-[10px] text-[var(--text-secondary)] font-medium shrink-0">
                       ({level.lessons.length})
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0 ml-1">
+                <div className="flex items-center gap-1.5 shrink-0 ml-1">
                   {level.isComingSoon && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-400/20 text-[var(--text-secondary)] font-medium">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] font-bold">
                       준비 중
                     </span>
                   )}
@@ -108,7 +116,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
               {/* Accordion Content (Lessons List) */}
               {isOpen && (
-                <div className="space-y-1 pt-1 px-1 pb-1">
+                <div className="space-y-1 p-2 pt-0">
                   {hasLessons ? (
                     level.lessons.map((lesson) => {
                       const isActive = lesson.id === currentLessonId;
@@ -128,14 +136,14 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           }}
                           className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                             isActive
-                              ? 'bg-[var(--card-hover)] border border-[var(--accent-orange)]/50 text-[var(--accent-orange)] font-extrabold shadow-xs'
+                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)]/30'
                               : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
                           }`}
                         >
                           <div
                             className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                               isActive
-                                ? 'bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]'
+                                ? 'bg-[var(--accent-orange)] text-white'
                                 : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]'
                             }`}
                           >
@@ -145,7 +153,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           <span className="truncate flex-1">{lesson.title}</span>
 
                           {isActive && (
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
+                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)] text-white shrink-0 font-mono">
                               학습 중
                             </span>
                           )}
@@ -153,7 +161,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                       );
                     })
                   ) : (
-                    <div className="p-3 text-center text-xs text-[var(--text-secondary)] font-medium bg-[var(--bg-main)]/40 rounded-xl">
+                    <div className="p-3 text-center text-xs text-[var(--text-secondary)] font-medium bg-[var(--bg-main)]/50 rounded-xl">
                       강의 준비 중입니다 🚀
                     </div>
                   )}
