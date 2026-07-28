@@ -182,42 +182,59 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     >
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                       
-                      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="space-y-1.5 min-w-0 flex-1">
-                          {module.badge && (
-                            <span className="inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white tracking-wide font-mono shadow-2xs">
-                              {module.badge}
-                            </span>
-                          )}
-                          <h3 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
-                            {module.title}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-                            {module.description}
-                          </p>
+                      <div className="relative z-10 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-1.5 min-w-0 flex-1">
+                            {module.badge && (
+                              <span className="inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white tracking-wide font-mono shadow-2xs">
+                                {module.badge}
+                              </span>
+                            )}
+                            <h3 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
+                              {module.title}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                              {module.description}
+                            </p>
+                          </div>
+
+                          <div className="shrink-0 pt-1 sm:pt-0">
+                            {module.isExternal ? (
+                              <a
+                                href={module.buttonUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                              >
+                                {module.buttonText}
+                                <ExternalLink className="w-4 h-4 stroke-[1.7]" />
+                              </a>
+                            ) : (
+                              <Link
+                                href={module.buttonUrl}
+                                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                              >
+                                {module.buttonText}
+                                <ArrowRight className="w-4 h-4 stroke-[1.7]" />
+                              </Link>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="shrink-0 pt-1 sm:pt-0">
-                          {module.isExternal ? (
-                            <a
-                              href={module.buttonUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
-                            >
-                              {module.buttonText}
-                              <ExternalLink className="w-4 h-4 stroke-[1.7]" />
-                            </a>
-                          ) : (
-                            <Link
-                              href={module.buttonUrl}
-                              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
-                            >
-                              {module.buttonText}
-                              <ArrowRight className="w-4 h-4 stroke-[1.7]" />
-                            </Link>
-                          )}
-                        </div>
+                        {/* Optional Fee Benefit Grid Items */}
+                        {module.benefits && module.benefits.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[var(--border-color)]/60">
+                            {module.benefits.map((b, bIdx) => (
+                              <div
+                                key={bIdx}
+                                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-xs font-extrabold text-[var(--text-primary)] transition-all hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.15)]"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shrink-0" />
+                                <span>{b}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
