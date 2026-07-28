@@ -202,7 +202,7 @@ export const CURRICULUM_DATA: Level[] = [
           {
             type: "cta",
             badge: "평생 우대 혜택",
-            title: "DB증권 x 주식부엉 수수료 우대 혜택 신청",
+            title: "주식부엉 x DB증권 수수료 우대 혜택 신청",
             description: "아래 혜택은 안내된 제휴 절차(DB증권 비대면 계좌 개설 & 자문사 앱 연동)를 진행하셔야 평생 적용됩니다.",
             benefits: [
               "해외주식 수수료 ── 0.04% [업계 최저]",
