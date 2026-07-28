@@ -24,8 +24,8 @@
       --bg-main: #242424;        /* Deep Charcoal Dark Background */
       --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
       --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
-      --border-color: rgba(255, 255, 255, 0.08); /* Soft Translucent Glass Border */
-      --border-highlight: rgba(255, 255, 255, 0.05); /* Subtle Top Highlight in Dark Mode */
+      --border-color: rgba(255, 255, 255, 0.03); /* Subtle Soft Translucent Dark Glass Border */
+      --border-highlight: rgba(0, 0, 0, 0.2); /* Soft Dark Inner Highlight in Dark Mode */
       --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
       --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
       --accent-green: #8FBF9F;   /* Light Green */
