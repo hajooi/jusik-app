@@ -167,7 +167,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "2강. 필수 용어",
         subtitle: "주식 뉴스와 시세가 쏙쏙 들리는 기초 핵심 용어 총정리",
         youtubeId: "tf6vMw3u7LU",
-        duration: "4:30",
+        duration: "6:27",
         summary: [
           "회사의 소유권 조각인 주식으로 수익을 내는 2가지 방법 (시세 차익과 배당금)",
           "주가와 총 주식 수로 계산하는 회사의 진짜 가치표, 시가총액과 시장 지수",
