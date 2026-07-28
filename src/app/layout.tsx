@@ -1,11 +1,39 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import BottomNavigation from '@/components/BottomNavigation';
 
 export const metadata: Metadata = {
-  title: 'jusik.app',
-  description: '주식 초보를 위한 가장 쉬운 설명서',
-  keywords: ['jusik.app', '주식부엉', '주식 초보', '주식 설명서', '자산배분', '투자 커리큘럼'],
+  metadataBase: new URL('https://jusik.app'),
+  title: {
+    default: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    template: '%s | 주식앱',
+  },
+  description: '초보자도 쉽게 따라 하는 단계별 주식 공부, 계좌 개설, 주식 모으기 실습 및 투자 성향 진단 플랫폼 (jusik.app)',
+  keywords: [
+    '주식앱',
+    'jusik.app',
+    '주식 초보',
+    '주식 설명서',
+    '주식 기초',
+    '투자 성향 진단',
+    '주식 공부',
+    '주식 모으기',
+    '미국 주식',
+    'S&P 500',
+    '주식부엉',
+  ],
+  authors: [{ name: 'jusik.app' }],
+  creator: 'jusik.app',
+  publisher: 'jusik.app',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: 'https://jusik.app',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -19,21 +47,54 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'jusik.app',
-    description: '주식 초보를 위한 가장 쉬운 설명서',
+    title: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    description: '초보자도 따라 할 수 있는 단계별 주식 공부 및 투자 성향 진단 플랫폼 (jusik.app)',
+    url: 'https://jusik.app',
+    siteName: '주식앱',
+    locale: 'ko_KR',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    description: '초보자도 따라 할 수 있는 단계별 주식 공부 및 투자 성향 진단 플랫폼 (jusik.app)',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
-
-import BottomNavigation from '@/components/BottomNavigation';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: '주식앱',
+    alternateName: ['jusik.app', '주식 앱'],
+    url: 'https://jusik.app',
+    description: '주식 초보를 위한 가장 쉬운 설명서',
+    inLanguage: 'ko-KR',
+  };
+
   return (
     <html lang="ko">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col antialiased bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors relative selection:bg-[var(--accent-orange)]/20 selection:text-[var(--accent-orange)]">
         {/* Modern AI SaaS Radial Mesh Glow Background */}
         <div 
