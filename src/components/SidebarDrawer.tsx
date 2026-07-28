@@ -114,59 +114,65 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                 </div>
               </button>
 
-              {/* Accordion Content (Lessons List) */}
-              {isOpen && (
-                <div className="space-y-1 p-2 pt-1">
-                  {hasLessons ? (
-                    level.lessons.map((lesson) => {
-                      const isActive = lesson.id === currentLessonId;
+              {/* Accordion Content (Lessons List with Smooth Height Transition) */}
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-1 p-2 pt-1">
+                    {hasLessons ? (
+                      level.lessons.map((lesson) => {
+                        const isActive = lesson.id === currentLessonId;
 
-                      return (
-                        <Link
-                          key={lesson.id}
-                          href={`/lesson/${lesson.id}`}
-                          onClick={(e) => {
-                            if (isActive) {
-                              e.preventDefault();
-                              handleClose();
-                            } else {
-                              setIsMobileOpen(false);
-                              setIsClosing(false);
-                            }
-                          }}
-                          className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
-                            isActive
-                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
-                              : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
-                          }`}
-                        >
-                          <div
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        return (
+                          <Link
+                            key={lesson.id}
+                            href={`/lesson/${lesson.id}`}
+                            onClick={(e) => {
+                              if (isActive) {
+                                e.preventDefault();
+                                handleClose();
+                              } else {
+                                setIsMobileOpen(false);
+                                setIsClosing(false);
+                              }
+                            }}
+                            className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                               isActive
-                                ? 'bg-[var(--accent-orange)] text-white'
-                                : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]'
+                                ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
+                                : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
                             }`}
                           >
-                            <PlayCircle className="w-3.5 h-3.5 stroke-[2]" />
-                          </div>
+                            <div
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                isActive
+                                  ? 'bg-[var(--accent-orange)] text-white'
+                                  : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]'
+                              }`}
+                            >
+                              <PlayCircle className="w-3.5 h-3.5 stroke-[2]" />
+                            </div>
 
-                          <span className="truncate flex-1">{lesson.title}</span>
+                            <span className="truncate flex-1">{lesson.title}</span>
 
-                          {isActive && (
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)] text-white shrink-0 font-mono">
-                              학습 중
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <div className="p-3 text-center text-xs text-[var(--text-secondary)] font-medium bg-[var(--bg-main)]/50 rounded-xl">
-                      강의 준비 중입니다 🚀
-                    </div>
-                  )}
+                            {isActive && (
+                              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)] text-white shrink-0 font-mono">
+                                학습 중
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })
+                    ) : (
+                      <div className="p-3 text-center text-xs text-[var(--text-secondary)] font-medium bg-[var(--bg-main)]/50 rounded-xl">
+                        강의 준비 중입니다 🚀
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
