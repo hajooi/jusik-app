@@ -113,7 +113,7 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
           onClick={handlePlayClick}
           type="button"
           aria-label={`${title} 영상 재생하기`}
-          className="group absolute inset-0 w-full h-full bg-[var(--bg-main)] text-left cursor-pointer transition-all duration-300 focus:outline-none p-4 sm:p-6 flex flex-col justify-between z-10 overflow-hidden border border-[var(--border-color)]"
+          className="group absolute inset-0 w-full h-full bg-[var(--bg-main)] text-left cursor-pointer transition-all duration-300 focus:outline-none p-4 sm:p-6 flex flex-col justify-between z-10 overflow-hidden border-none"
         >
           {/* Clean Ambient Glass Surface */}
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--card-surface)] to-[var(--bg-main)] pointer-events-none" />
