@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { CURRICULUM_DATA } from '@/data/curriculum';
-import { List, X, PlayCircle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { List, X, PlayCircle, ChevronDown } from 'lucide-react';
 
 interface SidebarDrawerProps {
   currentLessonId: string;
@@ -27,6 +27,23 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
     setIsMobileOpen(true);
   };
 
+  // Find current level to auto-expand it by default
+  const [openLevels, setOpenLevels] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    CURRICULUM_DATA.forEach((lvl) => {
+      const containsCurrent = lvl.lessons.some((l) => l.id === currentLessonId);
+      initial[lvl.id] = containsCurrent || lvl.levelNumber === 0 || lvl.levelNumber === 1;
+    });
+    return initial;
+  });
+
+  const toggleLevel = (levelId: string) => {
+    setOpenLevels((prev) => ({
+      ...prev,
+      [levelId]: !prev[levelId],
+    }));
+  };
+
   const renderContent = () => (
     <div className="space-y-5">
       {/* Top Header Row */}
@@ -43,60 +60,108 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
         </button>
       </div>
 
-      <div className="space-y-5 max-h-[calc(100vh-140px)] overflow-y-auto px-0.5 py-1">
-        {CURRICULUM_DATA.map((level) => (
-          <div key={level.id} className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-extrabold text-[var(--text-secondary)] px-2 font-mono uppercase tracking-wider">
-              <span>Lv. {level.levelNumber} · {level.badgeText}</span>
-            </div>
+      <div className="space-y-3 max-h-[calc(100vh-140px)] overflow-y-auto px-0.5 py-1">
+        {CURRICULUM_DATA.map((level) => {
+          const isOpen = !!openLevels[level.id];
+          const hasLessons = level.lessons.length > 0;
+          const containsCurrent = level.lessons.some((l) => l.id === currentLessonId);
 
-            <div className="space-y-1">
-              {level.lessons.map((lesson) => {
-                const isActive = lesson.id === currentLessonId;
+          return (
+            <div
+              key={level.id}
+              className="space-y-1.5 border border-[var(--border-color)] rounded-2xl p-1.5 transition-all bg-[var(--bg-main)]/50 hover:border-[var(--accent-orange)]/30"
+            >
+              {/* Level Accordion Header Button */}
+              <button
+                onClick={() => toggleLevel(level.id)}
+                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-bold transition-all text-left ${
+                  containsCurrent
+                    ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 font-extrabold'
+                    : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)]'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono shrink-0">
+                    Lv. {level.levelNumber}
+                  </span>
+                  <span className="truncate text-xs font-bold">{level.title}</span>
+                  {hasLessons && (
+                    <span className="text-[10px] text-[var(--text-secondary)] font-normal shrink-0">
+                      ({level.lessons.length})
+                    </span>
+                  )}
+                </div>
 
-                return (
-                  <Link
-                    key={lesson.id}
-                    href={`/lesson/${lesson.id}`}
-                    onClick={(e) => {
-                      if (isActive) {
-                        e.preventDefault();
-                        handleClose();
-                      } else {
-                        // Close modal instantly without artificial navigation delays
-                        setIsMobileOpen(false);
-                        setIsClosing(false);
-                      }
-                    }}
-                    className={`group flex items-center gap-3 p-3 rounded-2xl text-xs transition-all duration-300 ${
-                      isActive
-                        ? 'bg-[var(--card-hover)] border border-[rgba(241,143,1,0.5)] shadow-[0_0_15px_rgba(241,143,1,0.2)] text-[var(--accent-orange)] font-extrabold scale-[1.01]'
-                        : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
+                <div className="flex items-center gap-1 shrink-0 ml-1">
+                  {level.isComingSoon && (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-400/20 text-[var(--text-secondary)] font-medium">
+                      준비 중
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''
                     }`}
-                  >
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                      isActive 
-                        ? 'bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-bold' 
-                        : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/10'
-                    }`}>
-                      <PlayCircle className="w-4 h-4 stroke-[2]" />
+                  />
+                </div>
+              </button>
+
+              {/* Accordion Content (Lessons List) */}
+              {isOpen && (
+                <div className="space-y-1 pt-1 px-1 pb-1">
+                  {hasLessons ? (
+                    level.lessons.map((lesson) => {
+                      const isActive = lesson.id === currentLessonId;
+
+                      return (
+                        <Link
+                          key={lesson.id}
+                          href={`/lesson/${lesson.id}`}
+                          onClick={(e) => {
+                            if (isActive) {
+                              e.preventDefault();
+                              handleClose();
+                            } else {
+                              setIsMobileOpen(false);
+                              setIsClosing(false);
+                            }
+                          }}
+                          className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
+                            isActive
+                              ? 'bg-[var(--card-hover)] border border-[var(--accent-orange)]/50 text-[var(--accent-orange)] font-extrabold shadow-xs'
+                              : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium'
+                          }`}
+                        >
+                          <div
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              isActive
+                                ? 'bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]'
+                                : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]'
+                            }`}
+                          >
+                            <PlayCircle className="w-3.5 h-3.5 stroke-[2]" />
+                          </div>
+
+                          <span className="truncate flex-1">{lesson.title}</span>
+
+                          {isActive && (
+                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
+                              학습 중
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })
+                  ) : (
+                    <div className="p-3 text-center text-xs text-[var(--text-secondary)] font-medium bg-[var(--bg-main)]/40 rounded-xl">
+                      강의 준비 중입니다 🚀
                     </div>
-
-                    <span className="truncate flex-1">{lesson.title}</span>
-
-                    {isActive ? (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 font-mono">
-                        학습 중
-                      </span>
-                    ) : (
-                      <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-100 text-[var(--accent-orange)] transition-opacity" />
-                    )}
-                  </Link>
-                );
-              })}
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
