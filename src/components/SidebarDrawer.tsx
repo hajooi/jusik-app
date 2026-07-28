@@ -102,7 +102,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
                 <div className="flex items-center gap-1.5 shrink-0 ml-1">
                   {level.isComingSoon && (
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] font-bold border border-[var(--border-color)]">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--text-secondary)] font-bold">
                       준비 중
                     </span>
                   )}
@@ -116,7 +116,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
               {/* Accordion Content (Lessons List) */}
               {isOpen && (
-                <div className="space-y-1.5 p-2 pt-0 border-t border-[var(--border-color)]/30">
+                <div className="space-y-1 p-2 pt-1">
                   {hasLessons ? (
                     level.lessons.map((lesson) => {
                       const isActive = lesson.id === currentLessonId;
@@ -137,7 +137,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                             isActive
                               ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)]/40 shadow-[0_0_12px_rgba(241,143,1,0.18)]'
-                              : 'text-[var(--text-primary)] glass-card glass-card-hover font-medium'
+                              : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
                           }`}
                         >
                           <div
@@ -187,7 +187,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
 
       {/* Left Slide-over Modal with Backdrop Blur Overlay (z-[100] covers bottom nav) */}
       {(isMobileOpen || isClosing) && (
-        <div className={`fixed inset-0 z-[100] flex justify-start bg-black/15 backdrop-blur-[2px] ${
+        <div className={`fixed inset-0 z-[100] flex justify-start bg-black/20 backdrop-blur-[2px] ${
           isClosing ? 'animate-fade-out-overlay' : 'animate-fade-in-overlay'
         }`}>
           {/* Backdrop Overlay Click to Close */}
@@ -197,7 +197,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           />
 
           {/* Sliding Panel with Smooth Side Animation & Pure Brand Base Cream Surface */}
-          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)] border-r border-[var(--border-color)]/40 h-full p-5 shadow-2xl overflow-y-auto ${
+          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)] border-none h-full p-5 shadow-2xl overflow-y-auto ${
             isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
           }`}>
             {renderContent()}
