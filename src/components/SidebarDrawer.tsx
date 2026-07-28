@@ -71,7 +71,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
               key={level.id}
               className={`rounded-2xl transition-all duration-300 overflow-hidden ${
                 containsCurrent
-                  ? 'glass-card border border-[var(--accent-orange)]/50 shadow-[0_0_18px_rgba(241,143,1,0.18)]'
+                  ? 'glass-card border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.18)]'
                   : 'glass-card glass-card-hover'
               }`}
             >
@@ -136,7 +136,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           }}
                           className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                             isActive
-                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)]/40 shadow-[0_0_12px_rgba(241,143,1,0.18)]'
+                              ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
                               : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
                           }`}
                         >

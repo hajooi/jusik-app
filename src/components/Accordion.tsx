@@ -49,8 +49,8 @@ export default function Accordion({ levels }: AccordionProps) {
             key={level.id}
             className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
               isOpen 
-                ? 'ring-1 ring-[var(--accent-orange)]/60 shadow-md shadow-[0_0_20px_rgba(241,143,1,0.12)] border-[var(--accent-orange)]/40' 
-                : 'hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)] shadow-2xs'
+                ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_20px_rgba(241,143,1,0.12)] border-[var(--accent-orange)]' 
+                : 'hover:border-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.15)] shadow-2xs'
             }`}
           >
             {/* Header / Accordion Button */}
