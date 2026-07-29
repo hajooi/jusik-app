@@ -57,10 +57,7 @@ export default function BottomNavigation() {
                 key={item.href}
                 href={item.href}
                 scroll={true}
-                onClick={(e) => {
-                  if (isActive && pathname === item.href) {
-                    e.preventDefault();
-                  }
+                onClick={() => {
                   if (typeof window !== 'undefined') {
                     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
                   }

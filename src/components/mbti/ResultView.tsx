@@ -64,14 +64,18 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?result=${profile.code}`;
+    const shareTitle = `내 투자 성향: ${profile.name} (${profile.code})`;
+    const shareText = `주식앱에서 분석한 내 투자 성향은 "${profile.name}(${profile.code})"! 네 투자 유형도 궁금하다면 지금 바로 진단해 봐 🦉`;
+
     if (navigator.share) {
       navigator.share({
-        title: `내 투자 성향: ${profile.name} (${profile.code})`,
-        text: `jusik.app에서 내 투자 성향을 진단해 봤어요! 당신의 유형은 무엇인가요?`,
-        url: window.location.href,
+        title: shareTitle,
+        text: shareText,
+        url: shareUrl,
       }).catch(() => { });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
@@ -95,11 +99,8 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-orange)]/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-3 text-center sm:text-left">
-          {/* Code badge & Badges */}
+          {/* Badges (4 Factors) */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <span className="px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-xs font-black tracking-wider font-mono shadow-xs">
-              {profile.code}
-            </span>
             {profile.badges.map((b, i) => (
               <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.15)]">
                 {b}

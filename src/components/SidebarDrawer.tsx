@@ -130,14 +130,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                           <Link
                             key={lesson.id}
                             href={`/lesson/${lesson.id}`}
-                            onClick={(e) => {
-                              if (isActive) {
-                                e.preventDefault();
-                                handleClose();
-                              } else {
-                                setIsMobileOpen(false);
-                                setIsClosing(false);
-                              }
+                            onClick={() => {
+                              setIsMobileOpen(false);
+                              setIsClosing(false);
                             }}
                             className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                               isActive

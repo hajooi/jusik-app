@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { QUESTIONS, calculateSurveyResult, Question } from '@/data/investmentSurvey';
+import { useSearchParams } from 'next/navigation';
+import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES, Question } from '@/data/investmentSurvey';
 import ResultView from '@/components/mbti/ResultView';
-import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Play } from 'lucide-react';
 
-export default function InvestmentSurveyPage() {
+function SurveyContent() {
+  const searchParams = useSearchParams();
+  const sharedCode = searchParams.get('result')?.toUpperCase();
+  const sharedProfile = sharedCode && PERSONALITY_PROFILES[sharedCode] ? PERSONALITY_PROFILES[sharedCode] : null;
+
   const [currentPage, setCurrentPage] = useState(0); // 0..7 (5 questions per page, 40 total)
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
@@ -87,8 +92,6 @@ export default function InvestmentSurveyPage() {
     localStorage.removeItem('jusik_mbti_current_page');
   };
 
-
-
   if (isCompleted) {
     const resultData = calculateSurveyResult(answers);
     return (
@@ -131,6 +134,35 @@ export default function InvestmentSurveyPage() {
           홈으로 돌아가기
         </Link>
       </div>
+
+      {/* Shared Result Invite Card (Shown when arriving via shared link ?result=CODE) */}
+      {sharedProfile && !isCompleted && answeredCount === 0 && (
+        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] bg-[var(--card-hover)]/40 relative overflow-hidden">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
+              공유받은 성향
+            </span>
+            <span className="text-xs font-bold text-[var(--accent-orange)]">
+              {sharedProfile.code}
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
+              이 링크를 공유한 친구는 <span className="text-[var(--accent-orange)]">"{sharedProfile.name}"</span> 유형이에요!
+            </h3>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+              "{sharedProfile.tagline}"
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-[var(--border-color)] flex items-center justify-between gap-3">
+            <p className="text-xs font-bold text-[var(--text-primary)]">
+              나는 어떤 투자 유형일까? 지금 3분 만에 진단해보세요! 🦉
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Progress & Milestone Header */}
       <div className="glass-card p-5 rounded-3xl space-y-3 sticky top-3 z-10 backdrop-blur-xl border border-[var(--border-color)] shadow-xs">
@@ -245,5 +277,13 @@ export default function InvestmentSurveyPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function InvestmentSurveyPage() {
+  return (
+    <React.Suspense fallback={<div className="max-w-4xl mx-auto p-8 text-center text-sm font-bold">로딩 중...</div>}>
+      <SurveyContent />
+    </React.Suspense>
   );
 }
