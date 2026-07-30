@@ -55,3 +55,7 @@ iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵�
   - 새로 추가되는 모든 정적/동적 라우트(예: 신규 투자도구 페이지 등)는 `sitemap.ts`에 라우트 경로를 누락 없이 유지합니다.
 - **브랜드 표기**:
   - 사이트 메인명은 **'주식앱'** (`jusik.app`), 슬로건은 **"주식 초보를 위한 가장 쉬운 설명서"**를 준수합니다.
+
+## 9. DB Securities Compliance Temporary Status & Restore Backup Rule
+- **임시 안내 상태**: DB증권 심의필 관련 문제 해결 전까지 3강(`lv1-3`)은 "DB증권 계좌 개설 안내는 내부 점검으로 인해 잠시 중단되었습니다" 안내로 노출.
+- **원본 데이터 백업 위치**: 심의필 승인 후 복구 요청 시 `.agents/references/db_securities_lesson3_backup.ts` 파일의 데이터를 `src/data/curriculum.ts` 내 `lv1-3`으로 즉시 원상복구할 것.
