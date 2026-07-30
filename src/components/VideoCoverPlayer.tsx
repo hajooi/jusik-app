@@ -53,44 +53,6 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
 
   const handlePlayClick = () => {
     setIsPlaying(true);
-
-    const initPlayerAndPlay = () => {
-      if (iframeRef.current && window.YT && window.YT.Player) {
-        if (!playerRef.current) {
-          playerRef.current = new window.YT.Player(iframeRef.current, {
-            events: {
-              onReady: (event: any) => {
-                event.target.unMute();
-                event.target.playVideo();
-              },
-            },
-          });
-        } else {
-          playerRef.current.unMute();
-          playerRef.current.playVideo();
-        }
-      }
-    };
-
-    // Execute immediately in current event loop (User Gesture)
-    if (window.YT && window.YT.Player) {
-      initPlayerAndPlay();
-    } else {
-      // If API script is still loading, assign callback or poll briefly
-      const previousOnReady = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        if (previousOnReady) previousOnReady();
-        initPlayerAndPlay();
-      };
-      // Fallback check
-      const interval = setInterval(() => {
-        if (window.YT && window.YT.Player) {
-          clearInterval(interval);
-          initPlayerAndPlay();
-        }
-      }, 50);
-      setTimeout(() => clearInterval(interval), 2000);
-    }
   };
 
   return (
@@ -101,7 +63,7 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
         className={`absolute top-0 left-0 w-full h-full transition-opacity duration-300 ${
           isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
-        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&autoplay=0`}
+        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0${isPlaying ? '&autoplay=1' : ''}`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen

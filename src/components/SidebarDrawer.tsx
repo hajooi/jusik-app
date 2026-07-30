@@ -14,12 +14,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
   const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = (onComplete?: () => void) => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsMobileOpen(false);
-      setIsClosing(false);
-      if (onComplete) onComplete();
-    }, 260);
+    setIsMobileOpen(false);
+    setIsClosing(false);
+    if (onComplete) onComplete();
   };
 
   const handleOpen = () => {

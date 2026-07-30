@@ -28,10 +28,10 @@ export default function BottomNavigation() {
   );
 
   return (
-    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 z-[60] flex justify-center px-3 sm:px-4">
       <nav 
         aria-label="하단 내비게이션"
-        className="pointer-events-auto w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/85 backdrop-blur-2xl border border-[var(--border-color)] rounded-full p-1.5 shadow-xl transition-all duration-300 relative overflow-hidden"
+        className="w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)] rounded-full p-1.5 shadow-xl relative overflow-hidden"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight with Subtle Glowing Orange Border */}
