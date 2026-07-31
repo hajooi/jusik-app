@@ -44,8 +44,9 @@ export default function BottomNavigation() {
 
   const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    forceScrollTop();
-    router.push(href);
+    if (typeof window !== 'undefined') {
+      window.location.href = href;
+    }
   };
 
   return (
