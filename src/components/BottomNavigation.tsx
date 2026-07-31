@@ -8,9 +8,18 @@ import { BookOpen, Wrench } from 'lucide-react';
 export default function BottomNavigation() {
   const pathname = usePathname();
 
-  // Ensure scroll is reset to top whenever pathname changes (fixes mobile scroll position issue when navigating back/forth)
+  // Disable browser auto-scroll restoration on iOS Chrome/Safari & reset scroll on route change
   useEffect(() => {
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
+    // Reset window scroll position on pathname change
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [pathname]);
 
   const navItems = [
@@ -65,6 +74,8 @@ export default function BottomNavigation() {
                 scroll={true}
                 onClick={() => {
                   window.scrollTo(0, 0);
+                  document.documentElement.scrollTop = 0;
+                  document.body.scrollTop = 0;
                 }}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 touch-manipulation cursor-pointer ${
                   isActive
