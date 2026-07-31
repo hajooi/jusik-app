@@ -61,9 +61,13 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 transition-all duration-200">
-      {/* iOS Backdrop Blur Background */}
+      {/* iOS Progressive Blur Background */}
       <div 
         className="absolute inset-0 bg-[var(--bg-main)]/80 backdrop-blur-md pointer-events-none"
+        style={{
+          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
+        }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">

@@ -78,6 +78,11 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
+                onPointerDown={() => {
+                  window.scrollTo(0, 0);
+                  document.documentElement.scrollTop = 0;
+                  document.body.scrollTop = 0;
+                }}
                 onClick={() => {
                   window.scrollTo(0, 0);
                   document.documentElement.scrollTop = 0;
