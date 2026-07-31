@@ -449,7 +449,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "4강. 주식 구매 실습",
         subtitle: "앱 퀵메뉴 세팅부터 SPYM 구매 & 소수점 구매, 주식 팔기까지 완벽 실습",
         youtubeId: "LUDPgG6Kf54",
-        duration: "4:08",
+        duration: "4:04",
         cardNewsTitles: [
           "1단계: 화면 깔끔하게 세팅하기",
           "2단계: 미국 시장 서비스 신청",
