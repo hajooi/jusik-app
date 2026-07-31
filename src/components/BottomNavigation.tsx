@@ -56,6 +56,13 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                  }
+                }}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'
