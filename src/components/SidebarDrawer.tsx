@@ -130,6 +130,11 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                             onClick={() => {
                               setIsMobileOpen(false);
                               setIsClosing(false);
+                              if (typeof window !== 'undefined') {
+                                window.scrollTo(0, 0);
+                                document.documentElement.scrollTop = 0;
+                                document.body.scrollTop = 0;
+                              }
                             }}
                             className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
                               isActive

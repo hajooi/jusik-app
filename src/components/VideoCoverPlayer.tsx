@@ -57,20 +57,17 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
 
   return (
     <div className="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-md bg-black">
-      {/* YouTube Iframe element - initialized in DOM */}
-      <iframe
-        ref={iframeRef}
-        className={`absolute top-0 left-0 w-full h-full transition-opacity duration-300 ${
-          isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0${isPlaying ? '&autoplay=1' : ''}`}
-        title={title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
-
-      {/* Brand Cover Overlay - hides when isPlaying is true */}
-      {!isPlaying && (
+      {/* Render YouTube Iframe only after user clicks Play button for instant page transition */}
+      {isPlaying ? (
+        <iframe
+          ref={iframeRef}
+          className="absolute top-0 left-0 w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&playsinline=1&rel=0`}
+          title={title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      ) : (
         <button
           onClick={handlePlayClick}
           type="button"
