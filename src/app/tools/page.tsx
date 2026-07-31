@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles, Clock } from 'lucide-react';
+import { Sparkles, Clock, LineChart } from 'lucide-react';
 
 export default function ToolsPage() {
   const tools = [
@@ -10,6 +10,14 @@ export default function ToolsPage() {
       icon: Sparkles,
       tag: '40문항 진단',
       isComingSoon: false,
+    },
+    {
+      title: '실전 수익률 검증기',
+      description: '주식, 채권, 금 적립식 백테스팅 및 200일 이동평균선 추세추매 시뮬레이터',
+      href: '/tools/simulate',
+      icon: LineChart,
+      tag: '백테스터',
+      isComingSoon: true,
     },
   ];
 
