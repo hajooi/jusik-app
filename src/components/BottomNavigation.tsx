@@ -75,10 +75,9 @@ export default function BottomNavigation() {
               : pathname.startsWith(item.href);
 
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
-                onClick={(e) => handleNavigation(e, item.href)}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'
@@ -94,7 +93,7 @@ export default function BottomNavigation() {
                   }`} 
                 />
                 <span className="text-xs sm:text-sm tracking-tight font-sans">{item.label}</span>
-              </a>
+              </Link>
             );
           })}
         </div>

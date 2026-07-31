@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CURRICULUM_DATA } from '@/data/curriculum';
 import { List, X, PlayCircle, ChevronDown } from 'lucide-react';
@@ -125,14 +126,12 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                         const isActive = lesson.id === currentLessonId;
 
                         return (
-                          <a
+                          <Link
                             key={lesson.id}
                             href={`/lesson/${lesson.id}`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (typeof window !== 'undefined') {
-                                window.location.href = `/lesson/${lesson.id}`;
-                              }
+                            onClick={() => {
+                              setIsMobileOpen(false);
+                              setIsClosing(false);
                             }}
                             className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer ${
                               isActive
@@ -157,7 +156,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                                 학습 중
                               </span>
                             )}
-                          </a>
+                          </Link>
                         );
                       })
                     ) : (
