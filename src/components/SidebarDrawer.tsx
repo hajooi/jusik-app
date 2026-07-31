@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CURRICULUM_DATA } from '@/data/curriculum';
 import { List, X, PlayCircle, ChevronDown } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface SidebarDrawerProps {
 }
 
 export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
+  const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -124,10 +125,11 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                         const isActive = lesson.id === currentLessonId;
 
                         return (
-                          <Link
+                          <a
                             key={lesson.id}
                             href={`/lesson/${lesson.id}`}
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
                               setIsMobileOpen(false);
                               setIsClosing(false);
                               if (typeof window !== 'undefined') {
@@ -135,8 +137,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                                 document.documentElement.scrollTop = 0;
                                 document.body.scrollTop = 0;
                               }
+                              router.push(`/lesson/${lesson.id}`);
                             }}
-                            className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 ${
+                            className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer ${
                               isActive
                                 ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
                                 : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
@@ -159,7 +162,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                                 학습 중
                               </span>
                             )}
-                          </Link>
+                          </a>
                         );
                       })
                     ) : (
