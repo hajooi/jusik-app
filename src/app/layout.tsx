@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
     template: '%s | 주식앱',
   },
-  description: '초보자도 쉽게 따라 하는 단계별 주식 공부, 계좌 개설, 주식 모으기 실습 및 투자 성향 진단 플랫폼 (jusik.app)',
+  description: '기초부터 차근차근 주식을 배우고, 유용한 투자 도구들로 나만의 투자 스타일을 찾아보세요! (jusik.app)',
   keywords: [
     '주식앱',
     'jusik.app',
