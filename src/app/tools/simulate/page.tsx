@@ -136,7 +136,7 @@ export default function SimulatorPage() {
           실전 수익률 검증기
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-          주식, 채권, 금 다각화 포트폴리오의 적립식 수익률과 200일선 추세매매 결과를 검증하세요.
+          이렇게 투자하면 미래에 얼마가 모일까? 주식·채권·금 비율별 과거 성적을 한눈에 알아보세요.
         </p>
       </div>
 
