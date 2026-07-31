@@ -1,26 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { BookOpen, Wrench } from 'lucide-react';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  // Scroll reset helper
-  const forceScrollTop = () => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }
-  };
-
-  useEffect(() => {
-    forceScrollTop();
-  }, [pathname]);
 
   const navItems = [
     {
@@ -42,18 +27,11 @@ export default function BottomNavigation() {
     item.exact ? (pathname === item.href || pathname.startsWith('/lesson/')) : pathname.startsWith(item.href)
   );
 
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    if (typeof window !== 'undefined') {
-      window.location.href = href;
-    }
-  };
-
   return (
-    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] inset-x-0 z-[9999] flex justify-center px-3 sm:px-4 pointer-events-none select-none">
+    <div className="fixed bottom-4 inset-x-0 z-[9999] flex justify-center px-3 sm:px-4 pointer-events-none select-none">
       <nav 
         aria-label="하단 내비게이션"
-        className="w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/95 backdrop-blur-md border border-[var(--border-color)] rounded-full p-1.5 shadow-xl relative overflow-hidden pointer-events-auto touch-manipulation"
+        className="w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/95 backdrop-blur-md border border-[var(--border-color)] rounded-full p-1.5 shadow-xl relative overflow-hidden pointer-events-auto"
       >
         <div className="flex items-center justify-around relative">
           {/* Animated Liquid Sliding Pill Highlight with Subtle Glowing Orange Border */}
@@ -78,16 +56,6 @@ export default function BottomNavigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                onPointerDown={() => {
-                  window.scrollTo(0, 0);
-                  document.documentElement.scrollTop = 0;
-                  document.body.scrollTop = 0;
-                }}
-                onClick={() => {
-                  window.scrollTo(0, 0);
-                  document.documentElement.scrollTop = 0;
-                  document.body.scrollTop = 0;
-                }}
                 className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 rounded-full w-full transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'

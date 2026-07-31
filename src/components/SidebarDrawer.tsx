@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { CURRICULUM_DATA } from '@/data/curriculum';
 import { List, X, PlayCircle, ChevronDown } from 'lucide-react';
 
@@ -11,18 +10,13 @@ interface SidebarDrawerProps {
 }
 
 export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
-  const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
 
-  const handleClose = (onComplete?: () => void) => {
+  const handleClose = () => {
     setIsMobileOpen(false);
-    setIsClosing(false);
-    if (onComplete) onComplete();
   };
 
   const handleOpen = () => {
-    setIsClosing(false);
     setIsMobileOpen(true);
   };
 
@@ -131,7 +125,6 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                             href={`/lesson/${lesson.id}`}
                             onClick={() => {
                               setIsMobileOpen(false);
-                              setIsClosing(false);
                             }}
                             className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer ${
                               isActive
@@ -186,20 +179,16 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
       </button>
 
       {/* Left Slide-over Modal with Backdrop Blur Overlay (z-[100] covers bottom nav) */}
-      {(isMobileOpen || isClosing) && (
-        <div className={`fixed inset-0 z-[100] flex justify-start bg-black/20 backdrop-blur-[2px] ${
-          isClosing ? 'animate-fade-out-overlay' : 'animate-fade-in-overlay'
-        }`}>
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-start bg-black/30 backdrop-blur-[2px]">
           {/* Backdrop Overlay Click to Close */}
           <div 
             className="absolute inset-0" 
-            onClick={() => handleClose()} 
+            onClick={handleClose} 
           />
 
-          {/* Sliding Panel with Smooth Side Animation & Pure Brand Base Cream Surface */}
-          <div className={`relative z-10 w-full max-w-xs bg-[var(--bg-main)] border-none h-full p-5 shadow-2xl overflow-y-auto ${
-            isClosing ? 'animate-slide-out-left' : 'animate-slide-in-left'
-          }`}>
+          {/* Sliding Panel */}
+          <div className="relative z-10 w-full max-w-xs bg-[var(--bg-main)] border-none h-full p-5 shadow-2xl overflow-y-auto animate-slide-in-left">
             {renderContent()}
           </div>
         </div>
