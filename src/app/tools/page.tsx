@@ -73,7 +73,7 @@ export default function ToolsPage() {
             <Link
               key={idx}
               href={tool.href}
-              className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group shadow-2xs hover:-translate-y-0.5 active:scale-[0.99]"
+              className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99]"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
