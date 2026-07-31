@@ -120,7 +120,7 @@ export default function RootLayout({
         <div className="relative z-10 flex flex-col min-h-screen">
           <ScrollToTop />
           <Navbar />
-          <main className="flex-1 pb-28">
+          <main className="flex-1 pb-28 min-h-[100.5vh]">
             {children}
           </main>
           <BottomNavigation />
