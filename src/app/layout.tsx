@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import BottomNavigation from '@/components/BottomNavigation';
+import ScrollToTop from '@/components/ScrollToTop';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jusik.app'),
@@ -117,6 +118,7 @@ export default function RootLayout({
         />
 
         <div className="relative z-10 flex flex-col min-h-screen">
+          <ScrollToTop />
           <Navbar />
           <main className="flex-1 pb-28">
             {children}
