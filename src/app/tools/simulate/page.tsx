@@ -439,7 +439,7 @@ export default function SimulatorPage() {
       <div className="space-y-1 py-1">
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] flex items-center gap-2.5">
           <LineChart className="w-7 h-7 text-[var(--accent-orange)]" />
-          실전 수익률 검증기
+          투자 수익률 시뮬레이터
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
           원하는 종목과 전략으로 2가지 포트폴리오를 구성하여 20년간의 실전 성과를 직관적으로 비교하세요.
