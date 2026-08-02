@@ -12,7 +12,33 @@
       "ma100Return": 0.118,
       "ma150Return": 0.122,
       "ma200Return": 0.128,
-      "description": "미국 우량 기업 500개 분산 투자 (모으기 추천)"
+      "description": "미국 우량 기업 500개 분산 투자 (대표 지수 ETF)"
+    },
+    {
+      "id": "SSO",
+      "name": "S&P 500 (2배 레버리지)",
+      "category": "stock",
+      "leverage": 2,
+      "annualCAGR": 0.165,
+      "annualVol": 0.31,
+      "ma50Return": 0.180,
+      "ma100Return": 0.195,
+      "ma150Return": 0.205,
+      "ma200Return": 0.220,
+      "description": "S&P 500 하루 변동폭의 2배 추종 (SSO)"
+    },
+    {
+      "id": "UPRO",
+      "name": "S&P 500 (3배 레버리지)",
+      "category": "stock",
+      "leverage": 3,
+      "annualCAGR": 0.210,
+      "annualVol": 0.46,
+      "ma50Return": 0.235,
+      "ma100Return": 0.255,
+      "ma150Return": 0.275,
+      "ma200Return": 0.305,
+      "description": "S&P 500 하루 변동폭의 3배 공격형 추종 (UPRO)"
     },
     {
       "id": "QQQ",
@@ -67,6 +93,19 @@
       "description": "엔비디아, TSMC 등 글로벌 반도체 선도 기업"
     },
     {
+      "id": "USD",
+      "name": "필라델피아 반도체 (2배 레버리지)",
+      "category": "stock",
+      "leverage": 2,
+      "annualCAGR": 0.235,
+      "annualVol": 0.45,
+      "ma50Return": 0.260,
+      "ma100Return": 0.285,
+      "ma150Return": 0.310,
+      "ma200Return": 0.345,
+      "description": "반도체 지수 하루 변동폭의 2배 추종 (USD)"
+    },
+    {
       "id": "SOXL",
       "name": "필라델피아 반도체 (3배 레버리지)",
       "category": "stock",
@@ -80,17 +119,17 @@
       "description": "반도체 지수 하루 변동폭의 3배 극공격형"
     },
     {
-      "id": "GLD",
-      "name": "금 (Gold)",
-      "category": "gold",
+      "id": "SCHD",
+      "name": "미국 배당 다우존스",
+      "category": "stock",
       "leverage": 1,
-      "annualCAGR": 0.065,
-      "annualVol": 0.14,
-      "ma50Return": 0.068,
-      "ma100Return": 0.071,
-      "ma150Return": 0.073,
-      "ma200Return": 0.075,
-      "description": "인플레이션 및 경제 위기 방어용 실물 자산"
+      "annualCAGR": 0.125,
+      "annualVol": 0.15,
+      "ma50Return": 0.130,
+      "ma100Return": 0.135,
+      "ma150Return": 0.140,
+      "ma200Return": 0.145,
+      "description": "배당 성장 우량주 모음 (고배당 대표 ETF)"
     },
     {
       "id": "TLT",
@@ -117,6 +156,45 @@
       "ma150Return": 0.041,
       "ma200Return": 0.042,
       "description": "변동성이 적고 안정한 중기 국채"
+    },
+    {
+      "id": "GLD",
+      "name": "금 (Gold)",
+      "category": "gold",
+      "leverage": 1,
+      "annualCAGR": 0.065,
+      "annualVol": 0.14,
+      "ma50Return": 0.068,
+      "ma100Return": 0.071,
+      "ma150Return": 0.073,
+      "ma200Return": 0.075,
+      "description": "인플레이션 및 경제 위기 방어용 실물 자산"
+    },
+    {
+      "id": "BTC",
+      "name": "비트코인 (Bitcoin)",
+      "category": "crypto",
+      "leverage": 1,
+      "annualCAGR": 0.450,
+      "annualVol": 0.75,
+      "ma50Return": 0.500,
+      "ma100Return": 0.550,
+      "ma150Return": 0.600,
+      "ma200Return": 0.650,
+      "description": "대표 디지털 암호화폐"
+    },
+    {
+      "id": "ETH",
+      "name": "이더리움 (Ethereum)",
+      "category": "crypto",
+      "leverage": 1,
+      "annualCAGR": 0.520,
+      "annualVol": 0.85,
+      "ma50Return": 0.580,
+      "ma100Return": 0.640,
+      "ma150Return": 0.700,
+      "ma200Return": 0.760,
+      "description": "스마트 컨트랙트 대표 암호화폐"
     },
     {
       "id": "CASH",

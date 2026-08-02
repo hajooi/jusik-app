@@ -390,3 +390,35 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
     </div>
   );
 }
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const result = getLessonById(resolvedParams.id);
+  if (!result) return {};
+  const { lesson } = result;
+
+  const title = `${lesson.title} | 주식앱 커리큘럼`;
+  const description = lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.';
+  const url = `https://jusik.app/lesson/${lesson.id}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: '주식앱',
+      locale: 'ko_KR',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
