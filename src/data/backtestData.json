@@ -158,6 +158,19 @@
       "description": "변동성이 적고 안정한 중기 국채"
     },
     {
+      "id": "SHY",
+      "name": "미국 단기채 (1-3년)",
+      "category": "bond",
+      "leverage": 1,
+      "annualCAGR": 0.022,
+      "annualVol": 0.03,
+      "ma50Return": 0.023,
+      "ma100Return": 0.024,
+      "ma150Return": 0.024,
+      "ma200Return": 0.025,
+      "description": "변동성이 매우 적고 안정적인 단기 국채"
+    },
+    {
       "id": "GLD",
       "name": "금 (Gold)",
       "category": "gold",

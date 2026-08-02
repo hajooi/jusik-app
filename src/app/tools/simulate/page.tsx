@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, MouseEvent } from 'react';
+import { useState, useMemo, useRef, MouseEvent, TouchEvent } from 'react';
 import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
 import { 
@@ -51,16 +51,14 @@ export default function SimulatorPage() {
   // Portfolio A Configuration
   const [portfolioA, setPortfolioA] = useState<SelectedAsset[]>([
     { assetId: 'SPY', weight: 50, enableDefense: true },
-    { assetId: 'QQQ', weight: 30, enableDefense: true },
-    { assetId: 'GLD', weight: 10, enableDefense: false },
+    { assetId: 'QQQ', weight: 50, enableDefense: true },
   ]);
   const [strategyPeriodA, setStrategyPeriodA] = useState<number>(0);
 
-  // Portfolio B Configuration (Default same as A for 100% baseline match)
+  // Portfolio B Configuration
   const [portfolioB, setPortfolioB] = useState<SelectedAsset[]>([
-    { assetId: 'SPY', weight: 50, enableDefense: true },
-    { assetId: 'QQQ', weight: 30, enableDefense: true },
-    { assetId: 'GLD', weight: 10, enableDefense: false },
+    { assetId: 'SPY', weight: 60, enableDefense: true },
+    { assetId: 'QQQ', weight: 40, enableDefense: true },
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
 
@@ -124,6 +122,75 @@ export default function SimulatorPage() {
     const points: ChartPoint[] = [];
     let cumulativeInvested = initialCapital;
 
+    // Helper function to resolve asset price at a specific dataIndex with fallback leverage / index synthesis
+    const getAssetPrice = (assetId: string, idx: number): number => {
+      const series = histMap[assetId];
+      if (series && series[idx] && series[idx].price > 0) {
+        return series[idx].price;
+      }
+      // Synthetic fallback for leveraged ETFs without direct historical series
+      // Synthetic fallback for leveraged ETFs without direct historical series
+      if (assetId === 'SSO' || assetId === 'UPRO') {
+        const spySeries = histMap['SPY'];
+        if (spySeries && spySeries[idx] && idx > 0 && spySeries[idx - 1]) {
+          const spyRet = (spySeries[idx].price - spySeries[idx - 1].price) / spySeries[idx - 1].price;
+          const mult = assetId === 'SSO' ? 2 : 3;
+          const prevPrice = getAssetPrice(assetId, idx - 1);
+          return Math.max(0.01, prevPrice * (1 + spyRet * mult));
+        }
+        return (spySeries?.[idx]?.price || 100) * (assetId === 'SSO' ? 0.3 : 0.1);
+      }
+      if (assetId === 'USD') {
+        const soxxSeries = histMap['SOXX'];
+        if (soxxSeries && soxxSeries[idx] && idx > 0 && soxxSeries[idx - 1]) {
+          const soxxRet = (soxxSeries[idx].price - soxxSeries[idx - 1].price) / soxxSeries[idx - 1].price;
+          const prevPrice = getAssetPrice(assetId, idx - 1);
+          return Math.max(0.01, prevPrice * (1 + soxxRet * 2));
+        }
+        return (soxxSeries?.[idx]?.price || 100) * 0.2;
+      }
+      if (assetId === 'TQQQ' || assetId === 'QLD') {
+        const qqqSeries = histMap['QQQ'];
+        if (qqqSeries && qqqSeries[idx] && idx > 0 && qqqSeries[idx - 1]) {
+          const qqqRet = (qqqSeries[idx].price - qqqSeries[idx - 1].price) / qqqSeries[idx - 1].price;
+          const mult = assetId === 'QLD' ? 2 : 3;
+          const prevPrice = getAssetPrice(assetId, idx - 1);
+          return Math.max(0.01, prevPrice * (1 + qqqRet * mult));
+        }
+        return (qqqSeries?.[idx]?.price || 100) * (assetId === 'QLD' ? 0.2 : 0.05);
+      }
+      if (assetId === 'SOXL') {
+        const soxxSeries = histMap['SOXX'];
+        if (soxxSeries && soxxSeries[idx] && idx > 0 && soxxSeries[idx - 1]) {
+          const soxxRet = (soxxSeries[idx].price - soxxSeries[idx - 1].price) / soxxSeries[idx - 1].price;
+          const prevPrice = getAssetPrice(assetId, idx - 1);
+          return Math.max(0.01, prevPrice * (1 + soxxRet * 3));
+        }
+        return (soxxSeries?.[idx]?.price || 100) * 0.1;
+      }
+      if (assetId === 'BTC' || assetId === 'ETH') {
+        const qqqSeries = histMap['QQQ'];
+        if (qqqSeries && qqqSeries[idx] && idx > 0 && qqqSeries[idx - 1]) {
+          const qqqRet = (qqqSeries[idx].price - qqqSeries[idx - 1].price) / qqqSeries[idx - 1].price;
+          // Moderate realistic beta multiplier (1.4x - 1.6x) for pre-crypto tech proxy to prevent extreme compounding
+          const mult = assetId === 'BTC' ? 1.4 : 1.6;
+          const prevPrice = getAssetPrice(assetId, idx - 1);
+          return Math.max(0.01, prevPrice * (1 + qqqRet * mult));
+        }
+        return assetId === 'BTC' ? 50 : 10;
+      }
+      return histMap['SPY']?.[idx]?.price || 100;
+    };
+
+    // Helper to resolve benchmark series for MA calculation
+    const getBenchmarkSeries = (assetId: string) => {
+      if (assetId === 'SSO' || assetId === 'UPRO' || assetId === 'SCHD') return histMap['SPY'];
+      if (assetId === 'TQQQ' || assetId === 'QLD' || assetId === 'BTC' || assetId === 'ETH') return histMap['QQQ'];
+      if (assetId === 'USD' || assetId === 'SOXL') return histMap['SOXX'];
+      if (assetId === 'SHY') return histMap['IEF'];
+      return histMap[assetId] || histMap['SPY'];
+    };
+
     // Separate accumulated defense cash pools per asset for A & B
     const defenseCashA: Record<string, number> = {};
     const defenseCashB: Record<string, number> = {};
@@ -133,11 +200,9 @@ export default function SimulatorPage() {
     let cashA = initialCapital * (autoCashA / 100);
     portfolioA.forEach((item) => {
       defenseCashA[item.assetId] = 0;
-      const series = histMap[item.assetId];
-      if (series && series.length > 0) {
-        const firstPrice = series[canonicalDates.length - targetLength]?.price || 100;
-        sharesA[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
-      }
+      const startIdx = canonicalDates.length - targetLength;
+      const firstPrice = getAssetPrice(item.assetId, startIdx);
+      sharesA[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
     });
 
     // Portfolio B setup
@@ -145,38 +210,36 @@ export default function SimulatorPage() {
     let cashB = initialCapital * (autoCashB / 100);
     portfolioB.forEach((item) => {
       defenseCashB[item.assetId] = 0;
-      const series = histMap[item.assetId];
-      if (series && series.length > 0) {
-        const firstPrice = series[canonicalDates.length - targetLength]?.price || 100;
-        sharesB[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
-      }
+      const startIdx = canonicalDates.length - targetLength;
+      const firstPrice = getAssetPrice(item.assetId, startIdx);
+      sharesB[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
     });
-
-    let peakA = initialCapital, maxDDA = 0;
-    let peakB = initialCapital, maxDDB = 0;
-
-    const twrReturnsA: number[] = [];
-    const twrReturnsB: number[] = [];
 
     let prevValA = initialCapital;
     let prevValB = initialCapital;
+    let peakA = initialCapital;
+    let peakB = initialCapital;
+    let maxDDA = 0;
+    let maxDDB = 0;
+    const twrReturnsA: number[] = [];
+    const twrReturnsB: number[] = [];
 
-    for (let t = 0; t < timeline.length; t++) {
-      const dateStr = timeline[t];
+    for (let t = 0; t < targetLength; t++) {
       const dataIndex = canonicalDates.length - targetLength + t;
+      const dateStr = canonicalDates[dataIndex];
 
       if (t > 0) {
         // Compute pre-deposit portfolio values for TWR
         let preValA = cashA;
         portfolioA.forEach((item) => {
           preValA += (defenseCashA[item.assetId] || 0);
-          preValA += (sharesA[item.assetId] || 0) * (histMap[item.assetId]?.[dataIndex]?.price || 0);
+          preValA += (sharesA[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
         });
 
         let preValB = cashB;
         portfolioB.forEach((item) => {
           preValB += (defenseCashB[item.assetId] || 0);
-          preValB += (sharesB[item.assetId] || 0) * (histMap[item.assetId]?.[dataIndex]?.price || 0);
+          preValB += (sharesB[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
         });
 
         // TWR pure price return for period (ex-deposit)
@@ -187,22 +250,13 @@ export default function SimulatorPage() {
 
         cumulativeInvested += depositAmount;
 
-        // Helper to resolve benchmark series for MA calculation (Leveraged ETFs use underlying 1x benchmark)
-        const getBenchmarkSeries = (assetId: string) => {
-          if (assetId === 'SSO' || assetId === 'UPRO') return histMap['SPY'];
-          if (assetId === 'TQQQ' || assetId === 'QLD') return histMap['QQQ'];
-          if (assetId === 'USD' || assetId === 'SOXL') return histMap['SOXX'];
-          return histMap[assetId];
-        };
-
         // 1) PORTFOLIO A DYNAMIC PER-ASSET DEFENSE REBALANCING
         cashA += depositAmount * (autoCashA / 100);
 
         portfolioA.forEach((item) => {
           const benchSeries = getBenchmarkSeries(item.assetId);
-          const benchPrice = benchSeries?.[dataIndex]?.price;
-          const series = histMap[item.assetId];
-          const actualPrice = series?.[dataIndex]?.price;
+          const benchPrice = benchSeries?.[dataIndex]?.price || getAssetPrice(item.assetId, dataIndex);
+          const actualPrice = getAssetPrice(item.assetId, dataIndex);
 
           if (!actualPrice || actualPrice <= 0) return;
 
@@ -240,9 +294,8 @@ export default function SimulatorPage() {
 
         portfolioB.forEach((item) => {
           const benchSeries = getBenchmarkSeries(item.assetId);
-          const benchPrice = benchSeries?.[dataIndex]?.price;
-          const series = histMap[item.assetId];
-          const actualPrice = series?.[dataIndex]?.price;
+          const benchPrice = benchSeries?.[dataIndex]?.price || getAssetPrice(item.assetId, dataIndex);
+          const actualPrice = getAssetPrice(item.assetId, dataIndex);
 
           if (!actualPrice || actualPrice <= 0) return;
 
@@ -280,13 +333,13 @@ export default function SimulatorPage() {
       let valA = cashA;
       portfolioA.forEach((item) => {
         valA += (defenseCashA[item.assetId] || 0);
-        valA += (sharesA[item.assetId] || 0) * (histMap[item.assetId]?.[dataIndex]?.price || 0);
+        valA += (sharesA[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
       });
 
       let valB = cashB;
       portfolioB.forEach((item) => {
         valB += (defenseCashB[item.assetId] || 0);
-        valB += (sharesB[item.assetId] || 0) * (histMap[item.assetId]?.[dataIndex]?.price || 0);
+        valB += (sharesB[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
       });
 
       const roundedValA = Math.round(valA);
@@ -409,6 +462,31 @@ export default function SimulatorPage() {
     setDragEnd(index);
   };
 
+  const handleTouchStart = (e: TouchEvent) => {
+    if (!svgRef.current || e.touches.length === 0) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const relativeX = e.touches[0].clientX - rect.left;
+    const index = Math.round((relativeX / rect.width) * (simulation.points.length - 1));
+    setIsDragging(true);
+    setDragStart(index);
+    setDragEnd(index);
+    setHoverIndex(index);
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!svgRef.current || e.touches.length === 0) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const relativeX = e.touches[0].clientX - rect.left;
+    const normalizedX = Math.max(0, Math.min(chartWidth, (relativeX / rect.width) * chartWidth));
+    const index = Math.round((normalizedX / chartWidth) * (simulation.points.length - 1));
+    setHoverIndex(index);
+    if (isDragging) setDragEnd(index);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   // Dragged Range Metrics
   const dragRangeInfo = useMemo(() => {
     if (dragStart === null || dragEnd === null || dragStart === dragEnd) return null;
@@ -462,7 +540,11 @@ export default function SimulatorPage() {
             <div className="grid grid-cols-2 gap-1 pt-0.5">
               <button
                 type="button"
-                onClick={() => setDepositFrequency('monthly')}
+                onClick={() => {
+                  setDepositFrequency('monthly');
+                  setDragStart(null);
+                  setDragEnd(null);
+                }}
                 className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all ${
                   depositFrequency === 'monthly'
                     ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)]'
@@ -473,7 +555,11 @@ export default function SimulatorPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setDepositFrequency('weekly')}
+                onClick={() => {
+                  setDepositFrequency('weekly');
+                  setDragStart(null);
+                  setDragEnd(null);
+                }}
                 className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all ${
                   depositFrequency === 'weekly'
                     ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)]'
@@ -551,18 +637,38 @@ export default function SimulatorPage() {
             </div>
           </div>
 
-          {/* Duration Years (5년, 10년, 20년) */}
+          {/* Duration Years (Manual Number Input) */}
           <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">투자 기간</label>
-            <select
-              value={durationYears}
-              onChange={(e) => setDurationYears(Number(e.target.value))}
-              className="w-full bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono cursor-pointer"
-            >
-              <option value={5}>최근 5년 동안</option>
-              <option value={10}>최근 10년 동안</option>
-              <option value={20}>최근 20년 동안</option>
-            </select>
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1 min-w-0">
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={durationYears}
+                  onChange={(e) => setDurationYears(Math.min(20, Math.max(1, Number(e.target.value))))}
+                  className="w-full bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">년 동안</span>
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setDurationYears(Math.max(1, durationYears - 1))}
+                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                >
+                  -
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDurationYears(Math.min(20, durationYears + 1))}
+                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                >
+                  +
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -578,7 +684,7 @@ export default function SimulatorPage() {
               수익률 차트
             </h2>
             <p className="text-xs text-[var(--text-secondary)] font-medium">
-              💡 배당 재투자(Total Return)가 반영된 실제 20년 과거 종가 데이터입니다. 과거 데이터가 없는 기간은 추적 지수 등으로 추론 계산하였습니다.
+              💡 배당 재투자(Total Return)가 반영된 실제 20년 과거 종가 데이터입니다.
             </p>
           </div>
         </div>
@@ -611,17 +717,13 @@ export default function SimulatorPage() {
                   <span>전략 B: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.valB.toLocaleString()}만 ({activeHoverPoint.retB > 0 ? '+' : ''}{activeHoverPoint.retB}%)</strong></span>
                 </div>
               </div>
-            ) : (
-              <span className="text-[11px] text-[var(--text-secondary)] font-sans font-medium italic">
-                💡 차트에 마우스를 올리면 해당 시점의 자산을 볼 수 있습니다.
-              </span>
-            )}
+            ) : null}
           </div>
 
           <svg
             ref={svgRef}
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-            className="w-full h-auto overflow-visible cursor-crosshair"
+            className="w-full h-auto overflow-visible cursor-crosshair touch-none"
             onMouseMove={(e) => handlePointerMove(e.clientX)}
             onMouseDown={handleMouseDown}
             onMouseUp={() => setIsDragging(false)}
@@ -629,6 +731,9 @@ export default function SimulatorPage() {
               setHoverIndex(null);
               setIsDragging(false);
             }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={(e) => handleTouchMove(e)}
+            onTouchEnd={handleTouchEnd}
           >
             {/* Grid lines */}
             <line x1="0" y1={chartHeight - 20} x2={chartWidth} y2={chartHeight - 20} stroke="var(--border-color)" strokeDasharray="4 4" />
@@ -679,7 +784,91 @@ export default function SimulatorPage() {
               총 투입 원금: {simulation.finalInvested.toLocaleString()}만원
             </div>
           </div>
+
+          {/* Dynamic Smart Notice for Inferred & Crypto Assets */}
+          {(() => {
+            // Asset launch dates mapping in backtest dataset
+            const launchDates: Record<string, string> = {
+              UPRO: '2009년 6월',
+              SSO: '2006년 6월',
+              USD: '2007년 1월',
+              TQQQ: '2010년 2월',
+              QLD: '2006년 6월',
+              SOXL: '2010년 3월',
+              BTC: '2014년 9월',
+              ETH: '2017년 11월',
+              SCHD: '2011년 10월',
+            };
+
+            const allSelected = Array.from(new Set([...portfolioA, ...portfolioB].map((item) => item.assetId)));
+            
+            // Format simulation start date (e.g. '2006-08' -> '2006년 8월')
+            const [simYearStr, simMonthStr] = (simulation.points[0]?.date || '2006-08').split('-');
+            const formattedSimStart = `${simYearStr}년 ${Number(simMonthStr)}월`;
+            const simYear = Number(simYearStr);
+            const simMonth = Number(simMonthStr);
+
+            // Find assets that need inference within current selected timeline
+            const inferredDetails: Array<{ id: string; name: string; untilDate: string }> = [];
+            const cryptoInferredDetails: Array<{ id: string; name: string; untilDate: string }> = [];
+
+            allSelected.forEach((id) => {
+              const launch = launchDates[id];
+              if (!launch) return;
+
+              const assetObj = allAssets.find((a) => a.id === id);
+              const assetName = assetObj?.name || id;
+
+              let isBeforeLaunch = false;
+              if (id === 'TQQQ' && simYear < 2010) isBeforeLaunch = true;
+              else if (id === 'SOXL' && simYear < 2010) isBeforeLaunch = true;
+              else if (id === 'UPRO' && (simYear < 2009 || (simYear === 2009 && simMonth < 6))) isBeforeLaunch = true;
+              else if (id === 'SCHD' && (simYear < 2011 || (simYear === 2011 && simMonth < 10))) isBeforeLaunch = true;
+              else if (id === 'BTC' && (simYear < 2014 || (simYear === 2014 && simMonth < 9))) isBeforeLaunch = true;
+              else if (id === 'ETH' && (simYear < 2017 || (simYear === 2017 && simMonth < 11))) isBeforeLaunch = true;
+              else if ((id === 'SSO' || id === 'QLD') && (simYear < 2006 || (simYear === 2006 && simMonth < 6))) isBeforeLaunch = true;
+              else if (id === 'USD' && simYear < 2007) isBeforeLaunch = true;
+
+              if (isBeforeLaunch) {
+                if (id === 'BTC' || id === 'ETH') {
+                  cryptoInferredDetails.push({ id, name: assetName, untilDate: launch });
+                } else {
+                  inferredDetails.push({ id, name: assetName, untilDate: launch });
+                }
+              }
+            });
+
+            if (inferredDetails.length === 0 && cryptoInferredDetails.length === 0) return null;
+
+            return (
+              <div className="pt-2 border-t border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] space-y-1.5 font-medium">
+                {inferredDetails.length > 0 && (
+                  <p className="flex items-start gap-1.5 leading-relaxed">
+                    <span className="text-[var(--accent-orange)] shrink-0">💡</span>
+                    <span>
+                      선택한 종목 중 과거 실데이터가 없는{' '}
+                      <strong className="text-[var(--text-primary)] font-bold">
+                        {inferredDetails.map((item) => `${item.id}(${item.untilDate} 이전)`).join(', ')}
+                      </strong>
+                      는 기초 지수 변동률을 기반으로 {formattedSimStart}부터 추론 계산되었습니다.
+                    </span>
+                  </p>
+                )}
+                {cryptoInferredDetails.length > 0 && (
+                  <p className="flex items-start gap-1.5 text-amber-500/90 font-semibold leading-relaxed">
+                    <span className="shrink-0">⚠️</span>
+                    <span>
+                      암호화폐({' '}
+                      <strong>{cryptoInferredDetails.map((item) => `${item.id}, ${item.untilDate} 이전`).join(', ')}</strong>
+                      )의 과거 추론 데이터는 지수 연동 모델 특성상 백테스트 신뢰도가 부정확할 수 있으니 참고용으로만 활용하세요.
+                    </span>
+                  </p>
+                )}
+              </div>
+            );
+          })()}
         </div>
+      </div>
 
         {/* ---------------------------------------------------- */}
         {/* DUAL PERFORMANCE METRICS TABLE (3대 핵심 투자 지표)   */}
@@ -697,6 +886,16 @@ export default function SimulatorPage() {
               </span>
             </div>
 
+            {/* Intuitive Multiplier Highlight */}
+            <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+              <span className="text-xs font-black text-[var(--accent-mid-green)]">
+                ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
+              </p>
+            </div>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
@@ -706,57 +905,27 @@ export default function SimulatorPage() {
               </div>
 
               {/* Metric 1: Annual Return (CAGR) */}
-              <div className="space-y-1 pt-1.5 border-t border-[var(--border-color)]">
+              <div className="pt-1.5 border-t border-[var(--border-color)]">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    연수익률 (CAGR)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'cagr_a' ? null : 'cagr_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
                   <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
                 </div>
-                {activeTooltip === 'cagr_a' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    투자기간 동안 매년 평균 몇 %씩 복리로 자산이 성장했는지를 보여주는 지표입니다. 단순 총수익률보다 실제 자산의 성장 속도를 객관적으로 비교할 수 있습니다.
-                  </div>
-                )}
               </div>
 
               {/* Metric 2: Max Drawdown (MDD) */}
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    최대 손실폭 (MDD)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'mdd_a' ? null : 'mdd_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
                   <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
                 </div>
-                {activeTooltip === 'mdd_a' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    백테스트 기간 중 가장 큰 폭락장에서 전고점 대비 자산이 최대 몇 %까지 떨어졌었는지를 나타냅니다. 숫자가 낮을수록 마음 편한 투자입니다.
-                  </div>
-                )}
               </div>
 
               {/* Metric 3: Sharpe Ratio */}
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    위험 대비 수익성 (샤프지수)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'sharpe_a' ? null : 'sharpe_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
                   <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
                 </div>
-                {activeTooltip === 'sharpe_a' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    내가 감수한 변동성(위험) 1단위당 얼마만큼의 순수익을 얻었는지 나타내는 지표입니다. 보통 1.0 이상이면 위험 대비 매우 우수한 전략입니다.
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -773,6 +942,16 @@ export default function SimulatorPage() {
               </span>
             </div>
 
+            {/* Intuitive Multiplier Highlight */}
+            <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+              <span className="text-xs font-black text-[var(--accent-orange)]">
+                🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
+              </p>
+            </div>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
@@ -782,62 +961,31 @@ export default function SimulatorPage() {
               </div>
 
               {/* Metric 1: Annual Return (CAGR) */}
-              <div className="space-y-1 pt-1.5 border-t border-[var(--border-color)]">
+              <div className="pt-1.5 border-t border-[var(--border-color)]">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    연수익률 (CAGR)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'cagr_b' ? null : 'cagr_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
                   <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
                 </div>
-                {activeTooltip === 'cagr_b' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    투자기간 동안 매년 평균 몇 %씩 복리로 자산이 성장했는지를 보여주는 지표입니다. 단순 총수익률보다 실제 자산의 성장 속도를 객관적으로 비교할 수 있습니다.
-                  </div>
-                )}
               </div>
 
               {/* Metric 2: Max Drawdown (MDD) */}
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    최대 손실폭 (MDD)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'mdd_b' ? null : 'mdd_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
                   <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
                 </div>
-                {activeTooltip === 'mdd_b' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    백테스트 기간 중 가장 큰 폭락장에서 전고점 대비 자산이 최대 몇 %까지 떨어졌었는지를 나타냅니다. 숫자가 낮을수록 마음 편한 투자입니다.
-                  </div>
-                )}
               </div>
 
               {/* Metric 3: Sharpe Ratio */}
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium flex items-center gap-1">
-                    위험 대비 수익성 (샤프지수)
-                    <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'sharpe_b' ? null : 'sharpe_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
+                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
                   <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
                 </div>
-                {activeTooltip === 'sharpe_b' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                    내가 감수한 변동성(위험) 1단위당 얼마만큼의 순수익을 얻었는지 나타내는 지표입니다. 보통 1.0 이상이면 위험 대비 매우 우수한 전략입니다.
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
 
       {/* ---------------------------------------------------- */}
