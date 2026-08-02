@@ -452,7 +452,7 @@ export default function SimulatorPage() {
       <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
         <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
           <Sliders className="w-4.5 h-4.5 text-[var(--accent-orange)]" />
-          1. 공통 투자 조건 설정
+          투자 조건 설정
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
