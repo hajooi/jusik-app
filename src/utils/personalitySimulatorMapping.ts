@@ -53,22 +53,38 @@ export function calculatePersonalitySimulatorConfig(
     else strategyPeriodA = 100; // 100-day MA
   }
 
-  // 2. Build Tailored Recommendation Portfolio A & Accurately Calibrated Expected Metrics
+  // 2. Build Tailored Recommendation Portfolio A & Calibrate Expected Metrics
   let portfolioA: SelectedAsset[] = [];
 
-  // Base Target CAGR & Max MDD strictly calculated from GS score (Growth vs Safety) & AP score
-  // Growth range: 8% (pure safety) to 22% (ultra growth)
-  let recommendedTargetCAGR = Math.round(8 + (pctG / 100) * 12); // e.g. G=55 -> ~15%
-  let recommendedMaxMDD = Math.round(14 + (pctG / 100) * 24); // e.g. G=55 -> ~27%
+  // Multi-Factor Target Calculation Model:
+  // - Target CAGR: Driven mainly by GS (Growth) score (base 7% ~ 20%+), boosted by Active & Tactical scores.
+  // - Max MDD: Driven by GS (Growth), P (Passive investors accept higher MDD because they don't sell), T (Tactical/Defense reduces MDD).
+  let baseCAGR = 7 + (pctG / 100) * 13; // 7% ~ 20%
+  if (pctA >= 60) baseCAGR += 1.5; // Active boost
+  let recommendedTargetCAGR = Math.min(20, Math.round(baseCAGR));
+
+  let baseMDD = 12 + (pctG / 100) * 20; // 12% ~ 32%
+  if (pctP >= 60) baseMDD += 5; // Passive investors hold through drawdowns (higher MDD tolerance)
+  if (pctR >= 60 || pctL < 40) baseMDD -= 4; // MA defense reduces drawdowns
+  let recommendedMaxMDD = Math.min(42, Math.max(12, Math.round(baseMDD)));
 
   // CASE 1: High Passive / Peace-of-Mind / Lazy (P >= 60%) - Simple 1~2 ETF Portfolios!
   if (pctP >= 60) {
-    if (pctG >= 60) {
+    if (pctG >= 75) {
+      // Lazy Ultra Growth: TQQQ 50% + QQQ 50%
+      portfolioA = [
+        { assetId: 'TQQQ', weight: 50, enableDefense: false },
+        { assetId: 'QQQ', weight: 50, enableDefense: false },
+      ];
+      recommendedTargetCAGR = 18;
+      recommendedMaxMDD = 38;
+    } else if (pctG >= 60) {
+      // Lazy Growth: QQQ (70%) + SPY (30%)
       portfolioA = [
         { assetId: 'QQQ', weight: 70, enableDefense: false },
         { assetId: 'SPY', weight: 30, enableDefense: false },
       ];
-      recommendedTargetCAGR = 13;
+      recommendedTargetCAGR = 14;
       recommendedMaxMDD = 25;
     } else if (pctS >= 60) {
       if (pctS >= 80) {
@@ -96,34 +112,36 @@ export function calculatePersonalitySimulatorConfig(
   // CASE 2: Active / Tactical / Moderate (P < 60%) - Multi-asset Active Portfolios
   else {
     if (pctG >= 75) {
-      // Ultra High Growth (Aggressive)
+      // Ultra High Growth (Aggressive) - Includes Crypto (BTC 15%) & TQQQ / SOXX
       if (strategyPeriodA > 0) {
         portfolioA = [
           { assetId: 'TQQQ', weight: 40, enableDefense: true },
-          { assetId: 'SOXX', weight: 35, enableDefense: true },
-          { assetId: 'SPY', weight: 25, enableDefense: true },
+          { assetId: 'SOXL', weight: 25, enableDefense: true },
+          { assetId: 'BTC', weight: 15, enableDefense: false },
+          { assetId: 'SPY', weight: 20, enableDefense: true },
         ];
-        recommendedTargetCAGR = 17;
-        recommendedMaxMDD = 35;
+        recommendedTargetCAGR = 20;
+        recommendedMaxMDD = 38;
       } else {
         portfolioA = [
-          { assetId: 'TQQQ', weight: 40, enableDefense: false },
-          { assetId: 'SOXX', weight: 35, enableDefense: false },
-          { assetId: 'SPY', weight: 25, enableDefense: false },
+          { assetId: 'TQQQ', weight: 45, enableDefense: false },
+          { assetId: 'SOXL', weight: 25, enableDefense: false },
+          { assetId: 'BTC', weight: 15, enableDefense: false },
+          { assetId: 'SPY', weight: 15, enableDefense: false },
         ];
-        recommendedTargetCAGR = 21;
-        recommendedMaxMDD = 65;
+        recommendedTargetCAGR = 20;
+        recommendedMaxMDD = 42;
       }
-    } else if (pctG >= 50) {
-      // Growth & Tactical Core (e.g. GATR 추세 추적자): QLD 50% + SOXX 30% + SPY 20%
-      // Leveraged growth asset delivers ~12% CAGR and ~24% MDD even under 200-day MA defense!
+    } else if (pctG >= 55) {
+      // Growth & Tactical Core (e.g. GATR 추세 추적자): QLD 50% + SOXX 30% + BTC 10% + SPY 10%
       portfolioA = [
         { assetId: 'QLD', weight: 50, enableDefense: strategyPeriodA > 0 },
         { assetId: 'SOXX', weight: 30, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SPY', weight: 20, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'BTC', weight: 10, enableDefense: false },
+        { assetId: 'SPY', weight: 10, enableDefense: strategyPeriodA > 0 },
       ];
-      recommendedTargetCAGR = 12;
-      recommendedMaxMDD = 24;
+      recommendedTargetCAGR = 15;
+      recommendedMaxMDD = 27;
     } else if (pctS >= 75) {
       // Conservative Safety
       portfolioA = [
@@ -150,8 +168,8 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'SPY', weight: 35, enableDefense: strategyPeriodA > 0 },
         { assetId: 'SCHD', weight: 20, enableDefense: false },
       ];
-      recommendedTargetCAGR = 11;
-      recommendedMaxMDD = 20;
+      recommendedTargetCAGR = 12;
+      recommendedMaxMDD = 21;
     }
   }
 
