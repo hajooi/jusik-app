@@ -408,7 +408,7 @@ export const CURRICULUM_DATA: Level[] = [
         title: "3강. 계좌 개설",
         subtitle: "DB증권 비대면 계좌 개설부터 평생 우대 수수료 혜택 연동까지",
         youtubeId: "BCiEK-SzWOg",
-        duration: "3:09",
+        duration: "3:03",
         cardNewsTitles: [
           "준비물 (앱 설치)",
           "1단계: 계좌 개설",
