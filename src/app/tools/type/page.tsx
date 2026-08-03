@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES, Question } from '@/data/investmentSurvey';
-import ResultView from '@/components/mbti/ResultView';
+import ResultView from '@/components/type/ResultView';
 import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Play } from 'lucide-react';
 
 function SurveyContent() {
@@ -22,9 +22,9 @@ function SurveyContent() {
   // Restore draft or completed result from localStorage if available
   useEffect(() => {
     try {
-      const savedAnswers = localStorage.getItem('jusik_mbti_answers');
-      const savedCompleted = localStorage.getItem('jusik_mbti_completed');
-      const savedPage = localStorage.getItem('jusik_mbti_current_page');
+      const savedAnswers = localStorage.getItem('jusik_type_answers');
+      const savedCompleted = localStorage.getItem('jusik_type_completed');
+      const savedPage = localStorage.getItem('jusik_type_current_page');
 
       if (savedAnswers) {
         const parsedAnswers = JSON.parse(savedAnswers);
@@ -57,7 +57,7 @@ function SurveyContent() {
   const handleSelectScore = (questionId: number, score: number) => {
     const nextAnswers = { ...answers, [questionId]: score };
     setAnswers(nextAnswers);
-    localStorage.setItem('jusik_mbti_answers', JSON.stringify(nextAnswers));
+    localStorage.setItem('jusik_type_answers', JSON.stringify(nextAnswers));
   };
 
   const isCurrentPageComplete = pageQuestions.every((q) => answers[q.id] !== undefined);
@@ -66,11 +66,11 @@ function SurveyContent() {
     if (currentPage < totalPages - 1) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
-      localStorage.setItem('jusik_mbti_current_page', nextPage.toString());
+      localStorage.setItem('jusik_type_current_page', nextPage.toString());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setIsCompleted(true);
-      localStorage.setItem('jusik_mbti_completed', 'true');
+      localStorage.setItem('jusik_type_completed', 'true');
     }
   };
 
@@ -78,7 +78,7 @@ function SurveyContent() {
     if (currentPage > 0) {
       const prevPage = currentPage - 1;
       setCurrentPage(prevPage);
-      localStorage.setItem('jusik_mbti_current_page', prevPage.toString());
+      localStorage.setItem('jusik_type_current_page', prevPage.toString());
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -87,9 +87,9 @@ function SurveyContent() {
     setAnswers({});
     setCurrentPage(0);
     setIsCompleted(false);
-    localStorage.removeItem('jusik_mbti_answers');
-    localStorage.removeItem('jusik_mbti_completed');
-    localStorage.removeItem('jusik_mbti_current_page');
+    localStorage.removeItem('jusik_type_answers');
+    localStorage.removeItem('jusik_type_completed');
+    localStorage.removeItem('jusik_type_current_page');
   };
 
   if (isCompleted) {

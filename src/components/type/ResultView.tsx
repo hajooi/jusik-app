@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { PersonalityProfile } from '@/data/investmentSurvey';
 import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
 
@@ -276,11 +277,39 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
         </div>
       )}
 
+      {/* Simulator Link CTA Card */}
+      <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
+        <div className="flex items-center justify-between gap-2">
+          <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
+            맞춤 수익률 시뮬레이션
+          </span>
+          <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
+            20년 과거 데이터 검증
+          </span>
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
+            내 성향({profile.name})에 딱 맞는 맞춤 포트폴리오로 20년 수익률을 시뮬레이션해 보세요! 🚀
+          </h3>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+            {profile.name} 유형의 목표 수익률과 감내할 수 있는 손실폭(MDD)에 맞춰 추천 전략이 자동으로 첫 화면에 배치됩니다.
+          </p>
+        </div>
+        <div className="pt-2">
+          <Link
+            href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
+            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all"
+          >
+            내 성향 맞춤 시뮬레이션 시작하기 ➔
+          </Link>
+        </div>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={handleShare}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.3)] hover:shadow-[0_0_22px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card text-[var(--text-primary)] font-extrabold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] hover:scale-[1.01] active:scale-[0.98] transition-all"
         >
           <Share2 className="w-4 h-4" />
           {copied ? '결과 링크 복사 완료!' : '내 성향 결과 공유하기'}

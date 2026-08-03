@@ -123,7 +123,7 @@ export default function Accordion({ levels }: AccordionProps) {
                             {lesson.interactiveToolType && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                                 {lesson.interactiveToolType === 'db_cta' && '실습 안내'}
-                                {lesson.interactiveToolType === 'mbti_test' && '성향 진단'}
+                                {lesson.interactiveToolType === 'type_test' && '성향 진단'}
                                 {lesson.interactiveToolType === 'calc' && '계산기'}
                                 {lesson.interactiveToolType === 'ai_prompt' && 'AI 툴'}
                               </span>

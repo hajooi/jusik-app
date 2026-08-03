@@ -52,7 +52,7 @@ export interface Lesson {
   duration: string;
   summary?: string[];
   cardNewsTitles: string[];
-  interactiveToolType?: 'db_cta' | 'mbti_test' | 'calc' | 'ai_prompt';
+  interactiveToolType?: 'db_cta' | 'type_test' | 'calc' | 'ai_prompt';
   modules?: LessonModule[];
 }
 
