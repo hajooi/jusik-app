@@ -878,7 +878,10 @@ function SimulatorContent() {
           if (selectedSynth.length === 0) return null;
 
           return (
-            <div className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs">
+            <div
+              style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+              className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+            >
               <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
               <div>
                 <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> 선택하신 종목 중 <strong className="text-[var(--accent-orange)]">{selectedSynth.join(', ')}</strong>의 상장 이전 과거 구간은 기초지수(QQQ, SOXX, SPY) 승수를 바탕으로 정밀 추론된 데이터입니다.
