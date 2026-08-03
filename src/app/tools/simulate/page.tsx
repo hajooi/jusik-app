@@ -879,8 +879,8 @@ function SimulatorContent() {
 
           if (selectedIds.length === 0) return null;
 
-          const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} (${synthAssetMeta[id].dateStr})`);
-          const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} (${synthAssetMeta[id].dateStr})`);
+          const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
+          const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
           return (
             <div className="space-y-2">
@@ -891,19 +891,19 @@ function SimulatorContent() {
                 >
                   <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-[var(--accent-orange)]">레버리지 추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수(QQQ, SOXX, SPY) 성과를 바탕으로 정밀 추론된 데이터입니다.
+                    <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
                   </div>
                 </div>
               )}
 
               {cryptoItems.length > 0 && (
                 <div
-                  style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
-                  className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-rose-500 font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                  style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+                  className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
                 >
-                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
                   <div>
-                    <strong>암호화폐 변동성 경고:</strong> <strong className="font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 증시 지수 대비 독자적인 극심한 변동성을 지니므로 추론 및 시뮬레이션 수치와 실제 결과가 다를 수 있습니다.
+                    <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{cryptoItems.join(', ')}</strong>의 과거 데이터는 정밀하지 않고 부정확할 수 있습니다.
                   </div>
                 </div>
               )}
