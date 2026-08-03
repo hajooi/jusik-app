@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles, Clock, LineChart } from 'lucide-react';
+import { Sparkles, Clock, LineChart, BookOpen, CandlestickChart } from 'lucide-react';
 
 export default function ToolsPage() {
   const tools = [
@@ -18,6 +18,22 @@ export default function ToolsPage() {
       icon: LineChart,
       tag: '수익률 시뮬레이션',
       isComingSoon: false,
+    },
+    {
+      title: '나의 투자일지',
+      description: '내가 만든 자산 배분 조합을 저장하고, 주기적으로 계좌를 관리하는 투자 기록장',
+      href: '#',
+      icon: BookOpen,
+      tag: '투자 기록',
+      isComingSoon: true,
+    },
+    {
+      title: '차트 패턴 트레이닝',
+      description: '다음 차트는 상승할까, 하락할까? 핵심 차트 패턴으로 익히는 실전 감각 훈련',
+      href: '#',
+      icon: CandlestickChart,
+      tag: '실전 훈련',
+      isComingSoon: true,
     },
   ];
 
@@ -45,8 +61,8 @@ export default function ToolsPage() {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-transparent flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] transition-colors">
-                      <Icon className="w-4.5 h-4.5 stroke-[1.5]" />
+                    <div className="w-11 h-11 rounded-2xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 transition-all duration-300">
+                      <Icon className="w-5 h-5" />
                     </div>
                     <span className="text-[10px] sm:text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] tracking-wider border border-[var(--border-color)]">
                       오픈 예정
