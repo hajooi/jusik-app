@@ -57,16 +57,15 @@ export function calculatePersonalitySimulatorConfig(
   let portfolioA: SelectedAsset[] = [];
 
   // Multi-Factor Target Calculation Model:
-  // - Target CAGR: Driven mainly by GS (Growth) score (base 7% ~ 20%+), boosted by Active & Tactical scores.
-  // - Max MDD: Driven by GS (Growth), P (Passive investors accept higher MDD because they don't sell), T (Tactical/Defense reduces MDD).
-  let baseCAGR = 7 + (pctG / 100) * 13; // 7% ~ 20%
-  if (pctA >= 60) baseCAGR += 1.5; // Active boost
+  // Calculates expected target metrics to align with actual backtest performance
+  let baseCAGR = 7 + (pctG / 100) * 13;
+  if (pctA >= 60) baseCAGR += 1.5;
   let recommendedTargetCAGR = Math.min(20, Math.round(baseCAGR));
 
-  let baseMDD = 12 + (pctG / 100) * 20; // 12% ~ 32%
-  if (pctP >= 60) baseMDD += 5; // Passive investors hold through drawdowns (higher MDD tolerance)
-  if (pctR >= 60 || pctL < 40) baseMDD -= 4; // MA defense reduces drawdowns
-  let recommendedMaxMDD = Math.min(42, Math.max(12, Math.round(baseMDD)));
+  let baseMDD = 14 + (pctG / 100) * 24;
+  if (pctP >= 60) baseMDD += 4;
+  if (pctR >= 60 || pctL < 40) baseMDD -= 4;
+  let recommendedMaxMDD = Math.min(42, Math.max(14, Math.round(baseMDD)));
 
   // CASE 1: High Passive / Peace-of-Mind / Lazy (P >= 60%) - Simple 1~2 ETF Portfolios!
   if (pctP >= 60) {
@@ -76,8 +75,8 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'TQQQ', weight: 50, enableDefense: false },
         { assetId: 'QQQ', weight: 50, enableDefense: false },
       ];
-      recommendedTargetCAGR = 18;
-      recommendedMaxMDD = 38;
+      recommendedTargetCAGR = 20;
+      recommendedMaxMDD = 40;
     } else if (pctG >= 60) {
       // Lazy Growth: QQQ (70%) + SPY (30%)
       portfolioA = [
@@ -85,7 +84,7 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'SPY', weight: 30, enableDefense: false },
       ];
       recommendedTargetCAGR = 14;
-      recommendedMaxMDD = 25;
+      recommendedMaxMDD = 28;
     } else if (pctS >= 60) {
       if (pctS >= 80) {
         portfolioA = [
@@ -112,13 +111,13 @@ export function calculatePersonalitySimulatorConfig(
   // CASE 2: Active / Tactical / Moderate (P < 60%) - Multi-asset Active Portfolios
   else {
     if (pctG >= 75) {
-      // Ultra High Growth (Aggressive) - Includes Crypto (BTC 15%) & TQQQ / SOXX
+      // Ultra High Growth (Aggressive) - Includes Crypto (BTC 15%) & TQQQ / SOXL
       if (strategyPeriodA > 0) {
         portfolioA = [
-          { assetId: 'TQQQ', weight: 40, enableDefense: true },
+          { assetId: 'TQQQ', weight: 45, enableDefense: true },
           { assetId: 'SOXL', weight: 25, enableDefense: true },
           { assetId: 'BTC', weight: 15, enableDefense: false },
-          { assetId: 'SPY', weight: 20, enableDefense: true },
+          { assetId: 'SPY', weight: 15, enableDefense: true },
         ];
         recommendedTargetCAGR = 20;
         recommendedMaxMDD = 38;
@@ -133,15 +132,26 @@ export function calculatePersonalitySimulatorConfig(
         recommendedMaxMDD = 42;
       }
     } else if (pctG >= 55) {
-      // Growth & Tactical Core (e.g. GATR 추세 추적자): QLD 50% + SOXX 30% + BTC 10% + SPY 10%
-      portfolioA = [
-        { assetId: 'QLD', weight: 50, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SOXX', weight: 30, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'BTC', weight: 10, enableDefense: false },
-        { assetId: 'SPY', weight: 10, enableDefense: strategyPeriodA > 0 },
-      ];
-      recommendedTargetCAGR = 15;
-      recommendedMaxMDD = 27;
+      // Growth & Tactical Core (e.g. GATR 추세 추적자): QLD 45% + SOXX 25% + BTC 10% + SPY 20%
+      if (strategyPeriodA > 0) {
+        portfolioA = [
+          { assetId: 'QLD', weight: 45, enableDefense: true },
+          { assetId: 'SOXX', weight: 25, enableDefense: true },
+          { assetId: 'BTC', weight: 10, enableDefense: false },
+          { assetId: 'SPY', weight: 20, enableDefense: true },
+        ];
+        recommendedTargetCAGR = 15;
+        recommendedMaxMDD = 27;
+      } else {
+        portfolioA = [
+          { assetId: 'QLD', weight: 45, enableDefense: false },
+          { assetId: 'SOXX', weight: 25, enableDefense: false },
+          { assetId: 'BTC', weight: 10, enableDefense: false },
+          { assetId: 'SPY', weight: 20, enableDefense: false },
+        ];
+        recommendedTargetCAGR = 17;
+        recommendedMaxMDD = 36;
+      }
     } else if (pctS >= 75) {
       // Conservative Safety
       portfolioA = [
