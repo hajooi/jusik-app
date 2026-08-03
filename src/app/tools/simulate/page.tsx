@@ -860,32 +860,53 @@ function SimulatorContent() {
 
         {/* SYNTHETIC ASSET INFERENCE WARNING NOTICE */}
         {useMemo(() => {
-          const synthNames: Record<string, string> = {
-            TQQQ: 'TQQQ (나스닥 3배)',
-            QLD: 'QLD (나스닥 2배)',
-            SOXL: 'SOXL (반도체 3배)',
-            USD: 'USD (반도체 2배)',
-            UPRO: 'UPRO (S&P500 3배)',
-            SSO: 'SSO (S&P500 2배)',
-            BTC: '비트코인',
-            ETH: '이더리움',
+          const synthAssetMeta: Record<string, { label: string; dateStr: string; isCrypto?: boolean }> = {
+            TQQQ: { label: 'TQQQ (나스닥 3배)', dateStr: '2010년 2월 이전' },
+            QLD: { label: 'QLD (나스닥 2배)', dateStr: '2006년 6월 이전' },
+            SOXL: { label: 'SOXL (반도체 3배)', dateStr: '2010년 3월 이전' },
+            USD: { label: 'USD (반도체 2배)', dateStr: '2007년 1월 이전' },
+            UPRO: { label: 'UPRO (S&P500 3배)', dateStr: '2009년 6월 이전' },
+            SSO: { label: 'SSO (S&P500 2배)', dateStr: '2006년 6월 이전' },
+            SCHD: { label: 'SCHD (미국배당)', dateStr: '2011년 10월 이전' },
+            BTC: { label: '비트코인', dateStr: '2014년 9월 이전', isCrypto: true },
+            ETH: { label: '이더리움', dateStr: '2017년 11월 이전', isCrypto: true },
           };
-          const selectedSynth = Array.from(new Set([
+
+          const selectedIds = Array.from(new Set([
             ...portfolioA.map(p => p.assetId),
             ...portfolioB.map(p => p.assetId)
-          ])).filter(id => synthNames[id]).map(id => synthNames[id]);
+          ])).filter(id => synthAssetMeta[id]);
 
-          if (selectedSynth.length === 0) return null;
+          if (selectedIds.length === 0) return null;
+
+          const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} (${synthAssetMeta[id].dateStr})`);
+          const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} (${synthAssetMeta[id].dateStr})`);
 
           return (
-            <div
-              style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
-              className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-            >
-              <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{selectedSynth.join(', ')}</strong>의 <strong>2010년 이전 과거 데이터</strong>는 기초지수(QQQ, SOXX, SPY) 성과를 바탕으로 정밀 추론된 데이터입니다.
-              </div>
+            <div className="space-y-2">
+              {etfItems.length > 0 && (
+                <div
+                  style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+                  className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                >
+                  <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-[var(--accent-orange)]">레버리지 추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수(QQQ, SOXX, SPY) 성과를 바탕으로 정밀 추론된 데이터입니다.
+                  </div>
+                </div>
+              )}
+
+              {cryptoItems.length > 0 && (
+                <div
+                  style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
+                  className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-rose-500 font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                >
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>암호화폐 변동성 경고:</strong> <strong className="font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 증시 지수 대비 독자적인 극심한 변동성을 지니므로 추론 및 시뮬레이션 수치와 실제 결과가 다를 수 있습니다.
+                  </div>
+                </div>
+              )}
             </div>
           );
         }, [portfolioA, portfolioB])}
