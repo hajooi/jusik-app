@@ -884,7 +884,7 @@ function SimulatorContent() {
             >
               <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
               <div>
-                <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> 선택하신 종목 중 <strong className="text-[var(--accent-orange)]">{selectedSynth.join(', ')}</strong>의 상장 이전 과거 구간은 기초지수(QQQ, SOXX, SPY) 승수를 바탕으로 정밀 추론된 데이터입니다.
+                <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{selectedSynth.join(', ')}</strong>의 <strong>2010년 이전 과거 데이터</strong>는 기초지수(QQQ, SOXX, SPY) 성과를 바탕으로 정밀 추론된 데이터입니다.
               </div>
             </div>
           );
