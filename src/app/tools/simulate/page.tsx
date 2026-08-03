@@ -972,148 +972,6 @@ function SimulatorContent() {
                 fill="rgba(241, 143, 1, 0.18)"
                 stroke="rgba(241, 143, 1, 0.5)"
                 strokeDasharray="3 3"
-              />
-            )}
-
-            <path d={getSvgPath(investedVals)} fill="none" stroke="#888888" strokeWidth="1.5" strokeDasharray="3 3" />
-            <path d={getSvgPath(valsA)} fill="none" stroke="#68A67D" strokeWidth="3" />
-            <path d={getSvgPath(valsB)} fill="none" stroke="#F18F01" strokeWidth="3.5" />
-
-            {hoverIndex !== null && (
-              <line x1={getX(hoverIndex)} y1="0" x2={getX(hoverIndex)} y2={chartHeight} stroke="var(--accent-orange)" strokeWidth="1.5" strokeDasharray="2 2" />
-            )}
-          </svg>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold pt-2 border-t border-[var(--border-color)]">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="w-3.5 h-1.5 bg-[var(--accent-mid-green)] rounded-full" />
-                <span className="text-[var(--accent-mid-green)] font-extrabold">
-                  {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-1.5 bg-[var(--accent-orange)] rounded-full" />
-                <span className="text-[var(--accent-orange)] font-extrabold">커스텀 전략</span>
-              </div>
-            </div>
-            <div className="text-[11px] text-[var(--text-secondary)] font-mono">
-              총 투입 원금: {simulation.finalInvested.toLocaleString()}만원
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ---------------------------------------------------- */}
-      {/* DUAL PERFORMANCE METRICS TABLE (3대 핵심 투자 지표)   */}
-      {/* ---------------------------------------------------- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-        {/* Portfolio A Results Card */}
-        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-            <span className="text-xs font-black text-[var(--accent-mid-green)] flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-mid-green)]" />
-              {userProfileCode ? `${userProfileCode} 추천 전략 성과` : '추천 전략 성과'}
-            </span>
-            <span className="text-lg font-black text-[var(--accent-mid-green)] font-mono">
-              +{simulation.portA.totalRate}%
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-            <span className="text-xs font-black text-[var(--accent-mid-green)]">
-              ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-            </span>
-            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                {simulation.portA.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-              </span>
-            </div>
-
-            <div className="pt-1.5 border-t border-[var(--border-color)]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Portfolio B Results Card */}
-        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-            <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
-              커스텀 전략 성과
-            </span>
-            <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
-              +{simulation.portB.totalRate}%
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-            <span className="text-xs font-black text-[var(--accent-orange)]">
-              🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-            </span>
-            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                {simulation.portB.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-              </span>
-            </div>
-
-            <div className="pt-1.5 border-t border-[var(--border-color)]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ---------------------------------------------------- */}
       {/* SIDE-BY-SIDE PORTFOLIO BUILDERS                      */}
       {/* ---------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1405,6 +1263,115 @@ function SimulatorContent() {
           </div>
         </div>
 
+      </div>
+
+      {/* ---------------------------------------------------- */}
+      {/* DUAL PERFORMANCE METRICS TABLE (3대 핵심 투자 지표)   */}
+      {/* ---------------------------------------------------- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+        {/* Portfolio A Results Card */}
+        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+            <span className="text-xs font-black text-[var(--accent-mid-green)] flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-mid-green)]" />
+              {userProfileCode ? `${userProfileCode} 추천 전략 성과` : '추천 전략 성과'}
+            </span>
+            <span className="text-lg font-black text-[var(--accent-mid-green)] font-mono">
+              +{simulation.portA.totalRate}%
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+            <span className="text-xs font-black text-[var(--accent-mid-green)]">
+              ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+            </span>
+            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                {simulation.portA.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
+              </span>
+            </div>
+
+            <div className="pt-1.5 border-t border-[var(--border-color)]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Portfolio B Results Card */}
+        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+            <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
+              커스텀 전략 성과
+            </span>
+            <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
+              +{simulation.portB.totalRate}%
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+            <span className="text-xs font-black text-[var(--accent-orange)]">
+              🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+            </span>
+            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                {simulation.portB.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
+              </span>
+            </div>
+
+            <div className="pt-1.5 border-t border-[var(--border-color)]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Dynamic Data Synthesis Notice & Disclaimer */}
