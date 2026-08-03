@@ -858,6 +858,35 @@ function SimulatorContent() {
           </div>
         </div>
 
+        {/* SYNTHETIC ASSET INFERENCE WARNING NOTICE */}
+        {useMemo(() => {
+          const synthNames: Record<string, string> = {
+            TQQQ: 'TQQQ (나스닥 3배)',
+            QLD: 'QLD (나스닥 2배)',
+            SOXL: 'SOXL (반도체 3배)',
+            USD: 'USD (반도체 2배)',
+            UPRO: 'UPRO (S&P500 3배)',
+            SSO: 'SSO (S&P500 2배)',
+            BTC: '비트코인',
+            ETH: '이더리움',
+          };
+          const selectedSynth = Array.from(new Set([
+            ...portfolioA.map(p => p.assetId),
+            ...portfolioB.map(p => p.assetId)
+          ])).filter(id => synthNames[id]).map(id => synthNames[id]);
+
+          if (selectedSynth.length === 0) return null;
+
+          return (
+            <div className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs">
+              <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> 선택하신 종목 중 <strong className="text-[var(--accent-orange)]">{selectedSynth.join(', ')}</strong>의 상장 이전 과거 구간은 기초지수(QQQ, SOXX, SPY) 승수를 바탕으로 정밀 추론된 데이터입니다.
+              </div>
+            </div>
+          );
+        }, [portfolioA, portfolioB])}
+
         {/* RESERVED FIXED HEIGHT CONTAINER */}
         <div className="h-11 flex items-center">
           {dragRangeInfo && (
