@@ -972,6 +972,39 @@ function SimulatorContent() {
                 fill="rgba(241, 143, 1, 0.18)"
                 stroke="rgba(241, 143, 1, 0.5)"
                 strokeDasharray="3 3"
+              />
+            )}
+
+            <path d={getSvgPath(investedVals)} fill="none" stroke="#888888" strokeWidth="1.5" strokeDasharray="3 3" />
+            <path d={getSvgPath(valsA)} fill="none" stroke="#68A67D" strokeWidth="3" />
+            <path d={getSvgPath(valsB)} fill="none" stroke="#F18F01" strokeWidth="3.5" />
+
+            {hoverIndex !== null && (
+              <line x1={getX(hoverIndex)} y1="0" x2={getX(hoverIndex)} y2={chartHeight} stroke="var(--accent-orange)" strokeWidth="1.5" strokeDasharray="2 2" />
+            )}
+          </svg>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold pt-2 border-t border-[var(--border-color)]">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3.5 h-1.5 bg-[var(--accent-mid-green)] rounded-full" />
+                <span className="text-[var(--accent-mid-green)] font-extrabold">
+                  {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-1.5 bg-[var(--accent-orange)] rounded-full" />
+                <span className="text-[var(--accent-orange)] font-extrabold">커스텀 전략</span>
+              </div>
+            </div>
+            <div className="text-[11px] text-[var(--text-secondary)] font-mono">
+              총 투입 원금: {simulation.finalInvested.toLocaleString()}만원
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------------------------------------------- */}
       {/* SIDE-BY-SIDE PORTFOLIO BUILDERS                      */}
       {/* ---------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
