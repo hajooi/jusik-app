@@ -133,7 +133,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 16,
     axis: 'AP',
-    question: '개별 기업 주식과 지수 ETF(여러 기업을 한 번에 사는 상품으로 더 안정적임) 중 어느 쪽을 더 선호하나요?',
+    question: '개별 기업 주식과 지수 ETF(여러 기업을 한 번에 사는 상품) 중 어느 쪽을 더 선호하나요?',
     leftLabel: '신경 쓸 일이 적은 지수 ETF',
     rightLabel: '더 높은 성과를 기대할 수 있는 개별 기업 주식',
   },
@@ -171,7 +171,7 @@ export const QUESTIONS: Question[] = [
     id: 21,
     axis: 'LT',
     question: '주식을 한 번 사면 어느 정도 기간 동안 보유하길 원하나요?',
-    leftLabel: '몇 달 안에 수익을 내고 유연하게 바꾸고 싶다',
+    leftLabel: '몇 주 안에 수익을 내고 유연하게 바꾸고 싶다',
     rightLabel: '최소 3~5년 이상 들고 가며 복리 효과를 보고 싶다',
   },
   {
@@ -234,7 +234,7 @@ export const QUESTIONS: Question[] = [
     id: 30,
     axis: 'LT',
     question: '투자 결과를 얻기까지 얼마나 오래 기다릴 수 있나요?',
-    leftLabel: '6개월 이내에는 결과가 나와야 답답하지 않다',
+    leftLabel: '3개월 이내에는 결과가 나와야 답답하지 않다',
     rightLabel: '10년 이상 걸리더라도 큰 열매를 맺는다면 기꺼이 기다린다',
   },
 
