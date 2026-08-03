@@ -899,11 +899,11 @@ function SimulatorContent() {
               {cryptoItems.length > 0 && (
                 <div
                   style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
-                  className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-rose-500 font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                  className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
                 >
                   <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-rose-500">암호화폐 추론 데이터 안내:</strong> <strong className="font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                    <strong className="text-rose-500">암호화폐 추론 데이터 안내:</strong> <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
                   </div>
                 </div>
               )}
