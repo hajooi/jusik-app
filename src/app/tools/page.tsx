@@ -13,7 +13,7 @@ export default function ToolsPage() {
     },
     {
       title: '투자 수익률 시뮬레이터',
-      description: '이렇게 투자하면 미래에 얼마가 모일까? 내가 만든 조합의 과거 성적 미리보기',
+      description: '이렇게 투자하면 미래에 얼마가 모일까? 내가 만든 조합의 성적 미리보기',
       href: '/tools/simulate',
       icon: LineChart,
       tag: '수익률 시뮬레이션',
