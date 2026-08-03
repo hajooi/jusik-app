@@ -439,6 +439,7 @@ function SimulatorContent() {
 
     return {
       points,
+      startDate: points[0]?.date || '2006-01-01',
       finalInvested: finalPoint.invested,
       portA: {
         val: finalPoint.valA,
@@ -860,22 +861,25 @@ function SimulatorContent() {
 
         {/* SYNTHETIC ASSET INFERENCE WARNING NOTICE */}
         {useMemo(() => {
-          const synthAssetMeta: Record<string, { label: string; dateStr: string; isCrypto?: boolean }> = {
-            TQQQ: { label: 'TQQQ (나스닥 3배)', dateStr: '2010년 2월 이전' },
-            QLD: { label: 'QLD (나스닥 2배)', dateStr: '2006년 6월 이전' },
-            SOXL: { label: 'SOXL (반도체 3배)', dateStr: '2010년 3월 이전' },
-            USD: { label: 'USD (반도체 2배)', dateStr: '2007년 1월 이전' },
-            UPRO: { label: 'UPRO (S&P500 3배)', dateStr: '2009년 6월 이전' },
-            SSO: { label: 'SSO (S&P500 2배)', dateStr: '2006년 6월 이전' },
-            SCHD: { label: 'SCHD (미국배당)', dateStr: '2011년 10월 이전' },
-            BTC: { label: '비트코인', dateStr: '2014년 9월 이전', isCrypto: true },
-            ETH: { label: '이더리움', dateStr: '2017년 11월 이전', isCrypto: true },
+          const simStartDate = simulation.points[0]?.date || '2006-01-01';
+
+          const synthAssetMeta: Record<string, { label: string; dateStr: string; cutoffDate: string; isCrypto?: boolean }> = {
+            TQQQ: { label: 'TQQQ (나스닥 3배)', dateStr: '2010년 2월 이전', cutoffDate: '2010-02-01' },
+            QLD: { label: 'QLD (나스닥 2배)', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SOXL: { label: 'SOXL (반도체 3배)', dateStr: '2010년 3월 이전', cutoffDate: '2010-03-01' },
+            USD: { label: 'USD (반도체 2배)', dateStr: '2007년 1월 이전', cutoffDate: '2007-01-01' },
+            UPRO: { label: 'UPRO (S&P500 3배)', dateStr: '2009년 6월 이전', cutoffDate: '2009-06-01' },
+            SSO: { label: 'SSO (S&P500 2배)', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SCHD: { label: 'SCHD (미국배당)', dateStr: '2011년 10월 이전', cutoffDate: '2011-10-01' },
+            BTC: { label: '비트코인', dateStr: '2014년 9월 이전', cutoffDate: '2014-09-01', isCrypto: true },
+            ETH: { label: '이더리움', dateStr: '2017년 11월 이전', cutoffDate: '2017-11-01', isCrypto: true },
           };
 
+          // Filter assets whose cutoffDate is AFTER the current simulation's starting date (meaning inference was actually used)
           const selectedIds = Array.from(new Set([
             ...portfolioA.map(p => p.assetId),
             ...portfolioB.map(p => p.assetId)
-          ])).filter(id => synthAssetMeta[id]);
+          ])).filter(id => synthAssetMeta[id] && simStartDate < synthAssetMeta[id].cutoffDate);
 
           if (selectedIds.length === 0) return null;
 
@@ -909,7 +913,7 @@ function SimulatorContent() {
               )}
             </div>
           );
-        }, [portfolioA, portfolioB])}
+        }, [portfolioA, portfolioB, simulation.points])}
 
         {/* RESERVED FIXED HEIGHT CONTAINER */}
         <div className="h-11 flex items-center">
