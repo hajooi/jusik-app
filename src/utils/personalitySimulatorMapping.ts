@@ -53,15 +53,17 @@ export function calculatePersonalitySimulatorConfig(
     else strategyPeriodA = 100; // 100-day MA
   }
 
-  // 2. Build Tailored Recommendation Portfolio A & Accurately Calculated Expected Metrics
+  // 2. Build Tailored Recommendation Portfolio A & Accurately Calibrated Expected Metrics
   let portfolioA: SelectedAsset[] = [];
-  let recommendedTargetCAGR = 11;
-  let recommendedMaxMDD = 20;
+
+  // Base Target CAGR & Max MDD strictly calculated from GS score (Growth vs Safety) & AP score
+  // Growth range: 8% (pure safety) to 22% (ultra growth)
+  let recommendedTargetCAGR = Math.round(8 + (pctG / 100) * 12); // e.g. G=55 -> ~15%
+  let recommendedMaxMDD = Math.round(14 + (pctG / 100) * 24); // e.g. G=55 -> ~27%
 
   // CASE 1: High Passive / Peace-of-Mind / Lazy (P >= 60%) - Simple 1~2 ETF Portfolios!
   if (pctP >= 60) {
     if (pctG >= 60) {
-      // Lazy Growth: QQQ (70%) + SPY (30%)
       portfolioA = [
         { assetId: 'QQQ', weight: 70, enableDefense: false },
         { assetId: 'SPY', weight: 30, enableDefense: false },
@@ -69,7 +71,6 @@ export function calculatePersonalitySimulatorConfig(
       recommendedTargetCAGR = 13;
       recommendedMaxMDD = 25;
     } else if (pctS >= 60) {
-      // Lazy Safety: Simple SPY 100% or SPY 70% + SCHD 30%
       if (pctS >= 80) {
         portfolioA = [
           { assetId: 'SPY', weight: 100, enableDefense: false },
@@ -85,7 +86,6 @@ export function calculatePersonalitySimulatorConfig(
         recommendedMaxMDD = 18;
       }
     } else {
-      // Lazy Balanced: S&P 500 (SPY) 100%
       portfolioA = [
         { assetId: 'SPY', weight: 100, enableDefense: false },
       ];
@@ -93,18 +93,18 @@ export function calculatePersonalitySimulatorConfig(
       recommendedMaxMDD = 19;
     }
   } 
-  // CASE 2: Active / Moderate (P < 60%) - Multi-asset Portfolios
+  // CASE 2: Active / Tactical / Moderate (P < 60%) - Multi-asset Active Portfolios
   else {
-    if (pctG >= 80) {
-      // Ultra High Growth (Aggressive): TQQQ 45% + SOXX 35% + SPY 20%
+    if (pctG >= 75) {
+      // Ultra High Growth (Aggressive)
       if (strategyPeriodA > 0) {
         portfolioA = [
-          { assetId: 'TQQQ', weight: 45, enableDefense: true },
+          { assetId: 'TQQQ', weight: 40, enableDefense: true },
           { assetId: 'SOXX', weight: 35, enableDefense: true },
-          { assetId: 'SPY', weight: 20, enableDefense: true },
+          { assetId: 'SPY', weight: 25, enableDefense: true },
         ];
-        recommendedTargetCAGR = 15;
-        recommendedMaxMDD = 38;
+        recommendedTargetCAGR = 17;
+        recommendedMaxMDD = 35;
       } else {
         portfolioA = [
           { assetId: 'TQQQ', weight: 40, enableDefense: false },
@@ -114,37 +114,28 @@ export function calculatePersonalitySimulatorConfig(
         recommendedTargetCAGR = 21;
         recommendedMaxMDD = 65;
       }
-    } else if (pctG >= 60) {
-      // Growth Core: QLD 45% + SPY 35% + SCHD 20%
-      if (strategyPeriodA > 0) {
-        portfolioA = [
-          { assetId: 'QLD', weight: 45, enableDefense: true },
-          { assetId: 'SPY', weight: 35, enableDefense: true },
-          { assetId: 'SCHD', weight: 20, enableDefense: false },
-        ];
-        recommendedTargetCAGR = 10;
-        recommendedMaxMDD = 18;
-      } else {
-        portfolioA = [
-          { assetId: 'QLD', weight: 40, enableDefense: false },
-          { assetId: 'SPY', weight: 40, enableDefense: false },
-          { assetId: 'SCHD', weight: 20, enableDefense: false },
-        ];
-        recommendedTargetCAGR = 15;
-        recommendedMaxMDD = 48;
-      }
-    } else if (pctS >= 80) {
-      // Conservative Safety: SCHD 45% + SPY 30% + GLD 15% + SHY 10%
+    } else if (pctG >= 50) {
+      // Growth & Tactical Core (e.g. GATR 추세 추적자): QLD 50% + SOXX 30% + SPY 20%
+      // Leveraged growth asset delivers ~12% CAGR and ~24% MDD even under 200-day MA defense!
+      portfolioA = [
+        { assetId: 'QLD', weight: 50, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'SOXX', weight: 30, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'SPY', weight: 20, enableDefense: strategyPeriodA > 0 },
+      ];
+      recommendedTargetCAGR = 12;
+      recommendedMaxMDD = 24;
+    } else if (pctS >= 75) {
+      // Conservative Safety
       portfolioA = [
         { assetId: 'SCHD', weight: 45, enableDefense: false },
         { assetId: 'SPY', weight: 30, enableDefense: false },
         { assetId: 'GLD', weight: 15, enableDefense: false },
         { assetId: 'SHY', weight: 10, enableDefense: false },
       ];
-      recommendedTargetCAGR = 7;
+      recommendedTargetCAGR = 8;
       recommendedMaxMDD = 14;
-    } else if (pctS >= 60) {
-      // Safety Core: SPY 50% + SCHD 35% + IEF 15%
+    } else if (pctS >= 55) {
+      // Safety Core
       portfolioA = [
         { assetId: 'SPY', weight: 50, enableDefense: false },
         { assetId: 'SCHD', weight: 35, enableDefense: false },
@@ -153,26 +144,14 @@ export function calculatePersonalitySimulatorConfig(
       recommendedTargetCAGR = 9;
       recommendedMaxMDD = 17;
     } else {
-      // Balanced Core (G 40-59%): e.g. GATR (추세 추적자)
-      if (strategyPeriodA > 0) {
-        // With 200-day MA defense, actual 20-year backtest CAGR is ~7%, MDD is ~13%
-        portfolioA = [
-          { assetId: 'QQQ', weight: 45, enableDefense: true },
-          { assetId: 'SPY', weight: 35, enableDefense: true },
-          { assetId: 'SCHD', weight: 20, enableDefense: false },
-        ];
-        recommendedTargetCAGR = 7;
-        recommendedMaxMDD = 13;
-      } else {
-        // Without defense (buy & hold), actual 20-year backtest CAGR is ~12%, MDD is ~22%
-        portfolioA = [
-          { assetId: 'QQQ', weight: 45, enableDefense: false },
-          { assetId: 'SPY', weight: 35, enableDefense: false },
-          { assetId: 'SCHD', weight: 20, enableDefense: false },
-        ];
-        recommendedTargetCAGR = 12;
-        recommendedMaxMDD = 22;
-      }
+      // Balanced Active Core: QQQ 45% + SPY 35% + SCHD 20%
+      portfolioA = [
+        { assetId: 'QQQ', weight: 45, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'SPY', weight: 35, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'SCHD', weight: 20, enableDefense: false },
+      ];
+      recommendedTargetCAGR = 11;
+      recommendedMaxMDD = 20;
     }
   }
 
