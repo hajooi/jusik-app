@@ -62,7 +62,7 @@ export default function LessonCompletionBar({ lessonId }: LessonCompletionBarPro
         {completed ? (
           <>
             <CheckCircle2 className="w-4 h-4 text-white" />
-            <span>수강 완료됨 ✓</span>
+            <span>수강 완료 ✓</span>
           </>
         ) : user ? (
           <>

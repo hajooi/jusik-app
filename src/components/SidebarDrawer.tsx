@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { CURRICULUM_DATA } from '@/data/curriculum';
-import { List, X, PlayCircle, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { List, X, PlayCircle, ChevronDown, CheckCircle2 } from 'lucide-react';
 
 interface SidebarDrawerProps {
   currentLessonId: string;
@@ -11,6 +12,7 @@ interface SidebarDrawerProps {
 
 export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { user, isLessonCompleted } = useAuth();
 
   const handleClose = () => {
     setIsMobileOpen(false);
@@ -59,6 +61,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
           const hasLessons = level.lessons.length > 0;
           const containsCurrent = level.lessons.some((l) => l.id === currentLessonId);
 
+          const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
+          const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
+
           return (
             <div
               key={level.id}
@@ -86,9 +91,13 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                   <span className={`truncate text-xs font-extrabold ${containsCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
                     {level.title}
                   </span>
-                  {hasLessons && (
+                  {isLevelFullyCompleted ? (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--accent-green)] text-white shrink-0">
+                      <CheckCircle2 className="w-2.5 h-2.5" /> 완료
+                    </span>
+                  ) : hasLessons && (
                     <span className="text-[10px] text-[var(--text-secondary)] font-medium shrink-0">
-                      ({level.lessons.length})
+                      ({user ? `${levelCompletedCount}/${level.lessons.length}` : level.lessons.length})
                     </span>
                   )}
                 </div>
@@ -118,6 +127,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                     {hasLessons ? (
                       level.lessons.map((lesson) => {
                         const isActive = lesson.id === currentLessonId;
+                        const completed = Boolean(user && isLessonCompleted(lesson.id));
 
                         return (
                           <Link
@@ -129,6 +139,8 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                             className={`group flex items-center gap-2.5 p-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer ${
                               isActive
                                 ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
+                                : completed
+                                ? 'border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5 text-[var(--accent-green)] font-bold'
                                 : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
                             }`}
                           >
@@ -136,19 +148,29 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                               className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                                 isActive
                                   ? 'bg-[var(--accent-orange)] text-white'
+                                  : completed
+                                  ? 'bg-[var(--accent-green)] text-white'
                                   : 'bg-[var(--bg-main)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]'
                               }`}
                             >
-                              <PlayCircle className="w-3.5 h-3.5 stroke-[2]" />
+                              {completed ? (
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              ) : (
+                                <PlayCircle className="w-3.5 h-3.5 stroke-[2]" />
+                              )}
                             </div>
 
                             <span className="truncate flex-1">{lesson.title}</span>
 
-                            {isActive && (
+                            {isActive ? (
                               <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)] text-white shrink-0 font-mono">
                                 학습 중
                               </span>
-                            )}
+                            ) : completed ? (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--accent-green)] text-white shrink-0 flex items-center gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5" /> 완료
+                              </span>
+                            ) : null}
                           </Link>
                         );
                       })

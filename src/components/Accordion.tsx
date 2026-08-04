@@ -190,7 +190,7 @@ export default function Accordion({ levels }: AccordionProps) {
 
                               {completed && (
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-green)] text-white flex items-center gap-0.5">
-                                  <CheckCircle2 className="w-3 h-3" /> 완료됨
+                                  <CheckCircle2 className="w-3 h-3" /> 완료
                                 </span>
                               )}
 
