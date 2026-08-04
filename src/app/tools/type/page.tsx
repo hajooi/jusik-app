@@ -55,6 +55,11 @@ function SurveyContent() {
     }
   }, [totalPages, user]);
 
+  // Page change or completion change scroll to top effect
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage, isCompleted]);
+
   const pageQuestions = QUESTIONS.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const answeredCount = Object.keys(answers).length;
   const progressPercent = Math.round((answeredCount / QUESTIONS.length) * 100);
@@ -72,13 +77,11 @@ function SurveyContent() {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
       localStorage.setItem('jusik_type_current_page', nextPage.toString());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setIsCompleted(true);
       localStorage.setItem('jusik_type_completed', 'true');
       const resultData = calculateSurveyResult(answers);
       updateInvestmentType(resultData.typeCode, answers);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -87,7 +90,6 @@ function SurveyContent() {
       const prevPage = currentPage - 1;
       setCurrentPage(prevPage);
       localStorage.setItem('jusik_type_current_page', prevPage.toString());
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -98,7 +100,6 @@ function SurveyContent() {
     localStorage.removeItem('jusik_type_answers');
     localStorage.removeItem('jusik_type_completed');
     localStorage.removeItem('jusik_type_current_page');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (isCompleted) {
