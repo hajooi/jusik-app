@@ -73,7 +73,7 @@ function SimulatorContent() {
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
 
-  // Load URL query params or LocalStorage survey results on mount
+  // Load URL query params, LocalStorage survey results, or saved custom simulator settings on mount
   useEffect(() => {
     try {
       const typeParam = searchParams.get('type')?.toUpperCase();
@@ -96,7 +96,6 @@ function SimulatorContent() {
         const savedCompleted = localStorage.getItem('jusik_type_completed');
         if (savedAnswers && savedCompleted === 'true') {
           const parsed = JSON.parse(savedAnswers);
-          // calculateSurveyResult inline fallback
           let g = 0, a = 0, l = 0, r = 0;
           for (let i = 1; i <= 10; i++) g += parsed[i] || 3;
           for (let i = 11; i <= 20; i++) a += parsed[i] || 3;
@@ -121,15 +120,42 @@ function SimulatorContent() {
         const config = calculatePersonalitySimulatorConfig(typeCode, scores);
         setPortfolioA(config.portfolioA);
         setStrategyPeriodA(config.strategyPeriodA);
-        setPortfolioB(config.portfolioB);
-        setStrategyPeriodB(config.strategyPeriodB);
         setTargetCAGR(config.recommendedTargetCAGR);
         setMaxTolerableMDD(config.recommendedMaxMDD);
+      }
+
+      // Restore saved custom strategy settings if available
+      const savedCustom = localStorage.getItem('jusik_custom_simulator_settings');
+      if (savedCustom) {
+        const parsedCustom = JSON.parse(savedCustom);
+        if (parsedCustom.portfolioB) setPortfolioB(parsedCustom.portfolioB);
+        if (parsedCustom.strategyPeriodB !== undefined) setStrategyPeriodB(parsedCustom.strategyPeriodB);
+        if (parsedCustom.initialCapital !== undefined) setInitialCapital(parsedCustom.initialCapital);
+        if (parsedCustom.depositAmount !== undefined) setDepositAmount(parsedCustom.depositAmount);
+        if (parsedCustom.durationYears !== undefined) setDurationYears(parsedCustom.durationYears);
+        if (parsedCustom.depositFrequency) setDepositFrequency(parsedCustom.depositFrequency);
       }
     } catch (e) {
       console.error(e);
     }
   }, [searchParams]);
+
+  // Save custom strategy settings whenever user modifies them
+  useEffect(() => {
+    try {
+      const customData = {
+        portfolioB,
+        strategyPeriodB,
+        initialCapital,
+        depositAmount,
+        durationYears,
+        depositFrequency
+      };
+      localStorage.setItem('jusik_custom_simulator_settings', JSON.stringify(customData));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [portfolioB, strategyPeriodB, initialCapital, depositAmount, durationYears, depositFrequency]);
 
   // Interactive Canvas Hover & Drag States
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -1422,7 +1448,7 @@ function SimulatorContent() {
           <span>결과 안내 및 과거 데이터 산출 방식</span>
         </div>
         <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium">
-          본 도구는 Yahoo Finance의 20년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기(매달/매주)마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 자동 리밸런싱됩니다. 단, 일부 종목의 상장 전 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
+          본 도구는 Yahoo Finance의 20년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기(매달/매주)마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
         </p>
       </div>
 

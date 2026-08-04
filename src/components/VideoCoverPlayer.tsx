@@ -26,6 +26,7 @@ interface VideoCoverPlayerProps {
   title: string;
   duration: string;
   iconName?: string;
+  onVideoEnded?: () => void;
 }
 
 declare global {
@@ -35,13 +36,19 @@ declare global {
   }
 }
 
-export default function VideoCoverPlayer({ youtubeId, title, duration, iconName = 'Brain' }: VideoCoverPlayerProps) {
+export default function VideoCoverPlayer({ 
+  youtubeId, 
+  title, 
+  duration, 
+  iconName = 'Brain',
+  onVideoEnded 
+}: VideoCoverPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const iframeContainerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const IconComponent = ICON_MAP[iconName] || Brain;
 
-  // Load YouTube IFrame API script once if not already present
+  // Load YouTube IFrame API script once
   useEffect(() => {
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -51,22 +58,42 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
     }
   }, []);
 
+  // Initialize YouTube Player after isPlaying becomes true
+  useEffect(() => {
+    if (isPlaying && window.YT && window.YT.Player && iframeContainerRef.current) {
+      playerRef.current = new window.YT.Player(iframeContainerRef.current, {
+        videoId: youtubeId,
+        playerVars: {
+          autoplay: 1,
+          playsinline: 1,
+          rel: 0,
+          enablejsapi: 1
+        },
+        events: {
+          onStateChange: (event: any) => {
+            // YT.PlayerState.ENDED === 0
+            if (event.data === 0) {
+              if (onVideoEnded) {
+                onVideoEnded();
+              }
+            }
+          }
+        }
+      });
+    }
+  }, [isPlaying, youtubeId, onVideoEnded]);
+
   const handlePlayClick = () => {
     setIsPlaying(true);
   };
 
   return (
     <div className="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-md bg-black">
-      {/* Render YouTube Iframe only after user clicks Play button for instant page transition */}
+      {/* Render YouTube Iframe container after Play click */}
       {isPlaying ? (
-        <iframe
-          ref={iframeRef}
-          className="absolute top-0 left-0 w-full h-full"
-          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&playsinline=1&rel=0`}
-          title={title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div ref={iframeContainerRef} className="w-full h-full" />
+        </div>
       ) : (
         <button
           onClick={handlePlayClick}
@@ -74,7 +101,7 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
           aria-label={`${title} 영상 재생하기`}
           className="group absolute inset-0 w-full h-full bg-[var(--bg-main)] text-left cursor-pointer transition-all duration-300 focus:outline-none p-4 sm:p-6 flex flex-col justify-between z-10 overflow-hidden border-none"
         >
-          {/* Clean Ambient Glass Surface */}
+          {/* Ambient Glass Surface */}
           <div className="absolute inset-0 bg-gradient-to-br from-[var(--card-surface)] to-[var(--bg-main)] pointer-events-none" />
 
           {/* Decorative Warm Ambient Mesh Background Shapes */}
@@ -98,16 +125,13 @@ export default function VideoCoverPlayer({ youtubeId, title, duration, iconName 
             </span>
           </div>
 
-          {/* Center Row: Large Semi-Transparent Background Icon + Signature Play Button */}
+          {/* Center Row: Background Icon + Signature Play Button */}
           <div className="relative z-10 flex items-center justify-center my-auto w-full py-2">
-            {/* Background Watermark Icon */}
             <IconComponent className="absolute w-40 h-40 sm:w-52 sm:h-52 text-[var(--accent-orange)] opacity-10 dark:opacity-15 pointer-events-none group-hover:scale-110 group-hover:opacity-20 transition-all duration-500 stroke-[1.2]" />
 
             <div className="relative group/btn flex items-center justify-center">
-              {/* Subtle Pulsing Ambient Outer Ring */}
               <div className="absolute -inset-2 rounded-full bg-[var(--accent-orange)]/20 blur-md group-hover:bg-[var(--accent-orange)]/40 transition-all duration-500 animate-pulse" />
               
-              {/* Main Play Button Circle */}
               <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--accent-orange)] text-white shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 group-active:scale-95 border border-white/20">
                 <Play className="w-6 h-6 sm:w-7 sm:h-7 fill-white stroke-none ml-1" />
               </div>

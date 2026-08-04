@@ -1,6 +1,6 @@
 import { getLessonById, getAllLessons } from '@/data/curriculum';
 import SidebarDrawer from '@/components/SidebarDrawer';
-import VideoCoverPlayer from '@/components/VideoCoverPlayer';
+import LessonVideoSection from '@/components/LessonVideoSection';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { 
@@ -124,13 +124,15 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             )}
           </div>
 
-          {/* TOP: M3 Styled Interactive YouTube Video Cover & Player */}
-          <VideoCoverPlayer
+          {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Completion Bar */}
+          <LessonVideoSection
+            lessonId={lesson.id}
             youtubeId={lesson.youtubeId}
             title={lesson.title}
             duration={lesson.duration}
             iconName={level.iconName}
           />
+
 
           {/* CONCISE SUMMARY CARD */}
           {lesson.summary && lesson.summary.length > 0 && (
