@@ -9,6 +9,8 @@ export interface UserAccount {
   createdAt: string;
   lastLoginAt: string;
   completedLessons?: string[]; // 수강 완료한 레슨 ID 목록
+  investmentType?: string;      // 투자 성향 진단 결과
+  simulatorSettings?: any;     // 시뮬레이터 커스텀 포트폴리오 세팅
 }
 
 interface AuthContextType {
@@ -31,13 +33,16 @@ const USER_STORAGE_KEY = 'jusik_app_user_account';
 const USERS_DB_SIMULATION_KEY = 'jusik_app_users_db';
 const LOCAL_COMPLETED_LESSONS_KEY = 'jusik_app_completed_lessons';
 
-// 대표님 공식 마스터 계정 (주식부엉 / 418019)
-const DEFAULT_BOOUNG_ACCOUNT: UserAccount = {
-  nickname: '주식부엉',
-  pin: '418019',
-  createdAt: '2026-08-04T00:00:00.000Z',
-  lastLoginAt: new Date().toISOString(),
-  completedLessons: []
+// 대표님 공식 마스터 계정 초기 데이터 (시크릿 모드/새 브라우저 접속 시에도 즉시 복원)
+const MASTER_ACCOUNTS_SEED: Record<string, UserAccount> = {
+  '주식부엉': {
+    nickname: '주식부엉',
+    pin: '418019',
+    createdAt: '2026-08-04T00:00:00.000Z',
+    lastLoginAt: new Date().toISOString(),
+    completedLessons: ['lv0-1', 'lv0-2', 'lv0-3', 'lv1-1'], // 완강 아카이브 기본 세팅
+    investmentType: 'SART'
+  }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -47,20 +52,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     try {
-      // 1. DB 초기화 시 '주식부엉' 마스터 계정 등록 (로그인은 안 한 상태)
+      // 1. DB 초기화 및 시드 데이터 병합 (시크릿 모드/새 기기 지원)
       const dbJson = localStorage.getItem(USERS_DB_SIMULATION_KEY);
       let usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
-      
-      if (!usersDb['주식부엉']) {
-        usersDb['주식부엉'] = DEFAULT_BOOUNG_ACCOUNT;
-        localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
-      }
 
-      // 2. 수강 완료 목록 복원 (비로그인 상태일 때도 로컬 기록 관리)
+      // 마스터 계정 정보가 없거나 비어 있으면 시드 데이터 복원
+      Object.keys(MASTER_ACCOUNTS_SEED).forEach((name) => {
+        if (!usersDb[name]) {
+          usersDb[name] = MASTER_ACCOUNTS_SEED[name];
+        }
+      });
+      localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
+
+      // 2. 수강 완료 목록 복원
       const localCompletedJson = localStorage.getItem(LOCAL_COMPLETED_LESSONS_KEY);
       let initialCompleted: string[] = localCompletedJson ? JSON.parse(localCompletedJson) : [];
 
-      // 3. 사용자 로그인 상태 복원 (최초 접속 시 null, 자동 로그인 금지)
+      // 3. 사용자 로그인 상태 확인 (최초 접속 시 null, 로그인 시 복원)
       const savedUserJson = localStorage.getItem(USER_STORAGE_KEY);
       if (savedUserJson) {
         const parsedUser: UserAccount = JSON.parse(savedUserJson);
@@ -83,7 +91,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCompletedLessons(initialCompleted);
         }
       } else {
-        // 최초 접속자/시크릿 모드는 비로그인 상태(null)로 시작
         setUser(null);
         setCompletedLessons(initialCompleted);
       }
@@ -113,9 +120,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const dbJson = localStorage.getItem(USERS_DB_SIMULATION_KEY);
         const usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
-        if (usersDb[user.nickname]) {
-          usersDb[user.nickname] = updatedUser;
-          localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
+        usersDb[user.nickname] = updatedUser;
+        localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
+        
+        // 마스터 맵에도 실시간 업데이트
+        if (MASTER_ACCOUNTS_SEED[user.nickname]) {
+          MASTER_ACCOUNTS_SEED[user.nickname] = updatedUser;
         }
       } catch (e) {
         console.error('DB update error:', e);
@@ -158,7 +168,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const dbJson = localStorage.getItem(USERS_DB_SIMULATION_KEY);
-      const usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
+      let usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
+
+      // 마스터 세드 계정이 DB에 없는 경우(시크릿 모드 등) 시드에서 복원
+      if (!usersDb[trimmedNickname] && MASTER_ACCOUNTS_SEED[trimmedNickname]) {
+        usersDb[trimmedNickname] = MASTER_ACCOUNTS_SEED[trimmedNickname];
+      }
+
       const existingAccount = usersDb[trimmedNickname] || usersDb[trimmedNickname.toLowerCase()];
 
       if (existingAccount) {
@@ -166,6 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return { success: false, error: '입력하신 핀번호가 일치하지 않습니다.' };
         }
 
+        // 로그인 시 해당 계정에 아카이빙된 수강 완료 내역으로 즉시 복원
         const userCompleted = existingAccount.completedLessons || [];
         const mergedCompleted = Array.from(new Set([...completedLessons, ...userCompleted]));
         
@@ -178,10 +195,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         usersDb[trimmedNickname] = updatedAccount;
         localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedAccount));
+        localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(mergedCompleted));
+
         setUser(updatedAccount);
         setCompletedLessons(mergedCompleted);
         return { success: true };
       } else {
+        // 신규 계정 생성
         const newAccount: UserAccount = {
           nickname: trimmedNickname,
           pin,
