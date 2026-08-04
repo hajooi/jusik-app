@@ -118,9 +118,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openAuthPopover = () => {
     setIsAuthPopoverClosing(false);
     setIsAuthPopoverOpen(true);
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
   };
 
   const closeAuthPopover = () => {

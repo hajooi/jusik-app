@@ -29,15 +29,14 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 transition-all duration-200">
-      {/* iOS Progressive Blur Background */}
+      {/* iOS Progressive Glass Blur Layer */}
       <div 
-        className="absolute inset-0 bg-[var(--bg-main)]/80 backdrop-blur-md pointer-events-none"
+        className="absolute inset-x-0 top-0 -bottom-3 bg-[var(--bg-main)]/65 backdrop-blur-md pointer-events-none transition-all"
         style={{
-          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)'
         }}
       />
-
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14 sm:h-16">
           
