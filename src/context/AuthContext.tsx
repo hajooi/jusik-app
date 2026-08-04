@@ -305,7 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCompletedLessons(serverCompleted);
       localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(serverCompleted));
 
-      if (data.user.investmentType) {
+      if (data.user.investmentType && data.user.investmentType !== '미진단') {
         setInvestmentType(data.user.investmentType);
         localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
       } else {

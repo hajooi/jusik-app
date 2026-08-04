@@ -1,0 +1,25 @@
+{
+  "주식부엉": {
+    "nickname": "주식부엉",
+    "pin": "418019",
+    "createdAt": "2026-08-04T00:00:00.000Z",
+    "lastActiveAt": "2026-08-04T14:13:16.732Z",
+    "completedLessons": [
+      "lv0-1",
+      "lv0-2"
+    ]
+  },
+  "주식우엉": {
+    "nickname": "주식우엉",
+    "pin": "418019",
+    "createdAt": "2026-08-04T13:49:05.059Z",
+    "lastActiveAt": "2026-08-04T13:49:05.059Z",
+    "completedLessons": [
+      "lv0-1",
+      "lv0-2"
+    ],
+    "investmentType": null,
+    "typeAnswers": null,
+    "simulatorSettings": null
+  }
+}

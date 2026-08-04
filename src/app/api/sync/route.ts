@@ -77,9 +77,18 @@ export async function POST(request: Request) {
 
         const mergedCompleted = Array.from(new Set([...(existing.completedLessons || []), ...(completedLessons || [])]));
         existing.completedLessons = mergedCompleted;
-        if (investmentType) existing.investmentType = investmentType;
-        if (typeAnswers) existing.typeAnswers = typeAnswers;
-        if (simulatorSettings) existing.simulatorSettings = simulatorSettings;
+
+        // Protect existing server user data from being overwritten by client defaults during login
+        if (!existing.investmentType && investmentType && investmentType !== '미진단') {
+          existing.investmentType = investmentType;
+        }
+        if ((!existing.typeAnswers || Object.keys(existing.typeAnswers).length === 0) && typeAnswers && Object.keys(typeAnswers).length > 0) {
+          existing.typeAnswers = typeAnswers;
+        }
+        if (!existing.simulatorSettings && simulatorSettings) {
+          existing.simulatorSettings = simulatorSettings;
+        }
+
         existing.lastActiveAt = new Date().toISOString();
 
         db[trimmedNickname] = existing;
