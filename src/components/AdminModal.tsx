@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Users, BookOpen, PieChart, RefreshCw, Search, X, Clock, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface AdminUserRecord {
   nickname: string;
@@ -18,6 +19,7 @@ interface AdminModalProps {
 }
 
 export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
+  const { user } = useAuth();
   const [isClosing, setIsClosing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -38,8 +40,8 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
     setLoading(true);
     setErrorMsg(null);
     try {
-      let storedPin = '';
-      if (typeof window !== 'undefined') {
+      let storedPin = user?.pin || '';
+      if (!storedPin && typeof window !== 'undefined') {
         const userAccountStr = localStorage.getItem('jusik_user_account');
         if (userAccountStr) {
           try {
@@ -47,12 +49,11 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
             storedPin = parsed.pin || '';
           } catch (e) {}
         }
-        if (!storedPin) {
-          storedPin = localStorage.getItem('jusik_user_pin') || '';
-        }
       }
 
-      const res = await fetch(`/api/admin/users?nickname=${encodeURIComponent('주식부엉')}&pin=${encodeURIComponent(storedPin)}`);
+      const adminNickname = user?.nickname || '주식부엉';
+
+      const res = await fetch(`/api/admin/users?nickname=${encodeURIComponent(adminNickname)}&pin=${encodeURIComponent(storedPin)}`);
       const data = await res.json();
 
       if (!data.success) {

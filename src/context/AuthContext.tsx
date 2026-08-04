@@ -308,15 +308,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user.investmentType) {
         setInvestmentType(data.user.investmentType);
         localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
+      } else {
+        setInvestmentType('미진단');
+        localStorage.removeItem(LOCAL_TYPE_CODE_KEY);
       }
+
       if (data.user.typeAnswers) {
         setTypeAnswers(data.user.typeAnswers);
         localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
         localStorage.setItem('jusik_type_completed', 'true');
+      } else {
+        setTypeAnswers({});
+        localStorage.removeItem(LOCAL_TYPE_ANSWERS_KEY);
+        localStorage.removeItem('jusik_type_completed');
       }
+
       if (data.user.simulatorSettings) {
         setSimulatorSettings(data.user.simulatorSettings);
         localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
+      } else {
+        setSimulatorSettings(null);
+        localStorage.removeItem(LOCAL_SIMULATOR_SETTINGS_KEY);
       }
 
       return { success: true };
@@ -327,8 +339,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // 1. Wipe all local storage keys
     localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(LOCAL_COMPLETED_LESSONS_KEY);
+    localStorage.removeItem(LOCAL_TYPE_CODE_KEY);
+    localStorage.removeItem(LOCAL_TYPE_ANSWERS_KEY);
+    localStorage.removeItem(LOCAL_SIMULATOR_SETTINGS_KEY);
+    localStorage.removeItem('jusik_type_completed');
+    localStorage.removeItem('jusik_user_pin');
+
+    // 2. Reset all React auth states cleanly
     setUser(null);
+    setCompletedLessons([]);
+    setInvestmentType('미진단');
+    setTypeAnswers({});
+    setSimulatorSettings(null);
   };
 
   return (
