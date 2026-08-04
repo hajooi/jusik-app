@@ -31,6 +31,7 @@ const USER_STORAGE_KEY = 'jusik_app_user_account';
 const USERS_DB_SIMULATION_KEY = 'jusik_app_users_db';
 const LOCAL_COMPLETED_LESSONS_KEY = 'jusik_app_completed_lessons';
 
+// 대표님 공식 마스터 계정 (주식부엉 / 418019)
 const DEFAULT_BOOUNG_ACCOUNT: UserAccount = {
   nickname: '주식부엉',
   pin: '418019',
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     try {
-      // 1. DB 초기화 시 '주식부엉' 계정 등록
+      // 1. DB 초기화 시 '주식부엉' 마스터 계정 등록 (로그인은 안 한 상태)
       const dbJson = localStorage.getItem(USERS_DB_SIMULATION_KEY);
       let usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
       
@@ -55,11 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(USERS_DB_SIMULATION_KEY, JSON.stringify(usersDb));
       }
 
-      // 2. 수강 완료 목록 복원 (로컬 스토리지 우선 복원)
+      // 2. 수강 완료 목록 복원 (비로그인 상태일 때도 로컬 기록 관리)
       const localCompletedJson = localStorage.getItem(LOCAL_COMPLETED_LESSONS_KEY);
       let initialCompleted: string[] = localCompletedJson ? JSON.parse(localCompletedJson) : [];
 
-      // 3. 사용자 로그인 상태 확인
+      // 3. 사용자 로그인 상태 복원 (최초 접속 시 null, 자동 로그인 금지)
       const savedUserJson = localStorage.getItem(USER_STORAGE_KEY);
       if (savedUserJson) {
         const parsedUser: UserAccount = JSON.parse(savedUserJson);
@@ -69,8 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (now - lastLogin > ONE_YEAR_MS) {
           localStorage.removeItem(USER_STORAGE_KEY);
-          setUser(DEFAULT_BOOUNG_ACCOUNT);
-          setCompletedLessons(DEFAULT_BOOUNG_ACCOUNT.completedLessons || []);
+          setUser(null);
+          setCompletedLessons(initialCompleted);
         } else {
           parsedUser.lastLoginAt = new Date().toISOString();
           if (parsedUser.completedLessons && parsedUser.completedLessons.length > 0) {
@@ -82,13 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCompletedLessons(initialCompleted);
         }
       } else {
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_BOOUNG_ACCOUNT));
-        setUser(DEFAULT_BOOUNG_ACCOUNT);
-        setCompletedLessons(DEFAULT_BOOUNG_ACCOUNT.completedLessons || []);
+        // 최초 접속자/시크릿 모드는 비로그인 상태(null)로 시작
+        setUser(null);
+        setCompletedLessons(initialCompleted);
       }
     } catch (e) {
       console.error('Auth restore error:', e);
-      setUser(DEFAULT_BOOUNG_ACCOUNT);
+      setUser(null);
     }
   }, []);
 
@@ -96,7 +97,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeAuthPopover = () => setIsAuthPopoverOpen(false);
   const toggleAuthPopover = () => setIsAuthPopoverOpen((prev) => !prev);
 
-  // 수강 완료 갱신 동기화 함수
   const updateCompletedLessonsState = (newCompletedList: string[]) => {
     setCompletedLessons(newCompletedList);
     localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(newCompletedList));
@@ -110,7 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
 
-      // DB 시뮬레이션 데이터베이스 업데이트
       try {
         const dbJson = localStorage.getItem(USERS_DB_SIMULATION_KEY);
         const usersDb: Record<string, UserAccount> = dbJson ? JSON.parse(dbJson) : {};
@@ -167,7 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return { success: false, error: '입력하신 핀번호가 일치하지 않습니다.' };
         }
 
-        // 로그인 시 계정에 보관된 수강 완료 목록 동기화
         const userCompleted = existingAccount.completedLessons || [];
         const mergedCompleted = Array.from(new Set([...completedLessons, ...userCompleted]));
         
