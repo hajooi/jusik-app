@@ -99,7 +99,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95"
         >
           <ArrowLeft className="w-4 h-4" />
-          홈으로 돌아가기
+          커리큘럼 목록으로
         </Link>
       </div>
 
