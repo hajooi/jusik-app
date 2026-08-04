@@ -10,18 +10,18 @@ export async function GET(request: Request) {
     const pin = searchParams.get('pin')?.trim();
 
     if (!nickname || !pin) {
-      return NextResponse.json({ success: false, error: '닉네임과 핀번호가 필요합니다.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: '닉네임과 핀번호가 필요합니다.' }, { status: 200 });
     }
 
     const db = getServerDb();
     const userRecord = db[nickname] || db[nickname.toLowerCase()];
 
     if (!userRecord) {
-      return NextResponse.json({ success: false, error: '계정을 찾을 수 없습니다.' }, { status: 444 });
+      return NextResponse.json({ success: false, notFound: true, error: '계정을 찾을 수 없습니다.' }, { status: 200 });
     }
 
     if (userRecord.pin !== pin) {
-      return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 401 });
+      return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 200 });
     }
 
     userRecord.lastActiveAt = new Date().toISOString();
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('API GET sync error:', error);
-    return NextResponse.json({ success: false, error: '서버 연동 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: '서버 연동 오류가 발생했습니다.' }, { status: 200 });
   }
 }
 
@@ -54,16 +54,16 @@ export async function POST(request: Request) {
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname || !pin) {
-      return NextResponse.json({ success: false, error: '닉네임과 핀번호를 입력해 주세요.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: '닉네임과 핀번호를 입력해 주세요.' }, { status: 200 });
     }
 
     const validation = validateNickname(trimmedNickname);
     if (!validation.isValid) {
-      return NextResponse.json({ success: false, error: validation.message }, { status: 400 });
+      return NextResponse.json({ success: false, error: validation.message }, { status: 200 });
     }
 
     if (!/^\d{6}$/.test(pin)) {
-      return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
     }
 
     const db = getServerDb();
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     if (action === 'login') {
       if (existing) {
         if (existing.pin !== pin) {
-          return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 401 });
+          return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 200 });
         }
 
         const mergedCompleted = Array.from(new Set([...(existing.completedLessons || []), ...(completedLessons || [])]));
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
 
     if (action === 'syncData') {
       if (!existing || existing.pin !== pin) {
-        return NextResponse.json({ success: false, error: '인증 실패' }, { status: 401 });
+        return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
       if (completedLessons !== undefined) existing.completedLessons = completedLessons;
@@ -154,9 +154,9 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ success: false, error: '유효하지 않은 요청입니다.' }, { status: 400 });
+    return NextResponse.json({ success: false, error: '유효하지 않은 요청입니다.' }, { status: 200 });
   } catch (error) {
     console.error('API POST sync error:', error);
-    return NextResponse.json({ success: false, error: '서버 저장 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: '서버 저장 중 오류가 발생했습니다.' }, { status: 200 });
   }
 }
