@@ -38,8 +38,19 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
     setLoading(true);
     setErrorMsg(null);
     try {
-      if (typeof window === 'undefined') return;
-      const storedPin = localStorage.getItem('jusik_user_pin') || '';
+      let storedPin = '';
+      if (typeof window !== 'undefined') {
+        const userAccountStr = localStorage.getItem('jusik_user_account');
+        if (userAccountStr) {
+          try {
+            const parsed = JSON.parse(userAccountStr);
+            storedPin = parsed.pin || '';
+          } catch (e) {}
+        }
+        if (!storedPin) {
+          storedPin = localStorage.getItem('jusik_user_pin') || '';
+        }
+      }
 
       const res = await fetch(`/api/admin/users?nickname=${encodeURIComponent('주식부엉')}&pin=${encodeURIComponent(storedPin)}`);
       const data = await res.json();
