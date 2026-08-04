@@ -1005,407 +1005,415 @@ function SimulatorContent() {
       </div>
 
       {/* ---------------------------------------------------- */}
-      {/* SIDE-BY-SIDE PORTFOLIO BUILDERS                      */}
+      {/* SIDE-BY-SIDE STRATEGY & PERFORMANCE PAIR CONTAINERS  */}
+      {/* Desktop (md): Side-by-side 2 Columns                  */}
+      {/* Mobile (sm): Strategy A + Result A -> Strategy B + Result B */}
       {/* ---------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         
-        {/* RECOMMENDED PORTFOLIO BUILDER */}
-        <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-black text-[var(--accent-mid-green)] flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
-            </h2>
-            {availableForA.length > 0 && (
-              <button type="button" onClick={handleAddSlotA} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-mid-green)] text-white hover:opacity-90 transition-all">
-                + 종목 추가
-              </button>
-            )}
-          </div>
-
-          {/* Recommended Strategy Disclaimer Notice & Preset Quick Picker */}
-          <div className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium space-y-2">
-            <div>
-              💡 <strong>추천 안내:</strong> {userProfileCode ? (
-                <span>성향 진단(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 결과를 바탕으로 구성된 제안 조합입니다. 단순 참고용으로 활용해 보세요.</span>
-              ) : (
-                <span>대표 자산 배분 템플릿 기반의 제안 조합입니다. 투자 성향 진단을 받으시면 나만의 맞춤 전략이 자동 세팅됩니다.</span>
+        {/* ==================================================== */}
+        {/* STRATEGY A (RECOMMENDED STRATEGY + PERFORMANCE PAIR) */}
+        {/* ==================================================== */}
+        <div className="space-y-4 flex flex-col justify-between">
+          {/* RECOMMENDED PORTFOLIO BUILDER */}
+          <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-black text-[var(--accent-mid-green)] flex items-center gap-2">
+                <Layers className="w-4 h-4" />
+                {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
+              </h2>
+              {availableForA.length > 0 && (
+                <button type="button" onClick={handleAddSlotA} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-mid-green)] text-white hover:opacity-90 transition-all">
+                  + 종목 추가
+                </button>
               )}
             </div>
-            
-            {/* Quick Preset Selector Buttons */}
-            <div style={{ borderTop: '1px solid var(--border-color)' }} className="pt-2 flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">추천 템플릿:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setPortfolioA([
-                    { assetId: 'SPY', weight: 50, enableDefense: false },
-                    { assetId: 'QQQ', weight: 30, enableDefense: false },
-                    { assetId: 'SCHD', weight: 20, enableDefense: false },
-                  ]);
-                  setStrategyPeriodA(0);
-                }}
-                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
-              >
-                균형 자산 배분
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPortfolioA([
-                    { assetId: 'TQQQ', weight: 45, enableDefense: true },
-                    { assetId: 'SOXX', weight: 35, enableDefense: true },
-                    { assetId: 'SPY', weight: 20, enableDefense: true },
-                  ]);
-                  setStrategyPeriodA(200);
-                }}
-                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
-              >
-                공격형 성장
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPortfolioA([
-                    { assetId: 'SCHD', weight: 45, enableDefense: false },
-                    { assetId: 'SPY', weight: 30, enableDefense: false },
-                    { assetId: 'GLD', weight: 15, enableDefense: false },
-                    { assetId: 'SHY', weight: 10, enableDefense: false },
-                  ]);
-                  setStrategyPeriodA(0);
-                }}
-                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
-              >
-                보수형 배당/채권
-              </button>
-            </div>
-          </div>
 
-          <div className="space-y-2.5">
-            {portfolioA.map((item, index) => (
-              <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono font-bold text-[var(--accent-mid-green)]">종목 {index + 1}:</span>
-                  <select
-                    value={item.assetId}
-                    onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                    className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
-                  >
-                    {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
-                      <option key={asset.id} value={asset.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                        {asset.name} ({asset.id})
-                      </option>
-                    ))}
-                  </select>
-                  <span className="font-mono text-xs font-extrabold text-[var(--accent-mid-green)] w-10 text-right">{item.weight}%</span>
-                  {portfolioA.length > 1 && (
-                    <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={item.weight}
-                    onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
-                    className="flex-1 accent-[var(--accent-mid-green)] cursor-pointer"
-                  />
-                  {strategyPeriodA > 0 && (
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                      <input
-                        type="checkbox"
-                        checked={item.enableDefense !== false}
-                        onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                        className="w-3.5 h-3.5 accent-[var(--accent-mid-green)] rounded cursor-pointer"
-                      />
-                      <span>방어 적용</span>
-                    </label>
-                  )}
-                </div>
+            {/* Recommended Strategy Disclaimer Notice & Preset Quick Picker */}
+            <div className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium space-y-2">
+              <div>
+                💡 <strong>추천 안내:</strong> {userProfileCode ? (
+                  <span>성향 진단(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 결과를 바탕으로 구성된 제안 조합입니다. 단순 참고용으로 활용해 보세요.</span>
+                ) : (
+                  <span>대표 자산 배분 템플릿 기반의 제안 조합입니다. 투자 성향 진단을 받으시면 나만의 맞춤 전략이 자동 세팅됩니다.</span>
+                )}
               </div>
-            ))}
-
-            <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-              <span className="text-[var(--text-primary)]">현금</span>
-              <span className="font-mono font-extrabold text-[var(--accent-mid-green)]">{autoCashA}%</span>
-            </div>
-
-            <div className="pt-2 space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
-                  방어 옵션 (이동평균선)
-                </label>
-                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                  <HelpCircle className="w-3.5 h-3.5" />
+              
+              {/* Quick Preset Selector Buttons */}
+              <div style={{ borderTop: '1px solid var(--border-color)' }} className="pt-2 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">추천 템플릿:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPortfolioA([
+                      { assetId: 'SPY', weight: 50, enableDefense: false },
+                      { assetId: 'QQQ', weight: 30, enableDefense: false },
+                      { assetId: 'SCHD', weight: 20, enableDefense: false },
+                    ]);
+                    setStrategyPeriodA(0);
+                  }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                >
+                  균형 자산 배분
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPortfolioA([
+                      { assetId: 'TQQQ', weight: 45, enableDefense: true },
+                      { assetId: 'SOXX', weight: 35, enableDefense: true },
+                      { assetId: 'SPY', weight: 20, enableDefense: true },
+                    ]);
+                    setStrategyPeriodA(200);
+                  }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                >
+                  공격형 성장
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPortfolioA([
+                      { assetId: 'SCHD', weight: 45, enableDefense: false },
+                      { assetId: 'SPY', weight: 30, enableDefense: false },
+                      { assetId: 'GLD', weight: 15, enableDefense: false },
+                      { assetId: 'SHY', weight: 10, enableDefense: false },
+                    ]);
+                    setStrategyPeriodA(0);
+                  }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                >
+                  보수형 배당/채권
                 </button>
               </div>
-              {activeTooltip === 'defense_a' && (
-                <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                  시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+            </div>
+
+            <div className="space-y-2.5">
+              {portfolioA.map((item, index) => (
+                <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-mono font-bold text-[var(--accent-mid-green)]">종목 {index + 1}:</span>
+                    <select
+                      value={item.assetId}
+                      onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                      className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
+                    >
+                      {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
+                        <option key={asset.id} value={asset.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
+                          {asset.name} ({asset.id})
+                        </option>
+                      ))}
+                    </select>
+                    <span className="font-mono text-xs font-extrabold text-[var(--accent-mid-green)] w-10 text-right">{item.weight}%</span>
+                    {portfolioA.length > 1 && (
+                      <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={item.weight}
+                      onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
+                      className="flex-1 accent-[var(--accent-mid-green)] cursor-pointer"
+                    />
+                    {strategyPeriodA > 0 && (
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                        <input
+                          type="checkbox"
+                          checked={item.enableDefense !== false}
+                          onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                          className="w-3.5 h-3.5 accent-[var(--accent-mid-green)] rounded cursor-pointer"
+                        />
+                        <span>방어 적용</span>
+                      </label>
+                    )}
+                  </div>
                 </div>
-              )}
-              <select
-                value={strategyPeriodA}
-                onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
-                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
-              >
-                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-              </select>
+              ))}
+
+              <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                <span className="text-[var(--text-primary)]">현금</span>
+                <span className="font-mono font-extrabold text-[var(--accent-mid-green)]">{autoCashA}%</span>
+              </div>
+
+              <div className="pt-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                    <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
+                    방어 옵션 (이동평균선)
+                  </label>
+                  <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {activeTooltip === 'defense_a' && (
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
+                    시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                  </div>
+                )}
+                <select
+                  value={strategyPeriodA}
+                  onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
+                  className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
+                >
+                  <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                  <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                  <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                  <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                  <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Portfolio A Results Card (Bound to Strategy A) */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+              <span className="text-xs font-black text-[var(--accent-mid-green)] flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-mid-green)]" />
+                {userProfileCode ? `${userProfileCode} 추천 전략 성과` : '추천 전략 성과'}
+              </span>
+              <span className="text-lg font-black text-[var(--accent-mid-green)] font-mono">
+                +{simulation.portA.totalRate}%
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+              <span className="text-xs font-black text-[var(--accent-mid-green)]">
+                ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+                <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                  {simulation.portA.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
+                </span>
+              </div>
+
+              <div className="pt-1.5 border-t border-[var(--border-color)]">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                  <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                  <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                  <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* CUSTOM PORTFOLIO BUILDER */}
-        <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-black text-[var(--accent-orange)] flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              커스텀 전략
-            </h2>
-            {availableForB.length > 0 && (
-              <button type="button" onClick={handleAddSlotB} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-orange)] text-white hover:bg-[var(--accent-orange)]/90 transition-all">
-                + 종목 추가
-              </button>
-            )}
-          </div>
+        {/* ==================================================== */}
+        {/* STRATEGY B (CUSTOM STRATEGY + PERFORMANCE PAIR)     */}
+        {/* ==================================================== */}
+        <div className="space-y-4 flex flex-col justify-between">
+          {/* CUSTOM PORTFOLIO BUILDER */}
+          <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-black text-[var(--accent-orange)] flex items-center gap-2">
+                <Layers className="w-4 h-4" />
+                커스텀 전략
+              </h2>
+              {availableForB.length > 0 && (
+                <button type="button" onClick={handleAddSlotB} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-orange)] text-white hover:bg-[var(--accent-orange)]/90 transition-all">
+                  + 종목 추가
+                </button>
+              )}
+            </div>
 
-          {/* REAL-TIME DYNAMIC WARNING TOAST INSIDE CUSTOM STRATEGY CARD */}
-          <div
-            style={{
-              borderColor:
+            {/* REAL-TIME DYNAMIC WARNING TOAST INSIDE CUSTOM STRATEGY CARD */}
+            <div
+              style={{
+                borderColor:
+                  evalFeedbackB.type === 'danger'
+                    ? 'rgba(244, 63, 94, 0.3)'
+                    : evalFeedbackB.type === 'warning'
+                    ? 'rgba(241, 143, 1, 0.35)'
+                    : evalFeedbackB.type === 'info'
+                    ? 'rgba(14, 165, 233, 0.3)'
+                    : 'rgba(104, 166, 125, 0.35)',
+              }}
+              className={`p-3.5 rounded-xl border transition-all duration-300 shadow-2xs space-y-1 ${
                 evalFeedbackB.type === 'danger'
-                  ? 'rgba(244, 63, 94, 0.3)'
+                  ? 'bg-rose-500/10 text-rose-500'
                   : evalFeedbackB.type === 'warning'
-                  ? 'rgba(241, 143, 1, 0.35)'
+                  ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
                   : evalFeedbackB.type === 'info'
-                  ? 'rgba(14, 165, 233, 0.3)'
-                  : 'rgba(104, 166, 125, 0.35)',
-            }}
-            className={`p-3.5 rounded-xl border transition-all duration-300 shadow-2xs space-y-1 ${
-              evalFeedbackB.type === 'danger'
-                ? 'bg-rose-500/10 text-rose-500'
-                : evalFeedbackB.type === 'warning'
-                ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
-                : evalFeedbackB.type === 'info'
-                ? 'bg-sky-500/10 text-sky-500'
-                : 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
-            }`}
-          >
-            <div className="flex items-center gap-1.5 font-extrabold text-xs">
-              {evalFeedbackB.type === 'danger' && <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />}
-              {evalFeedbackB.type === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0 text-[var(--accent-orange)]" />}
-              {evalFeedbackB.type === 'info' && <Info className="w-4 h-4 shrink-0 text-sky-500" />}
-              {evalFeedbackB.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[var(--accent-green)]" />}
-              <span>{evalFeedbackB.title}</span>
+                  ? 'bg-sky-500/10 text-sky-500'
+                  : 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
+              }`}
+            >
+              <div className="flex items-center gap-1.5 font-extrabold text-xs">
+                {evalFeedbackB.type === 'danger' && <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />}
+                {evalFeedbackB.type === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0 text-[var(--accent-orange)]" />}
+                {evalFeedbackB.type === 'info' && <Info className="w-4 h-4 shrink-0 text-sky-500" />}
+                {evalFeedbackB.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[var(--accent-green)]" />}
+                <span>{evalFeedbackB.title}</span>
+              </div>
+              <p className="text-[11px] text-[var(--text-primary)] font-medium leading-relaxed">
+                {evalFeedbackB.desc}
+              </p>
             </div>
-            <p className="text-[11px] text-[var(--text-primary)] font-medium leading-relaxed">
-              {evalFeedbackB.desc}
-            </p>
+
+            <div className="space-y-2.5">
+              {portfolioB.map((item, index) => (
+                <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-mono font-bold text-[var(--accent-orange)]">종목 {index + 1}:</span>
+                    <select
+                      value={item.assetId}
+                      onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                      className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
+                    >
+                      {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
+                        <option key={asset.id} value={asset.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
+                          {asset.name} ({asset.id})
+                        </option>
+                      ))}
+                    </select>
+                    <span className="font-mono text-xs font-extrabold text-[var(--accent-orange)] w-10 text-right">{item.weight}%</span>
+                    {portfolioB.length > 1 && (
+                      <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={item.weight}
+                      onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
+                      className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
+                    />
+                    {strategyPeriodB > 0 && (
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                        <input
+                          type="checkbox"
+                          checked={item.enableDefense !== false}
+                          onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                          className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
+                        />
+                        <span>방어 적용</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                <span className="text-[var(--text-primary)]">현금</span>
+                <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashB}%</span>
+              </div>
+
+              <div className="pt-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                    <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                    방어 옵션 (이동평균선)
+                  </label>
+                  <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {activeTooltip === 'defense_b' && (
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
+                    시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                  </div>
+                )}
+                <select
+                  value={strategyPeriodB}
+                  onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
+                  className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
+                >
+                  <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                  <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                  <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                  <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                  <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2.5">
-            {portfolioB.map((item, index) => (
-              <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono font-bold text-[var(--accent-orange)]">종목 {index + 1}:</span>
-                  <select
-                    value={item.assetId}
-                    onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                    className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
-                  >
-                    {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
-                      <option key={asset.id} value={asset.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                        {asset.name} ({asset.id})
-                      </option>
-                    ))}
-                  </select>
-                  <span className="font-mono text-xs font-extrabold text-[var(--accent-orange)] w-10 text-right">{item.weight}%</span>
-                  {portfolioB.length > 1 && (
-                    <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={item.weight}
-                    onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
-                    className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
-                  />
-                  {strategyPeriodB > 0 && (
-                    <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                      <input
-                        type="checkbox"
-                        checked={item.enableDefense !== false}
-                        onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                        className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
-                      />
-                      <span>방어 적용</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-              <span className="text-[var(--text-primary)]">현금</span>
-              <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashB}%</span>
+          {/* Portfolio B Results Card (Bound to Strategy B) */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+              <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
+                커스텀 전략 성과
+              </span>
+              <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
+                +{simulation.portB.totalRate}%
+              </span>
             </div>
 
-            <div className="pt-2 space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                  방어 옵션 (이동평균선)
-                </label>
-                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                </button>
+            <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+              <span className="text-xs font-black text-[var(--accent-orange)]">
+                🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+                <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                  {simulation.portB.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
+                </span>
               </div>
-              {activeTooltip === 'defense_b' && (
-                <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
-                  시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+
+              <div className="pt-1.5 border-t border-[var(--border-color)]">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                  <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
                 </div>
-              )}
-              <select
-                value={strategyPeriodB}
-                onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
-                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
-              >
-                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-              </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                  <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                  <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* ---------------------------------------------------- */}
-      {/* DUAL PERFORMANCE METRICS TABLE (3대 핵심 투자 지표)   */}
-      {/* ---------------------------------------------------- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-        {/* Portfolio A Results Card */}
-        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-            <span className="text-xs font-black text-[var(--accent-mid-green)] flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-mid-green)]" />
-              {userProfileCode ? `${userProfileCode} 추천 전략 성과` : '추천 전략 성과'}
-            </span>
-            <span className="text-lg font-black text-[var(--accent-mid-green)] font-mono">
-              +{simulation.portA.totalRate}%
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-            <span className="text-xs font-black text-[var(--accent-mid-green)]">
-              ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-            </span>
-            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                {simulation.portA.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-              </span>
-            </div>
-
-            <div className="pt-1.5 border-t border-[var(--border-color)]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Portfolio B Results Card */}
-        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-            <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
-              커스텀 전략 성과
-            </span>
-            <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
-              +{simulation.portB.totalRate}%
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-            <span className="text-xs font-black text-[var(--accent-orange)]">
-              🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-            </span>
-            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-              <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                {simulation.portB.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-              </span>
-            </div>
-
-            <div className="pt-1.5 border-t border-[var(--border-color)]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Dynamic Data Synthesis Notice & Disclaimer */}
       <div className="p-4 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-1.5 text-xs">
