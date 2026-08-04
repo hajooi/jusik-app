@@ -681,7 +681,7 @@ function SimulatorContent() {
               {userProfileCode ? (
                 <span><strong className="text-[var(--accent-orange)] font-mono font-black">{userProfileCode}</strong> 맞춤 위험/수익 가이드라인</span>
               ) : (
-                <span>내 포트폴리오 목표 & 손실 감내 설정</span>
+                <span>내 목표 & 손실 감내 설정</span>
               )}
             </h2>
           </div>

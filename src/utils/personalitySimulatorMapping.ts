@@ -1,4 +1,5 @@
 import { PersonalityProfile, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
+import backtestDataRaw from '@/data/backtestData.json';
 
 export interface SelectedAsset {
   assetId: string;
@@ -15,17 +16,31 @@ export interface RecommendationResult {
     LT: { L: number; T: number };
     RI: { R: number; I: number };
   };
-  recommendedTargetCAGR: number; // e.g. 15 (%)
-  recommendedMaxMDD: number; // e.g. 25 (%)
+  recommendedTargetCAGR: number; // Target CAGR (%)
+  recommendedMaxMDD: number;    // Target Max MDD (%)
   portfolioA: SelectedAsset[];
   strategyPeriodA: number;
   portfolioB: SelectedAsset[];
   strategyPeriodB: number;
 }
 
+interface BacktestAssetInfo {
+  id: string;
+  annualCAGR: number;
+  annualVol: number;
+  ma50Return?: number;
+  ma100Return?: number;
+  ma200Return?: number;
+}
+
+const assetMap: Record<string, BacktestAssetInfo> = {};
+((backtestDataRaw as unknown) as { assets: BacktestAssetInfo[] }).assets.forEach((a) => {
+  assetMap[a.id] = a;
+});
+
 /**
  * Unified Quant Dynamic Recommendation Engine (Architectural Overhaul)
- * Calibrates portfolio allocation dynamically based on personality scores.
+ * Calibrates portfolio allocation dynamically based on exact 0~100 personality scores.
  */
 export function calculatePersonalitySimulatorConfig(
   typeCode: string,
@@ -42,84 +57,62 @@ export function calculatePersonalitySimulatorConfig(
   const pctS = scores.GS.S;
   const pctA = scores.AP.A;
   const pctP = scores.AP.P;
+  const pctL = scores.LT.L;
   const pctT = scores.LT.T;
   const pctR = scores.RI.R;
+  const pctI = scores.RI.I;
 
   // =========================================================================
-  // STEP 1: Independent Goal Determination based on Personality Scores
-  // =========================================================================
-  
-  // Target CAGR Range: 8% (Extreme Safety) ~ 25% (Extreme Growth)
-  let recommendedTargetCAGR = 12;
-  if (pctG >= 75) {
-    recommendedTargetCAGR = Math.round(20 + ((pctG - 75) / 25) * 5); // 20% ~ 25%
-  } else if (pctG >= 50) {
-    recommendedTargetCAGR = Math.round(14 + ((pctG - 50) / 25) * 6); // 14% ~ 20%
-  } else {
-    recommendedTargetCAGR = Math.round(8 + (pctG / 50) * 6);        // 8% ~ 14%
-  }
-
-  // Max Tolerable MDD Range: 12% (Extreme Safety) ~ 60% (High Risk/Long-term Tolerance)
-  let recommendedMaxMDD = 20;
-  if (pctS >= 75) {
-    recommendedMaxMDD = Math.round(12 + ((100 - pctS) / 25) * 4);    // 12% ~ 16%
-  } else if (pctS >= 50) {
-    recommendedMaxMDD = Math.round(16 + ((100 - pctS) / 25) * 8);    // 16% ~ 24%
-  } else if (pctG >= 75) {
-    const passiveLongBonus = Math.max(0, (pctP - 50) * 0.3);
-    recommendedMaxMDD = Math.round(45 + ((pctG - 75) / 25) * 10 + passiveLongBonus); // 45% ~ 60%
-  } else {
-    recommendedMaxMDD = Math.round(24 + ((pctG - 50) / 25) * 21);   // 24% ~ 45%
-  }
-
-  // =========================================================================
-  // STEP 2: Determine Strategy Defense Period based on Tactical (T) & Rule (R)
+  // STEP 1: Determine Defense Strategy Period (이동평균선 스위칭 일수)
   // =========================================================================
   let strategyPeriodA = 0;
-  if (pctR >= 55 || pctT >= 55) {
-    if (pctT >= 70 && pctA >= 60) {
-      strategyPeriodA = 100; // Fast 100-day MA
+
+  // Passive & Long-term investors (P >= 50 & L >= 50) -> No defense (0 days, buy & hold)
+  if (pctP >= 50 && pctL >= 50) {
+    strategyPeriodA = 0;
+  } else if (pctA >= 50 || pctT >= 50) {
+    if (pctR >= 50) {
+      // Rule-based: 100-day for fast tactical, 200-day for standard
+      strategyPeriodA = pctT >= 70 ? 100 : 200;
     } else {
-      strategyPeriodA = 200; // Standard 200-day MA
+      // Intuitive: 20-day for fast short-term, 50-day for mid-term
+      strategyPeriodA = pctT >= 70 ? 20 : 50;
     }
   }
 
   const isDefenseActive = strategyPeriodA > 0;
-  // Helper: Standardized Risk Asset Identification (SPY, QQQ, Leverage, Crypto are all equity risk assets)
-  const isRiskAsset = (id: string) => ['SPY', 'QQQ', 'QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC'].includes(id);
+
+  // Risk asset helper: Only high-volatility growth assets get defense switch
+  const isHighRiskAsset = (id: string) =>
+    ['QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC', 'ETH', 'SPY', 'QQQ'].includes(id);
 
   // =========================================================================
-  // STEP 3: Calibrate Portfolio Allocation to fulfill Target Goals (5% step)
+  // STEP 2: Calibrate Dynamic Portfolio Allocation based on exact scores
   // =========================================================================
-  let rawPortfolio: SelectedAsset[] = [];
+  let rawPortfolio: { assetId: string; weight: number }[] = [];
   const round5 = (val: number) => Math.min(100, Math.max(0, Math.round(val / 5) * 5));
 
-  // TIER 1: PASSIVE (P >= 60%) - Simple Market-Proven Combinations
-  if (pctP >= 60) {
+  // TIER 1: PASSIVE (P >= 50%) -> Simple 1~3 Representative ETF Combinations
+  if (pctP >= 50) {
     if (pctG >= 65) {
-      // High Growth Passive: QLD (2x Leverage) + SCHD (Dividend Growth Buffer)
-      // Proven 2-ETF combination: QLD for growth, SCHD for dividend cashflow/drawdown hedge.
-      const qldW = round5(50 + ((pctG - 65) / 35) * 35); // 50% ~ 85%
+      const qldW = round5(45 + ((pctG - 65) / 35) * 35); // 45% ~ 80%
       rawPortfolio = [
         { assetId: 'QLD', weight: qldW },
         { assetId: 'SCHD', weight: 100 - qldW },
       ];
-    } else if (pctG >= 50) {
-      // Moderate Growth Passive: QLD + SPY
-      const qldW = round5(35 + ((pctG - 50) / 15) * 15); // 35% ~ 50%
+    } else if (pctG >= 45) {
+      const qldW = round5(30 + ((pctG - 45) / 20) * 20); // 30% ~ 50%
       rawPortfolio = [
         { assetId: 'QLD', weight: qldW },
         { assetId: 'SPY', weight: 100 - qldW },
       ];
-    } else if (pctS >= 65) {
-      // Safety Dividend Passive: SCHD + SPY
-      const schdW = round5(45 + ((pctS - 65) / 35) * 35);
+    } else if (pctS >= 60) {
+      const schdW = round5(50 + ((pctS - 60) / 40) * 30); // 50% ~ 80%
       rawPortfolio = [
         { assetId: 'SCHD', weight: schdW },
         { assetId: 'SPY', weight: 100 - schdW },
       ];
     } else {
-      // Balanced Passive: SPY 50% + SCHD 30% + QQQ 20%
       rawPortfolio = [
         { assetId: 'SPY', weight: 50 },
         { assetId: 'SCHD', weight: 30 },
@@ -127,34 +120,7 @@ export function calculatePersonalitySimulatorConfig(
       ];
     }
   }
-  // TIER 2: HYBRID (40% <= P < 60%) - Core-Satellite Dynamic Balance
-  else if (pctA < 60) {
-    if (pctG >= 55) {
-      // Growth Hybrid: QLD + SCHD + SPY
-      const qldW = round5(40 + ((pctG - 55) / 45) * 25); // 40% ~ 65%
-      const schdW = 30;
-      rawPortfolio = [
-        { assetId: 'QLD', weight: qldW },
-        { assetId: 'SCHD', weight: schdW },
-        { assetId: 'SPY', weight: 100 - qldW - schdW },
-      ];
-    } else if (pctS >= 60) {
-      const schdW = round5(40 + ((pctS - 60) / 40) * 20); // 40% ~ 60%
-      rawPortfolio = [
-        { assetId: 'SCHD', weight: schdW },
-        { assetId: 'SPY', weight: 30 },
-        { assetId: 'IEF', weight: 100 - schdW - 30 },
-      ];
-    } else {
-      rawPortfolio = [
-        { assetId: 'SPY', weight: 45 },
-        { assetId: 'SCHD', weight: 35 },
-        { assetId: 'QQQ', weight: 20 },
-      ];
-    }
-  }
-
-  // TIER 3: ACTIVE (A >= 60%) - Multi-Asset & Leverage/Crypto Hedging
+  // TIER 2: ACTIVE / HYBRID (A >= 50%) -> Dynamic Multi-Asset / Leverage Allocation
   else {
     if (pctG >= 75) {
       rawPortfolio = [
@@ -172,8 +138,7 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'SCHD', weight: 15 },
         { assetId: 'GLD', weight: 15 },
       ];
-    } else if (pctS >= 65) {
-      // Active Defense All-Weather: SPY (200MA) + QQQ (200MA) + SCHD + GLD + IEF
+    } else if (pctS >= 60) {
       rawPortfolio = [
         { assetId: 'SPY', weight: 30 },
         { assetId: 'QQQ', weight: 20 },
@@ -191,11 +156,53 @@ export function calculatePersonalitySimulatorConfig(
     }
   }
 
-  // GUARANTEED DEFENSE MAPPING
+  // Assign defense ONLY to high-volatility risk assets when defense is active
   const portfolioA: SelectedAsset[] = rawPortfolio.map((item) => ({
     ...item,
-    enableDefense: isRiskAsset(item.assetId) ? isDefenseActive : false,
+    enableDefense: isDefenseActive && isHighRiskAsset(item.assetId),
   }));
+
+  // =========================================================================
+  // STEP 3: Multi-Axis Target Goal & Actual Backtest Metric Synchronization
+  // =========================================================================
+
+  // Calculate actual expected CAGR from backtest data
+  let expectedCAGRSum = 0;
+  let weightedVolSum = 0;
+
+  portfolioA.forEach((item) => {
+    const info = assetMap[item.assetId] || { annualCAGR: 0.1, annualVol: 0.15 };
+    let assetCAGR = info.annualCAGR;
+
+    if (item.enableDefense && isDefenseActive) {
+      if (strategyPeriodA === 200 && info.ma200Return) assetCAGR = info.ma200Return;
+      else if (strategyPeriodA === 100 && info.ma100Return) assetCAGR = info.ma100Return;
+      else if (strategyPeriodA === 50 && info.ma50Return) assetCAGR = info.ma50Return;
+      else if (strategyPeriodA === 20 && info.ma50Return) assetCAGR = info.ma50Return;
+    }
+
+    expectedCAGRSum += (item.weight / 100) * assetCAGR;
+
+    // Defense reduces volatility & max drawdown of risk asset
+    let assetVol = info.annualVol;
+    if (item.enableDefense && isDefenseActive) {
+      assetVol *= 0.55; // 200MA/Defense reduces drawdown by ~45%
+    }
+    weightedVolSum += (item.weight / 100) * assetVol;
+  });
+
+  const actualCAGRPercent = Math.round(expectedCAGRSum * 1000) / 10; // e.g. 15.2 (%)
+  const actualMDDPercent = Math.min(65, Math.max(8, Math.round(weightedVolSum * 2.1 * 1000) / 10)); // e.g. 22.5 (%)
+
+  // Multi-Axis Target Goals calculation calibrated for realistic DCA expectations
+  // Target CAGR follows pctG score (8.0% ~ 16.0% DCA range)
+  const scoreTargetCAGR = Math.round((8 + (pctG / 100) * 8) * 10) / 10;
+
+  // Target Max MDD follows pctS & pctL scores (10.0% ~ 35.0% DCA range)
+  const scoreMaxMDD = Math.round((10 + ((100 - pctS) / 100) * 25) * 10) / 10;
+
+  const recommendedTargetCAGR = scoreTargetCAGR;
+  const recommendedMaxMDD = scoreMaxMDD;
 
   // STEP 4: Default Benchmark Portfolio B
   const portfolioB: SelectedAsset[] = [
