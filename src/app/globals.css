@@ -256,3 +256,57 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-primary);
 }
+
+/* ---------------------------------------------------- */
+/* CUSTOM RANGE SLIDER TRACK & THUMB DARK/LIGHT STYLING  */
+/* ---------------------------------------------------- */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+
+input[type='range']::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  cursor: pointer;
+  margin-top: -5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type='range']::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type='range']::-webkit-slider-thumb:hover,
+input[type='range']::-moz-range-thumb:hover {
+  transform: scale(1.25);
+}
+
