@@ -105,11 +105,11 @@ function SurveyContent() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex items-center justify-end">
           <Link
-            href="/"
+            href="/tools"
             className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
           >
             <ArrowLeft className="w-4 h-4" />
-            홈으로 돌아가기
+            투자도구 목록으로
           </Link>
         </div>
 
@@ -134,11 +134,11 @@ function SurveyContent() {
           처음부터 다시
         </button>
         <Link
-          href="/"
+          href="/tools"
           className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
         >
           <ArrowLeft className="w-4 h-4" />
-          홈으로 돌아가기
+          투자도구 목록으로
         </Link>
       </div>
 

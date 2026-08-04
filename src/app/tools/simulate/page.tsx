@@ -6,6 +6,7 @@ import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
 import { calculatePersonalitySimulatorConfig } from '@/utils/personalitySimulatorMapping';
 import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 import { 
   LineChart, 
   TrendingUp, 
@@ -21,7 +22,8 @@ import {
   AlertCircle,
   Info,
   ShieldAlert,
-  Target
+  Target,
+  ArrowLeft
 } from 'lucide-react';
 
 interface SelectedAsset {
@@ -620,6 +622,17 @@ function SimulatorContent() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 select-none">
       
+      {/* Top Header Navigation */}
+      <div className="flex items-center justify-end">
+        <Link
+          href="/tools"
+          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          투자도구 목록으로
+        </Link>
+      </div>
+
       {/* Header Banner */}
       <div className="space-y-1 py-1">
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] flex items-center gap-2.5">
