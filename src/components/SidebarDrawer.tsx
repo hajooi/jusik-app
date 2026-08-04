@@ -140,7 +140,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
                               isActive
                                 ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-black border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.18)]'
                                 : completed
-                                ? 'border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5 text-[var(--accent-green)] font-bold'
+                                ? 'border border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5 text-[var(--accent-green)] font-bold hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 hover:text-[var(--accent-orange)]'
                                 : 'text-[var(--text-primary)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] font-medium border border-transparent'
                             }`}
                           >

@@ -3,11 +3,37 @@
     "nickname": "주식부엉",
     "pin": "418019",
     "createdAt": "2026-08-04T00:00:00.000Z",
-    "lastActiveAt": "2026-08-04T14:13:16.732Z",
+    "lastActiveAt": "2026-08-04T15:20:00.570Z",
     "completedLessons": [
-      "lv0-1",
-      "lv0-2"
-    ]
+      "lv0-2",
+      "lv0-1"
+    ],
+    "investmentType": null,
+    "typeAnswers": null,
+    "simulatorSettings": {
+      "portfolioB": [
+        {
+          "assetId": "QLD",
+          "weight": 45,
+          "enableDefense": true
+        },
+        {
+          "assetId": "SCHD",
+          "weight": 30,
+          "enableDefense": false
+        },
+        {
+          "assetId": "SPY",
+          "weight": 25,
+          "enableDefense": false
+        }
+      ],
+      "strategyPeriodB": 200,
+      "initialCapital": 0,
+      "depositAmount": 1,
+      "durationYears": 20,
+      "depositFrequency": "monthly"
+    }
   },
   "주식우엉": {
     "nickname": "주식우엉",

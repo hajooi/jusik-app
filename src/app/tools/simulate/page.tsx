@@ -1170,7 +1170,18 @@ function SimulatorContent() {
                         </option>
                       ))}
                     </select>
-                    <span className="font-mono text-xs font-extrabold text-[var(--accent-mid-green)] w-10 text-right">{item.weight}%</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={item.weight}
+                        onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                        className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-mid-green)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-mid-green)] font-mono"
+                      />
+                      <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                    </div>
                     {portfolioA.length > 1 && (
                       <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1358,7 +1369,18 @@ function SimulatorContent() {
                         </option>
                       ))}
                     </select>
-                    <span className="font-mono text-xs font-extrabold text-[var(--accent-orange)] w-10 text-right">{item.weight}%</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={item.weight}
+                        onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                        className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
+                      />
+                      <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                    </div>
                     {portfolioB.length > 1 && (
                       <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
                         <Trash2 className="w-3.5 h-3.5" />

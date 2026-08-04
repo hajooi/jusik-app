@@ -136,7 +136,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* CONCISE SUMMARY CARD */}
           {lesson.summary && lesson.summary.length > 0 && (
-            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]">
+            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
                   <Sparkles className="w-4 h-4 stroke-[2]" />
@@ -184,7 +184,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                         {module.steps.map((step, stepIdx) => (
                           <div
                             key={stepIdx}
-                            className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl space-y-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]"
+                            className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl space-y-2 border border-[var(--border-color)] transition-all duration-300"
                           >
                             <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
                               <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">

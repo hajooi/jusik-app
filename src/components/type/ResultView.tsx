@@ -96,14 +96,14 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
       </div>
 
       {/* Main Personality Card */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_25px_rgba(241,143,1,0.18)]">
+      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-orange)]/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-3 text-center sm:text-left">
           {/* Badges (4 Factors) */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
             {profile.badges.map((b, i) => (
-              <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.15)]">
+              <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
                 {b}
               </span>
             ))}
@@ -243,7 +243,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
 
       {/* Tailored Investment Guidelines Card */}
       {profile.guidelines && (
-        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]">
+        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
             <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
@@ -253,7 +253,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
             {/* Recommendation (나만의 핵심 무기) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>나만의 핵심 무기</span>
@@ -264,7 +264,7 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
             </div>
 
             {/* Warning / Caution (이것만은 경계하세요) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>이것만은 경계하세요</span>

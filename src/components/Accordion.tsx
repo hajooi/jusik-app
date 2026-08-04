@@ -86,8 +86,10 @@ export default function Accordion({ levels }: AccordionProps) {
             key={level.id}
             className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
               isOpen 
-                ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_20px_rgba(241,143,1,0.12)] border-[var(--accent-orange)]' 
-                : 'hover:border-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.15)] shadow-2xs'
+                ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_16px_rgba(241,143,1,0.10)] border-[var(--accent-orange)]' 
+                : level.isComingSoon
+                ? 'shadow-2xs opacity-75'
+                : 'glass-card-hover shadow-2xs'
             }`}
           >
             {/* Header / Accordion Button */}
@@ -104,17 +106,16 @@ export default function Accordion({ levels }: AccordionProps) {
                     ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105 shadow-[0_0_12px_rgba(241,143,1,0.25)]' 
                     : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
                 }`}>
-                  <IconComponent className="w-4.5 h-4.5 stroke-[1.5]" />
+                  <IconComponent className="w-5 h-5 stroke-[1.8]" />
                 </div>
 
                 <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-mono font-bold text-[var(--accent-orange)] uppercase tracking-wider block">
+                    LEVEL {level.levelNumber}
+                  </span>
                   <div className="flex items-center gap-2">
-                    <h3 className={`text-base sm:text-[17px] font-semibold tracking-[-0.02em] leading-snug truncate transition-colors ${
-                      level.isComingSoon 
-                        ? 'text-[var(--text-secondary)]' 
-                        : isOpen 
-                        ? 'text-[var(--accent-orange)] font-bold' 
-                        : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
+                    <h3 className={`text-base sm:text-lg font-extrabold tracking-[-0.02em] transition-colors truncate ${
+                      isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
                     }`}>
                       {level.title}
                     </h3>
@@ -163,7 +164,7 @@ export default function Accordion({ levels }: AccordionProps) {
                       <Link
                         key={lesson.id}
                         href={`/lesson/${lesson.id}`}
-                        className={`group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card transition-all duration-300 shadow-sm hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_16px_rgba(241,143,1,0.18)] active:scale-[0.98] ${
+                        className={`group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 shadow-sm border border-[var(--border-color)] active:scale-[0.98] ${
                           completed ? 'border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5' : ''
                         }`}
                       >

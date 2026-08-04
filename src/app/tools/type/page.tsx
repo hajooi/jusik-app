@@ -143,7 +143,7 @@ function SurveyContent() {
       <div className="flex items-center justify-between">
         <button
           onClick={handleRestart}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.2)] glass-card px-3 py-1.5 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] glass-card glass-card-hover px-3 py-1.5 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           처음부터 다시
@@ -216,7 +216,7 @@ function SurveyContent() {
           return (
             <div
               key={q.id}
-              className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative overflow-hidden transition-all duration-200 hover:border-[var(--accent-orange)]/30 hover:shadow-[0_4px_20px_rgba(241,143,1,0.08)]"
+              className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative overflow-hidden transition-all duration-200"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono">
@@ -246,7 +246,7 @@ function SurveyContent() {
                         className={`py-3 rounded-2xl font-black text-sm transition-all duration-200 active:scale-95 flex items-center justify-center border ${
                           isSelected
                             ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.4)] scale-[1.03]'
-                            : 'glass-card text-[var(--text-primary)] border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.25)] hover:scale-[1.02]'
+                            : 'glass-card glass-card-hover text-[var(--text-primary)] border border-[var(--border-color)] hover:text-[var(--accent-orange)] hover:scale-[1.02]'
                         }`}
                       >
                         {score}
