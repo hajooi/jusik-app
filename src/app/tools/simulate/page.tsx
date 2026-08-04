@@ -1100,7 +1100,7 @@ function SimulatorContent() {
                     >
                       {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
                         <option key={asset.id} value={asset.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                          {asset.name} ({asset.id})
+                          {asset.name}
                         </option>
                       ))}
                     </select>
@@ -1288,7 +1288,7 @@ function SimulatorContent() {
                     >
                       {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
                         <option key={asset.id} value={asset.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                          {asset.name} ({asset.id})
+                          {asset.name}
                         </option>
                       ))}
                     </select>

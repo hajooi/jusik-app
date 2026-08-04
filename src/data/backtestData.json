@@ -16,7 +16,7 @@
     },
     {
       "id": "SSO",
-      "name": "S&P 500 (2배 레버리지)",
+      "name": "S&P 500 2배 레버리지",
       "category": "stock",
       "leverage": 2,
       "annualCAGR": 0.165,
@@ -29,7 +29,7 @@
     },
     {
       "id": "UPRO",
-      "name": "S&P 500 (3배 레버리지)",
+      "name": "S&P 500 3배 레버리지",
       "category": "stock",
       "leverage": 3,
       "annualCAGR": 0.210,
@@ -55,7 +55,7 @@
     },
     {
       "id": "QLD",
-      "name": "나스닥 100 (2배 레버리지)",
+      "name": "나스닥 100 2배 레버리지",
       "category": "stock",
       "leverage": 2,
       "annualCAGR": 0.220,
@@ -68,7 +68,7 @@
     },
     {
       "id": "TQQQ",
-      "name": "나스닥 100 (3배 레버리지)",
+      "name": "나스닥 100 3배 레버리지",
       "category": "stock",
       "leverage": 3,
       "annualCAGR": 0.280,
@@ -94,7 +94,7 @@
     },
     {
       "id": "USD",
-      "name": "필라델피아 반도체 (2배 레버리지)",
+      "name": "필라델피아 반도체 2배 레버리지",
       "category": "stock",
       "leverage": 2,
       "annualCAGR": 0.235,
@@ -107,7 +107,7 @@
     },
     {
       "id": "SOXL",
-      "name": "필라델피아 반도체 (3배 레버리지)",
+      "name": "필라델피아 반도체 3배 레버리지",
       "category": "stock",
       "leverage": 3,
       "annualCAGR": 0.295,
@@ -132,8 +132,21 @@
       "description": "배당 성장 우량주 모음 (고배당 대표 ETF)"
     },
     {
+      "id": "KOSPI200",
+      "name": "KOSPI 200",
+      "category": "stock",
+      "leverage": 1,
+      "annualCAGR": 0.111,
+      "annualVol": 0.246,
+      "ma50Return": 0.115,
+      "ma100Return": 0.118,
+      "ma150Return": 0.122,
+      "ma200Return": 0.125,
+      "description": "한국 대표 200개 우량 기업 (분배금/배당 재투자 포함)"
+    },
+    {
       "id": "TLT",
-      "name": "미국 장기채 (20년+)",
+      "name": "미국 장기채",
       "category": "bond",
       "leverage": 1,
       "annualCAGR": 0.045,
@@ -146,7 +159,7 @@
     },
     {
       "id": "IEF",
-      "name": "미국 중기채 (7-10년)",
+      "name": "미국 중기채",
       "category": "bond",
       "leverage": 1,
       "annualCAGR": 0.038,
@@ -159,7 +172,7 @@
     },
     {
       "id": "SHY",
-      "name": "미국 단기채 (1-3년)",
+      "name": "미국 단기채",
       "category": "bond",
       "leverage": 1,
       "annualCAGR": 0.022,
@@ -172,7 +185,7 @@
     },
     {
       "id": "GLD",
-      "name": "금 (Gold)",
+      "name": "금",
       "category": "gold",
       "leverage": 1,
       "annualCAGR": 0.065,
@@ -185,7 +198,7 @@
     },
     {
       "id": "BTC",
-      "name": "비트코인 (Bitcoin)",
+      "name": "비트코인",
       "category": "crypto",
       "leverage": 1,
       "annualCAGR": 0.450,
@@ -198,7 +211,7 @@
     },
     {
       "id": "ETH",
-      "name": "이더리움 (Ethereum)",
+      "name": "이더리움",
       "category": "crypto",
       "leverage": 1,
       "annualCAGR": 0.520,
