@@ -55,7 +55,9 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
           <span>{user ? '내 계정 정보' : '내 기록 보관'}</span>
         </div>
         <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
-          로그인하여 학습 및 투자 기록을 안전하게 보관하세요.
+          {user 
+            ? '학습 및 투자 기록이 안전하게 보관됩니다.' 
+            : '로그인하여 학습 및 투자 기록을 안전하게 보관하세요.'}
         </p>
       </div>
 
@@ -71,7 +73,7 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
 
           <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span>학습 및 투자 기록이 안전하게 보관됩니다.</span>
+            <span>서버 동기화 상태 유지 중</span>
           </div>
 
           <button
@@ -84,6 +86,10 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
             <LogOut className="w-3.5 h-3.5" />
             <span>로그아웃</span>
           </button>
+
+          <p className="text-[10px] text-[var(--text-secondary)] opacity-60 text-center font-normal pt-0.5">
+            * 1년 이상 미접속 시 기록은 자동 파기됩니다.
+          </p>
         </div>
       ) : (
         /* Form */
