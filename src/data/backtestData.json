@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-31",
+  "lastUpdated": "2026-08-04",
   "assets": [
     {
       "id": "SPY",
@@ -21,10 +21,10 @@
       "leverage": 2,
       "annualCAGR": 0.165,
       "annualVol": 0.31,
-      "ma50Return": 0.180,
+      "ma50Return": 0.18,
       "ma100Return": 0.195,
       "ma150Return": 0.205,
-      "ma200Return": 0.220,
+      "ma200Return": 0.22,
       "description": "S&P 500 하루 변동폭의 2배 추종 (SSO)"
     },
     {
@@ -32,7 +32,7 @@
       "name": "S&P 500 3배 레버리지",
       "category": "stock",
       "leverage": 3,
-      "annualCAGR": 0.210,
+      "annualCAGR": 0.21,
       "annualVol": 0.46,
       "ma50Return": 0.235,
       "ma100Return": 0.255,
@@ -58,10 +58,10 @@
       "name": "나스닥 100 2배 레버리지",
       "category": "stock",
       "leverage": 2,
-      "annualCAGR": 0.220,
+      "annualCAGR": 0.22,
       "annualVol": 0.38,
       "ma50Return": 0.245,
-      "ma100Return": 0.260,
+      "ma100Return": 0.26,
       "ma150Return": 0.275,
       "ma200Return": 0.295,
       "description": "나스닥 하루 변동폭의 2배 추종"
@@ -71,12 +71,12 @@
       "name": "나스닥 100 3배 레버리지",
       "category": "stock",
       "leverage": 3,
-      "annualCAGR": 0.280,
+      "annualCAGR": 0.28,
       "annualVol": 0.55,
-      "ma50Return": 0.310,
-      "ma100Return": 0.340,
+      "ma50Return": 0.31,
+      "ma100Return": 0.34,
       "ma150Return": 0.365,
-      "ma200Return": 0.410,
+      "ma200Return": 0.41,
       "description": "나스닥 하루 변동폭의 3배 공격형 추종"
     },
     {
@@ -99,9 +99,9 @@
       "leverage": 2,
       "annualCAGR": 0.235,
       "annualVol": 0.45,
-      "ma50Return": 0.260,
+      "ma50Return": 0.26,
       "ma100Return": 0.285,
-      "ma150Return": 0.310,
+      "ma150Return": 0.31,
       "ma200Return": 0.345,
       "description": "반도체 지수 하루 변동폭의 2배 추종 (USD)"
     },
@@ -112,10 +112,10 @@
       "leverage": 3,
       "annualCAGR": 0.295,
       "annualVol": 0.65,
-      "ma50Return": 0.330,
-      "ma100Return": 0.370,
-      "ma150Return": 0.410,
-      "ma200Return": 0.460,
+      "ma50Return": 0.33,
+      "ma100Return": 0.37,
+      "ma150Return": 0.41,
+      "ma200Return": 0.46,
       "description": "반도체 지수 하루 변동폭의 3배 극공격형"
     },
     {
@@ -125,9 +125,9 @@
       "leverage": 1,
       "annualCAGR": 0.125,
       "annualVol": 0.15,
-      "ma50Return": 0.130,
+      "ma50Return": 0.13,
       "ma100Return": 0.135,
-      "ma150Return": 0.140,
+      "ma150Return": 0.14,
       "ma200Return": 0.145,
       "description": "배당 성장 우량주 모음 (고배당 대표 ETF)"
     },
@@ -153,7 +153,7 @@
       "annualVol": 0.13,
       "ma50Return": 0.046,
       "ma100Return": 0.048,
-      "ma150Return": 0.050,
+      "ma150Return": 0.05,
       "ma200Return": 0.052,
       "description": "금리 하락기에 강한 20년 이상 장기 국채"
     },
@@ -165,7 +165,7 @@
       "annualCAGR": 0.038,
       "annualVol": 0.07,
       "ma50Return": 0.039,
-      "ma100Return": 0.040,
+      "ma100Return": 0.04,
       "ma150Return": 0.041,
       "ma200Return": 0.042,
       "description": "변동성이 적고 안정한 중기 국채"
@@ -201,12 +201,12 @@
       "name": "비트코인",
       "category": "crypto",
       "leverage": 1,
-      "annualCAGR": 0.450,
+      "annualCAGR": 0.45,
       "annualVol": 0.75,
-      "ma50Return": 0.500,
-      "ma100Return": 0.550,
-      "ma150Return": 0.600,
-      "ma200Return": 0.650,
+      "ma50Return": 0.5,
+      "ma100Return": 0.55,
+      "ma150Return": 0.6,
+      "ma200Return": 0.65,
       "description": "대표 디지털 암호화폐"
     },
     {
@@ -214,12 +214,12 @@
       "name": "이더리움",
       "category": "crypto",
       "leverage": 1,
-      "annualCAGR": 0.520,
+      "annualCAGR": 0.52,
       "annualVol": 0.85,
-      "ma50Return": 0.580,
-      "ma100Return": 0.640,
-      "ma150Return": 0.700,
-      "ma200Return": 0.760,
+      "ma50Return": 0.58,
+      "ma100Return": 0.64,
+      "ma150Return": 0.7,
+      "ma200Return": 0.76,
       "description": "스마트 컨트랙트 대표 암호화폐"
     },
     {
