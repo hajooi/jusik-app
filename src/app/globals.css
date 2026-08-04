@@ -99,6 +99,8 @@
 /* Custom Smooth Transitions & Animated Dynamic Mesh Gradients */
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 @keyframes gradient-flow {
