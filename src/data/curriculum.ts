@@ -717,7 +717,7 @@ export const CURRICULUM_DATA: Level[] = [
     levelId: "lv2",
     levelNumber: 2,
     title: "자산 배분",
-    description: "투자 성향 검사부터 올웨더 포트폴리오, 위험 관리 분산 기법까지",
+    description: "투자 성향 검사부터 올웨더 자산배분, 위험 관리 분산 기법까지",
     badgeText: "자산 배분",
     iconName: "PieChart",
     isComingSoon: true,

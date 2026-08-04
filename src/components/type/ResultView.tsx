@@ -281,18 +281,18 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
       <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
         <div className="flex items-center justify-between gap-2">
           <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
-            맞춤 수익률 시뮬레이션
+            맞춤 전략 제공
           </span>
           <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
-            20년 과거 데이터 검증
+            {profile.name} 유형 추천
           </span>
         </div>
         <div className="space-y-1">
           <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
-            내 성향({profile.name})에 딱 맞는 맞춤 포트폴리오로 20년 수익률을 시뮬레이션해 보세요! 🚀
+            내 성향에 딱 맞는 맞춤 전략을 확인해보세요! 🚀
           </h3>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-            {profile.name} 유형의 목표 수익률과 감내할 수 있는 손실폭(MDD)에 맞춰 추천 전략이 자동으로 첫 화면에 배치됩니다.
+            {profile.name} 유형에 맞춰 추천 전략이 제공됩니다.
           </p>
         </div>
         <div className="pt-2">

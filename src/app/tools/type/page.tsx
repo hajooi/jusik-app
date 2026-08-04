@@ -78,6 +78,7 @@ function SurveyContent() {
       localStorage.setItem('jusik_type_completed', 'true');
       const resultData = calculateSurveyResult(answers);
       updateInvestmentType(resultData.typeCode, answers);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -97,6 +98,7 @@ function SurveyContent() {
     localStorage.removeItem('jusik_type_answers');
     localStorage.removeItem('jusik_type_completed');
     localStorage.removeItem('jusik_type_current_page');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (isCompleted) {
@@ -123,7 +125,7 @@ function SurveyContent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
       {/* Top Header Navigation */}
       <div className="flex items-center justify-between">
         <button

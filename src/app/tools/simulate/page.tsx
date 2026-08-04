@@ -510,7 +510,7 @@ function SimulatorContent() {
     if (isRiskTooHigh) {
       return {
         type: 'warning',
-        title: '⚠️ 감내 가능한 범위를 넘어서는 위험 포트폴리오입니다',
+        title: '⚠️ 감내 가능한 범위를 넘어서는 위험한 전략입니다',
         desc: `과거 최대 손실폭(-${actualMDD}%)이 설정하신 감내 기준(-${maxTolerableMDD}%)을 초과합니다. 200일선 방어 옵션을 켜거나 안전 자산(SCHD, 현금) 비중을 높여 위험을 낮춰보세요.`,
       };
     }
@@ -524,7 +524,7 @@ function SimulatorContent() {
     return {
       type: 'success',
       title: '🎉 내 성향과 목표에 알맞은 균형 잡힌 구성입니다',
-      desc: `과거 최대 손실폭(-${actualMDD}%)이 감내 기준 이내이며, 연수익률(+${actualCAGR}%)도 목표 수치에 잘 부합하는 안정적인 커스텀 포트폴리오입니다.`,
+      desc: `과거 최대 손실폭(-${actualMDD}%)이 감내 기준 이내이며, 연수익률(+${actualCAGR}%)도 목표 수치에 잘 부합하는 안정적인 커스텀 전략입니다.`,
     };
   }, [simulation.portB.mdd, simulation.portB.cagr, maxTolerableMDD, targetCAGR]);
 
@@ -625,7 +625,7 @@ function SimulatorContent() {
   const activeHoverPoint = hoverIndex !== null ? simulation.points[hoverIndex] : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 select-none">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 select-none">
       
       {/* Top Header Navigation */}
       <div className="flex items-center justify-end">
@@ -640,12 +640,11 @@ function SimulatorContent() {
 
       {/* Header Banner */}
       <div className="space-y-1 py-1">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] flex items-center gap-2.5">
-          <LineChart className="w-7 h-7 text-[var(--accent-orange)]" />
-          투자 수익률 시뮬레이터
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
+          투자 전략 시뮬레이터
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-          내 투자 성향 및 목표에 적합한 전략을 검증하고, 나만의 포트폴리오 성과를 20년 과거 데이터로 비교해보세요.
+          내 투자 성향 및 목표에 적합한 전략을 검증하고, 나만의 성과를 20년 과거 데이터로 비교해보세요.
         </p>
       </div>
 

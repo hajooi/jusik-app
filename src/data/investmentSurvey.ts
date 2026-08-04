@@ -89,8 +89,8 @@ export const QUESTIONS: Question[] = [
   {
     id: 10,
     axis: 'GS',
-    question: '포트폴리오를 구성할 때 안전자산에 대한 생각은 어떤가요?',
-    leftLabel: '원금을 지키기 위해 포트폴리오에 반드시 넣어야 한다',
+    question: '자산을 구성할 때 안전자산에 대한 생각은 어떤가요?',
+    leftLabel: '원금을 지키기 위해 자산 구성에 반드시 넣어야 한다',
     rightLabel: '전체 수익률을 갉아먹으므로 가급적 뺀다',
   },
 
@@ -277,7 +277,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 36,
     axis: 'RI',
-    question: '포트폴리오의 종목별 비중은 어떤 기준으로 정하나요?',
+    question: '투자 종목별 비중은 어떤 기준으로 정하나요?',
     leftLabel: '그때그때 더 자신 있는 종목에 비중을 더 싣는다',
     rightLabel: '자산 배분 공식에 맞춰 정확히 나눈다',
   },

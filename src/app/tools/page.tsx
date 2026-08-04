@@ -5,14 +5,14 @@ export default function ToolsPage() {
   const tools = [
     {
       title: '투자 성향 진단',
-      description: '손실이 무서운 사람부터 적극적인 사람까지! 나의 진짜 투자 스타일과 위험 관리법 진단',
+      description: '손실이 걱정되는 사람부터 큰 기회를 찾는 사람까지! 나에게 딱 맞는 투자 스타일 찾기',
       href: '/tools/type',
       icon: Sparkles,
       tag: '40문항 진단',
       isComingSoon: false,
     },
     {
-      title: '투자 수익률 시뮬레이터',
+      title: '투자 전략 시뮬레이터',
       description: '이렇게 투자하면 미래에 얼마가 모일까? 내가 만든 조합의 성적 미리보기',
       href: '/tools/simulate',
       icon: LineChart,
