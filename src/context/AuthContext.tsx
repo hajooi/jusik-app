@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 export interface UserAccount {
   nickname: string;
@@ -47,6 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [typeAnswers, setTypeAnswers] = useState<Record<number, number> | null>(null);
   const [simulatorSettings, setSimulatorSettings] = useState<any | null>(null);
   const [isAuthPopoverOpen, setIsAuthPopoverOpen] = useState<boolean>(false);
+
+  // 디바운스 타이머 ref (슬라이더 폭주 연타 시 Vercel WAF 403 차단 완벽 예방)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 로드 시 로컬 및 서버 상태 복원
   useEffect(() => {
@@ -186,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // 시뮬레이터 커스텀 포트폴리오 세팅 서버 동기화
+  // 시뮬레이터 커스텀 포트폴리오 세팅 서버 동기화 (500ms 디바운스 적용으로 Vercel WAF 방화벽 차단 완벽 예방)
   const updateSimulatorSettings = (settings: any) => {
     setSimulatorSettings(settings);
     localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(settings));
@@ -202,21 +205,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
 
-      if (userPin) {
-        fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'syncData',
-            nickname: user.nickname,
-            pin: userPin,
-            completedLessons,
-            investmentType,
-            typeAnswers,
-            simulatorSettings: settings
-          })
-        }).catch((e) => console.error('Server updateSimulatorSettings error:', e));
+      // 이전 디바운스 예약 취소
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
+
+      // 500ms 조용한 디바운스 후 1회 전송
+      debounceTimerRef.current = setTimeout(() => {
+        if (userPin) {
+          fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'syncData',
+              nickname: user.nickname,
+              pin: userPin,
+              completedLessons,
+              investmentType,
+              typeAnswers,
+              simulatorSettings: settings
+            })
+          }).catch((e) => console.error('Server updateSimulatorSettings error:', e));
+        }
+      }, 500);
     }
   };
 
