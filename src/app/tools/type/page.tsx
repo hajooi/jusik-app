@@ -29,25 +29,37 @@ function SurveyContent() {
       const savedCompleted = localStorage.getItem('jusik_type_completed');
       const savedPage = localStorage.getItem('jusik_type_current_page');
 
-      if (user && user.typeAnswers) {
-        setAnswers(user.typeAnswers);
-        setIsCompleted(true);
-      } else if (savedAnswers) {
-        const parsedAnswers = JSON.parse(savedAnswers);
-        setAnswers(parsedAnswers);
-
-        if (savedCompleted === 'true') {
+      if (user) {
+        if (user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+          setAnswers(user.typeAnswers);
           setIsCompleted(true);
-        } else if (savedPage !== null) {
-          const pageNum = parseInt(savedPage, 10);
-          if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
-            setCurrentPage(pageNum);
+        } else {
+          setAnswers({});
+          setIsCompleted(false);
+          setCurrentPage(0);
+        }
+      } else {
+        if (savedAnswers) {
+          const parsedAnswers = JSON.parse(savedAnswers);
+          setAnswers(parsedAnswers);
+
+          if (savedCompleted === 'true') {
+            setIsCompleted(true);
+          } else if (savedPage !== null) {
+            const pageNum = parseInt(savedPage, 10);
+            if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
+              setCurrentPage(pageNum);
+            }
+          } else {
+            const firstUnansweredIndex = QUESTIONS.findIndex((q) => parsedAnswers[q.id] === undefined);
+            if (firstUnansweredIndex !== -1) {
+              setCurrentPage(Math.floor(firstUnansweredIndex / PAGE_SIZE));
+            }
           }
         } else {
-          const firstUnansweredIndex = QUESTIONS.findIndex((q) => parsedAnswers[q.id] === undefined);
-          if (firstUnansweredIndex !== -1) {
-            setCurrentPage(Math.floor(firstUnansweredIndex / PAGE_SIZE));
-          }
+          setAnswers({});
+          setIsCompleted(false);
+          setCurrentPage(0);
         }
       }
     } catch (e) {

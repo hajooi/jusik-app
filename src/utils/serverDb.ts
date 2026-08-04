@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export interface ServerUserRecord {
   nickname: string;
   pin: string;
@@ -24,18 +27,48 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
   }
 };
 
+const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
+
+function loadDbFromFile(): Record<string, ServerUserRecord> {
+  try {
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const data = fs.readFileSync(DB_FILE_PATH, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (parsed && typeof parsed === 'object') {
+        return { ...DEFAULT_MASTER_USERS, ...parsed };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load server db from file:', e);
+  }
+  return { ...DEFAULT_MASTER_USERS };
+}
+
+function saveDbToFile(db: Record<string, ServerUserRecord>) {
+  try {
+    const dir = path.dirname(DB_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(db, null, 2), 'utf-8');
+  } catch (e) {
+    // Vercel serverless read-only filesystem fallback
+  }
+}
+
 /**
- * 서버 DB 읽기 (100% 파일 시스템 비의존 글로벌 서버 메모리 전용)
- * Vercel Serverless EROFS 에러 원천 차단
+ * 서버 DB 읽기 (글로벌 메모리 + 파일 시스템 동기화)
+ * 1년 미접속 계정 자동 파기 검증 포함
  */
 export function getServerDb(): Record<string, ServerUserRecord> {
   if (!globalThis.__jusik_server_db__) {
-    globalThis.__jusik_server_db__ = { ...DEFAULT_MASTER_USERS };
+    globalThis.__jusik_server_db__ = loadDbFromFile();
   }
 
   const db = globalThis.__jusik_server_db__;
+  let hasPurged = false;
 
-  // 1년 경과 미접속 계정 자동 파기
+  // 1년 경과 미접속 계정 자동 파기 (1년 파기 정책 유지)
   const now = Date.now();
   const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -45,16 +78,22 @@ export function getServerDb(): Record<string, ServerUserRecord> {
       const lastActive = new Date(user.lastActiveAt).getTime();
       if (now - lastActive > ONE_YEAR_MS) {
         delete db[nicknameKey];
+        hasPurged = true;
       }
     }
   });
+
+  if (hasPurged) {
+    saveDbToFile(db);
+  }
 
   return db;
 }
 
 /**
- * 서버 DB 저장 (파일 쓰기 연산 0건 - 메모리 동기화 전용)
+ * 서버 DB 저장 (글로벌 메모리 + 로컬 파일 동시 저장)
  */
 export function saveServerDb(db: Record<string, ServerUserRecord>) {
   globalThis.__jusik_server_db__ = db;
+  saveDbToFile(db);
 }

@@ -132,7 +132,18 @@ function SimulatorContent() {
       }
 
       // Restore saved custom strategy settings from user server account or localStorage
-      const settingsSource = user?.simulatorSettings || (localStorage.getItem('jusik_custom_simulator_settings') ? JSON.parse(localStorage.getItem('jusik_custom_simulator_settings')!) : null);
+      let settingsSource = null;
+      if (user) {
+        settingsSource = user.simulatorSettings || null;
+      } else if (typeof window !== 'undefined') {
+        const localSettings = localStorage.getItem('jusik_custom_simulator_settings');
+        if (localSettings) {
+          try {
+            settingsSource = JSON.parse(localSettings);
+          } catch (e) {}
+        }
+      }
+
       if (settingsSource) {
         if (settingsSource.portfolioB) setPortfolioB(settingsSource.portfolioB);
         if (settingsSource.strategyPeriodB !== undefined) setStrategyPeriodB(settingsSource.strategyPeriodB);
@@ -140,6 +151,17 @@ function SimulatorContent() {
         if (settingsSource.depositAmount !== undefined) setDepositAmount(settingsSource.depositAmount);
         if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
+      } else {
+        // Reset to default initial state for new user / unconfigured user
+        setPortfolioB([
+          { assetId: 'SPY', weight: 60, enableDefense: false },
+          { assetId: 'QQQ', weight: 40, enableDefense: false },
+        ]);
+        setStrategyPeriodB(0);
+        setInitialCapital(100);
+        setDepositAmount(50);
+        setDurationYears(20);
+        setDepositFrequency('monthly');
       }
 
       initialRestoredRef.current = true;
