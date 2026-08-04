@@ -76,9 +76,12 @@ function SimulatorContent() {
     { assetId: 'QQQ', weight: 40, enableDefense: false },
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
+  const initialRestoredRef = useRef(false);
 
-  // Load URL query params, LocalStorage survey results, or saved custom simulator settings on mount
+  // Load URL query params, LocalStorage survey results, or saved custom simulator settings on mount ONCE
   useEffect(() => {
+    if (initialRestoredRef.current) return;
+
     try {
       const typeParam = searchParams.get('type')?.toUpperCase();
       const gParam = searchParams.get('g');
@@ -138,6 +141,8 @@ function SimulatorContent() {
         if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
       }
+
+      initialRestoredRef.current = true;
     } catch (e) {
       console.error(e);
     }
