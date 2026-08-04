@@ -20,6 +20,7 @@ interface AuthContextType {
   typeAnswers: Record<number, number> | null;
   simulatorSettings: any | null;
   isAuthPopoverOpen: boolean;
+  isAuthPopoverClosing: boolean;
   openAuthPopover: () => void;
   closeAuthPopover: () => void;
   toggleAuthPopover: () => void;
@@ -47,8 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [typeAnswers, setTypeAnswers] = useState<Record<number, number> | null>(null);
   const [simulatorSettings, setSimulatorSettings] = useState<any | null>(null);
   const [isAuthPopoverOpen, setIsAuthPopoverOpen] = useState<boolean>(false);
+  const [isAuthPopoverClosing, setIsAuthPopoverClosing] = useState<boolean>(false);
 
-  // 디바운스 타이머 ref (슬라이더 폭주 연타 시 Vercel WAF 403 차단 완벽 예방)
+  // 디바운스 타이머 ref
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 로드 시 로컬 및 서버 상태 복원
@@ -113,9 +115,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const openAuthPopover = () => setIsAuthPopoverOpen(true);
-  const closeAuthPopover = () => setIsAuthPopoverOpen(false);
-  const toggleAuthPopover = () => setIsAuthPopoverOpen((prev) => !prev);
+  const openAuthPopover = () => {
+    setIsAuthPopoverClosing(false);
+    setIsAuthPopoverOpen(true);
+  };
+
+  const closeAuthPopover = () => {
+    if (isAuthPopoverClosing || !isAuthPopoverOpen) return;
+    setIsAuthPopoverClosing(true);
+    setTimeout(() => {
+      setIsAuthPopoverOpen(false);
+      setIsAuthPopoverClosing(false);
+    }, 180);
+  };
+
+  const toggleAuthPopover = () => {
+    if (isAuthPopoverOpen) {
+      closeAuthPopover();
+    } else {
+      openAuthPopover();
+    }
+  };
 
   // 수강 완료 내역 서버 실시간 동기화
   const updateCompletedLessonsState = (newCompletedList: string[]) => {
@@ -189,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // 시뮬레이터 커스텀 포트폴리오 세팅 서버 동기화 (500ms 디바운스 적용으로 Vercel WAF 방화벽 차단 완벽 예방)
+  // 시뮬레이터 커스텀 포트폴리오 세팅 서버 동기화 (500ms 디바운스)
   const updateSimulatorSettings = (settings: any) => {
     setSimulatorSettings(settings);
     localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(settings));
@@ -205,12 +225,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
 
-      // 이전 디바운스 예약 취소
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
 
-      // 500ms 조용한 디바운스 후 1회 전송
       debounceTimerRef.current = setTimeout(() => {
         if (userPin) {
           fetch('/api/sync', {
@@ -322,6 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         typeAnswers,
         simulatorSettings,
         isAuthPopoverOpen,
+        isAuthPopoverClosing,
         openAuthPopover,
         closeAuthPopover,
         toggleAuthPopover,

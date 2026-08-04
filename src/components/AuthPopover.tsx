@@ -9,7 +9,7 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose }: AuthPopoverProps) {
-  const { login, user, logout } = useAuth();
+  const { login, user, logout, isAuthPopoverClosing } = useAuth();
   
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
@@ -42,7 +42,11 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
   };
 
   return (
-    <div className="w-[300px] sm:w-[330px] p-5 rounded-2xl glass-card shadow-2xl space-y-4 border border-[var(--border-color)] animate-popover-expand text-left">
+    <div 
+      className={`w-[300px] sm:w-[330px] p-5 rounded-2xl glass-card shadow-2xl space-y-4 border border-[var(--border-color)] text-left ${
+        isAuthPopoverClosing ? 'animate-popover-shrink' : 'animate-popover-expand'
+      }`}
+    >
       
       {/* Header Copy */}
       <div className="space-y-1.5">
@@ -51,7 +55,7 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
           <span>{user ? '내 계정 정보' : '내 기록 보관'}</span>
         </div>
         <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
-          닉네임과 핀번호 6자리로 학습 기록과 내 성향 및 투자일지를 보관하세요.
+          로그인하여 학습 및 투자 기록을 안전하게 보관하세요.
         </p>
       </div>
 
@@ -67,7 +71,7 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
 
           <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span>학습 기록과 성향이 서버에 자동 보관됩니다.</span>
+            <span>학습 및 투자 기록이 안전하게 보관됩니다.</span>
           </div>
 
           <button
