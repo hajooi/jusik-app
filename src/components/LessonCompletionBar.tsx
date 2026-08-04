@@ -36,12 +36,15 @@ export default function LessonCompletionBar({ lessonId }: LessonCompletionBarPro
         <p className="text-[11px] sm:text-xs font-medium leading-relaxed">
           {completed ? (
             <span className="text-[var(--accent-green)] font-bold inline-flex items-center gap-1 flex-wrap">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 animate-bounce" />
-              <span>🎉 완강 완료! 학습 기록이 {user?.nickname} 계정에 보관되었습니다.</span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <Sparkles className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 animate-bounce" />
+                <span>🎉</span>
+              </span>
+              <span>수강 완료! 학습 기록이 {user?.nickname} 계정에 보관되었습니다.</span>
             </span>
           ) : user ? (
             <span className="text-[var(--text-secondary)]">
-              영상 완강 시 수강 완료 처리 및 자동 보관됩니다.
+              영상을 끝까지 보시면 학습 기록이 자동 저장됩니다.
             </span>
           ) : (
             <span className="text-[var(--text-secondary)]">

@@ -1,11 +1,13 @@
 # Project Name: jusik.app (Minimal Stock Learning Platform)
 
 ## 0. Strict Agent Workflow & GitHub Directives (개발 원칙 및 작업 지침)
+- **CRITICAL: Explicit User Approval Before Code Edit (독단적 코드 수정 엄격 금지 & 사전 승인 필수)**:
+  - UI/UX 변경, 문구 수정, 레이아웃 변경, 기능 추가 등 **모든 코드 수정 요청에 대해 절대 즉시 코드를 변경하지 마십시오.**
+  - 먼저 **수정 계획(어느 파일, 어떤 문구/구조를 어떻게 변경할 것인지)** 또는 **옵션 시안**을 사용자에게 제시하고, **사용자의 명시적인 승인/확인(컨펌)을 받은 후에만 코드를 수정**해야 합니다.
+  - 이를 위반하고 사전 승인 없이 독단적으로 코드를 수정하는 행위는 엄격히 금지됩니다.
 - **No Automatic GitHub Pushes (깃허브 자동 푸시 엄격 금지)**:
   - 사용자가 "깃허브 업데이트해", "깃허브에 올려줘" 등 **명시적으로 깃허브 푸시를 명령할 때만** `git push`를 실행합니다.
   - 임의로 작업 완료 시마다 깃허브에 자동 커밋/푸시하여 Vercel 재배포나 방화벽 차단을 일으키는 행위를 100% 엄격 금지합니다.
-- **Plan Confirmation Before Code Modification (사전 계획 컨펌 원칙)**:
-  - UI/UX 변경, 문구 수정, 구조 변경 시 **독단적으로 먼저 코드를 수정하지 말고**, 작업 계획이나 옵션 시안을 사용자에게 먼저 제시하고 **명시적 승인(컨펌)**을 받은 뒤에만 코드를 반영합니다.
 
 ## 1. Project Goal
 도메인 `jusik.app`에 최적화된 모바일 퍼스트 에듀테크/핀테크 플랫폼 구축.
