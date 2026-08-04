@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Circle, Sparkles, UserCheck } from 'lucide-react';
+import { CheckCircle2, Circle, UserCheck } from 'lucide-react';
 import { triggerConfetti } from '@/utils/confetti';
 
 interface LessonCompletionBarProps {
@@ -35,12 +35,8 @@ export default function LessonCompletionBar({ lessonId }: LessonCompletionBarPro
         </div>
         <p className="text-[11px] sm:text-xs font-medium leading-relaxed">
           {completed ? (
-            <span className="text-[var(--accent-green)] font-bold inline-flex items-center gap-1 flex-wrap">
-              <span className="inline-flex items-center gap-1 shrink-0">
-                <Sparkles className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 animate-bounce" />
-                <span>🎉</span>
-              </span>
-              <span>수강 완료! 학습 기록이 {user?.nickname} 계정에 보관되었습니다.</span>
+            <span className="text-[var(--accent-green)] font-bold">
+              수강 완료! 학습 기록이 {user?.nickname} 계정에 보관되었습니다.
             </span>
           ) : user ? (
             <span className="text-[var(--text-secondary)]">
