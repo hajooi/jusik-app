@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES, Question } from '@/data/investmentSurvey';
+import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
-import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Play } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 function SurveyContent() {
   const searchParams = useSearchParams();
   const sharedCode = searchParams.get('result')?.toUpperCase();
   const sharedProfile = sharedCode && PERSONALITY_PROFILES[sharedCode] ? PERSONALITY_PROFILES[sharedCode] : null;
+
+  const { user, updateInvestmentType } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(0); // 0..7 (5 questions per page, 40 total)
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -19,14 +22,17 @@ function SurveyContent() {
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
 
-  // Restore draft or completed result from localStorage if available
+  // Restore draft or completed result from LocalStorage or AuthContext
   useEffect(() => {
     try {
       const savedAnswers = localStorage.getItem('jusik_type_answers');
       const savedCompleted = localStorage.getItem('jusik_type_completed');
       const savedPage = localStorage.getItem('jusik_type_current_page');
 
-      if (savedAnswers) {
+      if (user && user.typeAnswers) {
+        setAnswers(user.typeAnswers);
+        setIsCompleted(true);
+      } else if (savedAnswers) {
         const parsedAnswers = JSON.parse(savedAnswers);
         setAnswers(parsedAnswers);
 
@@ -38,7 +44,6 @@ function SurveyContent() {
             setCurrentPage(pageNum);
           }
         } else {
-          // If no page saved, automatically jump to the page of the first unanswered question
           const firstUnansweredIndex = QUESTIONS.findIndex((q) => parsedAnswers[q.id] === undefined);
           if (firstUnansweredIndex !== -1) {
             setCurrentPage(Math.floor(firstUnansweredIndex / PAGE_SIZE));
@@ -48,7 +53,7 @@ function SurveyContent() {
     } catch (e) {
       console.error(e);
     }
-  }, [totalPages]);
+  }, [totalPages, user]);
 
   const pageQuestions = QUESTIONS.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const answeredCount = Object.keys(answers).length;
@@ -71,6 +76,8 @@ function SurveyContent() {
     } else {
       setIsCompleted(true);
       localStorage.setItem('jusik_type_completed', 'true');
+      const resultData = calculateSurveyResult(answers);
+      updateInvestmentType(resultData.typeCode, answers);
     }
   };
 

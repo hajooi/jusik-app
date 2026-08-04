@@ -9,12 +9,16 @@ export interface UserAccount {
   lastLoginAt: string;
   completedLessons?: string[];
   investmentType?: string;
+  typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
 }
 
 interface AuthContextType {
   user: UserAccount | null;
   completedLessons: string[];
+  investmentType: string | null;
+  typeAnswers: Record<number, number> | null;
+  simulatorSettings: any | null;
   isAuthPopoverOpen: boolean;
   openAuthPopover: () => void;
   closeAuthPopover: () => void;
@@ -24,19 +28,27 @@ interface AuthContextType {
   markLessonCompleted: (lessonId: string) => void;
   toggleLessonCompleted: (lessonId: string) => void;
   isLessonCompleted: (lessonId: string) => boolean;
+  updateInvestmentType: (typeCode: string, answers: Record<number, number>) => void;
+  updateSimulatorSettings: (settings: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USER_STORAGE_KEY = 'jusik_app_user_account';
 const LOCAL_COMPLETED_LESSONS_KEY = 'jusik_app_completed_lessons';
+const LOCAL_TYPE_ANSWERS_KEY = 'jusik_type_answers';
+const LOCAL_TYPE_CODE_KEY = 'jusik_type_code';
+const LOCAL_SIMULATOR_SETTINGS_KEY = 'jusik_custom_simulator_settings';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserAccount | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [investmentType, setInvestmentType] = useState<string | null>(null);
+  const [typeAnswers, setTypeAnswers] = useState<Record<number, number> | null>(null);
+  const [simulatorSettings, setSimulatorSettings] = useState<any | null>(null);
   const [isAuthPopoverOpen, setIsAuthPopoverOpen] = useState<boolean>(false);
 
-  // 로드 시 로컬 세션 및 서버 최신 상태 복원
+  // 로드 시 로컬 및 서버 상태 복원
   useEffect(() => {
     try {
       const localCompletedJson = localStorage.getItem(LOCAL_COMPLETED_LESSONS_KEY);
@@ -52,6 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const merged = Array.from(new Set([...initialCompleted, ...parsedUser.completedLessons]));
           setCompletedLessons(merged);
         }
+        if (parsedUser.investmentType) setInvestmentType(parsedUser.investmentType);
+        if (parsedUser.typeAnswers) setTypeAnswers(parsedUser.typeAnswers);
+        if (parsedUser.simulatorSettings) setSimulatorSettings(parsedUser.simulatorSettings);
 
         // 서버 최신 데이터 동기화
         const userPin = parsedUser.pin || (parsedUser.nickname === '주식부엉' ? '418019' : '');
@@ -66,10 +81,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 };
                 setUser(serverUser);
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(serverUser));
-                
-                const serverCompleted = data.user.completedLessons || [];
-                setCompletedLessons(serverCompleted);
-                localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(serverCompleted));
+
+                if (data.user.completedLessons) {
+                  setCompletedLessons(data.user.completedLessons);
+                  localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(data.user.completedLessons));
+                }
+                if (data.user.investmentType) {
+                  setInvestmentType(data.user.investmentType);
+                  localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
+                }
+                if (data.user.typeAnswers) {
+                  setTypeAnswers(data.user.typeAnswers);
+                  localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
+                  localStorage.setItem('jusik_type_completed', 'true');
+                }
+                if (data.user.simulatorSettings) {
+                  setSimulatorSettings(data.user.simulatorSettings);
+                  localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
+                }
               }
             })
             .catch((err) => console.error('Server sync fetch error:', err));
@@ -85,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeAuthPopover = () => setIsAuthPopoverOpen(false);
   const toggleAuthPopover = () => setIsAuthPopoverOpen((prev) => !prev);
 
-  // 수강 완료 내역 실시간 서버 저장 동기화
+  // 수강 완료 내역 서버 실시간 동기화
   const updateCompletedLessonsState = (newCompletedList: string[]) => {
     setCompletedLessons(newCompletedList);
     localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(newCompletedList));
@@ -102,7 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
 
       if (userPin) {
-        // 즉시 서버 DB에 POST 저장
         fetch('/api/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,9 +138,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             action: 'syncData',
             nickname: user.nickname,
             pin: userPin,
-            completedLessons: newCompletedList
+            completedLessons: newCompletedList,
+            investmentType,
+            typeAnswers,
+            simulatorSettings
           })
         }).catch((e) => console.error('Server syncData error:', e));
+      }
+    }
+  };
+
+  // 투자 성향 진단 결과 서버 동기화
+  const updateInvestmentType = (typeCode: string, answers: Record<number, number>) => {
+    setInvestmentType(typeCode);
+    setTypeAnswers(answers);
+    localStorage.setItem(LOCAL_TYPE_CODE_KEY, typeCode);
+    localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(answers));
+    localStorage.setItem('jusik_type_completed', 'true');
+
+    if (user && user.nickname) {
+      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const updatedUser: UserAccount = {
+        ...user,
+        pin: userPin,
+        investmentType: typeCode,
+        typeAnswers: answers,
+        lastLoginAt: new Date().toISOString()
+      };
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      if (userPin) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname: user.nickname,
+            pin: userPin,
+            completedLessons,
+            investmentType: typeCode,
+            typeAnswers: answers,
+            simulatorSettings
+          })
+        }).catch((e) => console.error('Server updateInvestmentType error:', e));
+      }
+    }
+  };
+
+  // 시뮬레이터 커스텀 포트폴리오 세팅 서버 동기화
+  const updateSimulatorSettings = (settings: any) => {
+    setSimulatorSettings(settings);
+    localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(settings));
+
+    if (user && user.nickname) {
+      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const updatedUser: UserAccount = {
+        ...user,
+        pin: userPin,
+        simulatorSettings: settings,
+        lastLoginAt: new Date().toISOString()
+      };
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      if (userPin) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname: user.nickname,
+            pin: userPin,
+            completedLessons,
+            investmentType,
+            typeAnswers,
+            simulatorSettings: settings
+          })
+        }).catch((e) => console.error('Server updateSimulatorSettings error:', e));
       }
     }
   };
@@ -148,7 +251,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           action: 'login',
           nickname,
           pin,
-          completedLessons
+          completedLessons,
+          investmentType,
+          typeAnswers,
+          simulatorSettings
         })
       });
 
@@ -165,10 +271,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(serverUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(serverUser));
-      
+
       const serverCompleted: string[] = data.user.completedLessons || [];
       setCompletedLessons(serverCompleted);
       localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(serverCompleted));
+
+      if (data.user.investmentType) {
+        setInvestmentType(data.user.investmentType);
+        localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
+      }
+      if (data.user.typeAnswers) {
+        setTypeAnswers(data.user.typeAnswers);
+        localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
+        localStorage.setItem('jusik_type_completed', 'true');
+      }
+      if (data.user.simulatorSettings) {
+        setSimulatorSettings(data.user.simulatorSettings);
+        localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
+      }
 
       return { success: true };
     } catch (e) {
@@ -187,6 +307,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         completedLessons,
+        investmentType,
+        typeAnswers,
+        simulatorSettings,
         isAuthPopoverOpen,
         openAuthPopover,
         closeAuthPopover,
@@ -195,7 +318,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         markLessonCompleted,
         toggleLessonCompleted,
-        isLessonCompleted
+        isLessonCompleted,
+        updateInvestmentType,
+        updateSimulatorSettings
       }}
     >
       {children}

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
 import { calculatePersonalitySimulatorConfig } from '@/utils/personalitySimulatorMapping';
+import { useAuth } from '@/context/AuthContext';
 import { 
   LineChart, 
   TrendingUp, 
@@ -44,6 +45,7 @@ type Frequency = 'monthly' | 'weekly';
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
+  const { user, updateSimulatorSettings } = useAuth();
 
   // Global Simulation Settings
   const [initialCapital, setInitialCapital] = useState<number>(100); // 100만 원
@@ -124,23 +126,22 @@ function SimulatorContent() {
         setMaxTolerableMDD(config.recommendedMaxMDD);
       }
 
-      // Restore saved custom strategy settings if available
-      const savedCustom = localStorage.getItem('jusik_custom_simulator_settings');
-      if (savedCustom) {
-        const parsedCustom = JSON.parse(savedCustom);
-        if (parsedCustom.portfolioB) setPortfolioB(parsedCustom.portfolioB);
-        if (parsedCustom.strategyPeriodB !== undefined) setStrategyPeriodB(parsedCustom.strategyPeriodB);
-        if (parsedCustom.initialCapital !== undefined) setInitialCapital(parsedCustom.initialCapital);
-        if (parsedCustom.depositAmount !== undefined) setDepositAmount(parsedCustom.depositAmount);
-        if (parsedCustom.durationYears !== undefined) setDurationYears(parsedCustom.durationYears);
-        if (parsedCustom.depositFrequency) setDepositFrequency(parsedCustom.depositFrequency);
+      // Restore saved custom strategy settings from user server account or localStorage
+      const settingsSource = user?.simulatorSettings || (localStorage.getItem('jusik_custom_simulator_settings') ? JSON.parse(localStorage.getItem('jusik_custom_simulator_settings')!) : null);
+      if (settingsSource) {
+        if (settingsSource.portfolioB) setPortfolioB(settingsSource.portfolioB);
+        if (settingsSource.strategyPeriodB !== undefined) setStrategyPeriodB(settingsSource.strategyPeriodB);
+        if (settingsSource.initialCapital !== undefined) setInitialCapital(settingsSource.initialCapital);
+        if (settingsSource.depositAmount !== undefined) setDepositAmount(settingsSource.depositAmount);
+        if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
+        if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
       }
     } catch (e) {
       console.error(e);
     }
-  }, [searchParams]);
+  }, [searchParams, user]);
 
-  // Save custom strategy settings whenever user modifies them
+  // Save custom strategy settings to server & localStorage whenever modified
   useEffect(() => {
     try {
       const customData = {
@@ -151,7 +152,7 @@ function SimulatorContent() {
         durationYears,
         depositFrequency
       };
-      localStorage.setItem('jusik_custom_simulator_settings', JSON.stringify(customData));
+      updateSimulatorSettings(customData);
     } catch (e) {
       console.error(e);
     }

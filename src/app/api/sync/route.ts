@@ -24,7 +24,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 401 });
     }
 
-    // 접속 일시 갱신
     userRecord.lastActiveAt = new Date().toISOString();
     db[nickname] = userRecord;
     saveServerDb(db);
@@ -37,6 +36,7 @@ export async function GET(request: Request) {
         lastLoginAt: userRecord.lastActiveAt,
         completedLessons: userRecord.completedLessons || [],
         investmentType: userRecord.investmentType,
+        typeAnswers: userRecord.typeAnswers,
         simulatorSettings: userRecord.simulatorSettings
       }
     });
@@ -50,20 +50,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, simulatorSettings } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname || !pin) {
       return NextResponse.json({ success: false, error: '닉네임과 핀번호를 입력해 주세요.' }, { status: 400 });
     }
 
-    // 닉네임 검증
     const validation = validateNickname(trimmedNickname);
     if (!validation.isValid) {
       return NextResponse.json({ success: false, error: validation.message }, { status: 400 });
     }
 
-    // PIN 6자리 검증
     if (!/^\d{6}$/.test(pin)) {
       return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 400 });
     }
@@ -77,10 +75,10 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 401 });
         }
 
-        // 로그인 성공 -> 클라이언트에서 전달된 새로운 수강 완료 내역과 병합
         const mergedCompleted = Array.from(new Set([...(existing.completedLessons || []), ...(completedLessons || [])]));
         existing.completedLessons = mergedCompleted;
         if (investmentType) existing.investmentType = investmentType;
+        if (typeAnswers) existing.typeAnswers = typeAnswers;
         if (simulatorSettings) existing.simulatorSettings = simulatorSettings;
         existing.lastActiveAt = new Date().toISOString();
 
@@ -95,11 +93,11 @@ export async function POST(request: Request) {
             lastLoginAt: existing.lastActiveAt,
             completedLessons: existing.completedLessons,
             investmentType: existing.investmentType,
+            typeAnswers: existing.typeAnswers,
             simulatorSettings: existing.simulatorSettings
           }
         });
       } else {
-        // 신규 계정 생성
         const newRecord: ServerUserRecord = {
           nickname: trimmedNickname,
           pin,
@@ -107,6 +105,7 @@ export async function POST(request: Request) {
           lastActiveAt: new Date().toISOString(),
           completedLessons: completedLessons || [],
           investmentType,
+          typeAnswers,
           simulatorSettings
         };
         db[trimmedNickname] = newRecord;
@@ -120,6 +119,7 @@ export async function POST(request: Request) {
             lastLoginAt: newRecord.lastActiveAt,
             completedLessons: newRecord.completedLessons,
             investmentType: newRecord.investmentType,
+            typeAnswers: newRecord.typeAnswers,
             simulatorSettings: newRecord.simulatorSettings
           }
         });
@@ -131,9 +131,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 401 });
       }
 
-      if (completedLessons) existing.completedLessons = completedLessons;
-      if (investmentType) existing.investmentType = investmentType;
-      if (simulatorSettings) existing.simulatorSettings = simulatorSettings;
+      if (completedLessons !== undefined) existing.completedLessons = completedLessons;
+      if (investmentType !== undefined) existing.investmentType = investmentType;
+      if (typeAnswers !== undefined) existing.typeAnswers = typeAnswers;
+      if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
           lastLoginAt: existing.lastActiveAt,
           completedLessons: existing.completedLessons,
           investmentType: existing.investmentType,
+          typeAnswers: existing.typeAnswers,
           simulatorSettings: existing.simulatorSettings
         }
       });
