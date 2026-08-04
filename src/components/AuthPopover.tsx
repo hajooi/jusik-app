@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical } from 'lucide-react';
 
 interface AuthPopoverProps {
   onClose: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export default function AuthPopover({ onClose }: AuthPopoverProps) {
+export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
   const { login, user, logout, isAuthPopoverClosing } = useAuth();
   
   const [nickname, setNickname] = useState('');
@@ -49,16 +50,34 @@ export default function AuthPopover({ onClose }: AuthPopoverProps) {
     >
       
       {/* Header Copy */}
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--accent-orange)]">
-          <BookmarkCheck className="w-4 h-4" />
-          <span>{user ? '내 계정 정보' : '내 기록 보관'}</span>
+      <div className="flex items-start justify-between">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--accent-orange)]">
+            <BookmarkCheck className="w-4 h-4" />
+            <span>{user ? '내 계정 정보' : '내 기록 보관'}</span>
+          </div>
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
+            {user 
+              ? '학습 및 투자 기록이 안전하게 보관됩니다.' 
+              : '로그인하여 학습 및 투자 기록을 안전하게 보관하세요.'}
+          </p>
         </div>
-        <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
-          {user 
-            ? '학습 및 투자 기록이 안전하게 보관됩니다.' 
-            : '로그인하여 학습 및 투자 기록을 안전하게 보관하세요.'}
-        </p>
+
+        {/* Hidden Admin Dots Menu for '주식부엉' account */}
+        {user && user.nickname === '주식부엉' && (
+          <div className="relative">
+            <button
+              onClick={() => {
+                onClose();
+                if (onOpenAdmin) onOpenAdmin();
+              }}
+              title="관리자 대시보드"
+              className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all cursor-pointer"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {user ? (

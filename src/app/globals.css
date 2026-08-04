@@ -183,6 +183,36 @@ html {
   }
 }
 
+@keyframes modalExpand {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalShrink {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+}
+
+.animate-modal-expand {
+  animation: modalExpand 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-shrink {
+  animation: modalShrink 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .animate-popover-expand {
   animation: popoverExpand 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: top right;
