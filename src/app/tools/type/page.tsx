@@ -143,9 +143,9 @@ function SurveyContent() {
       <div className="flex items-center justify-between">
         <button
           onClick={handleRestart}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] glass-card glass-card-hover px-3 py-1.5 rounded-full transition-all active:scale-95 border border-[var(--border-color)]"
+          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-4 h-4" />
           처음부터 다시
         </button>
         <Link

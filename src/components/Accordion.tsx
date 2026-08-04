@@ -165,7 +165,7 @@ export default function Accordion({ levels }: AccordionProps) {
                         key={lesson.id}
                         href={`/lesson/${lesson.id}`}
                         className={`group flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card glass-card-hover transition-all duration-300 shadow-sm border border-[var(--border-color)] active:scale-[0.98] ${
-                          completed ? 'border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5' : ''
+                          completed ? 'border-[var(--accent-green)] bg-[var(--accent-green)]/10' : ''
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
