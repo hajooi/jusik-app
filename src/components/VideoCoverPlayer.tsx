@@ -49,20 +49,8 @@ export default function VideoCoverPlayer({
   const playerRef = useRef<any>(null);
   const IconComponent = ICON_MAP[iconName] || Brain;
 
-  // Load YouTube IFrame API script once
+  // Load YouTube Iframe API and initialize pre-mounted player
   useEffect(() => {
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-  }, []);
-
-  // Bind YouTube Player API to the mounted iframe when playing
-  useEffect(() => {
-    if (!isPlaying) return;
-
     let player: any = null;
 
     const initPlayer = () => {
@@ -92,6 +80,13 @@ export default function VideoCoverPlayer({
       }
     };
 
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
     if (window.YT && window.YT.Player) {
       initPlayer();
     } else {
@@ -101,11 +96,18 @@ export default function VideoCoverPlayer({
         initPlayer();
       };
     }
-  }, [isPlaying, youtubeId, onVideoEnded]);
+  }, [youtubeId, onVideoEnded]);
 
   const handlePlayClick = () => {
     setIsPlaying(true);
     setPlayerState('playing');
+    if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+      try {
+        playerRef.current.playVideo();
+      } catch (e) {
+        console.error('Error calling playVideo:', e);
+      }
+    }
   };
 
   return (
@@ -133,19 +135,22 @@ export default function VideoCoverPlayer({
       </div>
 
       <div className="relative z-10 w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-[var(--card-surface)] border border-[var(--border-color)]">
-        {/* Render YouTube Iframe directly with mobile autoplay & playsinline support */}
-        {isPlaying ? (
-          <div className="absolute top-0 left-0 w-full h-full">
-            <iframe
-              ref={iframeRef}
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`}
-              title={title}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-        ) : (
+        {/* Pre-mounted YouTube Iframe element in DOM */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          <iframe
+            ref={iframeRef}
+            src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3`}
+            title={title}
+            className={`w-full h-full border-0 transition-opacity duration-300 ${
+              isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+
+        {/* Brand Cover Overlay */}
+        {!isPlaying && (
           <button
             onClick={handlePlayClick}
             type="button"
