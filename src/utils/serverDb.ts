@@ -37,16 +37,32 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
 const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
 const SURVEY_STATS_FILE_PATH = path.join(process.cwd(), '.data', 'survey_stats.json');
 
-// Check Redis / Vercel KV environment variables
-const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+/**
+ * Dynamically initialize Redis client using environment variables
+ */
+function getRedisClient(): Redis | null {
+  const url =
+    process.env.KV_REST_API_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.STORAGE_KV_REST_API_URL ||
+    process.env.UPSTASH_KV_REST_API_URL ||
+    process.env.STORAGE_URL;
 
-let redisClient: Redis | null = null;
-if (redisUrl && redisToken) {
-  redisClient = new Redis({
-    url: redisUrl,
-    token: redisToken,
-  });
+  const token =
+    process.env.KV_REST_API_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.STORAGE_KV_REST_API_TOKEN ||
+    process.env.UPSTASH_KV_REST_API_TOKEN ||
+    process.env.STORAGE_TOKEN;
+
+  if (url && token) {
+    try {
+      return new Redis({ url, token });
+    } catch (e) {
+      console.error('Failed to instantiate Upstash Redis client:', e);
+    }
+  }
+  return null;
 }
 
 function loadDbFromFile(): Record<string, ServerUserRecord> {
@@ -80,9 +96,17 @@ function saveDbToFile(db: Record<string, ServerUserRecord>) {
  * Async DB fetch (Supports Vercel Storage KV / Redis + local fallback)
  */
 export async function getServerDbAsync(): Promise<Record<string, ServerUserRecord>> {
-  if (redisClient) {
+  const redis = getRedisClient();
+  if (redis) {
     try {
-      const remoteDb = await redisClient.get<Record<string, ServerUserRecord>>('jusik_server_db');
+      const rawData = await redis.get<any>('jusik_server_db');
+      let remoteDb: Record<string, ServerUserRecord> | null = null;
+      if (typeof rawData === 'string') {
+        try { remoteDb = JSON.parse(rawData); } catch (e) {}
+      } else if (rawData && typeof rawData === 'object') {
+        remoteDb = rawData;
+      }
+
       if (remoteDb && typeof remoteDb === 'object') {
         const merged = { ...DEFAULT_MASTER_USERS, ...remoteDb };
         globalThis.__jusik_server_db__ = merged;
@@ -102,9 +126,10 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
   globalThis.__jusik_server_db__ = db;
   saveDbToFile(db);
 
-  if (redisClient) {
+  const redis = getRedisClient();
+  if (redis) {
     try {
-      await redisClient.set('jusik_server_db', db);
+      await redis.set('jusik_server_db', db);
     } catch (e) {
       console.error('Failed to save DB to Vercel KV/Redis:', e);
     }
@@ -151,9 +176,17 @@ export function saveServerDb(db: Record<string, ServerUserRecord>) {
  * Async Survey Stats fetch
  */
 export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
-  if (redisClient) {
+  const redis = getRedisClient();
+  if (redis) {
     try {
-      const remoteStats = await redisClient.get<SurveyStatsData>('jusik_survey_stats');
+      const rawData = await redis.get<any>('jusik_survey_stats');
+      let remoteStats: SurveyStatsData | null = null;
+      if (typeof rawData === 'string') {
+        try { remoteStats = JSON.parse(rawData); } catch (e) {}
+      } else if (rawData && typeof rawData === 'object') {
+        remoteStats = rawData;
+      }
+
       if (remoteStats && typeof remoteStats === 'object') {
         globalThis.__jusik_survey_stats__ = remoteStats;
         return remoteStats;
@@ -176,9 +209,10 @@ export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyS
   globalThis.__jusik_survey_stats__ = stats;
   saveDbToFile(stats as any);
 
-  if (redisClient) {
+  const redis = getRedisClient();
+  if (redis) {
     try {
-      await redisClient.set('jusik_survey_stats', stats);
+      await redis.set('jusik_survey_stats', stats);
     } catch (e) {
       console.error('Failed to save survey stats to Vercel KV/Redis:', e);
     }
