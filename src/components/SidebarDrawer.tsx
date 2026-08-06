@@ -200,9 +200,9 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
         <span>전체 목차</span>
       </button>
 
-      {/* Left Slide-over Modal with Backdrop Blur Overlay (z-[100] covers bottom nav) */}
+      {/* Left Slide-over Modal with Backdrop Blur Overlay (z-[10000] covers bottom nav) */}
       {isMobileOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-start bg-black/30 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[10000] flex justify-start bg-black/40 backdrop-blur-md">
           {/* Backdrop Overlay Click to Close */}
           <div 
             className="absolute inset-0" 

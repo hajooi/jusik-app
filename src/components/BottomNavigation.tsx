@@ -28,7 +28,7 @@ export default function BottomNavigation() {
   );
 
   return (
-    <div className="fixed bottom-4 inset-x-0 z-[9999] flex justify-center px-3 sm:px-4 pointer-events-none select-none">
+    <div className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-3 sm:px-4 pointer-events-none select-none">
       <nav 
         aria-label="하단 내비게이션"
         className="w-full max-w-[260px] xs:max-w-[280px] sm:max-w-[300px] bg-[var(--bg-main)]/95 backdrop-blur-md border border-[var(--border-color)] rounded-full p-1.5 shadow-xl relative overflow-hidden pointer-events-auto"

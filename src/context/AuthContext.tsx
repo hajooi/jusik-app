@@ -308,27 +308,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user.investmentType && data.user.investmentType !== '미진단') {
         setInvestmentType(data.user.investmentType);
         localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
-      } else {
-        setInvestmentType('미진단');
-        localStorage.removeItem(LOCAL_TYPE_CODE_KEY);
+      } else if (investmentType && investmentType !== '미진단') {
+        // Keep existing client investmentType if server has none
+        localStorage.setItem(LOCAL_TYPE_CODE_KEY, investmentType);
       }
 
-      if (data.user.typeAnswers) {
+      if (data.user.typeAnswers && Object.keys(data.user.typeAnswers).length > 0) {
         setTypeAnswers(data.user.typeAnswers);
         localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
         localStorage.setItem('jusik_type_completed', 'true');
-      } else {
-        setTypeAnswers({});
-        localStorage.removeItem(LOCAL_TYPE_ANSWERS_KEY);
-        localStorage.removeItem('jusik_type_completed');
+      } else if (typeAnswers && Object.keys(typeAnswers).length > 0) {
+        // Keep existing client typeAnswers if server has none
+        localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(typeAnswers));
+        localStorage.setItem('jusik_type_completed', 'true');
       }
 
       if (data.user.simulatorSettings) {
         setSimulatorSettings(data.user.simulatorSettings);
         localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
-      } else {
-        setSimulatorSettings(null);
-        localStorage.removeItem(LOCAL_SIMULATOR_SETTINGS_KEY);
+      } else if (simulatorSettings) {
+        // Keep existing client simulatorSettings if server has none
+        localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(simulatorSettings));
+      }
+
+      // If client had data that server didn't have, push updated client data back to server
+      const finalInvestmentType = data.user.investmentType || investmentType;
+      const finalTypeAnswers = data.user.typeAnswers || typeAnswers;
+      const finalSimulatorSettings = data.user.simulatorSettings || simulatorSettings;
+
+      if (!data.user.investmentType || !data.user.simulatorSettings || !data.user.typeAnswers) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname,
+            pin,
+            completedLessons: serverCompleted,
+            investmentType: finalInvestmentType,
+            typeAnswers: finalTypeAnswers,
+            simulatorSettings: finalSimulatorSettings
+          })
+        }).catch((e) => console.error('Post-login sync error:', e));
       }
 
       return { success: true };

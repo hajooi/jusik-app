@@ -18,6 +18,7 @@ function SurveyContent() {
   const [currentPage, setCurrentPage] = useState(0); // 0..7 (5 questions per page, 40 total)
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const [typePercentage, setTypePercentage] = useState<number | undefined>(undefined);
 
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
@@ -67,6 +68,21 @@ function SurveyContent() {
     }
   }, [totalPages, user]);
 
+  // Fetch stats (GET read-only) when viewing completed result
+  useEffect(() => {
+    if (isCompleted && Object.keys(answers).length > 0) {
+      const resultData = calculateSurveyResult(answers);
+      fetch('/api/survey-stats')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.percentages) {
+            setTypePercentage(data.percentages[resultData.typeCode] || 0);
+          }
+        })
+        .catch((err) => console.error('Survey stats API error:', err));
+    }
+  }, [isCompleted, answers]);
+
   // Page change or completion change scroll to top effect
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,6 +110,20 @@ function SurveyContent() {
       localStorage.setItem('jusik_type_completed', 'true');
       const resultData = calculateSurveyResult(answers);
       updateInvestmentType(resultData.typeCode, answers);
+
+      // Post survey stats
+      fetch('/api/survey-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typeCode: resultData.typeCode }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.percentages) {
+            setTypePercentage(data.percentages[resultData.typeCode] || 0);
+          }
+        })
+        .catch((e) => console.error(e));
     }
   };
 
@@ -109,6 +139,7 @@ function SurveyContent() {
     setAnswers({});
     setCurrentPage(0);
     setIsCompleted(false);
+    setTypePercentage(undefined);
     localStorage.removeItem('jusik_type_answers');
     localStorage.removeItem('jusik_type_completed');
     localStorage.removeItem('jusik_type_current_page');
@@ -131,6 +162,7 @@ function SurveyContent() {
         <ResultView
           profile={resultData.profile}
           scores={resultData.scores}
+          percentage={typePercentage}
           onRestart={handleRestart}
         />
       </div>

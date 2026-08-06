@@ -13,6 +13,7 @@ interface ResultViewProps {
     LT: { L: number; T: number };
     RI: { R: number; I: number };
   };
+  percentage?: number;
   onRestart: () => void;
 }
 
@@ -61,7 +62,7 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   },
 };
 
-export default function ResultView({ profile, scores, onRestart }: ResultViewProps) {
+export default function ResultView({ profile, scores, percentage, onRestart }: ResultViewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -100,13 +101,22 @@ export default function ResultView({ profile, scores, onRestart }: ResultViewPro
         <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-orange)]/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-3 text-center sm:text-left">
-          {/* Badges (4 Factors) */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            {profile.badges.map((b, i) => (
-              <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
-                {b}
-              </span>
-            ))}
+          {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
+          <div className="space-y-2">
+            {percentage !== undefined && percentage > 0 && (
+              <div>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)] animate-pulse">
+                  🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+                </span>
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              {profile.badges.map((b, i) => (
+                <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
+                  {b}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-1">

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight } from 'lucide-react';
+import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 
 interface AuthPopoverProps {
   onClose: () => void;
@@ -88,6 +90,46 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             <div className="text-base font-bold text-[var(--accent-orange)] font-mono">
               {user.nickname}
             </div>
+          </div>
+
+          {/* Investment Type Card */}
+          <div className="p-3.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-1.5 text-center">
+            <div className="text-[11px] text-[var(--text-secondary)] font-medium flex items-center justify-center gap-1">
+              <Compass className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+              <span>나의 투자 성향</span>
+            </div>
+            {user.investmentType && user.investmentType !== '미진단' && PERSONALITY_PROFILES[user.investmentType] ? (
+              <div className="space-y-1.5 pt-0.5">
+                <div className="text-sm font-extrabold text-[var(--text-primary)]">
+                  {PERSONALITY_PROFILES[user.investmentType].name}{' '}
+                  <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
+                    ({user.investmentType})
+                  </span>
+                </div>
+                <Link
+                  href={`/tools/type?result=${user.investmentType}`}
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
+                >
+                  <span>진단 결과 보기</span>
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1.5 pt-0.5">
+                <div className="text-xs text-[var(--text-secondary)] opacity-70">
+                  아직 진단을 진행하지 않았습니다.
+                </div>
+                <Link
+                  href="/tools/type"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
+                >
+                  <span>내 성향 진단하기</span>
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">

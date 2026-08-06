@@ -12,8 +12,14 @@ export interface ServerUserRecord {
   simulatorSettings?: any;
 }
 
+export interface SurveyStatsData {
+  totalCount: number;
+  typeCounts: Record<string, number>;
+}
+
 declare global {
   var __jusik_server_db__: Record<string, ServerUserRecord> | undefined;
+  var __jusik_survey_stats__: SurveyStatsData | undefined;
 }
 
 // 기본 마스터 계정 초기 데이터
@@ -28,6 +34,7 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
 };
 
 const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
+const SURVEY_STATS_FILE_PATH = path.join(process.cwd(), '.data', 'survey_stats.json');
 
 function loadDbFromFile(): Record<string, ServerUserRecord> {
   try {
@@ -97,3 +104,58 @@ export function saveServerDb(db: Record<string, ServerUserRecord>) {
   globalThis.__jusik_server_db__ = db;
   saveDbToFile(db);
 }
+
+/**
+ * 전체 투자 성향 통계 읽기
+ */
+export function getSurveyStats(): SurveyStatsData {
+  if (!globalThis.__jusik_survey_stats__) {
+    try {
+      if (fs.existsSync(SURVEY_STATS_FILE_PATH)) {
+        const data = fs.readFileSync(SURVEY_STATS_FILE_PATH, 'utf-8');
+        const parsed = JSON.parse(data);
+        if (parsed && typeof parsed === 'object') {
+          globalThis.__jusik_survey_stats__ = {
+            totalCount: parsed.totalCount || 0,
+            typeCounts: parsed.typeCounts || {}
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load survey stats file:', e);
+    }
+  }
+
+  if (!globalThis.__jusik_survey_stats__) {
+    globalThis.__jusik_survey_stats__ = {
+      totalCount: 0,
+      typeCounts: {}
+    };
+  }
+
+  return globalThis.__jusik_survey_stats__;
+}
+
+/**
+ * 투자 성향 결과 1건 추가 아카이브
+ */
+export function recordSurveyResult(typeCode: string): SurveyStatsData {
+  const stats = getSurveyStats();
+  stats.totalCount = (stats.totalCount || 0) + 1;
+  stats.typeCounts[typeCode] = (stats.typeCounts[typeCode] || 0) + 1;
+
+  globalThis.__jusik_survey_stats__ = stats;
+
+  try {
+    const dir = path.dirname(SURVEY_STATS_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(SURVEY_STATS_FILE_PATH, JSON.stringify(stats, null, 2), 'utf-8');
+  } catch (e) {
+    // Read-only filesystem fallback
+  }
+
+  return stats;
+}
+
