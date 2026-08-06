@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { Redis } from '@upstash/redis';
 
 export interface ServerUserRecord {
   nickname: string;
@@ -36,6 +37,18 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
 const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
 const SURVEY_STATS_FILE_PATH = path.join(process.cwd(), '.data', 'survey_stats.json');
 
+// Check Redis / Vercel KV environment variables
+const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+let redisClient: Redis | null = null;
+if (redisUrl && redisToken) {
+  redisClient = new Redis({
+    url: redisUrl,
+    token: redisToken,
+  });
+}
+
 function loadDbFromFile(): Record<string, ServerUserRecord> {
   try {
     if (fs.existsSync(DB_FILE_PATH)) {
@@ -64,8 +77,42 @@ function saveDbToFile(db: Record<string, ServerUserRecord>) {
 }
 
 /**
- * 서버 DB 읽기 (글로벌 메모리 + 파일 시스템 동기화)
- * 1년 미접속 계정 자동 파기 검증 포함
+ * Async DB fetch (Supports Vercel Storage KV / Redis + local fallback)
+ */
+export async function getServerDbAsync(): Promise<Record<string, ServerUserRecord>> {
+  if (redisClient) {
+    try {
+      const remoteDb = await redisClient.get<Record<string, ServerUserRecord>>('jusik_server_db');
+      if (remoteDb && typeof remoteDb === 'object') {
+        const merged = { ...DEFAULT_MASTER_USERS, ...remoteDb };
+        globalThis.__jusik_server_db__ = merged;
+        return merged;
+      }
+    } catch (e) {
+      console.error('Failed to fetch DB from Vercel KV/Redis:', e);
+    }
+  }
+  return getServerDb();
+}
+
+/**
+ * Async DB save (Supports Vercel Storage KV / Redis + local fallback)
+ */
+export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): Promise<void> {
+  globalThis.__jusik_server_db__ = db;
+  saveDbToFile(db);
+
+  if (redisClient) {
+    try {
+      await redisClient.set('jusik_server_db', db);
+    } catch (e) {
+      console.error('Failed to save DB to Vercel KV/Redis:', e);
+    }
+  }
+}
+
+/**
+ * Synchronous fallback getServerDb
  */
 export function getServerDb(): Record<string, ServerUserRecord> {
   if (!globalThis.__jusik_server_db__) {
@@ -74,8 +121,6 @@ export function getServerDb(): Record<string, ServerUserRecord> {
 
   const db = globalThis.__jusik_server_db__;
   let hasPurged = false;
-
-  // 1년 경과 미접속 계정 자동 파기 (1년 파기 정책 유지)
   const now = Date.now();
   const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -97,17 +142,51 @@ export function getServerDb(): Record<string, ServerUserRecord> {
   return db;
 }
 
-/**
- * 서버 DB 저장 (글로벌 메모리 + 로컬 파일 동시 저장)
- */
 export function saveServerDb(db: Record<string, ServerUserRecord>) {
   globalThis.__jusik_server_db__ = db;
   saveDbToFile(db);
 }
 
 /**
- * 전체 투자 성향 통계 읽기
+ * Async Survey Stats fetch
  */
+export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
+  if (redisClient) {
+    try {
+      const remoteStats = await redisClient.get<SurveyStatsData>('jusik_survey_stats');
+      if (remoteStats && typeof remoteStats === 'object') {
+        globalThis.__jusik_survey_stats__ = remoteStats;
+        return remoteStats;
+      }
+    } catch (e) {
+      console.error('Failed to fetch survey stats from Vercel KV/Redis:', e);
+    }
+  }
+  return getSurveyStats();
+}
+
+/**
+ * Async Survey Stats record
+ */
+export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyStatsData> {
+  const stats = await getSurveyStatsAsync();
+  stats.totalCount = (stats.totalCount || 0) + 1;
+  stats.typeCounts[typeCode] = (stats.typeCounts[typeCode] || 0) + 1;
+
+  globalThis.__jusik_survey_stats__ = stats;
+  saveDbToFile(stats as any);
+
+  if (redisClient) {
+    try {
+      await redisClient.set('jusik_survey_stats', stats);
+    } catch (e) {
+      console.error('Failed to save survey stats to Vercel KV/Redis:', e);
+    }
+  }
+
+  return stats;
+}
+
 export function getSurveyStats(): SurveyStatsData {
   if (!globalThis.__jusik_survey_stats__) {
     try {
@@ -136,9 +215,6 @@ export function getSurveyStats(): SurveyStatsData {
   return globalThis.__jusik_survey_stats__;
 }
 
-/**
- * 투자 성향 결과 1건 추가 아카이브
- */
 export function recordSurveyResult(typeCode: string): SurveyStatsData {
   const stats = getSurveyStats();
   stats.totalCount = (stats.totalCount || 0) + 1;
@@ -158,4 +234,3 @@ export function recordSurveyResult(typeCode: string): SurveyStatsData {
 
   return stats;
 }
-

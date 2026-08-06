@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerDb, saveServerDb, ServerUserRecord } from '@/utils/serverDb';
+import { getServerDbAsync, saveServerDbAsync, ServerUserRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
 // GET /api/sync?nickname=...&pin=...
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: '닉네임과 핀번호가 필요합니다.' }, { status: 200 });
     }
 
-    const db = getServerDb();
+    const db = await getServerDbAsync();
     const userRecord = db[nickname] || db[nickname.toLowerCase()];
 
     if (!userRecord) {
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
     userRecord.lastActiveAt = new Date().toISOString();
     db[nickname] = userRecord;
-    saveServerDb(db);
+    await saveServerDbAsync(db);
 
     return NextResponse.json({
       success: true,
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
     }
 
-    const db = getServerDb();
+    const db = await getServerDbAsync();
     const existing = db[trimmedNickname] || db[trimmedNickname.toLowerCase()];
 
     if (action === 'login') {
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         existing.lastActiveAt = new Date().toISOString();
 
         db[trimmedNickname] = existing;
-        saveServerDb(db);
+        await saveServerDbAsync(db);
 
         return NextResponse.json({
           success: true,
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
           simulatorSettings
         };
         db[trimmedNickname] = newRecord;
-        saveServerDb(db);
+        await saveServerDbAsync(db);
 
         return NextResponse.json({
           success: true,
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
-      saveServerDb(db);
+      await saveServerDbAsync(db);
 
       return NextResponse.json({
         success: true,

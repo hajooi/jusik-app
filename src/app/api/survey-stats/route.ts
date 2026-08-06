@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getSurveyStats, recordSurveyResult } from '@/utils/serverDb';
+import { getSurveyStatsAsync, recordSurveyResultAsync } from '@/utils/serverDb';
 
 // GET /api/survey-stats
 export async function GET() {
   try {
-    const stats = getSurveyStats();
+    const stats = await getSurveyStatsAsync();
     
     // Calculate percentage ratios for each type
     const percentages: Record<string, number> = {};
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '성향 코드가 필요합니다.' }, { status: 400 });
     }
 
-    const updatedStats = recordSurveyResult(typeCode);
+    const updatedStats = await recordSurveyResultAsync(typeCode);
 
     // Calculate percentage ratios for each type
     const percentages: Record<string, number> = {};

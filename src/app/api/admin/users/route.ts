@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerDb } from '@/utils/serverDb';
+import { getServerDbAsync } from '@/utils/serverDb';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: '관리자 권한이 없습니다.' }, { status: 403 });
     }
 
-    const db = getServerDb();
+    const db = await getServerDbAsync();
     const adminRecord = db['주식부엉'] || db['주식부엉'];
 
     if (!adminRecord || adminRecord.pin !== pin) {
