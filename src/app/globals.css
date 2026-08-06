@@ -342,3 +342,37 @@ input[type='range']::-moz-range-thumb:hover {
   transform: scale(1.25);
 }
 
+/* Ambient Video Glow Animations (Dual Layer Crossfade) */
+@keyframes ambientGlowOrange {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes ambientGlowGreen {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1.03);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.animate-glow-orange {
+  animation: ambientGlowOrange 14s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.animate-glow-green {
+  animation: ambientGlowGreen 14s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+
