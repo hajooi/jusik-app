@@ -187,7 +187,19 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
             },
           ].map((item) => {
             const exp = AXIS_EXPLANATIONS[item.key];
-            const isLeftWinner = item.leftPct > item.rightPct;
+            const isRightWinner = item.rightPct > item.leftPct;
+
+            const leftCode = isRightWinner ? item.rightCode : item.leftCode;
+            const leftLabel = isRightWinner ? item.rightLabel : item.leftLabel;
+            const leftPct = isRightWinner ? item.rightPct : item.leftPct;
+            const leftDesc = isRightWinner ? exp.rightDesc : exp.leftDesc;
+
+            const rightCode = isRightWinner ? item.leftCode : item.rightCode;
+            const rightLabel = isRightWinner ? item.leftLabel : item.rightLabel;
+            const rightPct = isRightWinner ? item.leftPct : item.rightPct;
+            const rightDesc = isRightWinner ? exp.leftDesc : exp.rightDesc;
+
+            const isLeftWinner = leftPct >= rightPct;
 
             return (
               <div key={item.key} className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
@@ -195,7 +207,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
                 <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
                   <div className="flex items-center gap-1.5">
                     <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-                      {item.leftLabel}({item.leftCode}) {item.leftPct}%
+                      {leftLabel}({leftCode}) {leftPct}%
                     </span>
                     {isLeftWinner && (
                       <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold">
@@ -211,7 +223,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
                       </span>
                     )}
                     <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-                      {item.rightLabel}({item.rightCode}) {item.rightPct}%
+                      {rightLabel}({rightCode}) {rightPct}%
                     </span>
                   </div>
                 </div>
@@ -224,7 +236,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
                       ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
                       : 'bg-[var(--text-secondary)]/12'
                       }`}
-                    style={{ width: `${item.leftPct}%` }}
+                    style={{ width: `${leftPct}%` }}
                   />
                   {/* Right Side Fill */}
                   <div
@@ -232,17 +244,17 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
                       ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
                       : 'bg-[var(--text-secondary)]/12'
                       }`}
-                    style={{ width: `${item.rightPct}%` }}
+                    style={{ width: `${rightPct}%` }}
                   />
                 </div>
 
                 {/* Always-visible Inline Descriptions */}
                 <div className="grid grid-cols-2 gap-3 text-[11px] pt-1 leading-tight">
                   <div className={`text-left ${isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
-                    • {exp.leftDesc}
+                    • {leftDesc}
                   </div>
                   <div className={`text-right ${!isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
-                    • {exp.rightDesc}
+                    • {rightDesc}
                   </div>
                 </div>
               </div>

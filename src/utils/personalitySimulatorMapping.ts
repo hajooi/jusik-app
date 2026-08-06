@@ -39,8 +39,8 @@ const assetMap: Record<string, BacktestAssetInfo> = {};
 });
 
 /**
- * Unified Quant Dynamic Recommendation Engine (Architectural Overhaul)
- * Calibrates portfolio allocation dynamically based on exact 0~100 personality scores.
+ * Unified Quant Dynamic Recommendation Engine
+ * Calibrates portfolio allocation & target goals dynamically based on 0~100 personality scores.
  */
 export function calculatePersonalitySimulatorConfig(
   typeCode: string,
@@ -60,34 +60,35 @@ export function calculatePersonalitySimulatorConfig(
   const pctL = scores.LT.L;
   const pctT = scores.LT.T;
   const pctR = scores.RI.R;
-  const pctI = scores.RI.I;
 
   // =========================================================================
-  // STEP 1: Determine Defense Strategy Period (이동평균선 스위칭 일수)
+  // STEP 1: Determine Defense Strategy Period (Moving Average Switching Days)
+  // Defense options are GATED for TOP TIER active/tactical users (A >= 70 or T >= 70).
+  // For most regular users, Buy & Hold DCA (0 days) is recommended as the superior approach.
+  // Supported MA lines: 50, 100, 200 days (20-day line excluded).
   // =========================================================================
   let strategyPeriodA = 0;
 
-  // Passive & Long-term investors (P >= 50 & L >= 50) -> No defense (0 days, buy & hold)
-  if (pctP >= 50 && pctL >= 50) {
-    strategyPeriodA = 0;
-  } else if (pctA >= 50 || pctT >= 50) {
-    if (pctR >= 50) {
-      // Rule-based: 100-day for fast tactical, 200-day for standard
-      strategyPeriodA = pctT >= 70 ? 100 : 200;
+  if (pctA >= 70 || pctT >= 70) {
+    if (pctT >= 70) {
+      strategyPeriodA = 50; // 50-day line for fast tactical response
+    } else if (pctR >= 50) {
+      strategyPeriodA = 100; // 100-day line for rule-based trend
     } else {
-      // Intuitive: 20-day for fast short-term, 50-day for mid-term
-      strategyPeriodA = pctT >= 70 ? 20 : 50;
+      strategyPeriodA = 200; // 200-day line for standard long-term trend
     }
+  } else {
+    strategyPeriodA = 0; // Pure Buy & Hold DCA
   }
 
   const isDefenseActive = strategyPeriodA > 0;
 
-  // Risk asset helper: Only high-volatility growth assets get defense switch
+  // Helper: Only high-volatility risk assets receive moving average defense switching
   const isHighRiskAsset = (id: string) =>
     ['QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC', 'ETH', 'SPY', 'QQQ'].includes(id);
 
   // =========================================================================
-  // STEP 2: Calibrate Dynamic Portfolio Allocation based on exact scores
+  // STEP 2: Calibrate Dynamic Portfolio Allocation based on score tiers
   // =========================================================================
   let rawPortfolio: { assetId: string; weight: number }[] = [];
   const round5 = (val: number) => Math.min(100, Math.max(0, Math.round(val / 5) * 5));
@@ -120,7 +121,7 @@ export function calculatePersonalitySimulatorConfig(
       ];
     }
   }
-  // TIER 2: ACTIVE / HYBRID (A >= 50%) -> Dynamic Multi-Asset / Leverage Allocation
+  // TIER 2: ACTIVE / HYBRID (A >= 50% or P < 50%) -> Multi-Asset & Leverage Allocations
   else {
     if (pctG >= 75) {
       rawPortfolio = [
@@ -156,53 +157,25 @@ export function calculatePersonalitySimulatorConfig(
     }
   }
 
-  // Assign defense ONLY to high-volatility risk assets when defense is active
+  // Assign defense ONLY to high-volatility risk assets when defense is active for top tier
   const portfolioA: SelectedAsset[] = rawPortfolio.map((item) => ({
     ...item,
     enableDefense: isDefenseActive && isHighRiskAsset(item.assetId),
   }));
 
   // =========================================================================
-  // STEP 3: Multi-Axis Target Goal & Actual Backtest Metric Synchronization
+  // STEP 3: Multi-Axis Target Goals (Whole Integer Format)
+  // Target CAGR: 8% ~ 25% (G Score Driven)
+  // Target Max MDD: 12% ~ 45% (G Score Driven, reduced by Active Top Tier Defense)
   // =========================================================================
 
-  // Calculate actual expected CAGR from backtest data
-  let expectedCAGRSum = 0;
-  let weightedVolSum = 0;
+  const targetCAGRFloat = 8 + (pctG / 100) * 17; // 8% to 25%
+  const recommendedTargetCAGR = Math.round(targetCAGRFloat); // Clean integer
 
-  portfolioA.forEach((item) => {
-    const info = assetMap[item.assetId] || { annualCAGR: 0.1, annualVol: 0.15 };
-    let assetCAGR = info.annualCAGR;
-
-    if (item.enableDefense && isDefenseActive) {
-      if (strategyPeriodA === 200 && info.ma200Return) assetCAGR = info.ma200Return;
-      else if (strategyPeriodA === 100 && info.ma100Return) assetCAGR = info.ma100Return;
-      else if (strategyPeriodA === 50 && info.ma50Return) assetCAGR = info.ma50Return;
-      else if (strategyPeriodA === 20 && info.ma50Return) assetCAGR = info.ma50Return;
-    }
-
-    expectedCAGRSum += (item.weight / 100) * assetCAGR;
-
-    // Defense reduces volatility & max drawdown of risk asset
-    let assetVol = info.annualVol;
-    if (item.enableDefense && isDefenseActive) {
-      assetVol *= 0.55; // 200MA/Defense reduces drawdown by ~45%
-    }
-    weightedVolSum += (item.weight / 100) * assetVol;
-  });
-
-  const actualCAGRPercent = Math.round(expectedCAGRSum * 1000) / 10; // e.g. 15.2 (%)
-  const actualMDDPercent = Math.min(65, Math.max(8, Math.round(weightedVolSum * 2.1 * 1000) / 10)); // e.g. 22.5 (%)
-
-  // Multi-Axis Target Goals calculation calibrated for realistic DCA expectations
-  // Target CAGR follows pctG score (8.0% ~ 16.0% DCA range)
-  const scoreTargetCAGR = Math.round((8 + (pctG / 100) * 8) * 10) / 10;
-
-  // Target Max MDD follows pctS & pctL scores (10.0% ~ 35.0% DCA range)
-  const scoreMaxMDD = Math.round((10 + ((100 - pctS) / 100) * 25) * 10) / 10;
-
-  const recommendedTargetCAGR = scoreTargetCAGR;
-  const recommendedMaxMDD = scoreMaxMDD;
+  const baseMDDFloat = 12 + (pctG / 100) * 33; // 12% to 45%
+  const defenseDiscount = isDefenseActive ? (strategyPeriodA === 50 ? 8 : strategyPeriodA === 100 ? 6 : 5) : 0;
+  const targetMDDFloat = Math.max(10, Math.min(45, baseMDDFloat - defenseDiscount));
+  const recommendedMaxMDD = Math.round(targetMDDFloat); // Clean integer
 
   // STEP 4: Default Benchmark Portfolio B
   const portfolioB: SelectedAsset[] = [
@@ -223,3 +196,4 @@ export function calculatePersonalitySimulatorConfig(
     strategyPeriodB,
   };
 }
+
