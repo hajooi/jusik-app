@@ -45,7 +45,7 @@ export default function VideoCoverPlayer({
 }: VideoCoverPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerState, setPlayerState] = useState<'idle' | 'playing' | 'paused' | 'ended'>('idle');
-  const iframeContainerRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const playerRef = useRef<any>(null);
   const IconComponent = ICON_MAP[iconName] || Brain;
 
@@ -59,42 +59,53 @@ export default function VideoCoverPlayer({
     }
   }, []);
 
-  // Initialize YouTube Player after isPlaying becomes true
+  // Bind YouTube Player API to the mounted iframe when playing
   useEffect(() => {
-    if (isPlaying && window.YT && window.YT.Player && iframeContainerRef.current) {
-      playerRef.current = new window.YT.Player(iframeContainerRef.current, {
-        videoId: youtubeId,
-        playerVars: {
-          autoplay: 1,
-          playsinline: 1,
-          rel: 0,
-          enablejsapi: 1,
-          modestbranding: 1,
-          iv_load_policy: 3,
-          fs: 1
-        },
-        events: {
-          onStateChange: (event: any) => {
-            // YT.PlayerState: PLAYING === 1, PAUSED === 2, ENDED === 0
-            if (event.data === 1) {
-              setPlayerState('playing');
-            } else if (event.data === 2) {
-              setPlayerState('paused');
-            } else if (event.data === 0) {
-              setPlayerState('ended');
-              if (onVideoEnded) {
-                onVideoEnded();
+    if (!isPlaying) return;
+
+    let player: any = null;
+
+    const initPlayer = () => {
+      if (iframeRef.current && window.YT && window.YT.Player) {
+        try {
+          player = new window.YT.Player(iframeRef.current, {
+            events: {
+              onStateChange: (event: any) => {
+                // YT.PlayerState: PLAYING === 1, PAUSED === 2, ENDED === 0
+                if (event.data === 1) {
+                  setPlayerState('playing');
+                } else if (event.data === 2) {
+                  setPlayerState('paused');
+                } else if (event.data === 0) {
+                  setPlayerState('ended');
+                  if (onVideoEnded) {
+                    onVideoEnded();
+                  }
+                }
               }
             }
-          }
+          });
+          playerRef.current = player;
+        } catch (e) {
+          console.error('YouTube Player API init error:', e);
         }
-      });
-      setPlayerState('playing');
+      }
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      const prevCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        initPlayer();
+      };
     }
   }, [isPlaying, youtubeId, onVideoEnded]);
 
   const handlePlayClick = () => {
     setIsPlaying(true);
+    setPlayerState('playing');
   };
 
   return (
@@ -122,10 +133,17 @@ export default function VideoCoverPlayer({
       </div>
 
       <div className="relative z-10 w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-[var(--card-surface)] border border-[var(--border-color)]">
-        {/* Render YouTube Iframe container after Play click */}
+        {/* Render YouTube Iframe directly with mobile autoplay & playsinline support */}
         {isPlaying ? (
           <div className="absolute top-0 left-0 w-full h-full">
-            <div ref={iframeContainerRef} className="w-full h-full" />
+            <iframe
+              ref={iframeRef}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`}
+              title={title}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           </div>
         ) : (
           <button
