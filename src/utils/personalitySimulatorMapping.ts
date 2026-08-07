@@ -70,8 +70,8 @@ export function calculatePersonalitySimulatorConfig(
   let strategyPeriodA = 0;
 
   if (pctA >= 70 || pctT >= 70) {
-    if (pctT >= 70) {
-      strategyPeriodA = 50; // 50-day line for fast tactical response
+    if (pctT >= 70 && pctA >= 70) {
+      strategyPeriodA = 100; // 100-day line for fast tactical response with minimal slippage
     } else if (pctR >= 50) {
       strategyPeriodA = 100; // 100-day line for rule-based trend
     } else {
@@ -85,7 +85,7 @@ export function calculatePersonalitySimulatorConfig(
 
   // Helper: Only high-volatility risk assets receive moving average defense switching
   const isHighRiskAsset = (id: string) =>
-    ['QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC', 'ETH', 'SPY', 'QQQ'].includes(id);
+    ['QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC', 'ETH', 'SPY'].includes(id);
 
   // =========================================================================
   // STEP 2: Calibrate Dynamic Portfolio Allocation based on score tiers
@@ -96,7 +96,7 @@ export function calculatePersonalitySimulatorConfig(
   // TIER 1: PASSIVE (P >= 50%) -> Simple 1~3 Representative ETF Combinations
   if (pctP >= 50) {
     if (pctG >= 65) {
-      const qldW = round5(45 + ((pctG - 65) / 35) * 35); // 45% ~ 80%
+      const qldW = round5(50 + ((pctG - 65) / 35) * 30); // 50% ~ 80%
       rawPortfolio = [
         { assetId: 'QLD', weight: qldW },
         { assetId: 'SCHD', weight: 100 - qldW },
@@ -115,9 +115,10 @@ export function calculatePersonalitySimulatorConfig(
       ];
     } else {
       rawPortfolio = [
-        { assetId: 'SPY', weight: 50 },
-        { assetId: 'SCHD', weight: 30 },
-        { assetId: 'QQQ', weight: 20 },
+        { assetId: 'QLD', weight: 20 },
+        { assetId: 'QQQ', weight: 35 },
+        { assetId: 'SPY', weight: 25 },
+        { assetId: 'SCHD', weight: 20 },
       ];
     }
   }
@@ -125,11 +126,10 @@ export function calculatePersonalitySimulatorConfig(
   else {
     if (pctG >= 75) {
       rawPortfolio = [
-        { assetId: 'TQQQ', weight: 35 },
-        { assetId: 'SOXL', weight: 25 },
+        { assetId: 'QLD', weight: 50 },
+        { assetId: 'SOXX', weight: 30 },
         { assetId: 'BTC', weight: 10 },
-        { assetId: 'SCHD', weight: 15 },
-        { assetId: 'GLD', weight: 15 },
+        { assetId: 'SCHD', weight: 10 },
       ];
     } else if (pctG >= 55) {
       rawPortfolio = [
@@ -141,18 +141,17 @@ export function calculatePersonalitySimulatorConfig(
       ];
     } else if (pctS >= 60) {
       rawPortfolio = [
-        { assetId: 'SPY', weight: 30 },
-        { assetId: 'QQQ', weight: 20 },
-        { assetId: 'SCHD', weight: 25 },
-        { assetId: 'GLD', weight: 15 },
-        { assetId: 'IEF', weight: 10 },
+        { assetId: 'SPY', weight: 40 },
+        { assetId: 'SCHD', weight: 30 },
+        { assetId: 'SHY', weight: 20 },
+        { assetId: 'GLD', weight: 10 },
       ];
     } else {
       rawPortfolio = [
+        { assetId: 'QLD', weight: 25 },
         { assetId: 'QQQ', weight: 35 },
-        { assetId: 'SPY', weight: 30 },
-        { assetId: 'SCHD', weight: 20 },
-        { assetId: 'GLD', weight: 15 },
+        { assetId: 'SPY', weight: 25 },
+        { assetId: 'SCHD', weight: 15 },
       ];
     }
   }
