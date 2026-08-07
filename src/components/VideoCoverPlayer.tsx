@@ -114,15 +114,27 @@ export default function VideoCoverPlayer({
   const handlePlayClick = () => {
     setIsPlaying(true);
     setPlayerState('playing');
-    if (playerRef.current && isReadyRef.current && typeof playerRef.current.playVideo === 'function') {
+
+    // Attempt direct API call
+    if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
       try {
         playerRef.current.playVideo();
+        return;
       } catch (e) {
         console.error('Error calling playVideo:', e);
-        pendingPlayRef.current = true;
       }
-    } else {
-      pendingPlayRef.current = true;
+    }
+
+    // Direct postMessage fallback during user gesture event for mobile browsers
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
+          '*'
+        );
+      } catch (e) {
+        console.error('Error postMessage playVideo:', e);
+      }
     }
   };
 
@@ -165,7 +177,7 @@ export default function VideoCoverPlayer({
         <div className="absolute top-0 left-0 w-full h-full">
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3${isPlaying ? '&autoplay=1' : ''}`}
+            src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3`}
             title={title}
             className={`w-full h-full border-0 transition-opacity duration-300 ${
               isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
