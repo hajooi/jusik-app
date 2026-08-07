@@ -47,6 +47,8 @@ export default function VideoCoverPlayer({
   const [playerState, setPlayerState] = useState<'idle' | 'playing' | 'paused' | 'ended'>('idle');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const playerRef = useRef<any>(null);
+  const isReadyRef = useRef(false);
+  const pendingPlayRef = useRef(false);
   const IconComponent = ICON_MAP[iconName] || Brain;
 
   // Load YouTube Iframe API and initialize pre-mounted player
@@ -58,6 +60,17 @@ export default function VideoCoverPlayer({
         try {
           player = new window.YT.Player(iframeRef.current, {
             events: {
+              onReady: (event: any) => {
+                isReadyRef.current = true;
+                if (pendingPlayRef.current) {
+                  try {
+                    event.target.playVideo();
+                  } catch (e) {
+                    console.error('Error calling playVideo onReady:', e);
+                  }
+                  pendingPlayRef.current = false;
+                }
+              },
               onStateChange: (event: any) => {
                 // YT.PlayerState: PLAYING === 1, PAUSED === 2, ENDED === 0
                 if (event.data === 1) {
@@ -101,31 +114,44 @@ export default function VideoCoverPlayer({
   const handlePlayClick = () => {
     setIsPlaying(true);
     setPlayerState('playing');
-    if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+    if (playerRef.current && isReadyRef.current && typeof playerRef.current.playVideo === 'function') {
       try {
         playerRef.current.playVideo();
       } catch (e) {
         console.error('Error calling playVideo:', e);
+        pendingPlayRef.current = true;
       }
+    } else {
+      pendingPlayRef.current = true;
     }
   };
+
+  const lightOpacity =
+    playerState === 'playing' ? 0.92 :
+    playerState === 'paused' ? 0.35 :
+    playerState === 'ended' ? 0.25 : 0.68;
+
+  const darkOpacity =
+    playerState === 'playing' ? 0.65 :
+    playerState === 'paused' ? 0.22 :
+    playerState === 'ended' ? 0.15 : 0.45;
 
   return (
     <div className="relative w-full group/ambient-container my-4">
       {/* 
         Dual-Layer Crossfade Ambient Glow (No Border Artifacts & 2.5s Echo Fade)
+        Light Mode: Enhanced strength (playing 0.92 / idle 0.68)
+        Dark Mode: Preserved current strength (playing 0.65 / idle 0.45)
       */}
       <div 
-        className="absolute -inset-4 sm:-inset-6 rounded-[2.5rem] sm:rounded-[3.5rem] blur-2xl sm:blur-3xl pointer-events-none z-0 overflow-hidden"
+        className="absolute -inset-4 sm:-inset-6 rounded-[2.5rem] sm:rounded-[3.5rem] blur-2xl sm:blur-3xl pointer-events-none z-0 overflow-hidden opacity-[var(--glow-op-light)] dark:opacity-[var(--glow-op-dark)]"
         style={{
           transition: 'opacity 2500ms ease-in-out, transform 2500ms ease-in-out',
-          opacity: 
-            playerState === 'playing' ? 0.65 :
-            playerState === 'paused' ? 0.22 :
-            playerState === 'ended' ? 0.15 : 0.45,
+          '--glow-op-light': lightOpacity,
+          '--glow-op-dark': darkOpacity,
           transform:
             playerState === 'playing' ? 'scale(1.04)' : 'scale(1.00)'
-        }}
+        } as React.CSSProperties}
       >
         {/* Layer A: Ambient Warm Orange Aura */}
         <div className="absolute inset-0 bg-[var(--accent-orange)] rounded-full animate-glow-orange" />
@@ -139,7 +165,7 @@ export default function VideoCoverPlayer({
         <div className="absolute top-0 left-0 w-full h-full">
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3`}
+            src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3${isPlaying ? '&autoplay=1' : ''}`}
             title={title}
             className={`w-full h-full border-0 transition-opacity duration-300 ${
               isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
