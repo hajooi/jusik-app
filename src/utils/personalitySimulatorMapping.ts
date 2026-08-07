@@ -165,16 +165,16 @@ export function calculatePersonalitySimulatorConfig(
 
   // =========================================================================
   // STEP 3: Multi-Axis Target Goals (Whole Integer Format)
-  // Target CAGR: 8% ~ 25% (G Score Driven)
-  // Target Max MDD: 12% ~ 45% (G Score Driven, reduced by Active Top Tier Defense)
+  // Calibrated Target CAGR: 7% ~ 18% (G Score Driven)
+  // Calibrated Target Max MDD: 12% ~ 55% (G Score Driven, reduced by Active Top Tier Defense)
   // =========================================================================
 
-  const targetCAGRFloat = 8 + (pctG / 100) * 17; // 8% to 25%
+  const targetCAGRFloat = 7 + (pctG / 100) * 11; // 7% to 18%
   const recommendedTargetCAGR = Math.round(targetCAGRFloat); // Clean integer
 
-  const baseMDDFloat = 12 + (pctG / 100) * 33; // 12% to 45%
-  const defenseDiscount = isDefenseActive ? (strategyPeriodA === 50 ? 8 : strategyPeriodA === 100 ? 6 : 5) : 0;
-  const targetMDDFloat = Math.max(10, Math.min(45, baseMDDFloat - defenseDiscount));
+  const baseMDDFloat = 12 + (pctG / 100) * 43; // 12% to 55%
+  const defenseDiscount = isDefenseActive ? (strategyPeriodA === 50 ? 8 : strategyPeriodA === 100 ? 12 : 15) : 0;
+  const targetMDDFloat = Math.max(10, Math.min(55, baseMDDFloat - defenseDiscount));
   const recommendedMaxMDD = Math.round(targetMDDFloat); // Clean integer
 
   // STEP 4: Default Benchmark Portfolio B
