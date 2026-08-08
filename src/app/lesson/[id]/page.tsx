@@ -87,8 +87,57 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
 
+  const courseJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: `${lesson.title} (Lv.${level.levelNumber})`,
+    description: lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.',
+    provider: {
+      '@type': 'Organization',
+      name: '주식앱',
+      url: 'https://jusik.app',
+    },
+    educationalLevel: `Lv.${level.levelNumber}`,
+    isAccessibleForFree: true,
+    inLanguage: 'ko-KR',
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: '홈',
+        item: 'https://jusik.app',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: `Lv.${level.levelNumber} ${level.title}`,
+        item: 'https://jusik.app',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: lesson.title,
+        item: `https://jusik.app/lesson/${lesson.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      {/* JSON-LD Educational & Breadcrumb Structured Data for Search Bots */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       
       {/* Top Navigation Bar: [Left] Entire Menu Drawer Trigger | [Right] Return to Home */}
       <div className="flex items-center justify-between gap-3 text-xs sm:text-sm">
