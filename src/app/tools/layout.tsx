@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: '투자 도구 모음 | 주식앱',
-    description: '초보 투자자를 돕는 맞춤형 주식 투자 도구 모음 (jusik.app)',
+    description: '초보 투자자를 돕는 맞춤형 주식 투자 도구 모음',
     url: 'https://jusik.app/tools',
     siteName: '주식앱',
     locale: 'ko_KR',
