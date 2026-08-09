@@ -68,16 +68,15 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
   const handleShare = () => {
     const shareUrl = `${window.location.origin}/tools/type/${profile.code}`;
     const shareTitle = `내 투자 성향: ${profile.name} (${profile.code})`;
-    const shareText = `내 투자 성향은 "${profile.name}(${profile.code})"! 너한테 딱 맞는 주식 투자 스타일도 진단해보자`;
+    const fullText = `내 투자 성향은 "${profile.name}(${profile.code})"! 너한테 딱 맞는 주식 투자 스타일도 진단해보자 👇\n\n${shareUrl}`;
 
     if (navigator.share) {
       navigator.share({
         title: shareTitle,
-        text: shareText,
-        url: shareUrl,
+        text: fullText,
       }).catch(() => { });
     } else {
-      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      navigator.clipboard.writeText(fullText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
