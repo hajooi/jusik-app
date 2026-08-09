@@ -92,42 +92,58 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
           투자 성향 진단 완료
         </span>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
-          당신의 투자 성향 리포트
+          나의 투자 성향
         </h1>
       </div>
 
       {/* Main Personality Card */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-orange)]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="space-y-3 text-center sm:text-left">
-          {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
-          <div className="space-y-2">
-            {percentage !== undefined && percentage > 0 && (
-              <div>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)] animate-pulse">
-                  🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
-                </span>
-              </div>
-            )}
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              {profile.badges.map((b, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
-                  {b}
-                </span>
-              ))}
+        {/* Floating 3D Glass Icon Avatar & Title Section */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
+          {/* Floating 3D Icon Container */}
+          <div className="relative shrink-0 group">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-b from-[var(--card-hover)] to-[var(--bg-main)]/60 p-3 border border-[var(--border-color)] shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center justify-center relative overflow-hidden transition-transform duration-500 group-hover:scale-105">
+              <div className="absolute inset-0 bg-[var(--accent-orange)]/10 rounded-full blur-xl pointer-events-none" />
+              {/* Floating Y-Axis Icon */}
+              <img
+                src={`/types/${profile.code}.png`}
+                alt={`${profile.name} (${profile.code}) 3D 아이콘`}
+                className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-float-y filter drop-shadow-[0_10px_20px_rgba(241,143,1,0.25)] relative z-10 transition-transform duration-300 group-hover:scale-110"
+              />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
-              {profile.name} <span className="text-lg sm:text-xl font-bold text-[var(--accent-orange)] font-mono">({profile.code})</span>
-            </h2>
-          </div>
+          <div className="space-y-3 flex-1">
+            {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
+            <div className="space-y-2">
+              {percentage !== undefined && percentage > 0 && (
+                <div>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)] animate-pulse">
+                    🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+                  </span>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                {profile.badges.map((b, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
+                    {b}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-          <p className="text-sm sm:text-base font-bold text-[var(--accent-orange)] leading-relaxed pt-1">
-            "{profile.tagline}"
-          </p>
+            <div className="space-y-1">
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
+                {profile.name} <span className="text-lg sm:text-xl font-bold text-[var(--accent-orange)] font-mono">({profile.code})</span>
+              </h2>
+            </div>
+
+            <p className="text-sm sm:text-base font-bold text-[var(--accent-orange)] leading-relaxed pt-1">
+              "{profile.tagline}"
+            </p>
+          </div>
         </div>
 
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)] transition-all hover:border-[var(--accent-orange)]/30 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
@@ -263,13 +279,58 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
         </div>
       </div>
 
+      {/* Strengths & Weaknesses Cards */}
+      {(profile.strengths || profile.weaknesses) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* 5 Strengths */}
+          {profile.strengths && (
+            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs">
+              <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                  {profile.name}의 핵심 강점
+                </h3>
+              </div>
+              <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium">
+                {profile.strengths.map((str, idx) => (
+                  <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                    <span className="text-[var(--accent-green)] font-black text-xs shrink-0 mt-0.5">✓</span>
+                    <span>{str}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 5 Weaknesses */}
+          {profile.weaknesses && (
+            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs">
+              <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                  주의해야 할 약점
+                </h3>
+              </div>
+              <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+                {profile.weaknesses.map((weak, idx) => (
+                  <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                    <span className="text-[var(--accent-orange)] font-black text-xs shrink-0 mt-0.5">!</span>
+                    <span>{weak}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Tailored Investment Guidelines Card */}
       {profile.guidelines && (
         <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
             <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
-              {profile.name} 맞춤 투자 지침서
+              {profile.name} 맞춤 가이드
             </h3>
           </div>
 

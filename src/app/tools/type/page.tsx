@@ -23,50 +23,38 @@ function SurveyContent() {
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
 
-  // Restore draft or completed result from LocalStorage or AuthContext
+  // Restore draft or completed result ONCE on component mount to prevent resize/re-render question jump bug
   useEffect(() => {
     try {
       const savedAnswers = localStorage.getItem('jusik_type_answers');
       const savedCompleted = localStorage.getItem('jusik_type_completed');
       const savedPage = localStorage.getItem('jusik_type_current_page');
 
-      if (user) {
-        if (user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
-          setAnswers(user.typeAnswers);
-          setIsCompleted(true);
-        } else {
-          setAnswers({});
-          setIsCompleted(false);
-          setCurrentPage(0);
-        }
-      } else {
-        if (savedAnswers) {
-          const parsedAnswers = JSON.parse(savedAnswers);
-          setAnswers(parsedAnswers);
+      if (user && user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+        setAnswers(user.typeAnswers);
+        setIsCompleted(true);
+      } else if (savedAnswers) {
+        const parsedAnswers = JSON.parse(savedAnswers);
+        setAnswers(parsedAnswers);
 
-          if (savedCompleted === 'true') {
-            setIsCompleted(true);
-          } else if (savedPage !== null) {
-            const pageNum = parseInt(savedPage, 10);
-            if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
-              setCurrentPage(pageNum);
-            }
-          } else {
-            const firstUnansweredIndex = QUESTIONS.findIndex((q) => parsedAnswers[q.id] === undefined);
-            if (firstUnansweredIndex !== -1) {
-              setCurrentPage(Math.floor(firstUnansweredIndex / PAGE_SIZE));
-            }
+        if (savedCompleted === 'true') {
+          setIsCompleted(true);
+        } else if (savedPage !== null) {
+          const pageNum = parseInt(savedPage, 10);
+          if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
+            setCurrentPage(pageNum);
           }
-        } else {
-          setAnswers({});
-          setIsCompleted(false);
-          setCurrentPage(0);
         }
       }
     } catch (e) {
       console.error(e);
     }
-  }, [totalPages, user]);
+  }, []); // Run ONCE on mount!
+
+  // Save currentPage to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('jusik_type_current_page', currentPage.toString());
+  }, [currentPage]);
 
   // Fetch stats (GET read-only) when viewing completed result
   useEffect(() => {
@@ -92,10 +80,20 @@ function SurveyContent() {
   const answeredCount = Object.keys(answers).length;
   const progressPercent = Math.round((answeredCount / QUESTIONS.length) * 100);
 
-  const handleSelectScore = (questionId: number, score: number) => {
+  const handleSelectScore = (questionId: number, score: number, pageIdx: number) => {
     const nextAnswers = { ...answers, [questionId]: score };
     setAnswers(nextAnswers);
     localStorage.setItem('jusik_type_answers', JSON.stringify(nextAnswers));
+
+    // Native smooth auto-scroll to next question card without fixed pixel offsets
+    if (pageIdx < pageQuestions.length - 1) {
+      setTimeout(() => {
+        const nextEl = document.getElementById(`question-card-${pageIdx + 1}`);
+        if (nextEl) {
+          nextEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 120);
+    }
   };
 
   const isCurrentPageComplete = pageQuestions.every((q) => answers[q.id] !== undefined);
@@ -191,27 +189,35 @@ function SurveyContent() {
 
       {/* Shared Result Invite Card (Shown when arriving via shared link ?result=CODE) */}
       {sharedProfile && !isCompleted && answeredCount === 0 && (
-        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] bg-[var(--card-hover)]/40 relative overflow-hidden">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
-              공유받은 성향
-            </span>
-            <span className="text-xs font-bold text-[var(--accent-orange)]">
-              {sharedProfile.code}
-            </span>
+        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] bg-[var(--card-hover)]/40 relative overflow-hidden flex flex-col sm:flex-row items-center gap-5">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[var(--bg-main)]/80 p-2 border border-[var(--border-color)] flex items-center justify-center shrink-0">
+            <img
+              src={`/types/${sharedProfile.code}.png`}
+              alt={`${sharedProfile.name} 3D 아이콘`}
+              className="w-16 h-16 sm:w-20 sm:h-20 object-contain animate-float-y filter drop-shadow-[0_6px_12px_rgba(241,143,1,0.25)]"
+            />
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
-              이 링크를 공유한 친구는 <span className="text-[var(--accent-orange)]">"{sharedProfile.name}"</span> 유형이에요!
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              "{sharedProfile.tagline}"
-            </p>
-          </div>
+          <div className="space-y-2 flex-1 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
+                공유받은 성향
+              </span>
+              <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
+                ({sharedProfile.code})
+              </span>
+            </div>
 
-          <div className="pt-2 border-t border-[var(--border-color)] flex items-center justify-between gap-3">
-            <p className="text-xs font-bold text-[var(--text-primary)]">
+            <div className="space-y-1">
+              <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
+                친구의 성향: <span className="text-[var(--accent-orange)]">"{sharedProfile.name}"</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                "{sharedProfile.tagline}"
+              </p>
+            </div>
+
+            <p className="text-xs font-bold text-[var(--accent-orange)] pt-1">
               나는 어떤 투자 유형일까? 지금 3분 만에 진단해보세요! 🦉
             </p>
           </div>
@@ -219,7 +225,7 @@ function SurveyContent() {
       )}
 
       {/* Progress & Milestone Header */}
-      <div className="glass-card p-5 rounded-3xl space-y-3 sticky top-3 z-10 backdrop-blur-xl border border-[var(--border-color)] shadow-xs">
+      <div className="glass-card p-5 rounded-3xl space-y-3 border border-[var(--border-color)] shadow-xs">
         <div className="flex items-center justify-between text-xs font-extrabold text-[var(--text-secondary)]">
           <span className="text-[var(--accent-orange)] font-mono flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5" />
@@ -248,7 +254,9 @@ function SurveyContent() {
           return (
             <div
               key={q.id}
-              className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative overflow-hidden transition-all duration-200"
+              id={`question-card-${idx}`}
+              className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative"
+              style={{ transform: 'translateZ(0)', WebkitBackfaceVisibility: 'hidden' }}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono">
@@ -266,33 +274,41 @@ function SurveyContent() {
                 {q.question}
               </h2>
 
-              {/* 5-Point Rating Buttons */}
+              {/* 5-Point Rating Circular Dot Buttons (Clean Aesthetic Radio Dots) */}
               <div className="space-y-3 pt-1">
-                <div className="grid grid-cols-5 gap-2">
+                <div className="flex items-center justify-between w-full gap-2 sm:gap-4 py-2 px-1">
                   {[1, 2, 3, 4, 5].map((score) => {
                     const isSelected = selectedScore === score;
                     return (
                       <button
                         key={score}
-                        onClick={() => handleSelectScore(q.id, score)}
-                        className={`py-3 rounded-2xl font-black text-sm transition-all duration-200 active:scale-95 flex items-center justify-center border ${
+                        onClick={() => handleSelectScore(q.id, score, idx)}
+                        className={`w-10 h-10 sm:w-12 sm:h-12 aspect-square rounded-full transition-all duration-200 active:scale-90 flex items-center justify-center border shrink-0 ${
                           isSelected
-                            ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.4)] scale-[1.03]'
-                            : 'glass-card glass-card-hover text-[var(--text-primary)] border border-[var(--border-color)] hover:text-[var(--accent-orange)] hover:scale-[1.02]'
+                            ? 'bg-[var(--accent-orange)] border-[var(--accent-orange)] shadow-[0_0_16px_rgba(241,143,1,0.5)] scale-105'
+                            : 'glass-card glass-card-hover border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:scale-105'
                         }`}
+                        title={`${score}점 선택`}
+                        aria-label={`점수 ${score}점`}
                       >
-                        {score}
+                        <span
+                          className={`rounded-full transition-all ${
+                            isSelected
+                              ? 'w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white shadow-xs'
+                              : 'w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[var(--text-secondary)]/30 hover:bg-[var(--accent-orange)]/60'
+                          }`}
+                        />
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Left/Right Scale Labels (Clean minimalist wording without emojis) */}
-                <div className="grid grid-cols-2 gap-3 text-xs font-medium text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)]">
-                  <div className="text-left leading-relaxed break-words">
+                {/* Left/Right Scale Labels (Symmetric Balanced Line Wrapping with text-wrap:balance) */}
+                <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm font-semibold text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)]">
+                  <div className="text-left leading-relaxed break-keep [text-wrap:balance]">
                     {q.leftLabel}
                   </div>
-                  <div className="text-right leading-relaxed break-words">
+                  <div className="text-right leading-relaxed break-keep [text-wrap:balance]">
                     {q.rightLabel}
                   </div>
                 </div>
