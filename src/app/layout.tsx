@@ -40,13 +40,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
       { url: '/icon.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    shortcut: ['/favicon.ico', '/icon.png'],
+    shortcut: '/favicon.ico',
     apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
-      { url: '/icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon-precomposed.png', sizes: '180x180', type: 'image/png' },
     ],
   },
   openGraph: {
@@ -97,6 +97,14 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <meta name="naver-site-verification" content="54c4e23bb6d3b18bbcc1924f9f8969f9723e9d63" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="주식앱" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
