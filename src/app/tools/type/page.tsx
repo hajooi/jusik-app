@@ -85,14 +85,16 @@ function SurveyContent() {
     setAnswers(nextAnswers);
     localStorage.setItem('jusik_type_answers', JSON.stringify(nextAnswers));
 
-    // Native smooth auto-scroll to next question card without fixed pixel offsets
+    // Smooth precision auto-scroll to next question card with navbar offset
     if (pageIdx < pageQuestions.length - 1) {
       setTimeout(() => {
         const nextEl = document.getElementById(`question-card-${pageIdx + 1}`);
         if (nextEl) {
-          nextEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          const yOffset = -84; // Perfect breathing space below sticky Navbar (64px + 20px)
+          const y = nextEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
         }
-      }, 120);
+      }, 100);
     }
   };
 
