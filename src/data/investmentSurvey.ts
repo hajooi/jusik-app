@@ -506,7 +506,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GPTI: {
     code: 'GPTI',
-    name: '바람의 파도꾼',
+    name: '유연한 트레이더',
     tagline: '시장의 뉴스 분위기와 오르내림을 기분 좋게 타고 내리는 파도꾼',
     description: '복잡한 재무제표나 고정된 규칙 대신, 시장의 짧은 분위기와 뉴스 기사를 빠르게 판단해서 주식 시장의 오르내림을 기분 좋게 타고 내리는 타입입니다.',
     recommendedStrategy: '스윙 매매, 시장 과매도 시 직관적 매수, 단기 랠리 활용',
@@ -535,7 +535,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   // S-Axis (Safety)
   SALR: {
     code: 'SALR',
-    name: '단단한 철벽관',
+    name: '원금 수호 기사',
     tagline: '검증된 안전 자산으로 마음 편히 계좌를守護하는 철벽 수호자',
     description: '힘겹게 모은 원금이 깎이는 것을 매우 싫어해서, 과거 오랫동안 안전하다고 증명된 자산 위주로만 원칙에 맞춰 차곡차곡 모아갑니다.',
     recommendedStrategy: '올웨더/영구 포트폴리오 백테스팅, 상관관계 최소화 자산 배분',
@@ -589,7 +589,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SATR: {
     code: 'SATR',
-    name: '위험 감지 파수꾼',
+    name: '리스크 경보 파수꾼',
     tagline: '하락 기운이 느껴지면 신속히 현금으로 피신하는 정찰병',
     description: '원금을 지키는 것을 가장 중요하게 생각하며, 주식 시장이 위험해 보이거나 하락 기운이 느껴지면 망설이지 않고 주식을 팔아 현금으로 바꿔 피신합니다.',
     recommendedStrategy: '하락장 마켓 타이밍 룰, 이동평균 하회 시 현금화 전략',
@@ -616,7 +616,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SATI: {
     code: 'SATI',
-    name: '위험 회피 자산가',
+    name: '소나기 회피자',
     tagline: '이상한 소문과 불안 기운을 촉으로 감지하고 소중한 돈을 피신시키는 수호자',
     description: '시장의 이상한 소문이나 불안한 분위기를 남들보다 빠르게 감지하고, 손실을 보기 전에 스스로 발을 빼서 소중한 내 원금을 지키는 타입입니다.',
     recommendedStrategy: '위험 감지 시 부분 현금화, 리스크 관리 중심 유연 매매',
@@ -643,7 +643,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPLR: {
     code: 'SPLR',
-    name: '적립식 자산가',
+    name: '성실한 농부',
     tagline: '안전한 비율로 자동 적립해두고 편안하게 일상에 몰입하는 수확자',
     description: '자산을 잃지 않는 안전한 비율을 정한 뒤, 매달 자동으로 주식을 구매하게 해두고 마음 편하게 일상과 본업에 집중하는 농부 스타일입니다.',
     recommendedStrategy: '올웨더 자동 정기 리밸런싱, 60/40 자산 배분 적립',
@@ -724,7 +724,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPTI: {
     code: 'SPTI',
-    name: '마음 편한 수호자',
+    name: '마음 편한 휴식가',
     tagline: '불안할 땐 언제든 통장으로 피신해 마음을 챙기는 쉼터지기',
     description: '평소에는 안전한 배당 주식이나 통장 이자로 돈을 모으다가, 시장이 조금이라도 과열되거나 불안해지면 즉시 안전한 통장으로 피신해 마음을 챙깁니다.',
     recommendedStrategy: '안전지수 ETF 중심 운용 + 시장 과열 체감 시 현금 확보',

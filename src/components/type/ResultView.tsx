@@ -144,7 +144,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
           </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)] transition-all hover:border-[var(--accent-orange)]/30 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)]">
           {profile.description}
         </p>
 
@@ -390,17 +390,17 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={handleShare}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card text-[var(--text-primary)] font-extrabold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] hover:scale-[1.01] active:scale-[0.98] transition-all"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-extrabold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.98] transition-all"
         >
-          <Share2 className="w-4 h-4" />
-          {copied ? '결과 링크 복사 완료!' : '내 성향 결과 공유하기'}
+          <Share2 className="w-4 h-4 text-[var(--accent-orange)]" />
+          {copied ? '결과 링크 복사 완료! 🎉' : '내 성향 결과 공유하기'}
         </button>
 
         <button
           onClick={onRestart}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] hover:scale-[1.01] active:scale-[0.98] transition-all"
+          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.98] transition-all"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]" />
           다시 진단하기
         </button>
       </div>
