@@ -46,3 +46,6 @@ export default function TypeLayout({
 }) {
   return <>{children}</>;
 }
+
+
+

@@ -66,7 +66,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?result=${profile.code}`;
+    const shareUrl = `${window.location.origin}/tools/type/${profile.code}`;
     const shareTitle = `내 투자 성향: ${profile.name} (${profile.code})`;
     const shareText = `내 투자 성향은 "${profile.name}(${profile.code})"! 너한테 딱 맞는 주식 투자 스타일도 진단해보자`;
 
