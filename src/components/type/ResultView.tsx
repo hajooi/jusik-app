@@ -102,17 +102,15 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
 
         {/* Floating 3D Glass Icon Avatar & Title Section */}
         <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
-          {/* Floating 3D Icon Container */}
-          <div className="relative shrink-0 group">
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-b from-[var(--card-hover)] to-[var(--bg-main)]/60 p-3 border border-[var(--border-color)] shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center justify-center relative overflow-hidden transition-transform duration-500 group-hover:scale-105">
-              <div className="absolute inset-0 bg-[var(--accent-orange)]/10 rounded-full blur-xl pointer-events-none" />
-              {/* Floating Y-Axis Icon */}
-              <img
-                src={`/types/${profile.code}.png`}
-                alt={`${profile.name} (${profile.code}) 3D 아이콘`}
-                className="w-24 h-24 sm:w-32 sm:h-32 object-contain animate-float-y filter drop-shadow-[0_10px_20px_rgba(241,143,1,0.25)] relative z-10 transition-transform duration-300 group-hover:scale-110"
-              />
-            </div>
+          {/* Borderless Floating 3D Icon Container */}
+          <div className="relative shrink-0 group py-2">
+            <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-2xl pointer-events-none" />
+            {/* Larger Borderless Floating Y-Axis Icon */}
+            <img
+              src={`/types/${profile.code}.png`}
+              alt={`${profile.name} (${profile.code}) 3D 아이콘`}
+              className="w-36 h-36 sm:w-44 sm:h-44 object-contain animate-float-y filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.3)] relative z-10 transition-transform duration-300 group-hover:scale-110"
+            />
           </div>
 
           <div className="space-y-3 flex-1">

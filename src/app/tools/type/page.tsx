@@ -190,11 +190,12 @@ function SurveyContent() {
       {/* Shared Result Invite Card (Shown when arriving via shared link ?result=CODE) */}
       {sharedProfile && !isCompleted && answeredCount === 0 && (
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] bg-[var(--card-hover)]/40 relative overflow-hidden flex flex-col sm:flex-row items-center gap-5">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[var(--bg-main)]/80 p-2 border border-[var(--border-color)] flex items-center justify-center shrink-0">
+          <div className="relative shrink-0 py-1">
+            <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-xl pointer-events-none" />
             <img
               src={`/types/${sharedProfile.code}.png`}
               alt={`${sharedProfile.name} 3D 아이콘`}
-              className="w-16 h-16 sm:w-20 sm:h-20 object-contain animate-float-y filter drop-shadow-[0_6px_12px_rgba(241,143,1,0.25)]"
+              className="w-24 h-24 sm:w-28 sm:h-28 object-contain animate-float-y filter drop-shadow-[0_8px_16px_rgba(241,143,1,0.25)] relative z-10"
             />
           </div>
 
