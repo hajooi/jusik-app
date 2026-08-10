@@ -562,9 +562,9 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SALI: {
     code: 'SALI',
-    name: '돌다리 감정평가사',
-    tagline: '100번 검증해 확신이 선 안전한 기업만 골라내는 감정사',
-    description: '내가 꼼꼼히 조사해서 100% 잘 알고 있는 대기업이나 안전한 주식만 고르고, 확실히 안전하다고 판단될 때만 조심스럽게 주식을 사는 감정사입니다.',
+    name: '신중한 가치 검증가',
+    tagline: '100번 검증해 확신이 선 안전한 기업만 골라내는 검증가',
+    description: '내가 꼼꼼히 조사해서 100% 잘 알고 있는 대기업이나 안전한 주식만 고르고, 확실히 안전하다고 판단될 때만 조심스럽게 주식을 사는 검증가입니다.',
     recommendedStrategy: '고배당 우량주 분석 및 장기 보유, 안전 이익 구조 검증',
     suitableAssets: ['배당 귀족주 (KO, PG)', 'SCHD', '단기 국채'],
     badges: ['안전형 🛡️', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
@@ -589,7 +589,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SATR: {
     code: 'SATR',
-    name: '리스크 경보 파수꾼',
+    name: '리스크 감시원',
     tagline: '하락 기운이 느껴지면 신속히 현금으로 피신하는 정찰병',
     description: '원금을 지키는 것을 가장 중요하게 생각하며, 주식 시장이 위험해 보이거나 하락 기운이 느껴지면 망설이지 않고 주식을 팔아 현금으로 바꿔 피신합니다.',
     recommendedStrategy: '하락장 마켓 타이밍 룰, 이동평균 하회 시 현금화 전략',
