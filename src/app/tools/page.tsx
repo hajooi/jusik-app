@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles, Clock, LineChart, BookOpen, CandlestickChart } from 'lucide-react';
+import { Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt } from 'lucide-react';
 
 export default function ToolsPage() {
   const tools = [
@@ -18,6 +18,14 @@ export default function ToolsPage() {
       icon: LineChart,
       tag: '수익률 시뮬레이션',
       isComingSoon: false,
+    },
+    {
+      title: 'ETF 수수료 정리',
+      description: '표시된 보수 말고 진짜 떼어가는 수수료는 얼마일까? 매달 달라지는 ETF 실질 수수료 정리',
+      href: '#',
+      icon: Receipt,
+      tag: '실질 수수료',
+      isComingSoon: true,
     },
     {
       title: '나의 투자일지',
