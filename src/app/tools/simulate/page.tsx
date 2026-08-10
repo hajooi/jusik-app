@@ -981,33 +981,37 @@ function SimulatorContent() {
           );
         }, [portfolioA, portfolioB, simulation.points])}
 
-        {/* RESERVED FIXED HEIGHT CONTAINER */}
-        <div className="h-11 flex items-center">
-          {dragRangeInfo && (
-            <div className="w-full p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-[var(--text-primary)] shadow-2xs">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[var(--accent-orange)]">🗓️ {dragRangeInfo.startDate} ~ {dragRangeInfo.endDate}</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-mono">
-                <div>추천 전략: <span className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-mid-green)] font-extrabold' : 'text-red-500 font-extrabold'}>{dragRangeInfo.diffA}%</span></div>
-                <div>커스텀 전략: <span className={Number(dragRangeInfo.diffB) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{dragRangeInfo.diffB}%</span></div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* SVG Canvas */}
+        {/* SVG Canvas Container */}
         <div className="bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative overflow-hidden">
-          <div className="h-8 flex items-center px-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
-            {activeHoverPoint ? (
-              <div className="w-full flex items-center justify-between gap-2 text-[11px]">
-                <span className="text-[var(--text-secondary)]">🗓️ {activeHoverPoint.date} (원금: {activeHoverPoint.invested.toLocaleString()}만)</span>
-                <div className="flex items-center gap-4">
-                  <span>추천 전략: <strong className="text-[var(--accent-mid-green)]">{activeHoverPoint.valA.toLocaleString()}만 ({activeHoverPoint.retA > 0 ? '+' : ''}{activeHoverPoint.retA}%)</strong></span>
-                  <span>커스텀 전략: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.valB.toLocaleString()}만 ({activeHoverPoint.retB > 0 ? '+' : ''}{activeHoverPoint.retB}%)</strong></span>
+          {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER */}
+          <div className="min-h-[42px] flex items-center px-3 py-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
+            {dragRangeInfo ? (
+              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px]">
+                <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold">
+                  <span>🗓️ 구간:</span>
+                  <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate}</span>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
+                  <span>추천 전략: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-mid-green)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{dragRangeInfo.diffA}%</strong></span>
+                  <span>커스텀 전략: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{dragRangeInfo.diffB}%</strong></span>
                 </div>
               </div>
-            ) : null}
+            ) : activeHoverPoint ? (
+              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px]">
+                <div className="flex items-center justify-between sm:justify-start gap-2 text-[var(--text-secondary)]">
+                  <span>🗓️ {activeHoverPoint.date}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--card-surface)] border border-[var(--border-color)]">원금 {activeHoverPoint.invested.toLocaleString()}만</span>
+                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
+                  <span>추천: <strong className="text-[var(--accent-mid-green)]">{activeHoverPoint.valA.toLocaleString()}만 ({activeHoverPoint.retA > 0 ? '+' : ''}{activeHoverPoint.retA}%)</strong></span>
+                  <span>커스텀: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.valB.toLocaleString()}만 ({activeHoverPoint.retB > 0 ? '+' : ''}{activeHoverPoint.retB}%)</strong></span>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full text-center text-[11px] font-medium text-[var(--text-secondary)] py-0.5">
+                💡 차트의 특정 시점이나 구간을 선택해 성과를 비교해보세요
+              </div>
+            )}
           </div>
 
           <svg
