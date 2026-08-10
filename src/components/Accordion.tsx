@@ -46,10 +46,10 @@ export default function Accordion({ levels }: AccordionProps) {
   const completedCount = completedLessons.filter((id) => allLessons.some((l) => l.id === id)).length;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
-  // 상위 % 계산 (단순 미니멀 표현)
+  // 상위 % 계산 (서버 DB 실제 수강회원 석차 백분율 우선 반영)
   const topPercentile = completedCount === 0 
     ? null 
-    : Math.max(1, Math.round(100 - (completedCount / totalLessonCount) * 85));
+    : (user?.rankPercentile ?? Math.max(1, Math.round(100 - (completedCount / totalLessonCount) * 99)));
 
   return (
     <div className="space-y-4 sm:space-y-5">

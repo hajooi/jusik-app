@@ -11,6 +11,7 @@ export interface UserAccount {
   investmentType?: string;
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
+  rankPercentile?: number;
 }
 
 interface AuthContextType {

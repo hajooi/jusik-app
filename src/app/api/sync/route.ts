@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import { getServerDbAsync, saveServerDbAsync, ServerUserRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
+function computeRankPercentile(db: Record<string, any>, completedLessons?: string[]) {
+  const allUsers = Object.values(db);
+  const targetCompletedCount = completedLessons ? completedLessons.length : 0;
+  if (targetCompletedCount === 0) return null;
+  const strictlyHigherUsersCount = allUsers.filter((u) => (u.completedLessons ? u.completedLessons.length : 0) > targetCompletedCount).length;
+  const userRank = strictlyHigherUsersCount + 1;
+  return Math.max(1, Math.round((userRank / Math.max(1, allUsers.length)) * 100));
+}
+
 // GET /api/sync?nickname=...&pin=...
 export async function GET(request: Request) {
   try {
@@ -28,6 +37,8 @@ export async function GET(request: Request) {
     db[nickname] = userRecord;
     await saveServerDbAsync(db);
 
+    const rankPercentile = computeRankPercentile(db, userRecord.completedLessons);
+
     return NextResponse.json({
       success: true,
       user: {
@@ -37,7 +48,8 @@ export async function GET(request: Request) {
         completedLessons: userRecord.completedLessons || [],
         investmentType: userRecord.investmentType,
         typeAnswers: userRecord.typeAnswers,
-        simulatorSettings: userRecord.simulatorSettings
+        simulatorSettings: userRecord.simulatorSettings,
+        rankPercentile
       }
     });
   } catch (error) {
@@ -94,6 +106,8 @@ export async function POST(request: Request) {
         db[trimmedNickname] = existing;
         await saveServerDbAsync(db);
 
+        const rankPercentile = computeRankPercentile(db, existing.completedLessons);
+
         return NextResponse.json({
           success: true,
           user: {
@@ -103,7 +117,8 @@ export async function POST(request: Request) {
             completedLessons: existing.completedLessons,
             investmentType: existing.investmentType,
             typeAnswers: existing.typeAnswers,
-            simulatorSettings: existing.simulatorSettings
+            simulatorSettings: existing.simulatorSettings,
+            rankPercentile
           }
         });
       } else {
@@ -120,6 +135,8 @@ export async function POST(request: Request) {
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
 
+        const rankPercentile = computeRankPercentile(db, newRecord.completedLessons);
+
         return NextResponse.json({
           success: true,
           user: {
@@ -129,7 +146,8 @@ export async function POST(request: Request) {
             completedLessons: newRecord.completedLessons,
             investmentType: newRecord.investmentType,
             typeAnswers: newRecord.typeAnswers,
-            simulatorSettings: newRecord.simulatorSettings
+            simulatorSettings: newRecord.simulatorSettings,
+            rankPercentile
           }
         });
       }
@@ -149,6 +167,8 @@ export async function POST(request: Request) {
       db[trimmedNickname] = existing;
       await saveServerDbAsync(db);
 
+      const rankPercentile = computeRankPercentile(db, existing.completedLessons);
+
       return NextResponse.json({
         success: true,
         user: {
@@ -158,7 +178,8 @@ export async function POST(request: Request) {
           completedLessons: existing.completedLessons,
           investmentType: existing.investmentType,
           typeAnswers: existing.typeAnswers,
-          simulatorSettings: existing.simulatorSettings
+          simulatorSettings: existing.simulatorSettings,
+          rankPercentile
         }
       });
     }
