@@ -369,7 +369,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
                         {/* Optional Fee Benefit Grid Items */}
                         {module.benefits && module.benefits.length > 0 && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[var(--border-color)]/60">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[var(--border-color)]">
                             {module.benefits.map((b, bIdx) => (
                               <div
                                 key={bIdx}

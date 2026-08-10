@@ -57,27 +57,28 @@ export default function Accordion({ levels }: AccordionProps) {
       {/* 🔒 로그인 한 상태(user)일 때만 내 학습 수강 진도율 프로그레스 바 표시 */}
       {user && (
         <div className="glass-card p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-2.5 shadow-2xs animate-fade-in">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5 font-bold text-[var(--text-primary)]">
-              <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
-              <span>{user.nickname}님의 학습 수강 진도율</span>
-              {topPercentile !== null && (
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-transparent">
-                  상위 {topPercentile}%
-                </span>
-              )}
+          {/* Top Row: Left Nickname / Right Percentile Badge */}
+          <div className="flex items-center justify-between gap-2 text-xs sm:text-sm font-bold">
+            <div className="flex items-center gap-1.5 text-[var(--text-primary)] min-w-0">
+              <Sparkles className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
+              <span className="truncate">{user.nickname}님의 학습 진도</span>
             </div>
-            <div className="font-mono text-xs font-bold text-[var(--accent-orange)]">
-              {completedCount} / {totalLessonCount}강 완료 ({progressPercent}%)
-            </div>
+            {topPercentile !== null && (
+              <span className="shrink-0 text-[10px] sm:text-xs font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-transparent">
+                상위 {topPercentile}%
+              </span>
+            )}
           </div>
 
-          {/* Progress Track */}
-          <div className="w-full h-2.5 rounded-full bg-[var(--card-hover)] overflow-hidden">
+          {/* Progress Track with embedded count text */}
+          <div className="relative w-full h-5 sm:h-5.5 rounded-full bg-[var(--card-hover)] overflow-hidden flex items-center justify-center border border-[var(--border-color)]">
             <div 
-              className="h-full bg-[var(--accent-orange)] transition-all duration-500 rounded-full"
+              className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-all duration-500 rounded-full"
               style={{ width: `${progressPercent}%` }}
             />
+            <span className="relative z-10 font-mono text-[10px] sm:text-xs font-extrabold text-[var(--text-primary)] drop-shadow-xs select-none px-2">
+              {completedCount} / {totalLessonCount}강 완료
+            </span>
           </div>
         </div>
       )}
