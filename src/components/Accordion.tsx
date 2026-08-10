@@ -46,6 +46,11 @@ export default function Accordion({ levels }: AccordionProps) {
   const completedCount = completedLessons.filter((id) => allLessons.some((l) => l.id === id)).length;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
+  // 상위 % 계산 (단순 미니멀 표현)
+  const topPercentile = completedCount === 0 
+    ? null 
+    : Math.max(1, Math.round(100 - (completedCount / totalLessonCount) * 85));
+
   return (
     <div className="space-y-4 sm:space-y-5">
       
@@ -56,6 +61,11 @@ export default function Accordion({ levels }: AccordionProps) {
             <div className="flex items-center gap-1.5 font-bold text-[var(--text-primary)]">
               <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
               <span>{user.nickname}님의 학습 수강 진도율</span>
+              {topPercentile !== null && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-transparent">
+                  상위 {topPercentile}%
+                </span>
+              )}
             </div>
             <div className="font-mono text-xs font-bold text-[var(--accent-orange)]">
               {completedCount} / {totalLessonCount}강 완료 ({progressPercent}%)

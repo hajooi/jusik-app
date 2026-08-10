@@ -40,8 +40,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
       { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
     ],
     shortcut: '/favicon.ico',
     apple: [
@@ -54,6 +55,14 @@ export const metadata: Metadata = {
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
     url: 'https://jusik.app',
     siteName: '주식앱',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1024,
+        height: 537,
+        alt: '주식앱 - 주식 초보를 위한 가장 쉬운 설명서',
+      },
+    ],
     locale: 'ko_KR',
     type: 'website',
   },
@@ -61,6 +70,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -97,11 +107,11 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         <meta name="naver-site-verification" content="54c4e23bb6d3b18bbcc1924f9f8969f9723e9d63" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon-precomposed.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
-        <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="주식앱" />
