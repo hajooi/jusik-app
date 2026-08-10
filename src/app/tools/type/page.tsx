@@ -8,9 +8,9 @@ import ResultView from '@/components/type/ResultView';
 import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-function SurveyContent() {
+function SurveyContent({ initialCode }: { initialCode?: string }) {
   const searchParams = useSearchParams();
-  const sharedCode = searchParams.get('result')?.toUpperCase();
+  const sharedCode = (initialCode || searchParams.get('result'))?.toUpperCase();
   const sharedProfile = sharedCode && PERSONALITY_PROFILES[sharedCode] ? PERSONALITY_PROFILES[sharedCode] : null;
 
   const { user, updateInvestmentType } = useAuth();
@@ -353,10 +353,10 @@ function SurveyContent() {
   );
 }
 
-export default function InvestmentSurveyPage() {
+export default function InvestmentSurveyPage({ initialCode }: { initialCode?: string }) {
   return (
     <React.Suspense fallback={<div className="max-w-4xl mx-auto p-8 text-center text-sm font-bold">로딩 중...</div>}>
-      <SurveyContent />
+      <SurveyContent initialCode={initialCode} />
     </React.Suspense>
   );
 }

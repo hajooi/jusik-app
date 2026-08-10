@@ -22,10 +22,10 @@ export const metadata: Metadata = {
     siteName: '주식앱',
     images: [
       {
-        url: 'https://jusik.app/types/GATR.png',
-        width: 800,
-        height: 800,
-        alt: '투자 성향 3D 아이콘',
+        url: 'https://jusik.app/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: '투자 성향 진단 | 주식앱',
       },
     ],
     locale: 'ko_KR',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '투자 성향 진단 | 나에게 딱 맞는 투자 스타일 찾기',
     description: '40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단',
-    images: ['https://jusik.app/types/GATR.png'],
+    images: ['https://jusik.app/og-image.png'],
   },
 };
 
