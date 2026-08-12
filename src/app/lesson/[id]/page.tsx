@@ -182,6 +182,59 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             iconName={level.iconName}
           />
 
+          {/* BOOK MANUSCRIPT SECTIONS */}
+          {lesson.bookSections && lesson.bookSections.length > 0 && (
+            <div className="space-y-8 py-2">
+              {lesson.bookSections.map((section, sIdx) => (
+                <section 
+                  key={sIdx}
+                  className="glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
+                >
+                  <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight flex items-center gap-2.5">
+                    <span className="w-2 h-5 rounded-full bg-[var(--accent-orange)] inline-block shrink-0" />
+                    <span>{section.title}</span>
+                  </h2>
+
+                  {/* Section Image */}
+                  {section.image && (
+                    <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-2xs">
+                      <img
+                        src={section.image.src}
+                        alt={section.image.alt}
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Callout Box if present */}
+                  {section.callout && (
+                    <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[var(--accent-orange)]/10 text-xs sm:text-sm font-extrabold text-[var(--text-primary)] leading-relaxed shadow-2xs">
+                      {section.callout}
+                    </div>
+                  )}
+
+                  {/* Book Paragraphs */}
+                  <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
+                    {section.paragraphs.map((para, pIdx) => {
+                      const isQuote = para.startsWith('"') && para.endsWith('"');
+                      if (isQuote) {
+                        return (
+                          <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                            {para}
+                          </blockquote>
+                        );
+                      }
+                      return (
+                        <p key={pIdx} className="font-medium text-justify">
+                          {para}
+                        </p>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
 
           {/* CONCISE SUMMARY CARD */}
           {lesson.summary && lesson.summary.length > 0 && (
