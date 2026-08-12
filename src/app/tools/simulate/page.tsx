@@ -89,12 +89,23 @@ function SimulatorContent() {
       const lParam = searchParams.get('l');
       const rParam = searchParams.get('r');
 
+      const parseScore = (param: string | null) => {
+        if (param === null || param === undefined || param === '') return 50;
+        const num = Number(param);
+        return isNaN(num) ? 50 : Math.min(100, Math.max(0, num));
+      };
+
+      const gScore = parseScore(gParam);
+      const aScore = parseScore(aParam);
+      const lScore = parseScore(lParam);
+      const rScore = parseScore(rParam);
+
       let typeCode = typeParam;
       let scores = {
-        GS: { G: Number(gParam) || 50, S: 100 - (Number(gParam) || 50) },
-        AP: { A: Number(aParam) || 50, P: 100 - (Number(aParam) || 50) },
-        LT: { L: Number(lParam) || 50, T: 100 - (Number(lParam) || 50) },
-        RI: { R: Number(rParam) || 50, I: 100 - (Number(rParam) || 50) },
+        GS: { G: gScore, S: 100 - gScore },
+        AP: { A: aScore, P: 100 - aScore },
+        LT: { L: lScore, T: 100 - lScore },
+        RI: { R: rScore, I: 100 - rScore },
       };
 
       // Fallback to LocalStorage if query params absent

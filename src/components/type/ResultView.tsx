@@ -301,13 +301,13 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
             </div>
           )}
 
-          {/* 5 Weaknesses */}
+          {/* Weaknesses / Caution */}
           {profile.weaknesses && (
             <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs">
               <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
-                  주의해야 할 약점
+                  ⚠️ 투자 시 주의할 점
                 </h3>
               </div>
               <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
@@ -329,27 +329,27 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
             <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
-              {profile.name} 맞춤 가이드
+              🎯 감정을 이기는 원칙 & 추천 가이드
             </h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
-            {/* Recommendation (나만의 핵심 무기) */}
+            {/* Recommendation (원칙 지침) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>나만의 핵심 무기</span>
+                <span>💡 원칙 지침</span>
               </div>
               <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
                 {profile.guidelines.recommendation}
               </p>
             </div>
 
-            {/* Warning / Caution (이것만은 경계하세요) */}
+            {/* Warning (경고 수칙) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>이것만은 경계하세요</span>
+                <span>🛑 경고 수칙</span>
               </div>
               <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
                 {profile.guidelines.warning}

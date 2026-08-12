@@ -95,17 +95,16 @@ export function calculatePersonalitySimulatorConfig(
 
   // TIER 1: PASSIVE (P >= 50%) -> Simple 1~3 Representative ETF Combinations
   if (pctP >= 50) {
-    if (pctG >= 65) {
-      const qldW = round5(50 + ((pctG - 65) / 35) * 30); // 50% ~ 80%
+    if (pctG >= 70) {
+      const qldW = round5(50 + ((pctG - 70) / 30) * 30); // 50% ~ 80%
       rawPortfolio = [
         { assetId: 'QLD', weight: qldW },
         { assetId: 'SCHD', weight: 100 - qldW },
       ];
-    } else if (pctG >= 45) {
-      const qldW = round5(30 + ((pctG - 45) / 20) * 20); // 30% ~ 50%
+    } else if (pctG >= 50) {
       rawPortfolio = [
-        { assetId: 'QLD', weight: qldW },
-        { assetId: 'SPY', weight: 100 - qldW },
+        { assetId: 'QQQ', weight: 60 },
+        { assetId: 'SPY', weight: 40 },
       ];
     } else if (pctS >= 60) {
       const schdW = round5(50 + ((pctS - 60) / 40) * 30); // 50% ~ 80%
@@ -114,15 +113,15 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'SPY', weight: 100 - schdW },
       ];
     } else {
+      // Safety 50~60% Passive: Pure 1x Representative Portfolio
       rawPortfolio = [
-        { assetId: 'QLD', weight: 20 },
-        { assetId: 'QQQ', weight: 35 },
-        { assetId: 'SPY', weight: 25 },
+        { assetId: 'SPY', weight: 50 },
+        { assetId: 'QQQ', weight: 30 },
         { assetId: 'SCHD', weight: 20 },
       ];
     }
   }
-  // TIER 2: ACTIVE / HYBRID (A >= 50% or P < 50%) -> Multi-Asset & Leverage Allocations
+  // TIER 2: ACTIVE / HYBRID (A >= 50% or P < 50%) -> Multi-Asset Allocations
   else {
     if (pctG >= 75) {
       rawPortfolio = [
@@ -133,11 +132,11 @@ export function calculatePersonalitySimulatorConfig(
       ];
     } else if (pctG >= 55) {
       rawPortfolio = [
-        { assetId: 'QLD', weight: 40 },
+        { assetId: 'QQQ', weight: 50 },
         { assetId: 'SOXX', weight: 20 },
         { assetId: 'BTC', weight: 10 },
-        { assetId: 'SCHD', weight: 15 },
-        { assetId: 'GLD', weight: 15 },
+        { assetId: 'SCHD', weight: 10 },
+        { assetId: 'GLD', weight: 10 },
       ];
     } else if (pctS >= 60) {
       rawPortfolio = [
@@ -147,11 +146,11 @@ export function calculatePersonalitySimulatorConfig(
         { assetId: 'GLD', weight: 10 },
       ];
     } else {
+      // Safety 50~60% Active/Hybrid: Pure 1x Representative Portfolio
       rawPortfolio = [
-        { assetId: 'QLD', weight: 25 },
-        { assetId: 'QQQ', weight: 35 },
-        { assetId: 'SPY', weight: 25 },
-        { assetId: 'SCHD', weight: 15 },
+        { assetId: 'QQQ', weight: 40 },
+        { assetId: 'SPY', weight: 35 },
+        { assetId: 'SCHD', weight: 25 },
       ];
     }
   }
