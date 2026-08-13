@@ -1,6 +1,8 @@
 import { getLessonById, getAllLessons } from '@/data/curriculum';
 import SidebarDrawer from '@/components/SidebarDrawer';
 import LessonVideoSection from '@/components/LessonVideoSection';
+import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
+import WealthComparisonChart from '@/components/WealthComparisonChart';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { 
@@ -182,6 +184,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             iconName={level.iconName}
           />
 
+
+
           {/* BOOK MANUSCRIPT SECTIONS */}
           {lesson.bookSections && lesson.bookSections.length > 0 && (
             <div className="space-y-8 py-2">
@@ -205,6 +209,10 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                       />
                     </div>
                   )}
+
+                  {/* Embedded Interactive Tool */}
+                  {section.interactiveTool === 'class_detector' && <ClassDetectorQuiz />}
+                  {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
 
                   {/* Callout Box if present */}
                   {section.callout && (

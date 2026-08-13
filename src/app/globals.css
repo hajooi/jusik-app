@@ -386,4 +386,24 @@ input[type='range']::-moz-range-thumb:hover {
   will-change: opacity, transform;
 }
 
+/* Pure CSS Zoom In Keyframe Animation for READY & GO Overlay */
+@keyframes zoomInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-zoom-in-fast {
+  animation: zoomInScale 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+
 

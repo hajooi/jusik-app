@@ -329,7 +329,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
             <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
-              🎯 감정을 이기는 원칙 & 추천 가이드
+              감정을 이기는 원칙 & 추천 가이드
             </h3>
           </div>
 
