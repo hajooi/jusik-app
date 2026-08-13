@@ -168,7 +168,7 @@ export default function WealthComparisonChart() {
               자본가
             </span>
             <span className="text-[10px] text-[var(--text-secondary)] font-normal">
-              원금 10억 (고정)
+              원금 10억
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-black text-[var(--text-primary)] font-mono">
