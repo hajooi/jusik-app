@@ -307,7 +307,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
               <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
-                  ⚠️ 투자 시 주의할 점
+                  투자 시 주의할 점
                 </h3>
               </div>
               <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
@@ -338,7 +338,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
             <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>💡 원칙 지침</span>
+                <span>원칙 지침</span>
               </div>
               <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
                 {profile.guidelines.recommendation}
@@ -349,7 +349,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
             <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
               <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>🛑 경고 수칙</span>
+                <span>경고 수칙</span>
               </div>
               <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
                 {profile.guidelines.warning}
@@ -371,7 +371,7 @@ export default function ResultView({ profile, scores, percentage, onRestart }: R
         </div>
         <div className="space-y-1">
           <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
-            내 성향에 딱 맞는 맞춤 전략을 확인해보세요! 🚀
+            내 성향에 딱 맞는 맞춤 전략을 확인해보세요!
           </h3>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
             {profile.name} 유형에 맞춰 추천 전략이 제공됩니다.
