@@ -317,7 +317,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   // G-Axis (Growth)
   GALR: {
     code: 'GALR',
-    name: '데이터 분석 전문가',
+    name: '데이터 분석가',
     tagline: '기업의 실적표와 수치 데이터로 원칙에 맞춰 투자하는 분석가',
     description: '뉴스나 소문 대신 기업의 재무제표와 숫자를 직접 검증하고, 스스로 정한 기준에 맞춰 주식을 사 모아가는 분석파입니다. 순간의 감정이나 시장의 열기에 휩쓸리지 않으며, 긴 호흡으로 자산을 키우는 것을 목표로 합니다.',
     recommendedStrategy: '빅테크 모멘텀 백테스팅, 듀얼 모멘텀 전략, 조건식 자동매매',
@@ -363,7 +363,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GATR: {
     code: 'GATR',
-    name: '트렌드 사냥꾼',
+    name: '추세 공략가',
     tagline: '상승 흐름을 잡고 손실은 신속하게 끊어내는 기동파',
     description: '상승기의 흐름이 보일 때 신속하게 진입하여 이익을 챙기고, 흐름이 꺾이면 미련 없이 규칙을 적용하여 손해를 줄이는 기동파입니다.',
     recommendedStrategy: '상대 모멘텀 전략, 이동평균선 돌파 매매, 단기 리밸런싱',
@@ -386,7 +386,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GATI: {
     code: 'GATI',
-    name: '트렌드 라이더',
+    name: '트렌드 세터',
     tagline: '가장 뜨거운 최신 유행을 직관적으로 캐치하는 감각파',
     description: '세상에서 가장 빠르게 떠오르는 이슈와 트렌드를 감각적으로 캐치해, 상승 분위기에 빠르게 올라타 기회를 노리는 감각파입니다.',
     recommendedStrategy: '핫 테마주 순환매, 주도주 단기 추세 매매, 이슈 대응',
@@ -478,8 +478,8 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GPTI: {
     code: 'GPTI',
-    name: '유연한 트레이더',
-    tagline: '시장의 뉴스와 분위기 흐름을 유연하게 타고 내리는 파도꾼',
+    name: '유연한 탐색가',
+    tagline: '시장의 뉴스와 분위기 흐름을 유연하게 타고 내리는 탐색가',
     description: '복잡한 재무제표나 고정된 규칙 대신, 시장의 분위기와 뉴스 소식을 빠르게 판단해서 오르내림의 기회를 유연하게 활용하는 타입입니다.',
     recommendedStrategy: '스윙 매매, 시장 과매도 시 직관적 매수, 단기 랠리 활용',
     suitableAssets: ['고변동성 개별주', '레버리지 상품'],
@@ -503,7 +503,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   // S-Axis (Safety)
   SALR: {
     code: 'SALR',
-    name: '원금 수호 기사',
+    name: '원금 수호자',
     tagline: '검증된 안전 자산으로 마음 편히 계좌를 수호하는 철벽 방어자',
     description: '힘겹게 모은 원금이 깎이는 것을 매우 피하고 싶어 하며, 과거 오랜 기간 안전하다고 증명된 자산(채권, 금, 대형 배당주 등) 위주로만 원칙에 맞춰 사 모아갑니다.',
     recommendedStrategy: '올웨더/영구 포트폴리오 백테스팅, 상관관계 최소화 자산 배분',
@@ -572,7 +572,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SATI: {
     code: 'SATI',
-    name: '소나기 회피자',
+    name: '위기 감지자',
     tagline: '불안한 기운을 촉으로 감지하고 소중한 원금을 피신시키는 수호자',
     description: '시장의 이상한 소문이나 불안한 분위기를 남들보다 빠르게 감지하고, 손실을 보기 전에 발을 빼서 소중한 원금을 지키는 타입입니다.',
     recommendedStrategy: '위험 감지 시 부분 현금화, 리스크 관리 중심 유연 매매',
@@ -595,8 +595,8 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPLR: {
     code: 'SPLR',
-    name: '성실한 농부',
-    tagline: '안전한 비율로 주식을 모아두고 편안하게 일상에 몰입하는 수확자',
+    name: '꾸준한 적립가',
+    tagline: '안전한 비율로 주식을 모아두고 편안하게 일상에 몰입하는 적립가',
     description: '자산을 잃지 않는 안전한 자산 배분 비율을 정한 뒤, 주식 모으기 시스템을 갖춰두고 마음 편하게 본업과 일상생활에 집중하는 스타일입니다.',
     recommendedStrategy: '올웨더 자동 정기 리밸런싱, 60/40 자산 배분 적립',
     suitableAssets: ['AOA', 'RPAR', 'SPY + AGG 분산 포트폴리오'],
@@ -618,8 +618,8 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPLI: {
     code: 'SPLI',
-    name: '평화로운 적립가',
-    tagline: '시장의 소음에 귀 닫고 미국 대표 지수 주식을 사 모으는 적립가',
+    name: '평화로운 투자자',
+    tagline: '시장의 소음에 귀 닫고 미국 대표 지수 주식을 사 모으는 투자자',
     description: '주식 뉴스나 차트를 복잡하게 보지 않고, 가장 마음이 편안한 미국 대표 지수 주식을 매달 적금 들듯 꾸준히 사 모으며 평화롭게 자산을 모아갑니다.',
     recommendedStrategy: 'S&P 500 / 미국 전체 시장 ETF 매월 정량 자동 구매',
     suitableAssets: ['VOO', 'SPLG', 'VTI'],
@@ -664,8 +664,8 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPTI: {
     code: 'SPTI',
-    name: '마음 편한 휴식가',
-    tagline: '불안할 땐 언제든 통장으로 피신해 마음을 챙기는 쉼터지기',
+    name: '안전지대 지킴이',
+    tagline: '불안할 땐 언제든 통장으로 피신해 마음을 챙기는 지킴이',
     description: '평소에는 안전한 배당 주식이나 통장 이자로 돈을 모으다가, 시장이 조금이라도 과열되거나 불안해지면 즉시 현금으로 피신해 마음의 평화를 챙깁니다.',
     recommendedStrategy: '안전지수 ETF 중심 운용 + 시장 과열 체감 시 현금 확보',
     suitableAssets: ['SCHD', 'SHY (단기채)', 'CMA/현금'],
