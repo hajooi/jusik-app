@@ -253,6 +253,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           scores={myResultData.scores}
           percentage={typePercentage}
           ownerName={user?.nickname}
+          isReadOnly={false}
           onRestart={handleRestart}
         />
 
@@ -368,12 +369,13 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           </Link>
         </div>
 
-        {/* (1) 상단 1순위: 상대방(공유한 친구)의 상세 성향 리포트가 먼저 노출 */}
+        {/* (1) 상단 1순위: 상대방(공유한 친구)의 상세 성향 리포트가 먼저 노출 (isReadOnly=true) */}
         <ResultView
           profile={sharedProfile}
           scores={sharedScores}
           percentage={typePercentage}
           ownerName={friendDisplayName}
+          isReadOnly={true}
           onRestart={handleStartNewTest}
         />
 
@@ -452,6 +454,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           scores={myResultData.scores}
           percentage={typePercentage}
           ownerName={user?.nickname}
+          isReadOnly={false}
           onRestart={handleRestart}
         />
       </div>

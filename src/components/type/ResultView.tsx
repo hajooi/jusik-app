@@ -15,6 +15,7 @@ interface ResultViewProps {
   };
   percentage?: number;
   ownerName?: string;
+  isReadOnly?: boolean;
   onRestart: () => void;
 }
 
@@ -63,11 +64,20 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   },
 };
 
-export default function ResultView({ profile, scores, percentage, ownerName, onRestart }: ResultViewProps) {
+export default function ResultView({ profile, scores, percentage, ownerName, isReadOnly = false, onRestart }: ResultViewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/tools/type/${profile.code}?g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`;
+    const queryParams = new URLSearchParams();
+    if (ownerName && ownerName !== '공유한 친구' && ownerName !== '친구') {
+      queryParams.set('u', ownerName);
+    }
+    queryParams.set('g', scores.GS.G.toString());
+    queryParams.set('a', scores.AP.A.toString());
+    queryParams.set('l', scores.LT.L.toString());
+    queryParams.set('r', scores.RI.R.toString());
+
+    const shareUrl = `${window.location.origin}/tools/type/${profile.code}?${queryParams.toString()}`;
     const fullText = `내 투자 성향은 "${profile.name}(${profile.code})"! 너한테 딱 맞는 주식 투자 스타일도 진단해보자 👇\n\n${shareUrl}`;
 
     if (navigator.share) {
@@ -90,7 +100,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, onR
       {/* Header Title */}
       <div className="text-center py-2">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
-          {ownerName
+          {isReadOnly && ownerName
             ? ownerName === '공유한 친구'
               ? '공유한 친구의 투자 성향'
               : `${ownerName}님의 투자 성향`
@@ -360,8 +370,8 @@ export default function ResultView({ profile, scores, percentage, ownerName, onR
         </div>
       )}
 
-      {/* Simulator Link CTA Card (Shown only for own result) */}
-      {!ownerName && (
+      {/* Simulator Link CTA Card (Shown for own result) */}
+      {!isReadOnly && (
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
           <div className="flex items-center justify-between gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
@@ -390,8 +400,8 @@ export default function ResultView({ profile, scores, percentage, ownerName, onR
         </div>
       )}
 
-      {/* Action Buttons (Shown only for own result) */}
-      {!ownerName && (
+      {/* Action Buttons (Shown for own result) */}
+      {!isReadOnly && (
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
             onClick={handleShare}
