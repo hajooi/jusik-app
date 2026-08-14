@@ -340,9 +340,9 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GALI: {
     code: 'GALI',
-    name: '소신 있는 결단가',
-    tagline: '확신이 서면 꿋꿋하게 주식을 사서 긴 시간 들고 가는 결단가',
-    description: '제대로 공부하거나 경험해서 "이 기업은 세상을 바꾼다"는 확신이 들면 망설임 없이 투자하여 오랫동안 진득하게 들고 가는 소신파입니다.',
+    name: '뚝심의 승부사',
+    tagline: '확신이 서면 흔들림 없이 주식을 사서 끝까지 밀고 가는 승부사',
+    description: '제대로 공부하거나 경험해서 "이 기업은 세상을 바꾼다"는 확신이 들면 망설임 없이 투자하여 오랫동안 진득하게 들고 가는 뚝심파입니다.',
     recommendedStrategy: '주력 개별주 집중 투자, 딥다이브 기업 분석, 주식 구매 후 성과 추적',
     suitableAssets: ['주력 혁신 기업주', 'NVDA', 'TSLA', '테마 대장주'],
     badges: ['수익형 🚀', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
@@ -409,7 +409,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   GPLR: {
     code: 'GPLR',
-    name: '원칙주의 설계자',
+    name: '원칙 설계자',
     tagline: '정해둔 비율과 규칙대로만 담아두고 차분히 운용하는 관리자',
     description: '좋은 주식들을 정해둔 비율로만 나누어 담아두고, 정해진 주기에 비율만 다시 맞춰주며 본업과 일상에 전혀 방해를 받지 않는 시스템 운용자입니다.',
     recommendedStrategy: '변동성 조절 알고리즘, 정기 정량 리밸런싱, 레버리지 적립식 투자',
@@ -526,7 +526,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SALI: {
     code: 'SALI',
-    name: '신중한 가치 검증가',
+    name: '신중한 검증가',
     tagline: '확실히 검증된 안전한 대기업만 골라 신중히 투자하는 검증가',
     description: '꼼꼼히 조사해서 잘 알고 있는 안전한 대기업이나 우량 배당주만 고르고, 확실히 안전하다고 판단될 때만 조심스럽게 투자하는 검증가입니다.',
     recommendedStrategy: '고배당 우량주 분석 및 장기 보유, 안전 이익 구조 검증',
@@ -549,8 +549,8 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SATR: {
     code: 'SATR',
-    name: '리스크 감시원',
-    tagline: '하락 기운이 느껴지면 신속히 현금으로 피신하는 정찰병',
+    name: '위험 경보관',
+    tagline: '하락 기운이 느껴지면 신속히 현금으로 피신하는 경보관',
     description: '원금 지키는 것을 가장 중요하게 생각하며, 시장의 하락 기운이 느껴지면 사전에 정한 매뉴얼에 따라 주식을 팔고 현금으로 피신합니다.',
     recommendedStrategy: '하락장 마켓 타이밍 룰, 이동평균 하회 시 현금화 전략',
     suitableAssets: ['USFR (단기채)', 'S&P500 Index', '현금성 자산'],
@@ -641,7 +641,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
   SPTR: {
     code: 'SPTR',
-    name: '자산 비율 조율사',
+    name: '자산 조율사',
     tagline: '경기 흐름에 맞춰 안전 자산과 현금 비중을 차분히 조율하는 조율사',
     description: '원금 보전을 기본으로 하되, 경기 분위기가 변할 때 사전에 정한 기준에 따라 저렴하게 살 자산과 현금의 비율을 차분히 조율합니다.',
     recommendedStrategy: '정량 자산배분 (LAA/VAA 보수형 모형), 주기적 비중 조절',
