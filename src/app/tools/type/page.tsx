@@ -5,20 +5,47 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
-import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2 } from 'lucide-react';
+import ResultCompareAccordion from '@/components/type/ResultCompareAccordion';
+import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Users, HeartHandshake, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { attachJosa } from '@/utils/koreanJosa';
 
 function SurveyContent({ initialCode }: { initialCode?: string }) {
   const searchParams = useSearchParams();
   const sharedCode = (initialCode || searchParams.get('result'))?.toUpperCase();
   const sharedProfile = sharedCode && PERSONALITY_PROFILES[sharedCode] ? PERSONALITY_PROFILES[sharedCode] : null;
 
+  // Extract shared user scores and nickname if provided in query params
+  const sharedUserName = searchParams.get('u') || '친구';
+  const paramG = searchParams.get('g') ? parseInt(searchParams.get('g')!, 10) : undefined;
+  const paramA = searchParams.get('a') ? parseInt(searchParams.get('a')!, 10) : undefined;
+  const paramL = searchParams.get('l') ? parseInt(searchParams.get('l')!, 10) : undefined;
+  const paramR = searchParams.get('r') ? parseInt(searchParams.get('r')!, 10) : undefined;
+
+  const sharedScores =
+    paramG !== undefined && paramA !== undefined && paramL !== undefined && paramR !== undefined
+      ? {
+          GS: { G: paramG, S: 100 - paramG },
+          AP: { A: paramA, P: 100 - paramA },
+          LT: { L: paramL, T: 100 - paramL },
+          RI: { R: paramR, I: 100 - paramR },
+        }
+      : {
+          GS: { G: 70, S: 30 },
+          AP: { A: 60, P: 40 },
+          LT: { L: 80, T: 20 },
+          RI: { R: 40, I: 60 },
+        };
+
   const { user, updateInvestmentType } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(0); // 0..7 (5 questions per page, 40 total)
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const [justFinishedTest, setJustFinishedTest] = useState(false);
+  const [viewMyComparison, setViewMyComparison] = useState(false);
   const [typePercentage, setTypePercentage] = useState<number | undefined>(undefined);
+  const [isTakingTest, setIsTakingTest] = useState(false);
 
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
@@ -74,7 +101,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   // Page change or completion change scroll to top effect
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentPage, isCompleted]);
+  }, [currentPage, isCompleted, isTakingTest]);
 
   const pageQuestions = QUESTIONS.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const answeredCount = Object.keys(answers).length;
@@ -107,6 +134,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
       localStorage.setItem('jusik_type_current_page', nextPage.toString());
     } else {
       setIsCompleted(true);
+      setIsTakingTest(false);
+      setJustFinishedTest(true);
       localStorage.setItem('jusik_type_completed', 'true');
       const resultData = calculateSurveyResult(answers);
       updateInvestmentType(resultData.typeCode, answers);
@@ -139,14 +168,161 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     setAnswers({});
     setCurrentPage(0);
     setIsCompleted(false);
+    setJustFinishedTest(false);
+    setIsTakingTest(true);
+    setTypePercentage(undefined);
+    localStorage.removeItem('jusik_type_answers');
+    localStorage.removeItem('jusik_type_completed');
+  };
+
+  // Extract 1:1 comparison params if present in shared link (e.g. created from "이 비교 결과 공유하기")
+  const myParamU = searchParams.get('myU');
+  const myParamCode = searchParams.get('myCode')?.toUpperCase();
+  const myParamG = searchParams.get('myG') ? parseInt(searchParams.get('myG')!, 10) : undefined;
+  const myParamA = searchParams.get('myA') ? parseInt(searchParams.get('myA')!, 10) : undefined;
+  const myParamL = searchParams.get('myL') ? parseInt(searchParams.get('myL')!, 10) : undefined;
+  const myParamR = searchParams.get('myR') ? parseInt(searchParams.get('myR')!, 10) : undefined;
+
+  const compareUserFromParams =
+    myParamCode && PERSONALITY_PROFILES[myParamCode] && myParamG !== undefined && myParamA !== undefined && myParamL !== undefined && myParamR !== undefined
+      ? {
+          name: myParamU || '',
+          code: myParamCode,
+          profile: PERSONALITY_PROFILES[myParamCode],
+          scores: {
+            GS: { G: myParamG, S: 100 - myParamG },
+            AP: { A: myParamA, P: 100 - myParamA },
+            LT: { L: myParamL, T: 100 - myParamL },
+            RI: { R: myParamR, I: 100 - myParamR },
+          },
+        }
+      : null;
+
+  const friendDisplayName = sharedUserName && sharedUserName !== '친구' ? `${sharedUserName}` : '공유한 친구';
+  const friendWithSuffix = sharedUserName && sharedUserName !== '친구' ? `${sharedUserName}님` : '공유한 친구';
+
+  const handleStartNewTest = () => {
+    setAnswers({});
+    setCurrentPage(0);
+    setIsCompleted(false);
+    setIsTakingTest(true);
     setTypePercentage(undefined);
     localStorage.removeItem('jusik_type_answers');
     localStorage.removeItem('jusik_type_completed');
     localStorage.removeItem('jusik_type_current_page');
+
+    // 1:1 비교 파라미터(myCode, myU 등)가 URL에 있다면 제거하여 테스트 완료 후 내 결과 + 공유자 궁합으로 직행
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('myCode');
+      url.searchParams.delete('myU');
+      url.searchParams.delete('myG');
+      url.searchParams.delete('myA');
+      url.searchParams.delete('myL');
+      url.searchParams.delete('myR');
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
-  if (isCompleted) {
-    const resultData = calculateSurveyResult(answers);
+  // Case 1: [방금 테스트 완료!] 사용자가 설문을 직접 풀어서 방금 막 끝마친 경우 -> 내 성향 리포트 최우선 + 아래에 친구와의 1:1 궁합 리포트 노출!
+  if (justFinishedTest && isCompleted && Object.keys(answers).length > 0) {
+    const myResultData = calculateSurveyResult(answers);
+
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleRestart}
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+          >
+            <RefreshCw className="w-4 h-4" />
+            다시 진단하기
+          </button>
+          <Link
+            href="/tools"
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            투자도구 목록으로
+          </Link>
+        </div>
+
+        {/* (1) 상단 1순위: 방금 진단한 '나의 투자 성향' 상세 리포트 */}
+        <ResultView
+          profile={myResultData.profile}
+          scores={myResultData.scores}
+          percentage={typePercentage}
+          ownerName={user?.nickname}
+          onRestart={handleRestart}
+        />
+
+        {/* (2) 하단 2순위: 공유받은 친구가 있다면 1:1 궁합 리포트 노출! (내가 기준: targetUser=나) */}
+        {sharedProfile && (
+          <div className="pt-2">
+            <ResultCompareAccordion
+              targetUser={{
+                name: user?.nickname || '나',
+                code: myResultData.typeCode,
+                profile: myResultData.profile,
+                scores: myResultData.scores,
+              }}
+              currentUser={{
+                name: friendDisplayName,
+                code: sharedProfile.code,
+                profile: sharedProfile,
+                scores: sharedScores,
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Case 2: [우선순위 1] 1:1 궁합 전용 공유 링크 (두 사람의 성향이 모두 파라미터로 넘어왔을 때)
+  if (compareUserFromParams && sharedProfile && !isTakingTest) {
+    const myResultData = isCompleted && Object.keys(answers).length > 0 ? calculateSurveyResult(answers) : null;
+
+    // 만약 사용자가 '나와 투자 성향 비교하기' 버튼을 눌렀다면 나와 친구의 1:1 성향 비교 화면만 단독 노출! (내가 기준: targetUser=나)
+    if (viewMyComparison && myResultData) {
+      return (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setViewMyComparison(false)}
+              className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)] cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              공유받은 1:1 성향 비교 다시보기
+            </button>
+            <Link
+              href="/tools"
+              className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              투자도구 목록으로
+            </Link>
+          </div>
+
+          {/* 내가 기준(Left/Top)인 1:1 성향 비교 리포트 단독 렌더링 */}
+          <ResultCompareAccordion
+            targetUser={{
+              name: user?.nickname || '나',
+              code: myResultData.typeCode,
+              profile: myResultData.profile,
+              scores: myResultData.scores,
+            }}
+            currentUser={{
+              name: friendDisplayName,
+              code: sharedProfile.code,
+              profile: sharedProfile,
+              scores: sharedScores,
+            }}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex items-center justify-end">
@@ -159,15 +335,130 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           </Link>
         </div>
 
+        {/* 오직 공유된 두 사람 간의 1:1 궁합 리포트만 단독 노출 */}
+        <ResultCompareAccordion
+          targetUser={{
+            name: friendDisplayName,
+            code: sharedProfile.code,
+            profile: sharedProfile,
+            scores: sharedScores,
+          }}
+          currentUser={compareUserFromParams}
+          onTakeTest={handleStartNewTest}
+          hasMyResult={Boolean(myResultData)}
+          onCompareWithMe={() => setViewMyComparison(true)}
+        />
+      </div>
+    );
+  }
+
+  // Case 3: [우선순위 2] 친구 1인의 성향 공유 링크로 들어왔을 때 (기존 진단 완료자이거나 미진단자)
+  if (sharedProfile && !isTakingTest) {
+    const myResultData = isCompleted && Object.keys(answers).length > 0 ? calculateSurveyResult(answers) : null;
+
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <div className="flex items-center justify-end">
+          <Link
+            href="/tools"
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            투자도구 목록으로
+          </Link>
+        </div>
+
+        {/* (1) 상단 1순위: 상대방(공유한 친구)의 상세 성향 리포트가 먼저 노출 */}
         <ResultView
-          profile={resultData.profile}
-          scores={resultData.scores}
+          profile={sharedProfile}
+          scores={sharedScores}
           percentage={typePercentage}
+          ownerName={friendDisplayName}
+          onRestart={handleStartNewTest}
+        />
+
+        {/* (2) 하단 2순위: 내가 이미 테스트를 완료한 상태라면 1:1 궁합 리포트, 아직 안 했다면 성향 진단 CTA 카드 노출 */}
+        {myResultData ? (
+          <div className="pt-2">
+            <ResultCompareAccordion
+              targetUser={{
+                name: user?.nickname || '나',
+                code: myResultData.typeCode,
+                profile: myResultData.profile,
+                scores: myResultData.scores,
+              }}
+              currentUser={{
+                name: friendDisplayName,
+                code: sharedProfile.code,
+                profile: sharedProfile,
+                scores: sharedScores,
+              }}
+            />
+          </div>
+        ) : (
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_25px_rgba(241,143,1,0.2)] bg-[var(--card-hover)]/40 text-center relative overflow-hidden">
+            <div className="space-y-2">
+              <span className="px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs font-black font-mono inline-block">
+                나의 성향 진단하기
+              </span>
+              <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)]">
+                나는 어떤 투자 유형일까? 지금 3분 만에 진단해보세요!
+              </h3>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+                40문항 테스트를 완료하면 {attachJosa(friendWithSuffix, '과/와')}의 투자 궁합 리포트가 제공됩니다!
+              </p>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={handleStartNewTest}
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-black text-sm border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                나도 내 성향 진단하기 ➔
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 3. [우선순위 3] 공유 링크가 아닌 상태에서 내가 직접 테스트를 완료했을 때
+  if (isCompleted && Object.keys(answers).length > 0) {
+    const myResultData = calculateSurveyResult(answers);
+
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleRestart}
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+          >
+            <RefreshCw className="w-4 h-4" />
+            다시 진단하기
+          </button>
+          <Link
+            href="/tools"
+            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            투자도구 목록으로
+          </Link>
+        </div>
+
+        {/* 내 단독 결과 노출 */}
+        <ResultView
+          profile={myResultData.profile}
+          scores={myResultData.scores}
+          percentage={typePercentage}
+          ownerName={user?.nickname}
           onRestart={handleRestart}
         />
       </div>
     );
   }
+
+
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">

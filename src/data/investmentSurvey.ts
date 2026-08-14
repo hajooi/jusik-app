@@ -28,9 +28,9 @@ export const QUESTIONS: Question[] = [
   {
     id: 1,
     axis: 'GS',
-    question: '주식 시장이 폭락해 내 계좌가 20% 하락했다면 어떤 기분이 드나요?',
-    leftLabel: '불안해서 잠이 안 온다',
-    rightLabel: '더 싸게 살 수 있는 기회라 설렌다',
+    question: '주식 시장이 폭락해 내 계좌가 20% 하락했을 때 내 반응은?',
+    leftLabel: '매우 불안하고 스트레스를 받는다',
+    rightLabel: '덤덤하거나 주식을 더 살 기회로 여긴다',
   },
   {
     id: 2,
@@ -49,7 +49,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 4,
     axis: 'GS',
-    question: '지수 움직임의 2배, 3배를 추종하는 레버리지 상품에 대해 어떻게 생각하나요?',
+    question: '2배, 3배로 수익이나 손실이 커지는 고위험 상품(레버리지)에 대해 어떻게 생각하나요?',
     leftLabel: '위험이 너무 커서 쳐다보지도 않는다',
     rightLabel: '수익률을 극대화하기 위해 적극적으로 활용한다',
   },
@@ -91,9 +91,9 @@ export const QUESTIONS: Question[] = [
   {
     id: 10,
     axis: 'GS',
-    question: '자산을 구성할 때 안전자산에 대한 생각은 어떤가요?',
-    leftLabel: '원금을 지키기 위해 자산 구성에 반드시 넣어야 한다',
-    rightLabel: '전체 수익률을 갉아먹으므로 가급적 뺀다',
+    question: '내 투자 포트폴리오에 금이나 채권 같은 안전자산을 포함시키는 것에 대해 어떻게 생각하나요?',
+    leftLabel: '원금을 지키기 위해 안전자산을 비중 있게 꼭 넣어야 한다',
+    rightLabel: '수익률을 높이기 위해 주식/성장자산 위주로 채우는 것이 좋다',
   },
 
   // --- 2. [실행 축] A (능동형 - Active) vs P (수동형 - Passive) : 10문항 ---
@@ -142,7 +142,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 17,
     axis: 'AP',
-    question: '자산 비중을 다시 맞추는 리밸런싱 작업은 어떻게 진행하나요?',
+    question: '자산 비중을 정기적으로 다시 맞추는 작업(리밸런싱)은 어떻게 진행하나요?',
     leftLabel: '정해둔 정기 주기(분기/연간)에 맞춰 처리한다',
     rightLabel: '내 판단에 따라 종목 비율을 직접 계산하고 조절한다',
   },
@@ -186,7 +186,7 @@ export const QUESTIONS: Question[] = [
   {
     id: 23,
     axis: 'LT',
-    question: '금리나 환율 등 거시 경제 뉴스가 크게 다뤄질 때 어떻게 행동하나요?',
+    question: '금리 인상이나 환율 변동 같은 대형 경제 뉴스가 나올 때 어떻게 행동하나요?',
     leftLabel: '뉴스를 보고 빠르게 현금이나 종목 비중을 교체하고 싶다',
     rightLabel: '단기 소음으로 여기고 원래의 장기 계획을 유지한다',
   },
