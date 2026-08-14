@@ -97,15 +97,20 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* Header Title */}
-      <div className="text-center py-2">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+      {/* Header Title (Left-aligned brand standard) */}
+      <div className="space-y-1 py-1 text-left">
+        <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
           {isReadOnly && ownerName
             ? ownerName === '공유한 친구'
               ? '공유한 친구의 투자 성향'
               : `${ownerName}님의 투자 성향`
             : '나의 투자 성향'}
         </h1>
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+          {isReadOnly && ownerName
+            ? '공유받은 친구의 성향 리포트와 추천 투자 가이드라인입니다.'
+            : '40문항 진단으로 분석한 나의 투자 기질과 맞춤형 위험 관리법입니다.'}
+        </p>
       </div>
 
       {/* Main Personality Card */}
@@ -394,7 +399,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
               className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
             >
-              직접 수익률 테스트해보기 ➔
+              직접 테스트해보기 ➔
             </Link>
           </div>
         </div>
