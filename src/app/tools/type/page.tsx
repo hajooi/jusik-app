@@ -259,21 +259,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           onRestart={handleRestart}
         />
 
-        {/* (2) 댓글 섹션 */}
-        <div className="pt-2">
-          <CommentSection
-            targetKey={typeCommentTab === 'my' ? `type-${myResultData.typeCode}` : 'type-all'}
-            title="댓글"
-            customTabs={[
-              { key: 'all', label: '전체 댓글' },
-              { key: 'my', label: `${myResultData.typeCode} 유형 댓글` },
-            ]}
-            activeTabKey={typeCommentTab}
-            onTabChange={(key) => setTypeCommentTab(key as 'all' | 'my')}
-          />
-        </div>
-
-        {/* (3) 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
+        {/* (2) 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
           <div className="flex items-center justify-between gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
@@ -481,20 +467,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           isReadOnly={false}
           onRestart={handleRestart}
         />
-
-        {/* Investment Type Hybrid Comment Section */}
-        <div className="pt-2">
-          <CommentSection
-            targetKey={typeCommentTab === 'my' ? `type-${myResultData.typeCode}` : 'type-all'}
-            title="댓글"
-            customTabs={[
-              { key: 'all', label: '전체 댓글' },
-              { key: 'my', label: `${myResultData.typeCode} 유형 댓글` },
-            ]}
-            activeTabKey={typeCommentTab}
-            onTabChange={(key) => setTypeCommentTab(key as 'all' | 'my')}
-          />
-        </div>
 
         {/* 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">

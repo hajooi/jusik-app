@@ -1530,14 +1530,6 @@ function SimulatorContent() {
         </p>
       </div>
 
-      {/* Simulator Comments Section */}
-      <div className="pt-2">
-        <CommentSection
-          targetKey="simulate"
-          title="댓글"
-        />
-      </div>
-
     </div>
   );
 }
