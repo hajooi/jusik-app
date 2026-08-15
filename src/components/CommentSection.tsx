@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, FormEvent } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, Sparkles, ShieldCheck } from 'lucide-react';
@@ -254,9 +255,13 @@ export default function CommentSection({
               />
               <span>{user.nickname}</span>
               {user.investmentType && user.investmentType !== '미진단' && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
+                <Link
+                  href={`/tools/type/${user.investmentType}`}
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
+                  title={`${user.investmentType} 성향 상세 리포트 보기`}
+                >
                   {user.investmentType}
-                </span>
+                </Link>
               )}
               {isMasterAdmin && (
                 <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
@@ -333,9 +338,13 @@ export default function CommentSection({
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
                     {root.investmentType && root.investmentType !== '미진단' && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
+                      <Link
+                        href={`/tools/type/${root.investmentType}`}
+                        className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
+                        title={`${root.investmentType} 성향 상세 리포트 보기`}
+                      >
                         {root.investmentType}
-                      </span>
+                      </Link>
                     )}
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
@@ -430,9 +439,13 @@ export default function CommentSection({
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
                               {reply.investmentType && reply.investmentType !== '미진단' && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
+                                <Link
+                                  href={`/tools/type/${reply.investmentType}`}
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
+                                  title={`${reply.investmentType} 성향 상세 리포트 보기`}
+                                >
                                   {reply.investmentType}
-                                </span>
+                                </Link>
                               )}
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-bold">
