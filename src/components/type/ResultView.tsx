@@ -377,7 +377,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
       {/* Simulator Link CTA Card (내 성향에 맞는 투자 방법 안내 - 중앙 정렬 일반 글래스 버튼) */}
       {!isReadOnly && showSimulatorCta && (
-        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.12)]">
+        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden">
           <div className="space-y-1.5 max-w-lg mx-auto">
             <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
               "{profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
