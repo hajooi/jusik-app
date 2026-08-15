@@ -109,7 +109,9 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
           {isReadOnly && ownerName
-            ? '친구가 공유한 투자 성향 진단 결과입니다.'
+            ? ownerName === '공유한 친구'
+              ? '공유된 투자 성향 진단 결과입니다.'
+              : `${ownerName}님의 투자 성향 진단 결과입니다.`
             : '40문항 진단으로 분석한 나의 투자 기질과 맞춤형 위험 관리법입니다.'}
         </p>
       </div>
@@ -240,19 +242,9 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                     <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
                       {leftLabel}({leftCode}) {leftPct}%
                     </span>
-                    {isLeftWinner && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold">
-                        우세
-                      </span>
-                    )}
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    {!isLeftWinner && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold">
-                        우세
-                      </span>
-                    )}
                     <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
                       {rightLabel}({rightCode}) {rightPct}%
                     </span>

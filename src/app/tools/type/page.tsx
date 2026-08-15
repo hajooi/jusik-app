@@ -23,6 +23,11 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   const paramL = searchParams.get('l') ? parseInt(searchParams.get('l')!, 10) : undefined;
   const paramR = searchParams.get('r') ? parseInt(searchParams.get('r')!, 10) : undefined;
 
+  const isCodeG = sharedProfile ? sharedProfile.code[0] === 'G' : true;
+  const isCodeA = sharedProfile ? sharedProfile.code[1] === 'A' : true;
+  const isCodeL = sharedProfile ? sharedProfile.code[2] === 'L' : true;
+  const isCodeR = sharedProfile ? sharedProfile.code[3] === 'R' : true;
+
   const sharedScores =
     paramG !== undefined && paramA !== undefined && paramL !== undefined && paramR !== undefined
       ? {
@@ -32,10 +37,10 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           RI: { R: paramR, I: 100 - paramR },
         }
       : {
-          GS: { G: 70, S: 30 },
-          AP: { A: 60, P: 40 },
-          LT: { L: 80, T: 20 },
-          RI: { R: 40, I: 60 },
+          GS: { G: isCodeG ? 70 : 30, S: isCodeG ? 30 : 70 },
+          AP: { A: isCodeA ? 70 : 30, P: isCodeA ? 30 : 70 },
+          LT: { L: isCodeL ? 70 : 30, T: isCodeL ? 30 : 70 },
+          RI: { R: isCodeR ? 70 : 30, I: isCodeR ? 30 : 70 },
         };
 
   const { user, updateInvestmentType } = useAuth();

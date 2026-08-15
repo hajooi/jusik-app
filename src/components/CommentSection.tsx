@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, FormEvent } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
+import { calculateSurveyResult } from '@/data/investmentSurvey';
 import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2 } from 'lucide-react';
 
 export interface CommentData {
@@ -12,6 +14,7 @@ export interface CommentData {
   content: string;
   avatarUrl?: string;
   investmentType?: string;
+  typeScores?: { g: number; a: number; l: number; r: number };
   createdAt: string;
   parentId?: string | null;
 }
@@ -103,6 +106,19 @@ export default function CommentSection({
 
     try {
       setSubmitting(true);
+
+      // Compute exact type scores if user completed the survey
+      let computedScores: { g: number; a: number; l: number; r: number } | undefined = undefined;
+      if (user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+        const res = calculateSurveyResult(user.typeAnswers);
+        computedScores = {
+          g: res.scores.GS.G,
+          a: res.scores.AP.A,
+          l: res.scores.LT.L,
+          r: res.scores.RI.R,
+        };
+      }
+
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,6 +129,7 @@ export default function CommentSection({
           content: content.trim(),
           avatarUrl: user.avatarUrl,
           investmentType: user.investmentType,
+          typeScores: computedScores,
         }),
       });
       const data = await res.json();
@@ -140,6 +157,19 @@ export default function CommentSection({
 
     try {
       setSubmitting(true);
+
+      // Compute exact type scores if user completed the survey
+      let computedScores: { g: number; a: number; l: number; r: number } | undefined = undefined;
+      if (user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+        const res = calculateSurveyResult(user.typeAnswers);
+        computedScores = {
+          g: res.scores.GS.G,
+          a: res.scores.AP.A,
+          l: res.scores.LT.L,
+          r: res.scores.RI.R,
+        };
+      }
+
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,6 +181,7 @@ export default function CommentSection({
           content: replyContent.trim(),
           avatarUrl: user.avatarUrl,
           investmentType: user.investmentType,
+          typeScores: computedScores,
         }),
       });
       const data = await res.json();
@@ -333,9 +364,17 @@ export default function CommentSection({
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
                     {root.investmentType && root.investmentType !== '미진단' && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                      <Link
+                        href={
+                          root.typeScores
+                            ? `/tools/type/${root.investmentType}?u=${encodeURIComponent(root.nickname)}&g=${root.typeScores.g}&a=${root.typeScores.a}&l=${root.typeScores.l}&r=${root.typeScores.r}`
+                            : `/tools/type/${root.investmentType}`
+                        }
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                        title={`${root.nickname}님의 ${root.investmentType} 성향 상세 결과 보기`}
+                      >
                         {root.investmentType}
-                      </span>
+                      </Link>
                     )}
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
@@ -430,9 +469,17 @@ export default function CommentSection({
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
                               {reply.investmentType && reply.investmentType !== '미진단' && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                                <Link
+                                  href={
+                                    reply.typeScores
+                                      ? `/tools/type/${reply.investmentType}?u=${encodeURIComponent(reply.nickname)}&g=${reply.typeScores.g}&a=${reply.typeScores.a}&l=${reply.typeScores.l}&r=${reply.typeScores.r}`
+                                      : `/tools/type/${reply.investmentType}`
+                                  }
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                  title={`${reply.nickname}님의 ${reply.investmentType} 성향 상세 결과 보기`}
+                                >
                                   {reply.investmentType}
-                                </span>
+                                </Link>
                               )}
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">

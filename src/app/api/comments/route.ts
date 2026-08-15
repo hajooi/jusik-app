@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     const trimmedNick = nickname?.trim();
     const trimmedPin = pin?.trim();
     const trimmedContent = content?.trim();
+    const { typeScores } = body;
 
     if (!trimmedNick || !trimmedPin || !trimmedContent || !targetKey) {
       return NextResponse.json({ success: false, error: '모든 필수 항목을 입력해 주세요.' }, { status: 400 });
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
       content: trimmedContent,
       avatarUrl: avatarUrl || undefined,
       investmentType: investmentType || undefined,
+      typeScores: typeScores && typeof typeScores === 'object' ? typeScores : undefined,
       createdAt: new Date().toISOString(),
       parentId: parentId || null,
     };

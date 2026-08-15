@@ -22,6 +22,7 @@ export interface CommentRecord {
   content: string;
   avatarUrl?: string;
   investmentType?: string;
+  typeScores?: { g: number; a: number; l: number; r: number };
   createdAt: string;
   parentId?: string | null; // 대댓글 부모 ID
 }
