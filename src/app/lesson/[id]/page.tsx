@@ -518,7 +518,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!result) return {};
   const { lesson } = result;
 
-  const title = `${lesson.title} | 주식앱 커리큘럼`;
+  const title = `${lesson.title} | 주식앱`;
   const description = lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.';
   const url = `https://jusik.app/lesson/${lesson.id}`;
 
@@ -538,7 +538,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
           url: '/og-image.png',
           width: 1024,
           height: 537,
-          alt: '주식앱 커리큘럼',
+          alt: `${lesson.title} - 주식앱`,
         },
       ],
       locale: 'ko_KR',
