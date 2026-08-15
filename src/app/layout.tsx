@@ -9,7 +9,7 @@ import { AuthProvider } from '@/context/AuthContext';
 export const metadata: Metadata = {
   metadataBase: new URL('https://jusik.app'),
   title: {
-    default: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    default: '주식앱',
     template: '%s | 주식앱',
   },
   description: '기초부터 차근차근 배우는 단계별 주식 강좌와 실전 투자를 돕는 투자 도구 플랫폼! 주식 초보를 위한 가장 쉬운 설명서',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    title: '주식앱',
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
     url: 'https://jusik.app',
     siteName: '주식앱',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '주식앱 | 주식 초보를 위한 가장 쉬운 설명서',
+    title: '주식앱',
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
     images: ['/og-image.png'],
   },

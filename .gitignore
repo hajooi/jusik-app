@@ -31,3 +31,6 @@ Thumbs.db
 
 # local runtime data storage
 /.data/
+
+# backups & raw assets
+/backup/

@@ -16,6 +16,7 @@ interface ResultViewProps {
   percentage?: number;
   ownerName?: string;
   isReadOnly?: boolean;
+  showSimulatorCta?: boolean;
   onRestart: () => void;
 }
 
@@ -64,7 +65,7 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   },
 };
 
-export default function ResultView({ profile, scores, percentage, ownerName, isReadOnly = false, onRestart }: ResultViewProps) {
+export default function ResultView({ profile, scores, percentage, ownerName, isReadOnly = false, showSimulatorCta = false, onRestart }: ResultViewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -96,7 +97,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header Title (Left-aligned brand standard) */}
       <div className="space-y-1 py-1 text-left">
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
@@ -375,8 +376,29 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </div>
       )}
 
-      {/* Simulator Link CTA Card (Shown for own result) */}
+      {/* Action Buttons (Directly below guidelines for high engagement & sharing) */}
       {!isReadOnly && (
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
+          <button
+            onClick={handleShare}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-extrabold text-sm border border-[var(--accent-orange)]/40 hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.15)] hover:shadow-[0_0_20px_rgba(241,143,1,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <Share2 className="w-4 h-4 text-[var(--accent-orange)]" />
+            {copied ? '궁합 링크 복사 완료! 친구에게 보내보세요 🎉' : '친구에게 공유하고 투자 궁합 확인하기 💖'}
+          </button>
+
+          <button
+            onClick={onRestart}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]" />
+            다시 진단하기
+          </button>
+        </div>
+      )}
+
+      {/* Simulator Link CTA Card (Optional within ResultView if showSimulatorCta is true) */}
+      {!isReadOnly && showSimulatorCta && (
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
           <div className="flex items-center justify-between gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
@@ -402,27 +424,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               직접 테스트해보기 ➔
             </Link>
           </div>
-        </div>
-      )}
-
-      {/* Action Buttons (Shown for own result) */}
-      {!isReadOnly && (
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-extrabold text-sm border border-[var(--accent-orange)]/40 hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.15)] hover:shadow-[0_0_20px_rgba(241,143,1,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Share2 className="w-4 h-4 text-[var(--accent-orange)]" />
-            {copied ? '궁합 링크 복사 완료! 친구에게 보내보세요 🎉' : '친구에게 공유하고 투자 궁합 확인하기 💖'}
-          </button>
-
-          <button
-            onClick={onRestart}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]" />
-            다시 진단하기
-          </button>
         </div>
       )}
     </div>
