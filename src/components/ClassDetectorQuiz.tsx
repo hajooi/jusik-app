@@ -127,14 +127,9 @@ export default function ClassDetectorQuiz() {
       ) : (
         /* 2. 본 퀴즈 화면 (카운트다운 완료 후 나타남) */
         <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
-          {/* Header Badge */}
-          <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs sm:text-sm font-extrabold">
-              <span>🕹️</span>
-              <span>5초 계급 판독기</span>
-            </div>
-            
-            {selectedOption !== null && (
+          {/* Header Action */}
+          {selectedOption !== null && (
+            <div className="flex justify-end">
               <button
                 onClick={handleReset}
                 className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold transition-colors px-2.5 py-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
@@ -142,8 +137,8 @@ export default function ClassDetectorQuiz() {
                 <RotateCcw className="w-3.5 h-3.5" />
                 다시 하기
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Balance Game Title & Question */}
           <div className="text-center py-0.5 space-y-1">
