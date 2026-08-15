@@ -7,6 +7,7 @@ export interface UserAccount {
   pin: string;
   createdAt: string;
   lastLoginAt: string;
+  avatarUrl?: string;
   completedLessons?: string[];
   investmentType?: string;
   typeAnswers?: Record<number, number>;
@@ -32,6 +33,7 @@ interface AuthContextType {
   isLessonCompleted: (lessonId: string) => boolean;
   updateInvestmentType: (typeCode: string, answers: Record<number, number>) => void;
   updateSimulatorSettings: (settings: any) => void;
+  updateAvatar: (avatarUrl: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -250,6 +252,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // 프로필 아바타 이미지 서버 동기화
+  const updateAvatar = (avatarUrl: string) => {
+    if (user && user.nickname) {
+      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const updatedUser: UserAccount = {
+        ...user,
+        pin: userPin,
+        avatarUrl,
+        lastLoginAt: new Date().toISOString()
+      };
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      if (userPin) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname: user.nickname,
+            pin: userPin,
+            avatarUrl,
+            completedLessons,
+            investmentType,
+            typeAnswers,
+            simulatorSettings
+          })
+        }).catch((e) => console.error('Server updateAvatar error:', e));
+      }
+    }
+  };
+
   const markLessonCompleted = (lessonId: string) => {
     if (!completedLessons.includes(lessonId)) {
       const nextList = [...completedLessons, lessonId];
@@ -397,7 +431,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleLessonCompleted,
         isLessonCompleted,
         updateInvestmentType,
-        updateSimulatorSettings
+        updateSimulatorSettings,
+        updateAvatar
       }}
     >
       {children}

@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       success: true,
       user: {
         nickname: userRecord.nickname,
+        avatarUrl: userRecord.avatarUrl,
         createdAt: userRecord.createdAt,
         lastLoginAt: userRecord.lastActiveAt,
         completedLessons: userRecord.completedLessons || [],
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname || !pin) {
@@ -100,6 +101,9 @@ export async function POST(request: Request) {
         if (!existing.simulatorSettings && simulatorSettings) {
           existing.simulatorSettings = simulatorSettings;
         }
+        if (!existing.avatarUrl && avatarUrl) {
+          existing.avatarUrl = avatarUrl;
+        }
 
         existing.lastActiveAt = new Date().toISOString();
 
@@ -112,6 +116,7 @@ export async function POST(request: Request) {
           success: true,
           user: {
             nickname: existing.nickname,
+            avatarUrl: existing.avatarUrl,
             createdAt: existing.createdAt,
             lastLoginAt: existing.lastActiveAt,
             completedLessons: existing.completedLessons,
@@ -125,6 +130,7 @@ export async function POST(request: Request) {
         const newRecord: ServerUserRecord = {
           nickname: trimmedNickname,
           pin,
+          avatarUrl,
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
           completedLessons: completedLessons || [],
@@ -141,6 +147,7 @@ export async function POST(request: Request) {
           success: true,
           user: {
             nickname: newRecord.nickname,
+            avatarUrl: newRecord.avatarUrl,
             createdAt: newRecord.createdAt,
             lastLoginAt: newRecord.lastActiveAt,
             completedLessons: newRecord.completedLessons,
@@ -162,6 +169,7 @@ export async function POST(request: Request) {
       if (investmentType !== undefined) existing.investmentType = investmentType;
       if (typeAnswers !== undefined) existing.typeAnswers = typeAnswers;
       if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
+      if (avatarUrl !== undefined) existing.avatarUrl = avatarUrl;
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
@@ -173,6 +181,7 @@ export async function POST(request: Request) {
         success: true,
         user: {
           nickname: existing.nickname,
+          avatarUrl: existing.avatarUrl,
           createdAt: existing.createdAt,
           lastLoginAt: existing.lastActiveAt,
           completedLessons: existing.completedLessons,

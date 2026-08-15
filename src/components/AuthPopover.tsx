@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw } from 'lucide-react';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 
 interface AuthPopoverProps {
@@ -12,14 +12,57 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
-  const { login, user, logout, isAuthPopoverClosing } = useAuth();
+  const { login, user, logout, updateAvatar, isAuthPopoverClosing } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Client-side image resize via HTML5 Canvas (128x128 compressed WebP/JPEG)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 128;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setIsUploadingAvatar(false);
+          return;
+        }
+
+        // Draw square crop
+        const minDim = Math.min(img.width, img.height);
+        const startX = (img.width - minDim) / 2;
+        const startY = (img.height - minDim) / 2;
+
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        updateAvatar(dataUrl);
+        setIsUploadingAvatar(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +86,13 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
       setIsLoading(false);
     }
   };
+
+  // Avatar source resolution
+  const userAvatarSrc = user?.avatarUrl
+    ? user.avatarUrl
+    : user?.nickname === '주식부엉'
+    ? '/logo.png'
+    : '/default-avatar.png';
 
   return (
     <div 
@@ -85,10 +135,42 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
       {user ? (
         /* Logged in view */
         <div className="space-y-3 pt-1">
-          <div className="p-3.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-1 text-center">
-            <div className="text-[11px] text-[var(--text-secondary)]">현재 로그인 닉네임</div>
-            <div className="text-base font-bold text-[var(--accent-orange)] font-mono">
-              {user.nickname}
+          {/* Profile Avatar & Nickname Card (Centered) */}
+          <div className="p-4 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
+            {/* Centered Avatar with Clickable Camera Overlay */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="relative group shrink-0 cursor-pointer"
+              title="클릭하여 프로필 사진 변경"
+            >
+              <img
+                src={userAvatarSrc}
+                alt={user.nickname}
+                className="w-14 h-14 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:opacity-85"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                <Camera className="w-4 h-4" />
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+
+            {/* Centered Nickname & Status */}
+            <div className="space-y-0.5">
+              <div className="text-[10px] text-[var(--text-secondary)] font-medium">내 계정</div>
+              <div className="text-base font-bold text-[var(--text-primary)] flex items-center justify-center gap-1.5 font-mono">
+                <span>{user.nickname}</span>
+                {user.nickname === '주식부엉' && (
+                  <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-sans font-bold">
+                    관리자
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

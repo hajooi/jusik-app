@@ -10,6 +10,7 @@ export interface CommentData {
   targetKey: string;
   nickname: string;
   content: string;
+  avatarUrl?: string;
   investmentType?: string;
   createdAt: string;
   parentId?: string | null;
@@ -40,6 +41,13 @@ export default function CommentSection({
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Helper to get avatar source
+  const getAvatarSrc = (commentNick: string, avatarUrl?: string) => {
+    if (avatarUrl) return avatarUrl;
+    if (commentNick === '주식부엉') return '/logo.png';
+    return '/default-avatar.png';
+  };
 
   // Fetch comments for current targetKey
   const fetchComments = async (key: string) => {
@@ -103,7 +111,7 @@ export default function CommentSection({
           nickname: user.nickname,
           pin: user.pin,
           content: content.trim(),
-          investmentType: user.investmentType && user.investmentType !== '미진단' ? user.investmentType : undefined,
+          avatarUrl: user.avatarUrl,
         }),
       });
       const data = await res.json();
@@ -140,7 +148,7 @@ export default function CommentSection({
           nickname: user.nickname,
           pin: user.pin,
           content: replyContent.trim(),
-          investmentType: user.investmentType && user.investmentType !== '미진단' ? user.investmentType : undefined,
+          avatarUrl: user.avatarUrl,
         }),
       });
       const data = await res.json();
@@ -192,6 +200,7 @@ export default function CommentSection({
   };
 
   const isMasterAdmin = user?.nickname === '주식부엉' && user?.pin === '418019';
+  const currentUserAvatar = getAvatarSrc(user?.nickname || '', user?.avatarUrl);
 
   return (
     <section className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] bg-[var(--card-surface)] transition-all duration-300">
@@ -235,13 +244,13 @@ export default function CommentSection({
       {user ? (
         <form onSubmit={handleSubmit} className="space-y-2">
           <div className="flex items-center justify-between text-xs px-1">
-            <div className="flex items-center gap-1.5 font-bold text-[var(--text-primary)]">
+            <div className="flex items-center gap-2 font-bold text-[var(--text-primary)]">
+              <img
+                src={currentUserAvatar}
+                alt={user.nickname}
+                className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)]"
+              />
               <span>{user.nickname}</span>
-              {user.investmentType && user.investmentType !== '미진단' && (
-                <span className="px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-mono font-bold">
-                  {user.investmentType}
-                </span>
-              )}
               {isMasterAdmin && (
                 <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
                   <ShieldCheck className="w-3 h-3" /> 관리자
@@ -300,6 +309,7 @@ export default function CommentSection({
           rootComments.map((root) => {
             const replies = repliesMap[root.id] || [];
             const canDeleteRoot = isMasterAdmin || (user && user.nickname === root.nickname);
+            const rootAvatar = getAvatarSrc(root.nickname, root.avatarUrl);
 
             return (
               <div
@@ -309,12 +319,12 @@ export default function CommentSection({
                 {/* Root Comment Header */}
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
+                    <img
+                      src={rootAvatar}
+                      alt={root.nickname}
+                      className="w-6 h-6 rounded-full object-cover border border-[var(--border-color)] bg-[var(--card-surface)] shrink-0 shadow-2xs"
+                    />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
-                    {root.investmentType && (
-                      <span className="px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-mono font-bold">
-                        {root.investmentType}
-                      </span>
-                    )}
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
                         관리자
@@ -338,12 +348,12 @@ export default function CommentSection({
                 </div>
 
                 {/* Root Content */}
-                <p className="text-xs sm:text-sm text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">
+                <p className="text-xs sm:text-sm text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed pl-8">
                   {root.content}
                 </p>
 
                 {/* Reply Button */}
-                <div className="flex items-center gap-2 pt-0.5">
+                <div className="flex items-center gap-2 pt-0.5 pl-8">
                   <button
                     type="button"
                     onClick={() => {
@@ -363,33 +373,37 @@ export default function CommentSection({
 
                 {/* Reply Input Box (Visible when replying) */}
                 {replyingToId === root.id && (
-                  <div className="pt-2 pl-4 border-l-2 border-[var(--accent-orange)]/40 space-y-2">
-                    <div className="relative">
-                      <textarea
-                        rows={2}
-                        maxLength={500}
-                        placeholder={`@${root.nickname}님에게 답글 작성`}
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        className="w-full p-2.5 pr-18 rounded-xl bg-[var(--bg-main)] text-xs text-[var(--text-primary)] border border-[var(--border-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-orange)] resize-none shadow-inner"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleReplySubmit(root.id)}
-                        disabled={!replyContent.trim() || submitting}
-                        className="absolute right-2 bottom-2.5 px-2.5 py-1 rounded-lg bg-[var(--accent-orange)] text-white text-[11px] font-bold flex items-center gap-1 shadow-xs hover:opacity-90 disabled:opacity-40 cursor-pointer"
-                      >
-                        <span>답글 등록</span>
-                      </button>
+                  <div className="pt-2 pl-8 space-y-2">
+                    <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--accent-orange)]/30 space-y-2">
+                      <div className="relative">
+                        <textarea
+                          rows={2}
+                          maxLength={500}
+                          placeholder={`@${root.nickname}님에게 답글 작성`}
+                          value={replyContent}
+                          onChange={(e) => setReplyContent(e.target.value)}
+                          className="w-full p-2.5 pr-18 rounded-xl bg-[var(--bg-main)] text-xs text-[var(--text-primary)] border border-[var(--border-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-orange)] resize-none shadow-inner"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleReplySubmit(root.id)}
+                          disabled={!replyContent.trim() || submitting}
+                          className="absolute right-2 bottom-2.5 px-2.5 py-1 rounded-lg bg-[var(--accent-orange)] text-white text-[11px] font-bold flex items-center gap-1 shadow-xs hover:opacity-90 disabled:opacity-40 cursor-pointer"
+                        >
+                          <span>답글 등록</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {/* Nested Replies List */}
                 {replies.length > 0 && (
-                  <div className="space-y-2 pt-1 pl-4 sm:pl-6 border-l border-[var(--border-color)]">
+                  <div className="space-y-2 pt-1 pl-6 sm:pl-8 border-l border-[var(--border-color)] ml-3">
                     {replies.map((reply) => {
                       const canDeleteReply = isMasterAdmin || (user && user.nickname === reply.nickname);
+                      const replyAvatar = getAvatarSrc(reply.nickname, reply.avatarUrl);
+
                       return (
                         <div
                           key={reply.id}
@@ -397,12 +411,12 @@ export default function CommentSection({
                         >
                           <div className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-1.5">
+                              <img
+                                src={replyAvatar}
+                                alt={reply.nickname}
+                                className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shrink-0"
+                              />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
-                              {reply.investmentType && (
-                                <span className="px-1.5 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[9px] font-mono font-bold">
-                                  {reply.investmentType}
-                                </span>
-                              )}
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-bold">
                                   관리자
@@ -424,7 +438,7 @@ export default function CommentSection({
                               )}
                             </div>
                           </div>
-                          <p className="text-xs text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">
+                          <p className="text-xs text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed pl-6.5">
                             {reply.content}
                           </p>
                         </div>

@@ -11,6 +11,7 @@ export interface ServerUserRecord {
   investmentType?: string;
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
+  avatarUrl?: string;
 }
 
 export interface CommentRecord {
@@ -19,6 +20,7 @@ export interface CommentRecord {
   nickname: string;
   pin: string;
   content: string;
+  avatarUrl?: string;
   investmentType?: string;
   createdAt: string;
   parentId?: string | null; // 대댓글 부모 ID

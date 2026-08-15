@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, targetKey, nickname, pin, content, investmentType, parentId, commentId } = body;
+    const { action, targetKey, nickname, pin, content, investmentType, parentId, commentId, avatarUrl } = body;
 
     // 1. Delete Action
     if (action === 'delete') {
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       nickname: trimmedNick,
       pin: trimmedPin,
       content: trimmedContent,
+      avatarUrl: avatarUrl || undefined,
       investmentType: investmentType || undefined,
       createdAt: new Date().toISOString(),
       parentId: parentId || null,
