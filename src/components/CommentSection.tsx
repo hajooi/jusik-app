@@ -253,8 +253,8 @@ export default function CommentSection({
                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)]"
               />
               <span>{user.nickname}</span>
-              {user.investmentType && (
-                <span className="inline-flex items-center px-2 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+              {user.investmentType && user.investmentType !== '미진단' && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
                   {user.investmentType}
                 </span>
               )}
@@ -332,8 +332,8 @@ export default function CommentSection({
                       className="w-6 h-6 rounded-full object-cover border border-[var(--border-color)] bg-[var(--card-surface)] shrink-0 shadow-2xs"
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
-                    {root.investmentType && (
-                      <span className="inline-flex items-center px-2 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+                    {root.investmentType && root.investmentType !== '미진단' && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
                         {root.investmentType}
                       </span>
                     )}
@@ -429,8 +429,8 @@ export default function CommentSection({
                                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shrink-0"
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
-                              {reply.investmentType && (
-                                <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[9px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+                              {reply.investmentType && reply.investmentType !== '미진단' && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border border-[var(--accent-orange)]/25 leading-none select-none">
                                   {reply.investmentType}
                                 </span>
                               )}

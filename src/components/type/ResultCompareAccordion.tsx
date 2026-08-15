@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PersonalityProfile } from '@/data/investmentSurvey';
+import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { Compass, Zap, Share2, Sparkles } from 'lucide-react';
 import { attachJosa } from '@/utils/koreanJosa';
 
@@ -58,53 +58,52 @@ export default function ResultCompareAccordion({
   if (similarityScore >= 80) {
     chemistryTitle = '🔥 찰떡궁합! 투자 환상의 짝꿍';
     chemistryDesc =
-      '투자를 바라보는 목표, 실행 방식, 심리 기질까지 매우 닮아있어요! 함께 주식 이야기를 나누거나 투자 아이디어를 공유하면 폭발적인 시너지가 납니다.';
+      '투자 목표, 시간 감각, 원칙 등 대부분의 투자 성향이 놀랍도록 일치하여 서로의 판단을 깊이 공감할 수 있는 최고의 파트너입니다!';
+  } else if (similarityScore >= 60) {
+    chemistryTitle = '🤝 조화로운 시너지! 좋은 동반자';
+    chemistryDesc =
+      '비슷한 목표를 공유하면서도 세부적인 실행 방식에서 균형을 맞춰줄 수 있는 건강하고 생산적인 시너지 관계입니다.';
   } else if (similarityScore >= 50) {
     chemistryTitle = '🤝 훌륭한 균형! 조화로운 조력자';
     chemistryDesc =
       '기본적인 방향성은 통하지만 개별 실행 및 심리 방식에서 유연한 차이가 있어요. 서로의 시각을 참고하며 균형 잡힌 투자 전략을 구성하기에 좋습니다.';
   }
 
-  // targetUser is ALWAYS Left User, currentUser is ALWAYS Right User!
-  const isTargetSelf = targetUser.name === '나';
-  const isCurrentSelf = currentUser.name === '나';
+  // Left vs Right Determination
+  const isTargetLeft = targetUser.name !== '공유한 친구' && targetUser.name !== '친구';
+  const leftUser = isTargetLeft
+    ? {
+        name: targetUser.name,
+        code: targetUser.code,
+        profile: targetUser.profile,
+        scores: targetUser.scores,
+        badgeName: targetUser.name,
+      }
+    : {
+        name: currentUser.name,
+        code: currentUser.code,
+        profile: currentUser.profile,
+        scores: currentUser.scores,
+        badgeName: currentUser.name,
+      };
 
-  const formatUserLabel = (name: string, profileName: string, isSelf: boolean) => {
-    if (isSelf) {
-      return '나';
-    }
-    if (!name || name === '공유한 친구' || name === '친구 A' || name === '친구 B' || name === '나' || name === '친구') {
-      return `${profileName}님`;
-    }
-    return `${name}님`;
-  };
+  const rightUser = isTargetLeft
+    ? {
+        name: currentUser.name,
+        code: currentUser.code,
+        profile: currentUser.profile,
+        scores: currentUser.scores,
+        badgeName: currentUser.name === '나' ? '나' : currentUser.name,
+      }
+    : {
+        name: targetUser.name,
+        code: targetUser.code,
+        profile: targetUser.profile,
+        scores: targetUser.scores,
+        badgeName: '공유한 친구',
+      };
 
-  const leftBadge = formatUserLabel(targetUser.name, targetUser.profile.name, isTargetSelf);
-  const rightBadge = formatUserLabel(currentUser.name, currentUser.profile.name, isCurrentSelf);
-
-  const leftUser = {
-    name: targetUser.name,
-    code: targetUser.code,
-    profile: targetUser.profile,
-    badgeName: leftBadge,
-    scores: targetUser.scores,
-    formattedName: leftBadge,
-  };
-
-  const rightUser = {
-    name: currentUser.name,
-    code: currentUser.code,
-    profile: currentUser.profile,
-    badgeName: rightBadge,
-    scores: currentUser.scores,
-    formattedName: rightBadge,
-  };
-
-  const headerTitle = isTargetSelf
-    ? `나와 ${rightBadge}의 투자 성향 비교`
-    : isCurrentSelf
-    ? `${leftBadge}과 나의 투자 성향 비교`
-    : `${leftBadge}과 ${rightBadge}의 투자 성향 비교`;
+  const headerTitle = `${leftUser.badgeName}님과 ${rightUser.badgeName}님의 투자 케미`;
 
   const handleShareComparison = () => {
     const cleanTargetName =
@@ -180,13 +179,13 @@ export default function ResultCompareAccordion({
       title: `${leftGoalLabel} 기준`,
       leftVal: leftGoalVal,
       rightVal: rightGoalVal,
-      diffNote: Math.abs(diffGS) > 30 ? '⚠️ 위험 감수 성향 차이 큼' : '✅ 위험 성향 유사함',
+      diffNote: Math.abs(diffGS) > 30 ? '⚠️ 투자 목표 편차 큼' : '✅ 목표 지향점 유사함',
     },
     {
       title: `${leftActionLabel} 기준`,
       leftVal: leftActionVal,
       rightVal: rightActionVal,
-      diffNote: Math.abs(diffAP) > 30 ? '⚠️ 정보 활용 스타일 차이 큼' : '✅ 정보 활용 스타일 유사함',
+      diffNote: Math.abs(diffAP) > 30 ? '⚠️ 실행 스타일 차이 큼' : '✅ 매매 주기 유사함',
     },
     {
       title: `${leftTimeLabel} 기준`,
@@ -216,13 +215,11 @@ export default function ResultCompareAccordion({
         <div className="flex items-center justify-around gap-2 text-center">
           {/* Left User */}
           <div className="space-y-2 flex-1 flex flex-col items-center">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[var(--accent-green)]/20 rounded-full blur-lg" />
-              <img
-                src={`/types/${leftUser.code}.png`}
-                alt={leftUser.profile.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain relative z-10 animate-float-y filter drop-shadow-md"
-              />
+            <div className="relative py-1">
+              <div className="absolute inset-0 bg-[var(--accent-green)]/25 rounded-full blur-xl" />
+              <span className="text-5xl sm:text-6xl select-none relative z-10 animate-float-y filter drop-shadow-md inline-block">
+                {TYPE_EMOJIS[leftUser.code] || '🦉'}
+              </span>
             </div>
             <div>
               <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] font-mono">
@@ -252,13 +249,11 @@ export default function ResultCompareAccordion({
 
           {/* Right User */}
           <div className="space-y-2 flex-1 flex flex-col items-center">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-lg" />
-              <img
-                src={`/types/${rightUser.code}.png`}
-                alt={rightUser.profile.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain relative z-10 animate-float-y filter drop-shadow-md"
-              />
+            <div className="relative py-1">
+              <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-xl" />
+              <span className="text-5xl sm:text-6xl select-none relative z-10 animate-float-y filter drop-shadow-md inline-block">
+                {TYPE_EMOJIS[rightUser.code] || '🦉'}
+              </span>
             </div>
             <div>
               <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-mono">

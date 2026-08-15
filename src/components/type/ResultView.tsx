@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { PersonalityProfile } from '@/data/investmentSurvey';
+import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface ResultViewProps {
@@ -118,17 +118,16 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
       <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
         <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Floating 3D Glass Icon Avatar & Title Section */}
+        {/* Floating Large Emoji Avatar & Title Section */}
         <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
-          {/* Borderless Floating 3D Icon Container */}
-          <div className="relative shrink-0 group py-2">
-            <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-2xl pointer-events-none" />
-            {/* Larger Borderless Floating Y-Axis Icon */}
-            <img
-              src={`/types/${profile.code}.png`}
-              alt={`${profile.name} (${profile.code}) 3D 아이콘`}
-              className="w-36 h-36 sm:w-44 sm:h-44 object-contain animate-float-y filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.3)] relative z-10 transition-transform duration-300 group-hover:scale-110"
-            />
+          {/* Borderless Pure Floating Large Emoji */}
+          <div className="relative shrink-0 group py-2 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none" />
+            <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative z-10 animate-float-y group-hover:scale-110 transition-transform duration-300">
+              <span className="text-7xl sm:text-8xl select-none filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.22)] leading-none">
+                {TYPE_EMOJIS[profile.code] || '🦉'}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-3 flex-1">
@@ -376,54 +375,47 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </div>
       )}
 
-      {/* Action Buttons (Directly below guidelines for high engagement & sharing) */}
-      {!isReadOnly && (
-        <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <button
-            onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-extrabold text-sm border border-[var(--accent-orange)]/40 hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.15)] hover:shadow-[0_0_20px_rgba(241,143,1,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Share2 className="w-4 h-4 text-[var(--accent-orange)]" />
-            {copied ? '궁합 링크 복사 완료! 친구에게 보내보세요 🎉' : '친구에게 공유하고 투자 궁합 확인하기 💖'}
-          </button>
-
-          <button
-            onClick={onRestart}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)]" />
-            다시 진단하기
-          </button>
-        </div>
-      )}
-
-      {/* Simulator Link CTA Card (Optional within ResultView if showSimulatorCta is true) */}
+      {/* Simulator Link CTA Card (내 성향에 맞는 투자 방법 안내 - 중앙 정렬 일반 글래스 버튼) */}
       {!isReadOnly && showSimulatorCta && (
-        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
-              실전 투자 실습
-            </span>
-            <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
-              {profile.name} 유형
-            </span>
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
+        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.12)]">
+          <div className="space-y-1.5 max-w-lg mx-auto">
+            <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
               "{profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
             </h3>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
               내 성향에 맞춰 주식을 고르고, 과거에 투자했다면 얼마를 벌었을지 직접 확인해볼 수 있어요.
             </p>
           </div>
-          <div className="pt-2">
+          <div className="pt-1 flex justify-center">
             <Link
               href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
-              className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-6 py-3 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] hover:text-[var(--accent-orange)] font-extrabold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 shadow-xs active:scale-[0.98] transition-all cursor-pointer"
             >
-              직접 테스트해보기 ➔
+              <span>직접 테스트해보기</span>
+              <span className="text-[var(--accent-orange)]">➔</span>
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Action Buttons: 💖 공유하기 (주황색 강조 메인 버튼) & 다시 진단하기 (보조 버튼) */}
+      {!isReadOnly && (
+        <div className="flex flex-col sm:flex-row gap-3 pt-1">
+          <button
+            onClick={handleShare}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-black text-sm border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <Share2 className="w-4 h-4 text-white" />
+            <span>{copied ? '궁합 링크 복사 완료! 친구에게 보내보세요 🎉' : '친구에게 공유하고 투자 궁합 확인하기 💖'}</span>
+          </button>
+
+          <button
+            onClick={onRestart}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />
+            <span>다시 진단하기</span>
+          </button>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PERSONALITY_PROFILES, PersonalityProfile } from '@/data/investmentSurvey';
+import { PERSONALITY_PROFILES, PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { X, Sparkles, Compass, Zap, Shield, HeartHandshake, Share2 } from 'lucide-react';
 
 interface ResultCompareModalProps {
@@ -58,23 +58,30 @@ export default function ResultCompareModal({
   if (similarityScore >= 80) {
     chemistryTitle = '🔥 찰떡궁합! 투자 환상의 짝꿍';
     chemistryDesc =
-      '투자를 바라보는 목표, 실행 방식, 심리 기질까지 매우 닮아있어요! 함께 주식 스터디를 하거나 투자 아이디어를 공유하면 폭발적인 시너지가 납니다.';
-  } else if (similarityScore >= 50) {
-    chemistryTitle = '🤝 훌륭한 균형! 조화로운 조력자';
+      '투자 목표, 시간 감각, 원칙 등 대부분의 투자 성향이 놀랍도록 일치하여 서로의 판단을 깊이 공감할 수 있는 최고의 파트너입니다!';
+  } else if (similarityScore >= 60) {
+    chemistryTitle = '🤝 조화로운 시너지! 좋은 동반자';
     chemistryDesc =
-      '기본적인 방향성은 통하지만 개별 실행 및 심리 방식에서 유연한 차이가 있어요. 서로의 시각을 참고하며 균형 잡힌 포트폴리오를 구성하기에 좋습니다.';
+      '비슷한 목표를 공유하면서도 세부적인 실행 방식에서 균형을 맞춰줄 수 있는 건강하고 생산적인 시너지 관계입니다.';
   }
 
   const handleShareComparison = () => {
-    const compareUrl = `${window.location.origin}/tools/type/${targetUser.code}?u=${encodeURIComponent(
-      targetUser.name
-    )}&g=${targetUser.scores.GS.G}&a=${targetUser.scores.AP.A}&l=${targetUser.scores.LT.L}&r=${
-      targetUser.scores.RI.R
-    }&compare=${currentUser.code}&cu=${encodeURIComponent(currentUser.name)}&cg=${
-      currentUser.scores.GS.G
-    }&ca=${currentUser.scores.AP.A}&cl=${currentUser.scores.LT.L}&cr=${currentUser.scores.RI.R}`;
+    const queryParams = new URLSearchParams();
+    if (targetUser.name && targetUser.name !== '공유한 친구') queryParams.set('u', targetUser.name);
+    queryParams.set('g', targetUser.scores.GS.G.toString());
+    queryParams.set('a', targetUser.scores.AP.A.toString());
+    queryParams.set('l', targetUser.scores.LT.L.toString());
+    queryParams.set('r', targetUser.scores.RI.R.toString());
 
-    const text = `[${targetUser.name}]님(${targetUser.code})과 [${currentUser.name}]님(${currentUser.code})의 투자 궁합 점수는 ${similarityScore}점! 🦉\n성향 비교 리포트 보기 👇\n${compareUrl}`;
+    if (currentUser.name && currentUser.name !== '나') queryParams.set('myU', currentUser.name);
+    queryParams.set('myCode', currentUser.code);
+    queryParams.set('myG', currentUser.scores.GS.G.toString());
+    queryParams.set('myA', currentUser.scores.AP.A.toString());
+    queryParams.set('myL', currentUser.scores.LT.L.toString());
+    queryParams.set('myR', currentUser.scores.RI.R.toString());
+
+    const compareUrl = `${window.location.origin}/tools/type/${targetUser.code}?${queryParams.toString()}`;
+    const text = `${targetUser.name}(${targetUser.profile.name})님과 나의 투자 성향 궁합은 ${similarityScore}점! 🔥\n나와의 케미를 확인해보세요 👇\n\n${compareUrl}`;
 
     if (navigator.share) {
       navigator.share({ text }).catch(() => {
@@ -117,13 +124,11 @@ export default function ResultCompareModal({
           <div className="flex items-center justify-around gap-2 text-center">
             {/* Target User */}
             <div className="space-y-2 flex-1 flex flex-col items-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-lg" />
-                <img
-                  src={`/types/${targetUser.code}.png`}
-                  alt={targetUser.profile.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain relative z-10 animate-float-y filter drop-shadow-md"
-                />
+              <div className="relative py-1">
+                <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-xl" />
+                <span className="text-5xl sm:text-6xl select-none relative z-10 animate-float-y filter drop-shadow-md inline-block">
+                  {TYPE_EMOJIS[targetUser.code] || '🦉'}
+                </span>
               </div>
               <div>
                 <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]">
@@ -153,13 +158,11 @@ export default function ResultCompareModal({
 
             {/* Current User */}
             <div className="space-y-2 flex-1 flex flex-col items-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[var(--accent-green)]/20 rounded-full blur-lg" />
-                <img
-                  src={`/types/${currentUser.code}.png`}
-                  alt={currentUser.profile.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain relative z-10 animate-float-y filter drop-shadow-md"
-                />
+              <div className="relative py-1">
+                <div className="absolute inset-0 bg-[var(--accent-green)]/25 rounded-full blur-xl" />
+                <span className="text-5xl sm:text-6xl select-none relative z-10 animate-float-y filter drop-shadow-md inline-block">
+                  {TYPE_EMOJIS[currentUser.code] || '🦉'}
+                </span>
               </div>
               <div>
                 <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)]">

@@ -249,43 +249,16 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           </Link>
         </div>
 
-        {/* (1) 나의 투자 성향 상세 리포트 & 공유 버튼 */}
+        {/* (1) 나의 투자 성향 상세 리포트, 시뮬레이터 CTA, 공유 버튼 일체화 */}
         <ResultView
           profile={myResultData.profile}
           scores={myResultData.scores}
           percentage={typePercentage}
           ownerName={user?.nickname}
           isReadOnly={false}
+          showSimulatorCta={true}
           onRestart={handleRestart}
         />
-
-        {/* (2) 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
-        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
-              실전 투자 실습
-            </span>
-            <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
-              {myResultData.profile.name} 유형
-            </span>
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
-              "{myResultData.profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              내 성향에 맞춰 주식을 고르고, 과거에 투자했다면 얼마를 벌었을지 직접 확인해볼 수 있어요.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Link
-              href={`/tools/simulate?type=${myResultData.profile.code}&g=${myResultData.scores.GS.G}&a=${myResultData.scores.AP.A}&l=${myResultData.scores.LT.L}&r=${myResultData.scores.RI.R}`}
-              className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-            >
-              직접 테스트해보기 ➔
-            </Link>
-          </div>
-        </div>
       </div>
     );
   }
@@ -458,43 +431,16 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           </Link>
         </div>
 
-        {/* 내 단독 결과 노출 */}
+        {/* 내 단독 결과, 시뮬레이터 CTA, 공유 버튼 일체화 */}
         <ResultView
           profile={myResultData.profile}
           scores={myResultData.scores}
           percentage={typePercentage}
           ownerName={user?.nickname}
           isReadOnly={false}
+          showSimulatorCta={true}
           onRestart={handleRestart}
         />
-
-        {/* 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
-        <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
-          <div className="flex items-center justify-between gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
-              실전 투자 실습
-            </span>
-            <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
-              {myResultData.profile.name} 유형
-            </span>
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight">
-              "{myResultData.profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              내 성향에 맞춰 주식을 고르고, 과거에 투자했다면 얼마를 벌었을지 직접 확인해볼 수 있어요.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Link
-              href={`/tools/simulate?type=${myResultData.profile.code}&g=${myResultData.scores.GS.G}&a=${myResultData.scores.AP.A}&l=${myResultData.scores.LT.L}&r=${myResultData.scores.RI.R}`}
-              className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
-            >
-              직접 테스트해보기 ➔
-            </Link>
-          </div>
-        </div>
       </div>
     );
   }

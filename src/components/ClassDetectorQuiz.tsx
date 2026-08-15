@@ -98,46 +98,35 @@ export default function ClassDetectorQuiz() {
   return (
     <div 
       ref={quizRef}
-      className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] shadow-lg transition-all duration-300 relative overflow-hidden my-6 min-h-[360px] flex flex-col justify-between"
+      className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] shadow-lg transition-all duration-300 relative overflow-hidden my-6 min-h-[300px] sm:min-h-[310px] flex flex-col justify-center"
     >
-      {/* 1. 카운트다운 진행 중 (3 -> 2 -> 1 -> GO! 단독 카드 화면) */}
+      {/* 1. 카운트다운 진행 중 (오직 3 -> 2 -> 1 -> GO! 숫자만 정중앙 표시) */}
       {isPreparing ? (
-        <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-8 animate-in fade-in duration-200">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs sm:text-sm font-extrabold">
-            <span>🕹️</span>
-            <span>5초 계급 판독기</span>
-          </div>
-
-          <div className="h-28 flex items-center justify-center">
-            {prepStage === '3' && (
-              <div key="3" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono">
-                3
-              </div>
-            )}
-            {prepStage === '2' && (
-              <div key="2" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono">
-                2
-              </div>
-            )}
-            {prepStage === '1' && (
-              <div key="1" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono">
-                1
-              </div>
-            )}
-            {prepStage === 'GO' && (
-              <div key="go" className="text-7xl sm:text-8xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono">
-                GO!
-              </div>
-            )}
-          </div>
-
-          <p className="text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
-            5초 안에 직감적으로 선택하세요!
-          </p>
+        <div className="flex-1 flex items-center justify-center animate-in fade-in duration-200">
+          {prepStage === '3' && (
+            <div key="3" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono select-none">
+              3
+            </div>
+          )}
+          {prepStage === '2' && (
+            <div key="2" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono select-none">
+              2
+            </div>
+          )}
+          {prepStage === '1' && (
+            <div key="1" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono select-none">
+              1
+            </div>
+          )}
+          {prepStage === 'GO' && (
+            <div key="go" className="text-7xl sm:text-8xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono select-none">
+              GO!
+            </div>
+          )}
         </div>
       ) : (
         /* 2. 본 퀴즈 화면 (카운트다운 완료 후 나타남) */
-        <div className="space-y-5 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
+        <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-300 flex-1 flex flex-col justify-between">
           {/* Header Badge */}
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-xs sm:text-sm font-extrabold">
@@ -157,7 +146,7 @@ export default function ClassDetectorQuiz() {
           </div>
 
           {/* Balance Game Title & Question */}
-          <div className="text-center py-1 space-y-1">
+          <div className="text-center py-0.5 space-y-1">
             <span className="inline-block text-[11px] px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-extrabold tracking-tight">
               밸런스 게임
             </span>
@@ -194,7 +183,7 @@ export default function ClassDetectorQuiz() {
             <button
               onClick={() => handleSelect('A')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
                 selectedOption === 'A'
                   ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
                   : selectedOption !== null
@@ -208,7 +197,7 @@ export default function ClassDetectorQuiz() {
             <button
               onClick={() => handleSelect('B')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
                 selectedOption === 'B'
                   ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
                   : selectedOption !== null

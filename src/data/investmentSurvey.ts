@@ -731,3 +731,22 @@ export function calculateSurveyResult(answers: Record<number, number>) {
     },
   };
 }
+
+export const TYPE_EMOJIS: Record<string, string> = {
+  GALR: '🦅', // 독수리 (데이터 분석가)
+  GALI: '🦁', // 사자 (뚝심의 승부사)
+  GATR: '🐆', // 치타 (추세 공략가)
+  GATI: '🐆', // 표범 (트렌드 세터)
+  GPLR: '🐂', // 황소 (원칙 설계자)
+  GPLI: '🐘', // 코끼리 (미래 개척자)
+  GPTR: '🐬', // 돌고래 (신호 포착가)
+  GPTI: '🪶', // 매 (유연한 탐색가)
+  SALR: '🐻', // 곰 (원금 수호자)
+  SALI: '🐐', // 산양 (신중한 검증가)
+  SATR: '🦡', // 미어캣 (위험 경보관)
+  SATI: '🦊', // 여우 (위기 감지자)
+  SPLR: '🐢', // 거북이 (꾸준한 적립가)
+  SPLI: '🐼', // 판다 (평화로운 투자자)
+  SPTR: '🦔', // 고슴도치 (자산 조율사)
+  SPTI: '🦫', // 비버 (안전지대 지킴이)
+};
