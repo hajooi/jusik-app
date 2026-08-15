@@ -18,6 +18,14 @@ export const metadata: Metadata = {
     description: '초보 투자자를 돕는 맞춤형 주식 투자 도구 모음',
     url: 'https://jusik.app/tools',
     siteName: '주식앱',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1024,
+        height: 537,
+        alt: '주식앱 - 투자 도구 모음',
+      },
+    ],
     locale: 'ko_KR',
     type: 'website',
   },
@@ -25,6 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '투자 도구 모음 | 주식앱',
     description: '초보 투자자를 돕는 맞춤형 주식 투자 도구 모음',
+    images: ['/og-image.png'],
   },
 };
 

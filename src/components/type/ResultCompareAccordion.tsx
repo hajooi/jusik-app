@@ -345,33 +345,70 @@ export default function ResultCompareAccordion({
         ))}
       </div>
 
-      {/* 3. AI Chemistry Insight Advice Box */}
-      <div className="p-4 rounded-2xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] space-y-2">
-        <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
-          <Zap className="w-4 h-4" />
-          <span>두 사람이 함께 투자 이야기를 나눌 때의 시너지 포인트</span>
-        </div>
-        <ul className="text-xs text-[var(--text-primary)] font-medium space-y-2 leading-relaxed">
-          {diffGS > 30 ? (
-            <li>
-              • <strong>위험 관리 시각:</strong> {attachJosa(leftUser.badgeName, '은/는')} 성장에 더 집중하고, {attachJosa(rightUser.badgeName, '은/는')} 안전에 더 비중을 둡니다. 서로의 관점을 청취하면 포트폴리오의 균형점을 찾기 좋습니다.
-            </li>
-          ) : (
-            <li>
-              • <strong>위험 관리 시각:</strong> 두 사람 모두 위험을 바라보는 기본 태도가 비슷해 종목 이야기 시 큰 공감대가 형성됩니다.
-            </li>
-          )}
+      {/* 3. Deep 4-Axis Synergy & Communication Guide */}
+      <div className="space-y-3">
+        <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5 font-mono">
+          <Zap className="w-4 h-4 text-[var(--accent-orange)]" />
+          심층 분석 & 궁합 가이드
+        </h3>
 
-          {diffAP > 30 ? (
-            <li>
-              • <strong>정보 활용 스타일:</strong> 한 사람은 시장 뉴스나 기사를 직접 찾아보는 것을 즐기고, 한 사람은 편안하게 흐름을 추종합니다. 각자 편안한 방식으로 투자 정보를 대하는 편이 좋습니다.
-            </li>
-          ) : (
-            <li>
-              • <strong>정보 활용 스타일:</strong> 주식 시장 뉴스나 기업 소식을 대하는 관심도와 스타일이 잘 맞아서 편안하게 투자 이야기를 나누기 좋습니다.
-            </li>
-          )}
-        </ul>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Synergy Card */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2.5 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span>함께 나눌 때 시너지 포인트</span>
+            </div>
+            <ul className="text-xs text-[var(--text-secondary)] space-y-2 leading-relaxed">
+              {diffGS > 30 ? (
+                <li>
+                  • <strong>위험 & 자산 배분:</strong> 한 사람은 공격적인 성장 기회를 찾고, 한 사람은 안정적인 방어선을 지켜줍니다. 서로의 관점을 합치면 극단으로 치우치지 않는 황금비율 포트폴리오를 설계할 수 있어요.
+                </li>
+              ) : (
+                <li>
+                  • <strong>위험 감수 태도:</strong> 추구하는 수익률과 감내할 수 있는 손실 범위가 비슷하여, 관심 종목이나 투자 비중을 논의할 때 깊은 공감대가 형성됩니다.
+                </li>
+              )}
+              {diffLT > 30 ? (
+                <li>
+                  • <strong>투자 시야의 조화:</strong> 장기 복리의 큰 그림과 시장 단기 흐름의 유연한 대응을 서로 보완해 줄 수 있어 시장 급변기에도 침착함을 유지하기 좋습니다.
+                </li>
+              ) : (
+                <li>
+                  • <strong>투자 호흡 일치:</strong> 주식을 보유하고 매매하는 호흡이 비슷해 시장을 바라보는 시간 단위가 잘 맞습니다.
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Caution Card */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2.5 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
+              <Zap className="w-4 h-4 shrink-0" />
+              <span>서로 배려해야 할 핵심 포인트</span>
+            </div>
+            <ul className="text-xs text-[var(--text-secondary)] space-y-2 leading-relaxed">
+              {diffAP > 30 ? (
+                <li>
+                  • <strong>정보 탐색 방식:</strong> 직접 발굴 및 분석을 즐기는 스타일과 ETF나 기본 흐름을 편안하게 추종하는 스타일의 차이를 존중해 주세요. 자신의 투자 공부 방식을 무리하게 권유하지 않는 것이 좋습니다.
+                </li>
+              ) : (
+                <li>
+                  • <strong>정보 교류:</strong> 시장 뉴스와 종목 정보를 소화하는 방식이 비슷해 유익한 인사이트를 나누기에 최적입니다.
+                </li>
+              )}
+              {diffRI > 30 ? (
+                <li>
+                  • <strong>의사결정 기준:</strong> 한 사람은 명확한 수치와 원칙에 따르고, 한 사람은 직관과 산업 트렌드를 중요시합니다. 판단 기준이 다를 수 있음을 인정하고 결정을 존중해 주세요.
+                </li>
+              ) : (
+                <li>
+                  • <strong>판단 멘탈:</strong> 매매 타이밍과 원칙을 정할 때 서로의 판단 논리를 쉽게 이해하고 격려해 줄 수 있습니다.
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Action Footer */}

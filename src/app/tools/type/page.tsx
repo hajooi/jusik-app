@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
 import ResultCompareAccordion from '@/components/type/ResultCompareAccordion';
+import CommentSection from '@/components/CommentSection';
 import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Users, HeartHandshake, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { attachJosa } from '@/utils/koreanJosa';
@@ -46,6 +47,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   const [viewMyComparison, setViewMyComparison] = useState(false);
   const [typePercentage, setTypePercentage] = useState<number | undefined>(undefined);
   const [isTakingTest, setIsTakingTest] = useState(false);
+  const [typeCommentTab, setTypeCommentTab] = useState<'all' | 'my'>('all');
 
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
@@ -457,6 +459,20 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           isReadOnly={false}
           onRestart={handleRestart}
         />
+
+        {/* Investment Type Hybrid Comment Section */}
+        <div className="pt-2">
+          <CommentSection
+            targetKey={typeCommentTab === 'my' ? `type-${myResultData.typeCode}` : 'type-all'}
+            title="댓글"
+            customTabs={[
+              { key: 'all', label: '전체 댓글' },
+              { key: 'my', label: `${myResultData.typeCode} 유형 댓글` },
+            ]}
+            activeTabKey={typeCommentTab}
+            onTabChange={(key) => setTypeCommentTab(key as 'all' | 'my')}
+          />
+        </div>
       </div>
     );
   }

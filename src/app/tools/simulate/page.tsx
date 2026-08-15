@@ -7,6 +7,7 @@ import historicalPrices from '@/data/historicalPrices.json';
 import { calculatePersonalitySimulatorConfig } from '@/utils/personalitySimulatorMapping';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import CommentSection from '@/components/CommentSection';
 import { 
   LineChart, 
   TrendingUp, 
@@ -1527,6 +1528,14 @@ function SimulatorContent() {
         <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium">
           본 도구는 Yahoo Finance의 20년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기(매달/매주)마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
         </p>
+      </div>
+
+      {/* Simulator Comments Section */}
+      <div className="pt-2">
+        <CommentSection
+          targetKey="simulate"
+          title="댓글"
+        />
       </div>
 
     </div>

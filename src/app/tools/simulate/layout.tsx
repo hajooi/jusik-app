@@ -22,6 +22,14 @@ export const metadata: Metadata = {
     description: '20년 미국 주식 실제 주가 데이터 기반 적립식 투자 수익률, CAGR, MDD 및 하락장 방어 전략 백테스터',
     url: 'https://jusik.app/tools/simulate',
     siteName: '주식앱',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1024,
+        height: 537,
+        alt: '주식앱 - 투자 전략 시뮬레이터',
+      },
+    ],
     locale: 'ko_KR',
     type: 'website',
   },
@@ -29,6 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '투자 전략 시뮬레이터 | 미국 주식 백테스트',
     description: '20년 미국 주식 실제 주가 데이터 기반 적립식 투자 수익률 및 하락장 방어 백테스터',
+    images: ['/og-image.png'],
   },
 };
 

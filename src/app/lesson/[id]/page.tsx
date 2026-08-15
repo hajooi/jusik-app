@@ -3,6 +3,7 @@ import SidebarDrawer from '@/components/SidebarDrawer';
 import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
+import CommentSection from '@/components/CommentSection';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { 
@@ -452,8 +453,16 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             </div>
           )}
 
-          {/* Navigation Buttons - Clean Modern Floating Cards */}
+          {/* Lesson Specific Comments */}
           <div className="pt-4">
+            <CommentSection
+              targetKey={`lesson-${lesson.id}`}
+              title="댓글"
+            />
+          </div>
+
+          {/* Navigation Buttons - Clean Modern Floating Cards */}
+          <div className="pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {prevLesson ? (
                 <Link
@@ -524,6 +533,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description,
       url,
       siteName: '주식앱',
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1024,
+          height: 537,
+          alt: '주식앱 커리큘럼',
+        },
+      ],
       locale: 'ko_KR',
       type: 'article',
     },
@@ -531,6 +548,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       card: 'summary_large_image',
       title,
       description,
+      images: ['/og-image.png'],
     },
   };
 }

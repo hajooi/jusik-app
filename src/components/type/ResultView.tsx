@@ -108,7 +108,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
           {isReadOnly && ownerName
-            ? '공유받은 친구의 성향 리포트와 추천 투자 가이드라인입니다.'
+            ? '친구가 공유한 투자 성향 진단 결과입니다.'
             : '40문항 진단으로 분석한 나의 투자 기질과 맞춤형 위험 관리법입니다.'}
         </p>
       </div>
