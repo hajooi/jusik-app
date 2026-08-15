@@ -226,7 +226,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     }
   };
 
-  // Case 1: [방금 테스트 완료!] 사용자가 설문을 직접 풀어서 방금 막 끝마친 경우 -> 내 성향 리포트 최우선 + 아래에 친구와의 1:1 궁합 리포트 노출!
+  // Case 1: [방금 테스트 완료!] 사용자가 설문을 직접 풀어서 방금 막 끝마친 경우 -> 내 성향 리포트 최우선 노출
   if (justFinishedTest && isCompleted && Object.keys(answers).length > 0) {
     const myResultData = calculateSurveyResult(answers);
 
@@ -249,7 +249,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           </Link>
         </div>
 
-        {/* (1) 상단 1순위: 방금 진단한 '나의 투자 성향' 상세 리포트 & 공유 버튼 */}
+        {/* (1) 나의 투자 성향 상세 리포트 & 공유 버튼 */}
         <ResultView
           profile={myResultData.profile}
           scores={myResultData.scores}
@@ -259,27 +259,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           onRestart={handleRestart}
         />
 
-        {/* (2) 하단 2순위: 공유받은 친구가 있다면 1:1 궁합 리포트 노출! (내가 기준: targetUser=나) */}
-        {sharedProfile && (
-          <div className="pt-2">
-            <ResultCompareAccordion
-              targetUser={{
-                name: user?.nickname || '나',
-                code: myResultData.typeCode,
-                profile: myResultData.profile,
-                scores: myResultData.scores,
-              }}
-              currentUser={{
-                name: friendDisplayName,
-                code: sharedProfile.code,
-                profile: sharedProfile,
-                scores: sharedScores,
-              }}
-            />
-          </div>
-        )}
-
-        {/* (3) 댓글 섹션 */}
+        {/* (2) 댓글 섹션 */}
         <div className="pt-2">
           <CommentSection
             targetKey={typeCommentTab === 'my' ? `type-${myResultData.typeCode}` : 'type-all'}
@@ -293,7 +273,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           />
         </div>
 
-        {/* (4) 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
+        {/* (3) 맨 마지막 종착지: 실전 투자 실습 CTA 카드 */}
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] bg-[var(--accent-orange)]/5 relative overflow-hidden shadow-[0_0_20px_rgba(241,143,1,0.12)]">
           <div className="flex items-center justify-between gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold font-mono">
