@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, FormEvent } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
-import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, Sparkles, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2 } from 'lucide-react';
 
 export interface CommentData {
   id: string;
@@ -255,17 +254,13 @@ export default function CommentSection({
               />
               <span>{user.nickname}</span>
               {user.investmentType && user.investmentType !== '미진단' && (
-                <Link
-                  href={`/tools/type/${user.investmentType}`}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
-                  title={`${user.investmentType} 성향 상세 리포트 보기`}
-                >
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                   {user.investmentType}
-                </Link>
+                </span>
               )}
               {isMasterAdmin && (
-                <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
-                  <ShieldCheck className="w-3 h-3" /> 관리자
+                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
+                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                 </span>
               )}
             </div>
@@ -338,17 +333,13 @@ export default function CommentSection({
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
                     {root.investmentType && root.investmentType !== '미진단' && (
-                      <Link
-                        href={`/tools/type/${root.investmentType}`}
-                        className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
-                        title={`${root.investmentType} 성향 상세 리포트 보기`}
-                      >
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                         {root.investmentType}
-                      </Link>
+                      </span>
                     )}
                     {root.nickname === '주식부엉' && (
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
-                        관리자
+                      <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
+                        <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                       </span>
                     )}
                   </div>
@@ -439,17 +430,13 @@ export default function CommentSection({
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
                               {reply.investmentType && reply.investmentType !== '미진단' && (
-                                <Link
-                                  href={`/tools/type/${reply.investmentType}`}
-                                  className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black font-mono tracking-wider bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 hover:border-[var(--accent-orange)]/60 hover:scale-105 active:scale-95 transition-all leading-none select-none cursor-pointer"
-                                  title={`${reply.investmentType} 성향 상세 리포트 보기`}
-                                >
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                                   {reply.investmentType}
-                                </Link>
+                                </span>
                               )}
                               {reply.nickname === '주식부엉' && (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-bold">
-                                  관리자
+                                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
+                                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                                 </span>
                               )}
                             </div>
