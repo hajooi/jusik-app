@@ -7,7 +7,7 @@ type QuizOption = 'A' | 'B' | 'TIMEOUT' | null;
 
 export default function ClassDetectorQuiz() {
   const [selectedOption, setSelectedOption] = useState<QuizOption>(null);
-  const [prepStage, setPrepStage] = useState<'READY' | 'GO' | null>(null);
+  const [prepStage, setPrepStage] = useState<'3' | '2' | '1' | 'GO' | null>(null);
   const [isPreparing, setIsPreparing] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(5.0);
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -15,23 +15,32 @@ export default function ClassDetectorQuiz() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hasTriggeredRef = useRef<boolean>(false);
 
-  // Auto trigger READY -> GO! -> Timer sequence once when centered in viewport
+  const startCountdown = () => {
+    setIsPreparing(true);
+    setPrepStage('3');
+    setTimeout(() => {
+      setPrepStage('2');
+      setTimeout(() => {
+        setPrepStage('1');
+        setTimeout(() => {
+          setPrepStage('GO');
+          setTimeout(() => {
+            setPrepStage(null);
+            setIsPreparing(false);
+            setIsActive(true);
+          }, 600);
+        }, 700);
+      }, 700);
+    }, 700);
+  };
+
+  // Auto trigger 3 -> 2 -> 1 -> GO! sequence once when centered in viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !hasTriggeredRef.current && selectedOption === null && !isActive && !isPreparing && timeLeft === 5.0) {
           hasTriggeredRef.current = true;
-          setIsPreparing(true);
-          setPrepStage('READY');
-          
-          setTimeout(() => {
-            setPrepStage('GO');
-            setTimeout(() => {
-              setPrepStage(null);
-              setIsPreparing(false);
-              setIsActive(true);
-            }, 800);
-          }, 800);
+          startCountdown();
         }
       },
       { threshold: 0.3 }
@@ -81,16 +90,7 @@ export default function ClassDetectorQuiz() {
     setTimeLeft(5.0);
     hasTriggeredRef.current = true;
     setIsActive(false);
-    setIsPreparing(true);
-    setPrepStage('READY');
-    setTimeout(() => {
-      setPrepStage('GO');
-      setTimeout(() => {
-        setPrepStage(null);
-        setIsPreparing(false);
-        setIsActive(true);
-      }, 800);
-    }, 800);
+    startCountdown();
   };
 
   const progressPercentage = (timeLeft / 5.0) * 100;
@@ -102,14 +102,24 @@ export default function ClassDetectorQuiz() {
     >
       {/* CONTINUOUS UNBROKEN OVERLAY BACKDROP */}
       {isPreparing && (
-        <div className="absolute inset-0 bg-[var(--bg-main)] backdrop-blur-md z-30 flex items-center justify-center pointer-events-auto">
-          {prepStage === 'READY' && (
-            <div className="text-5xl sm:text-7xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast">
-              READY
+        <div className="absolute inset-0 bg-[var(--bg-main)]/90 backdrop-blur-md z-30 flex items-center justify-center pointer-events-auto">
+          {prepStage === '3' && (
+            <div key="3" className="text-7xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono">
+              3
+            </div>
+          )}
+          {prepStage === '2' && (
+            <div key="2" className="text-7xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono">
+              2
+            </div>
+          )}
+          {prepStage === '1' && (
+            <div key="1" className="text-7xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono">
+              1
             </div>
           )}
           {prepStage === 'GO' && (
-            <div className="text-6xl sm:text-8xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast">
+            <div key="go" className="text-6xl sm:text-8xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono">
               GO!
             </div>
           )}
@@ -140,7 +150,7 @@ export default function ClassDetectorQuiz() {
           밸런스 게임
         </span>
         <h3 className="text-base sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight">
-          만약 지금 둘 중 하나만 평생 가질 수 있다면?
+          만약 둘 중 하나만 선택한다면?
         </h3>
       </div>
 

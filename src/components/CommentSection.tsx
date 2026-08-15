@@ -112,6 +112,7 @@ export default function CommentSection({
           pin: user.pin,
           content: content.trim(),
           avatarUrl: user.avatarUrl,
+          investmentType: user.investmentType,
         }),
       });
       const data = await res.json();
@@ -149,6 +150,7 @@ export default function CommentSection({
           pin: user.pin,
           content: replyContent.trim(),
           avatarUrl: user.avatarUrl,
+          investmentType: user.investmentType,
         }),
       });
       const data = await res.json();
@@ -251,6 +253,11 @@ export default function CommentSection({
                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)]"
               />
               <span>{user.nickname}</span>
+              {user.investmentType && (
+                <span className="inline-flex items-center px-2 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+                  {user.investmentType}
+                </span>
+              )}
               {isMasterAdmin && (
                 <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
                   <ShieldCheck className="w-3 h-3" /> 관리자
@@ -318,20 +325,25 @@ export default function CommentSection({
               >
                 {/* Root Comment Header */}
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <img
                       src={rootAvatar}
                       alt={root.nickname}
                       className="w-6 h-6 rounded-full object-cover border border-[var(--border-color)] bg-[var(--card-surface)] shrink-0 shadow-2xs"
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
+                    {root.investmentType && (
+                      <span className="inline-flex items-center px-2 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[10px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+                        {root.investmentType}
+                      </span>
+                    )}
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[10px] font-bold">
                         관리자
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)]">
+                  <div className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)] shrink-0">
                     <span>{formatRelativeTime(root.createdAt)}</span>
                     {canDeleteRoot && (
                       <button
@@ -410,20 +422,25 @@ export default function CommentSection({
                           className="p-2.5 sm:p-3 rounded-xl bg-[var(--card-surface)]/60 border border-[var(--border-color)] space-y-1.5"
                         >
                           <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <img
                                 src={replyAvatar}
                                 alt={reply.nickname}
                                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shrink-0"
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
+                              {reply.investmentType && (
+                                <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] text-[9px] font-extrabold font-mono border border-[var(--accent-orange)]/30">
+                                  {reply.investmentType}
+                                </span>
+                              )}
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-bold">
                                   관리자
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)]">
+                            <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)] shrink-0">
                               <span>{formatRelativeTime(reply.createdAt)}</span>
                               {canDeleteReply && (
                                 <button
