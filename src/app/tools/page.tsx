@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt } from 'lucide-react';
+import RevealOnScroll from '@/components/common/RevealOnScroll';
 
 export default function ToolsPage() {
   const tools = [
@@ -60,24 +63,55 @@ export default function ToolsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tools.map((tool, idx) => {
           const Icon = tool.icon;
-          
+
           if (tool.isComingSoon) {
             return (
-              <div
-                key={idx}
-                className="glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-75 cursor-not-allowed transition-all duration-300 shadow-2xs relative overflow-hidden"
+              <RevealOnScroll key={idx} delayIndex={idx}>
+                <div className="glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between opacity-75 cursor-not-allowed transition-all duration-300 shadow-2xs relative overflow-hidden h-full">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-2xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)]">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] sm:text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] tracking-wider border border-[var(--border-color)]">
+                        오픈 예정
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                        {tool.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed font-medium">
+                        {tool.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 flex items-center justify-end text-xs font-semibold text-[var(--text-secondary)] font-mono gap-1">
+                    <Clock className="w-3.5 h-3.5 stroke-[1.7]" />
+                    오픈 준비 중입니다
+                  </div>
+                </div>
+              </RevealOnScroll>
+            );
+          }
+
+          return (
+            <RevealOnScroll key={idx} delayIndex={idx}>
+              <Link
+                href={tool.href}
+                className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-2xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)]">
+                    <div className="w-11 h-11 rounded-2xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 group-hover:scale-105 transition-all duration-300">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] sm:text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] tracking-wider border border-[var(--border-color)]">
-                      오픈 예정
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                      {tool.tag}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+                    <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
                       {tool.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed font-medium">
@@ -85,42 +119,11 @@ export default function ToolsPage() {
                     </p>
                   </div>
                 </div>
-                <div className="pt-4 flex items-center justify-end text-xs font-semibold text-[var(--text-secondary)] font-mono gap-1">
-                  <Clock className="w-3.5 h-3.5 stroke-[1.7]" />
-                  오픈 준비 중입니다
+                <div className="pt-4 flex items-center justify-end text-xs font-bold text-[var(--accent-orange)] group-hover:translate-x-1 transition-transform">
+                  지금 알아보기 →
                 </div>
-              </div>
-            );
-          }
-
-          return (
-            <Link
-              key={idx}
-              href={tool.href}
-              className="glass-card glass-card-hover p-5 sm:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99]"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-2xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 group-hover:scale-105 transition-all duration-300">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                    {tool.tag}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
-                    {tool.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 leading-relaxed">
-                    {tool.description}
-                  </p>
-                </div>
-              </div>
-              <div className="pt-4 flex items-center justify-end text-xs font-bold text-[var(--accent-orange)] group-hover:translate-x-1 transition-transform">
-                지금 알아보기 →
-              </div>
-            </Link>
+              </Link>
+            </RevealOnScroll>
           );
         })}
       </div>

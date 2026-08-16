@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
+import RevealOnScroll from '@/components/common/RevealOnScroll';
 import ResultCompareAccordion from '@/components/type/ResultCompareAccordion';
 import CommentSection from '@/components/CommentSection';
 import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, CheckCircle2, Users, HeartHandshake, ChevronDown, ChevronUp } from 'lucide-react';
@@ -511,39 +512,41 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
       )}
 
       {/* Progress & Milestone Header */}
-      <div className="glass-card p-5 rounded-3xl space-y-3 border border-[var(--border-color)] shadow-xs">
-        <div className="flex items-center justify-between text-xs font-extrabold text-[var(--text-secondary)]">
-          <span className="text-[var(--accent-orange)] font-mono flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            투자 성향 진단
-          </span>
-          <span className="font-mono text-xs text-[var(--text-primary)]">
-            {currentPage + 1} / {totalPages} 페이지 ({progressPercent}%)
-          </span>
-        </div>
+      <RevealOnScroll>
+        <div className="glass-card p-5 rounded-3xl space-y-3 border border-[var(--border-color)] shadow-xs">
+          <div className="flex items-center justify-between text-xs font-extrabold text-[var(--text-secondary)]">
+            <span className="text-[var(--accent-orange)] font-mono flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" />
+              투자 성향 진단
+            </span>
+            <span className="font-mono text-xs text-[var(--text-primary)]">
+              {currentPage + 1} / {totalPages} 페이지 ({progressPercent}%)
+            </span>
+          </div>
 
-        {/* Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0 border border-[var(--border-color)]">
-          <div
-            className="h-full rounded-full bg-[var(--accent-orange)] transition-all duration-300 shadow-[0_0_8px_rgba(241,143,1,0.5)]"
-            style={{ width: `${progressPercent}%` }}
-          />
+          {/* Progress Bar */}
+          <div className="w-full h-2 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0 border border-[var(--border-color)]">
+            <div
+              className="h-full rounded-full bg-[var(--accent-orange)] transition-all duration-300 shadow-[0_0_8px_rgba(241,143,1,0.5)]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
-      </div>
+      </RevealOnScroll>
 
       {/* List of 5 Questions */}
-      <div className="space-y-6">
+      <div key={currentPage} className="space-y-6">
         {pageQuestions.map((q, idx) => {
           const qNum = currentPage * PAGE_SIZE + idx + 1;
           const selectedScore = answers[q.id];
 
           return (
-            <div
-              key={q.id}
-              id={`question-card-${idx}`}
-              className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative"
-              style={{ transform: 'translateZ(0)', WebkitBackfaceVisibility: 'hidden' }}
-            >
+            <RevealOnScroll key={q.id} delayIndex={idx}>
+              <div
+                id={`question-card-${idx}`}
+                className="glass-card p-5 sm:p-7 rounded-3xl space-y-5 border border-[var(--border-color)] relative"
+                style={{ transform: 'translateZ(0)', WebkitBackfaceVisibility: 'hidden' }}
+              >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono">
                   Q{qNum}
@@ -600,9 +603,10 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
                 </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+          </RevealOnScroll>
+        );
+      })}
+    </div>
 
       {/* Page Navigation Controls (Matching brand UI styling) */}
       <div className="flex items-center justify-between pt-4 pb-8">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Level } from '@/data/curriculum';
 import { useAuth } from '@/context/AuthContext';
+import RevealOnScroll from '@/components/common/RevealOnScroll';
 import { 
   ChevronDown, 
   PlayCircle, 
@@ -84,7 +85,7 @@ export default function Accordion({ levels }: AccordionProps) {
       )}
 
       {/* Levels List */}
-      {levels.map((level) => {
+      {levels.map((level, idx) => {
         const isOpen = openLevelId === level.id;
         const IconComponent = ICON_MAP[level.iconName] || Brain;
         
@@ -93,80 +94,80 @@ export default function Accordion({ levels }: AccordionProps) {
         const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
 
         return (
-          <div
-            key={level.id}
-            className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
-              isOpen 
-                ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_16px_rgba(241,143,1,0.10)] border-[var(--accent-orange)]' 
-                : level.isComingSoon
-                ? 'shadow-2xs opacity-75'
-                : 'glass-card-hover shadow-2xs'
-            }`}
-          >
-            {/* Header / Accordion Button */}
-            <button
-              onClick={() => toggleLevel(level.id, level.isComingSoon)}
-              className={`group/btn w-full px-4 py-3.5 sm:px-5 sm:py-4 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
-                level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
+          <RevealOnScroll key={level.id} delayIndex={idx}>
+            <div
+              className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
+                isOpen 
+                  ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_16px_rgba(241,143,1,0.10)] border-[var(--accent-orange)]' 
+                  : level.isComingSoon
+                  ? 'shadow-2xs opacity-75'
+                  : 'glass-card-hover shadow-2xs'
               }`}
             >
-              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                {/* Level Icon Container */}
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
-                  isOpen 
-                    ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105 shadow-[0_0_12px_rgba(241,143,1,0.25)]' 
-                    : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
-                }`}>
-                  <IconComponent className="w-5 h-5 stroke-[1.8]" />
+              {/* Header / Accordion Button */}
+              <button
+                onClick={() => toggleLevel(level.id, level.isComingSoon)}
+                className={`group/btn w-full px-4 py-3.5 sm:px-5 sm:py-4 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
+                  level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
+                }`}
+              >
+                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  {/* Level Icon Container */}
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                    isOpen 
+                      ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105 shadow-[0_0_12px_rgba(241,143,1,0.25)]' 
+                      : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
+                  }`}>
+                    <IconComponent className="w-5 h-5 stroke-[1.8]" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-mono font-bold text-[var(--accent-orange)] uppercase tracking-wider block">
+                      LEVEL {level.levelNumber}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <h3 className={`text-base sm:text-lg font-extrabold tracking-[-0.02em] transition-colors truncate ${
+                        isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
+                      }`}>
+                        {level.title}
+                      </h3>
+                      {isLevelFullyCompleted && !level.isComingSoon && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-green)] text-white shrink-0">
+                          <CheckCircle2 className="w-3 h-3" /> 완료
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-mono font-bold text-[var(--accent-orange)] uppercase tracking-wider block">
-                    LEVEL {level.levelNumber}
+                {/* Status Indicator */}
+                {level.isComingSoon ? (
+                  <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider shrink-0 border border-[var(--border-color)]">
+                    COMING SOON
                   </span>
+                ) : (
                   <div className="flex items-center gap-2">
-                    <h3 className={`text-base sm:text-lg font-extrabold tracking-[-0.02em] transition-colors truncate ${
-                      isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
-                    }`}>
-                      {level.title}
-                    </h3>
-                    {isLevelFullyCompleted && !level.isComingSoon && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-green)] text-white shrink-0">
-                        <CheckCircle2 className="w-3 h-3" /> 완료
+                    {user && (
+                      <span className="text-xs text-[var(--text-secondary)] font-mono opacity-80">
+                        {levelCompletedCount}/{level.lessons.length}
                       </span>
                     )}
+                    <div className={`transition-transform duration-300 shrink-0 ${
+                      isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
+                    }`}>
+                      <ChevronDown className="w-5 h-5 stroke-[1.8]" />
+                    </div>
                   </div>
-                </div>
-              </div>
+                )}
+              </button>
 
-              {/* Status Indicator */}
-              {level.isComingSoon ? (
-                <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider shrink-0 border border-[var(--border-color)]">
-                  COMING SOON
-                </span>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {user && (
-                    <span className="text-xs text-[var(--text-secondary)] font-mono opacity-80">
-                      {levelCompletedCount}/{level.lessons.length}
-                    </span>
-                  )}
-                  <div className={`transition-transform duration-300 shrink-0 ${
-                    isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
-                  }`}>
-                    <ChevronDown className="w-5 h-5 stroke-[1.8]" />
-                  </div>
-                </div>
-              )}
-            </button>
-
-            {/* Accordion Content */}
-            <div
-              className={`grid transition-all duration-300 ease-out ${
-                isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-              }`}
-            >
-              <div className="overflow-hidden bg-[var(--card-surface)]/30 backdrop-blur-md">
+              {/* Accordion Content - M3 Emphasized Smooth Transition */}
+              <div
+                className={`grid transition-all duration-400 ease-[cubic-bezier(0.2,0,0,1)] ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
                 <div className="p-3 sm:p-5 space-y-2">
                   {level.lessons.map((lesson) => {
                     const completed = Boolean(user && isLessonCompleted(lesson.id));
@@ -237,8 +238,9 @@ export default function Accordion({ levels }: AccordionProps) {
               </div>
             </div>
           </div>
-        );
-      })}
-    </div>
-  );
+        </RevealOnScroll>
+      );
+    })}
+  </div>
+);
 }

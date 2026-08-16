@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { calculateSurveyResult } from '@/data/investmentSurvey';
 import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2 } from 'lucide-react';
+import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 
 export interface CommentData {
   id: string;
@@ -44,6 +45,13 @@ export default function CommentSection({
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<{
+    id: string;
+    code: string;
+    authorNickname?: string;
+    typeScores?: { g: number; a: number; l: number; r: number };
+    anchorRect?: { top: number; bottom: number; left: number; right: number; width: number; height: number };
+  } | null>(null);
 
   // Helper to get avatar source
   const getAvatarSrc = (commentNick: string, avatarUrl?: string) => {
@@ -364,17 +372,45 @@ export default function CommentSection({
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
                     {root.investmentType && root.investmentType !== '미진단' && (
-                      <Link
-                        href={
-                          root.typeScores
-                            ? `/tools/type/${root.investmentType}?u=${encodeURIComponent(root.nickname)}&g=${root.typeScores.g}&a=${root.typeScores.a}&l=${root.typeScores.l}&r=${root.typeScores.r}`
-                            : `/tools/type/${root.investmentType}`
-                        }
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
-                        title={`${root.nickname}님의 ${root.investmentType} 성향 상세 결과 보기`}
-                      >
-                        {root.investmentType}
-                      </Link>
+                      <div className="relative inline-block">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setPreviewTarget(
+                              previewTarget?.id === root.id
+                                ? null
+                                : {
+                                    id: root.id,
+                                    code: root.investmentType!,
+                                    authorNickname: root.nickname,
+                                    typeScores: root.typeScores,
+                                    anchorRect: {
+                                      top: rect.top,
+                                      bottom: rect.bottom,
+                                      left: rect.left,
+                                      right: rect.right,
+                                      width: rect.width,
+                                      height: rect.height,
+                                    },
+                                  }
+                            );
+                          }}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          title={`${root.nickname}님의 ${root.investmentType} 성향 미리보기`}
+                        >
+                          {root.investmentType}
+                        </button>
+                        {previewTarget?.id === root.id && (
+                          <TypePreviewPopover
+                            typeCode={previewTarget.code}
+                            authorNickname={previewTarget.authorNickname}
+                            typeScores={previewTarget.typeScores}
+                            anchorRect={previewTarget.anchorRect}
+                            onClose={() => setPreviewTarget(null)}
+                          />
+                        )}
+                      </div>
                     )}
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
@@ -469,17 +505,45 @@ export default function CommentSection({
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
                               {reply.investmentType && reply.investmentType !== '미진단' && (
-                                <Link
-                                  href={
-                                    reply.typeScores
-                                      ? `/tools/type/${reply.investmentType}?u=${encodeURIComponent(reply.nickname)}&g=${reply.typeScores.g}&a=${reply.typeScores.a}&l=${reply.typeScores.l}&r=${reply.typeScores.r}`
-                                      : `/tools/type/${reply.investmentType}`
-                                  }
-                                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
-                                  title={`${reply.nickname}님의 ${reply.investmentType} 성향 상세 결과 보기`}
-                                >
-                                  {reply.investmentType}
-                                </Link>
+                                <div className="relative inline-block">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      setPreviewTarget(
+                                        previewTarget?.id === reply.id
+                                          ? null
+                                          : {
+                                              id: reply.id,
+                                              code: reply.investmentType!,
+                                              authorNickname: reply.nickname,
+                                              typeScores: reply.typeScores,
+                                              anchorRect: {
+                                                top: rect.top,
+                                                bottom: rect.bottom,
+                                                left: rect.left,
+                                                right: rect.right,
+                                                width: rect.width,
+                                                height: rect.height,
+                                              },
+                                            }
+                                      );
+                                    }}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                    title={`${reply.nickname}님의 ${reply.investmentType} 성향 미리보기`}
+                                  >
+                                    {reply.investmentType}
+                                  </button>
+                                  {previewTarget?.id === reply.id && (
+                                    <TypePreviewPopover
+                                      typeCode={previewTarget.code}
+                                      authorNickname={previewTarget.authorNickname}
+                                      typeScores={previewTarget.typeScores}
+                                      anchorRect={previewTarget.anchorRect}
+                                      onClose={() => setPreviewTarget(null)}
+                                    />
+                                  )}
+                                </div>
                               )}
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">

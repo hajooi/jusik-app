@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
+import RevealOnScroll from '@/components/common/RevealOnScroll';
 
 interface ResultViewProps {
   profile: PersonalityProfile;
@@ -65,6 +66,116 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   },
 };
 
+function SpectrumGaugeItem({
+  item,
+  axisExp,
+}: {
+  item: {
+    key: string;
+    title: string;
+    leftCode: string;
+    leftLabel: string;
+    leftPct: number;
+    rightCode: string;
+    rightLabel: string;
+    rightPct: number;
+  };
+  axisExp: AxisExplanation;
+}) {
+  const [animatedLeft, setAnimatedLeft] = useState(0);
+  const [animatedRight, setAnimatedRight] = useState(0);
+
+  const isRightWinner = item.rightPct > item.leftPct;
+  const leftCode = isRightWinner ? item.rightCode : item.leftCode;
+  const leftLabel = isRightWinner ? item.rightLabel : item.leftLabel;
+  const leftPct = isRightWinner ? item.rightPct : item.leftPct;
+  const leftDesc = isRightWinner ? axisExp.rightDesc : axisExp.leftDesc;
+
+  const rightCode = isRightWinner ? item.leftCode : item.rightCode;
+  const rightLabel = isRightWinner ? item.leftLabel : item.rightLabel;
+  const rightPct = isRightWinner ? item.leftPct : item.rightPct;
+  const rightDesc = isRightWinner ? axisExp.leftDesc : axisExp.rightDesc;
+
+  const isLeftWinner = leftPct >= rightPct;
+
+  useEffect(() => {
+    let animId: number;
+    const timer = setTimeout(() => {
+      const duration = 1200;
+      const startTime = performance.now();
+
+      const run = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        setAnimatedLeft(Math.round(ease * leftPct));
+        setAnimatedRight(Math.round(ease * rightPct));
+
+        if (progress < 1) {
+          animId = requestAnimationFrame(run);
+        }
+      };
+
+      animId = requestAnimationFrame(run);
+    }, 120);
+
+    return () => {
+      clearTimeout(timer);
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [leftPct, rightPct]);
+
+  return (
+    <div className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
+      {/* Header Labels: Only the dominant/winner trait gets the percentage */}
+      <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
+        <div className="flex items-center gap-1.5">
+          <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
+            {leftLabel}({leftCode}) {isLeftWinner && `${animatedLeft}%`}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
+            {!isLeftWinner && `${animatedRight}%`} {rightLabel}({rightCode})
+          </span>
+        </div>
+      </div>
+
+      {/* Gauge Bar (Winner: Signature Orange Glow, Loser: Soft Translucent Muted Tone) */}
+      <div className="w-full h-3.5 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0.5 border border-[var(--border-color)] shadow-inner">
+        {/* Left Side Fill */}
+        <div
+          className={`h-full rounded-l-full ${isLeftWinner
+            ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
+            : 'bg-[var(--text-secondary)]/12'
+            }`}
+          style={{ width: `${animatedLeft}%` }}
+        />
+        {/* Right Side Fill */}
+        <div
+          className={`h-full rounded-r-full ${!isLeftWinner
+            ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
+            : 'bg-[var(--text-secondary)]/12'
+            }`}
+          style={{ width: `${animatedRight}%` }}
+        />
+      </div>
+
+      {/* Always-visible Inline Descriptions */}
+      <div className="grid grid-cols-2 gap-3 text-[11px] pt-1 leading-tight">
+        <div className={`text-left ${isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
+          • {leftDesc}
+        </div>
+        <div className={`text-right ${!isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
+          • {rightDesc}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ResultView({ profile, scores, percentage, ownerName, isReadOnly = false, showSimulatorCta = false, onRestart }: ResultViewProps) {
   const [copied, setCopied] = useState(false);
 
@@ -97,7 +208,8 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <RevealOnScroll>
+      <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header Title (Left-aligned brand standard) */}
       <div className="space-y-1 py-1 text-left">
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
@@ -218,71 +330,13 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               rightLabel: '원칙형',
               rightPct: scores.RI.R,
             },
-          ].map((item) => {
-            const exp = AXIS_EXPLANATIONS[item.key];
-            const isRightWinner = item.rightPct > item.leftPct;
-
-            const leftCode = isRightWinner ? item.rightCode : item.leftCode;
-            const leftLabel = isRightWinner ? item.rightLabel : item.leftLabel;
-            const leftPct = isRightWinner ? item.rightPct : item.leftPct;
-            const leftDesc = isRightWinner ? exp.rightDesc : exp.leftDesc;
-
-            const rightCode = isRightWinner ? item.leftCode : item.rightCode;
-            const rightLabel = isRightWinner ? item.leftLabel : item.rightLabel;
-            const rightPct = isRightWinner ? item.leftPct : item.rightPct;
-            const rightDesc = isRightWinner ? exp.leftDesc : exp.rightDesc;
-
-            const isLeftWinner = leftPct >= rightPct;
-
-            return (
-              <div key={item.key} className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
-                {/* Header Labels with Winner Highlight & Percentages */}
-                <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
-                  <div className="flex items-center gap-1.5">
-                    <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-                      {leftLabel}({leftCode}) {leftPct}%
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-                      {rightLabel}({rightCode}) {rightPct}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Gauge Bar (Winner: Signature Orange Glow, Loser: Soft Translucent Muted Tone) */}
-                <div className="w-full h-3.5 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0.5 border border-[var(--border-color)] shadow-inner">
-                  {/* Left Side Fill */}
-                  <div
-                    className={`h-full rounded-l-full transition-all duration-1000 ${isLeftWinner
-                      ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-                      : 'bg-[var(--text-secondary)]/12'
-                      }`}
-                    style={{ width: `${leftPct}%` }}
-                  />
-                  {/* Right Side Fill */}
-                  <div
-                    className={`h-full rounded-r-full transition-all duration-1000 ${!isLeftWinner
-                      ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-                      : 'bg-[var(--text-secondary)]/12'
-                      }`}
-                    style={{ width: `${rightPct}%` }}
-                  />
-                </div>
-
-                {/* Always-visible Inline Descriptions */}
-                <div className="grid grid-cols-2 gap-3 text-[11px] pt-1 leading-tight">
-                  <div className={`text-left ${isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
-                    • {leftDesc}
-                  </div>
-                  <div className={`text-right ${!isLeftWinner ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]/50 font-normal'}`}>
-                    • {rightDesc}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          ].map((item) => (
+            <SpectrumGaugeItem
+              key={item.key}
+              item={item}
+              axisExp={AXIS_EXPLANATIONS[item.key]}
+            />
+          ))}
         </div>
       </div>
 
@@ -291,7 +345,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* 5 Strengths */}
           {profile.strengths && (
-            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs">
+            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-1">
               <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
@@ -311,7 +365,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
           {/* Weaknesses / Caution */}
           {profile.weaknesses && (
-            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs">
+            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-2">
               <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
@@ -333,7 +387,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
       {/* Tailored Investment Guidelines Card */}
       {profile.guidelines && (
-        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300">
+        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300 m3-card-enter stagger-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
             <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
@@ -369,7 +423,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
       {/* Simulator Link CTA Card (내 성향에 맞는 투자 방법 안내 - 중앙 정렬 일반 글래스 버튼) */}
       {!isReadOnly && showSimulatorCta && (
-        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden">
+        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden m3-card-enter stagger-4">
           <div className="space-y-1.5 max-w-lg mx-auto">
             <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
               "{profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
@@ -410,6 +464,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           </button>
         </div>
       )}
-    </div>
+      </div>
+    </RevealOnScroll>
   );
 }

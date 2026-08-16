@@ -4,6 +4,7 @@ import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
 import CommentSection from '@/components/CommentSection';
+import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { 
@@ -191,84 +192,87 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           {lesson.bookSections && lesson.bookSections.length > 0 && (
             <div className="space-y-8 py-2">
               {lesson.bookSections.map((section, sIdx) => (
-                <section 
-                  key={sIdx}
-                  className="glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
-                >
-                  <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight flex items-center gap-2.5">
-                    <span className="w-2 h-5 rounded-full bg-[var(--accent-orange)] inline-block shrink-0" />
-                    <span>{section.title}</span>
-                  </h2>
+                <RevealOnScroll key={sIdx}>
+                  <section 
+                    className="glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
+                  >
+                    <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight flex items-center gap-2.5">
+                      <span className="w-2 h-5 rounded-full bg-[var(--accent-orange)] inline-block shrink-0" />
+                      <span>{section.title}</span>
+                    </h2>
 
-                  {/* Section Image */}
-                  {section.image && (
-                    <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-2xs">
-                      <img
-                        src={section.image.src}
-                        alt={section.image.alt}
-                        className="w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
+                    {/* Section Image */}
+                    {section.image && (
+                      <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-2xs">
+                        <img
+                          src={section.image.src}
+                          alt={section.image.alt}
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    )}
 
-                  {/* Embedded Interactive Tool */}
-                  {section.interactiveTool === 'class_detector' && <ClassDetectorQuiz />}
-                  {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
+                    {/* Embedded Interactive Tool */}
+                    {section.interactiveTool === 'class_detector' && <ClassDetectorQuiz />}
+                    {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
 
-                  {/* Callout Box if present */}
-                  {section.callout && (
-                    <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[var(--accent-orange)]/10 text-xs sm:text-sm font-extrabold text-[var(--text-primary)] leading-relaxed shadow-2xs">
-                      {section.callout}
-                    </div>
-                  )}
+                    {/* Callout Box if present */}
+                    {section.callout && (
+                      <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[var(--accent-orange)]/10 text-xs sm:text-sm font-extrabold text-[var(--text-primary)] leading-relaxed shadow-2xs">
+                        {section.callout}
+                      </div>
+                    )}
 
-                  {/* Book Paragraphs */}
-                  <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
-                    {section.paragraphs.map((para, pIdx) => {
-                      const isQuote = para.startsWith('"') && para.endsWith('"');
-                      if (isQuote) {
+                    {/* Book Paragraphs */}
+                    <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
+                      {section.paragraphs.map((para, pIdx) => {
+                        const isQuote = para.startsWith('"') && para.endsWith('"');
+                        if (isQuote) {
+                          return (
+                            <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                              {para}
+                            </blockquote>
+                          );
+                        }
                         return (
-                          <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                          <p key={pIdx} className="font-medium text-justify">
                             {para}
-                          </blockquote>
+                          </p>
                         );
-                      }
-                      return (
-                        <p key={pIdx} className="font-medium text-justify">
-                          {para}
-                        </p>
-                      );
-                    })}
-                  </div>
-                </section>
+                      })}
+                    </div>
+                  </section>
+                </RevealOnScroll>
               ))}
             </div>
           )}
 
           {/* CONCISE SUMMARY CARD */}
           {lesson.summary && lesson.summary.length > 0 && (
-            <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                  <Sparkles className="w-4 h-4 stroke-[2]" />
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
-                  핵심 요약
-                </h3>
+            <RevealOnScroll>
+              <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                    <Sparkles className="w-4 h-4 stroke-[2]" />
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
+                    핵심 요약
+                  </h3>
+                </div>
+                <ul className="space-y-2.5">
+                  {lesson.summary.map((point, index) => (
+                    <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                      <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] flex items-center justify-center text-xs font-bold shrink-0 font-mono mt-0.5">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 text-[var(--text-primary)]">
+                        {point}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2.5">
-                {lesson.summary.map((point, index) => (
-                  <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-                    <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] flex items-center justify-center text-xs font-bold shrink-0 font-mono mt-0.5">
-                      {index + 1}
-                    </span>
-                    <span className="flex-1 text-[var(--text-primary)]">
-                      {point}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            </RevealOnScroll>
           )}
 
           {/* DYNAMIC CONTENT MODULES BLOCK (Resources, CTA) */}
@@ -277,174 +281,169 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
                   return (
-                    <div key={index} className="space-y-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                          <BookOpen className="w-4 h-4 stroke-[2]" />
-                        </span>
-                        <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
-                          {module.title}
-                        </h3>
-                      </div>
-                      {module.description && (
-                        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-                          {module.description}
-                        </p>
-                      )}
-                      <div className="space-y-3">
-                        {module.steps.map((step, stepIdx) => (
-                          <div
-                            key={stepIdx}
-                            className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl space-y-2 border border-[var(--border-color)] transition-all duration-300"
-                          >
-                            <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
-                              <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">
-                                {renderStepIcon(step.icon)}
-                              </span>
-                              <span>{step.title}</span>
-                            </h4>
-                            {step.description && (
-                              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-4">
-                                {step.description}
-                              </p>
-                            )}
-                            {step.bullets && step.bullets.length > 0 && (
-                              <ul className="space-y-1.5 pl-4 pt-1">
-                                {step.bullets.map((bullet, bulletIdx) => (
-                                  <li key={bulletIdx} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium leading-relaxed">
-                                    <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-0.5">•</span>
-                                    <span>{bullet}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
+                    <RevealOnScroll key={index}>
+                      <div 
+                        className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                              <BookOpen className="w-4.5 h-4.5 stroke-[1.7]" />
+                            </span>
+                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                              {module.title}
+                            </h3>
                           </div>
-                        ))}
+                          {module.description && (
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8">
+                              {module.description}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Step Guides Stack */}
+                        <div className="space-y-4 pt-1">
+                          {module.steps.map((step, sIdx) => (
+                            <div 
+                              key={sIdx}
+                              className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-2.5 shadow-2xs"
+                            >
+                              <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
+                                <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">
+                                  {renderStepIcon(step.icon)}
+                                </span>
+                                <span>{step.title}</span>
+                              </h4>
+                              {step.description && (
+                                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-4">
+                                  {step.description}
+                                </p>
+                              )}
+                              {step.bullets && step.bullets.length > 0 && (
+                                <ul className="space-y-1.5 pl-4 pt-1">
+                                  {step.bullets.map((bullet, bulletIdx) => (
+                                    <li key={bulletIdx} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium leading-relaxed">
+                                      <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-0.5">•</span>
+                                      <span>{bullet}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    </RevealOnScroll>
                   );
                 }
 
                 if (module.type === 'resources') {
                   return (
-                    <div 
-                      key={index}
-                      className="space-y-4 py-2"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                            <ExternalLink className="w-4.5 h-4.5 stroke-[1.7]" />
-                          </span>
-                          <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
-                            {module.title}
-                          </h3>
+                    <RevealOnScroll key={index}>
+                      <div 
+                        className="space-y-4 py-2"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                              <ExternalLink className="w-4.5 h-4.5 stroke-[1.7]" />
+                            </span>
+                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                              {module.title}
+                            </h3>
+                          </div>
+                          {module.description && (
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8">
+                              {module.description}
+                            </p>
+                          )}
                         </div>
-                        {module.description && (
-                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8">
-                            {module.description}
-                          </p>
-                        )}
-                      </div>
 
-                      {/* Resource Links Stack */}
-                      <div className="space-y-2 pt-1">
-                        {module.links.map((link, linkIdx) => {
-                          const isExt = link.url.startsWith('http');
-                          return (
-                            <a
-                              key={linkIdx}
-                              href={link.url}
-                              target={isExt ? '_blank' : '_self'}
-                              rel={isExt ? 'noopener noreferrer' : undefined}
-                              className="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card transition-all duration-300 shadow-2xs hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.18)] active:scale-[0.99]"
-                            >
-                              <div className="space-y-0.5 min-w-0 flex-1 pr-3">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
-                                    {link.label}
-                                  </span>
+                        {/* Resource Links Stack */}
+                        <div className="space-y-2 pt-1">
+                          {module.links.map((link, linkIdx) => {
+                            const isExt = link.url.startsWith('http');
+                            return (
+                              <a
+                                key={linkIdx}
+                                href={link.url}
+                                target={isExt ? '_blank' : '_self'}
+                                rel={isExt ? 'noopener noreferrer' : undefined}
+                                className="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card transition-all duration-300 shadow-2xs hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.18)] active:scale-[0.99]"
+                              >
+                                <div className="space-y-0.5 min-w-0 flex-1 pr-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
+                                      {link.label}
+                                    </span>
+                                  </div>
+                                  {link.description && (
+                                    <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
+                                      {link.description}
+                                    </p>
+                                  )}
                                 </div>
-                                {link.description && (
-                                  <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
-                                    {link.description}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="w-6 h-6 rounded-full bg-[var(--card-surface)] group-hover:bg-[var(--accent-orange)] text-[var(--text-secondary)] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                                <ExternalLink className="w-3.5 h-3.5 stroke-[1.7]" />
-                              </div>
-                            </a>
-                          );
-                        })}
+                                <div className="w-6 h-6 rounded-full bg-[var(--card-surface)] group-hover:bg-[var(--accent-orange)] text-[var(--text-secondary)] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                                  <ExternalLink className="w-3.5 h-3.5 stroke-[1.7]" />
+                                </div>
+                              </a>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    </RevealOnScroll>
                   );
                 }
 
                 if (module.type === 'cta') {
                   return (
-                    <div 
-                      key={index}
-                      className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]"
-                    >
-                      <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
-                      
-                      <div className="relative z-10 space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div className="space-y-1.5 min-w-0 flex-1">
-                            {module.badge && (
-                              <span className="inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white tracking-wide font-mono shadow-2xs">
-                                {module.badge}
-                              </span>
-                            )}
-                            <h3 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
-                              {module.title}
-                            </h3>
-                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-                              {module.description}
-                            </p>
-                          </div>
+                    <RevealOnScroll key={index}>
+                      <div 
+                        className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]"
+                      >
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
+                        
+                        <div className="relative z-10 space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1.5 min-w-0 flex-1">
+                              {module.badge && (
+                                <span className="inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)] text-white tracking-wide font-mono shadow-2xs">
+                                  {module.badge}
+                                </span>
+                              )}
+                              <h3 className="text-base sm:text-lg font-bold tracking-tight text-[var(--text-primary)]">
+                                {module.title}
+                              </h3>
+                              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                                {module.description}
+                              </p>
+                            </div>
 
-                          <div className="shrink-0 pt-1 sm:pt-0">
-                            {module.isExternal ? (
-                              <a
-                                href={module.buttonUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
-                              >
-                                {module.buttonText}
-                                <ExternalLink className="w-4 h-4 stroke-[1.7]" />
-                              </a>
-                            ) : (
-                              <Link
-                                href={module.buttonUrl}
-                                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
-                              >
-                                {module.buttonText}
-                                <ArrowRight className="w-4 h-4 stroke-[1.7]" />
-                              </Link>
-                            )}
+                            <div className="shrink-0 pt-1 sm:pt-0">
+                              {module.isExternal ? (
+                                <a
+                                  href={module.buttonUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                                >
+                                  {module.buttonText}
+                                  <ExternalLink className="w-4 h-4 stroke-[1.7]" />
+                                </a>
+                              ) : (
+                                <Link
+                                  href={module.buttonUrl}
+                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                                >
+                                  {module.buttonText}
+                                  <ArrowRight className="w-4 h-4 stroke-[1.7]" />
+                                </Link>
+                              )}
+                            </div>
                           </div>
                         </div>
-
-                        {/* Optional Fee Benefit Grid Items */}
-                        {module.benefits && module.benefits.length > 0 && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[var(--border-color)]">
-                            {module.benefits.map((b, bIdx) => (
-                              <div
-                                key={bIdx}
-                                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-xs font-extrabold text-[var(--text-primary)] transition-all hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.15)]"
-                              >
-                                <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shrink-0" />
-                                <span>{b}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    </div>
+                    </RevealOnScroll>
                   );
                 }
 
@@ -454,57 +453,61 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           )}
 
           {/* Lesson Specific Comments */}
-          <div className="pt-4">
-            <CommentSection
-              targetKey={`lesson-${lesson.id}`}
-              title="댓글"
-            />
-          </div>
+          <RevealOnScroll>
+            <div className="pt-4">
+              <CommentSection
+                targetKey={`lesson-${lesson.id}`}
+                title="댓글"
+              />
+            </div>
+          </RevealOnScroll>
 
           {/* Navigation Buttons - Clean Modern Floating Cards */}
-          <div className="pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {prevLesson ? (
-                <Link
-                  href={`/lesson/${prevLesson.id}`}
-                  className="flex items-center gap-3 p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-left group shadow-2xs active:scale-[0.98]"
-                >
-                  <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:-translate-x-1 transition-all" />
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-[var(--text-secondary)] block">이전 강의</span>
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
-                      {prevLesson.title}
-                    </span>
+          <RevealOnScroll>
+            <div className="pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {prevLesson ? (
+                  <Link
+                    href={`/lesson/${prevLesson.id}`}
+                    className="flex items-center gap-3 p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-left group shadow-2xs active:scale-[0.98]"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:-translate-x-1 transition-all" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-bold text-[var(--text-secondary)] block">이전 강의</span>
+                      <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
+                        {prevLesson.title}
+                      </span>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center">
+                    첫 번째 강의입니다.
                   </div>
-                </Link>
-              ) : (
-                <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center">
-                  첫 번째 강의입니다.
-                </div>
-              )}
+                )}
 
-              {nextLesson ? (
-                <Link
-                  href={`/lesson/${nextLesson.id}`}
-                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-right group shadow-2xs active:scale-[0.98]"
-                >
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
-                    <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
-                      {nextLesson.title}
-                    </span>
+                {nextLesson ? (
+                  <Link
+                    href={`/lesson/${nextLesson.id}`}
+                    className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl glass-card glass-card-hover transition-all duration-300 text-right group shadow-2xs active:scale-[0.98]"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-bold text-[var(--accent-orange)] block">다음 강의</span>
+                      <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate block">
+                        {nextLesson.title}
+                      </span>
+                    </div>
+                    <div className="w-7 h-7 rounded-full bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0 ml-2 group-hover:translate-x-1 transition-all">
+                      <ArrowRight className="w-4 h-4 text-[var(--accent-orange)]" />
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center justify-end">
+                    마지막 강의입니다.
                   </div>
-                  <div className="w-7 h-7 rounded-full bg-[var(--bg-main)] group-hover:bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0 ml-2 group-hover:translate-x-1 transition-all">
-                    <ArrowRight className="w-4 h-4 text-[var(--accent-orange)]" />
-                  </div>
-                </Link>
-              ) : (
-                <div className="p-3.5 sm:p-4 rounded-xl glass-card opacity-60 text-[var(--text-secondary)] text-xs flex items-center justify-end">
-                  마지막 강의입니다.
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          </RevealOnScroll>
 
         </div>
       </div>
