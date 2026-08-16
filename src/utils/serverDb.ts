@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Redis } from '@upstash/redis';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export interface ServerUserRecord {
   nickname: string;
@@ -53,34 +53,6 @@ const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
 const SURVEY_STATS_FILE_PATH = path.join(process.cwd(), '.data', 'survey_stats.json');
 const COMMENTS_FILE_PATH = path.join(process.cwd(), '.data', 'comments.json');
 
-/**
- * Dynamically initialize Redis client using environment variables
- */
-function getRedisClient(): Redis | null {
-  const url =
-    process.env.KV_REST_API_URL ||
-    process.env.UPSTASH_REDIS_REST_URL ||
-    process.env.STORAGE_KV_REST_API_URL ||
-    process.env.UPSTASH_KV_REST_API_URL ||
-    process.env.STORAGE_URL;
-
-  const token =
-    process.env.KV_REST_API_TOKEN ||
-    process.env.UPSTASH_REDIS_REST_TOKEN ||
-    process.env.STORAGE_KV_REST_API_TOKEN ||
-    process.env.UPSTASH_KV_REST_API_TOKEN ||
-    process.env.STORAGE_TOKEN;
-
-  if (url && token) {
-    try {
-      return new Redis({ url, token });
-    } catch (e) {
-      console.error('Failed to instantiate Upstash Redis client:', e);
-    }
-  }
-  return null;
-}
-
 function loadDbFromFile(): Record<string, ServerUserRecord> {
   try {
     if (fs.existsSync(DB_FILE_PATH)) {
@@ -108,53 +80,73 @@ function saveDbToFile(db: Record<string, ServerUserRecord>) {
   }
 }
 
-/**
- * Async DB fetch (Supports Vercel Storage KV / Redis + local fallback)
- */
-export async function getServerDbAsync(): Promise<Record<string, ServerUserRecord>> {
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      const rawData = await redis.get<any>('jusik_server_db');
-      let remoteDb: Record<string, ServerUserRecord> | null = null;
-      if (typeof rawData === 'string') {
-        try { remoteDb = JSON.parse(rawData); } catch (e) {}
-      } else if (rawData && typeof rawData === 'object') {
-        remoteDb = rawData;
-      }
+// ----------------------------------------------------
+// USERS DATABASE FUNCTIONS (Supabase + Local file fallback)
+// ----------------------------------------------------
 
-      if (remoteDb && typeof remoteDb === 'object') {
-        const merged = { ...DEFAULT_MASTER_USERS, ...remoteDb };
-        globalThis.__jusik_server_db__ = merged;
-        return merged;
+export async function getServerDbAsync(): Promise<Record<string, ServerUserRecord>> {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('users').select('*');
+      if (!error && data) {
+        const db: Record<string, ServerUserRecord> = { ...DEFAULT_MASTER_USERS };
+        data.forEach((row: any) => {
+          db[row.nickname] = {
+            nickname: row.nickname,
+            pin: row.pin,
+            createdAt: row.created_at || new Date().toISOString(),
+            lastActiveAt: row.last_active_at || new Date().toISOString(),
+            completedLessons: Array.isArray(row.completed_lessons) ? row.completed_lessons : [],
+            investmentType: row.investment_type || undefined,
+            typeAnswers: row.type_answers || undefined,
+            simulatorSettings: row.simulator_settings || undefined,
+            avatarUrl: row.avatar_url || undefined,
+          };
+        });
+        globalThis.__jusik_server_db__ = db;
+        return db;
+      } else if (error) {
+        console.error('Supabase users select error:', error.message);
       }
     } catch (e) {
-      console.error('Failed to fetch DB from Vercel KV/Redis:', e);
+      console.error('Failed to fetch users from Supabase:', e);
     }
   }
   return getServerDb();
 }
 
-/**
- * Async DB save (Supports Vercel Storage KV / Redis + local fallback)
- */
 export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): Promise<void> {
   globalThis.__jusik_server_db__ = db;
   saveDbToFile(db);
 
-  const redis = getRedisClient();
-  if (redis) {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
     try {
-      await redis.set('jusik_server_db', db);
+      const rows = Object.values(db).map((u) => ({
+        nickname: u.nickname,
+        pin: u.pin,
+        created_at: u.createdAt,
+        last_active_at: u.lastActiveAt,
+        completed_lessons: u.completedLessons || [],
+        investment_type: u.investmentType || null,
+        type_answers: u.typeAnswers || null,
+        simulator_settings: u.simulatorSettings || null,
+        avatar_url: u.avatarUrl || null,
+      }));
+
+      if (rows.length > 0) {
+        const { error } = await supabase.from('users').upsert(rows, { onConflict: 'nickname' });
+        if (error) {
+          console.error('Supabase users upsert error:', error.message);
+        }
+      }
     } catch (e) {
-      console.error('Failed to save DB to Vercel KV/Redis:', e);
+      console.error('Failed to save users to Supabase:', e);
     }
   }
 }
 
-/**
- * Synchronous fallback getServerDb
- */
 export function getServerDb(): Record<string, ServerUserRecord> {
   if (!globalThis.__jusik_server_db__) {
     globalThis.__jusik_server_db__ = loadDbFromFile();
@@ -188,53 +180,65 @@ export function saveServerDb(db: Record<string, ServerUserRecord>) {
   saveDbToFile(db);
 }
 
-/**
- * Async Survey Stats fetch
- */
-export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      const rawData = await redis.get<any>('jusik_survey_stats');
-      let remoteStats: SurveyStatsData | null = null;
-      if (typeof rawData === 'string') {
-        try { remoteStats = JSON.parse(rawData); } catch (e) {}
-      } else if (rawData && typeof rawData === 'object') {
-        remoteStats = rawData;
-      }
+// ----------------------------------------------------
+// SURVEY STATS FUNCTIONS (Supabase + Local file fallback)
+// ----------------------------------------------------
 
-      if (remoteStats && typeof remoteStats === 'object') {
-        globalThis.__jusik_survey_stats__ = remoteStats;
-        return remoteStats;
+export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('survey_stats').select('*');
+      if (!error && data) {
+        let total = 0;
+        const typeCounts: Record<string, number> = {};
+        data.forEach((row: any) => {
+          const count = Number(row.count) || 0;
+          typeCounts[row.type_code] = count;
+          total += count;
+        });
+        const stats: SurveyStatsData = { totalCount: total, typeCounts };
+        globalThis.__jusik_survey_stats__ = stats;
+        return stats;
+      } else if (error) {
+        console.error('Supabase survey_stats select error:', error.message);
       }
     } catch (e) {
-      console.error('Failed to fetch survey stats from Vercel KV/Redis:', e);
+      console.error('Failed to fetch survey stats from Supabase:', e);
     }
   }
   return getSurveyStats();
 }
 
-/**
- * Async Survey Stats record
- */
 export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyStatsData> {
-  const stats = await getSurveyStatsAsync();
-  stats.totalCount = (stats.totalCount || 0) + 1;
-  stats.typeCounts[typeCode] = (stats.typeCounts[typeCode] || 0) + 1;
-
-  globalThis.__jusik_survey_stats__ = stats;
-  saveDbToFile(stats as any);
-
-  const redis = getRedisClient();
-  if (redis) {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
     try {
-      await redis.set('jusik_survey_stats', stats);
+      // Fetch existing count for this type
+      const { data: existing } = await supabase
+        .from('survey_stats')
+        .select('count')
+        .eq('type_code', typeCode)
+        .maybeSingle();
+
+      const newCount = (existing?.count ? Number(existing.count) : 0) + 1;
+      const { error } = await supabase.from('survey_stats').upsert({
+        type_code: typeCode,
+        count: newCount,
+      }, { onConflict: 'type_code' });
+
+      if (error) {
+        console.error('Supabase survey_stats upsert error:', error.message);
+      } else {
+        return await getSurveyStatsAsync();
+      }
     } catch (e) {
-      console.error('Failed to save survey stats to Vercel KV/Redis:', e);
+      console.error('Failed to record survey result to Supabase:', e);
     }
   }
 
-  return stats;
+  // Fallback
+  return recordSurveyResult(typeCode);
 }
 
 export function getSurveyStats(): SurveyStatsData {
@@ -286,7 +290,7 @@ export function recordSurveyResult(typeCode: string): SurveyStatsData {
 }
 
 // ----------------------------------------------------
-// COMMENTS DATABASE FUNCTIONS (Persistent Upstash Redis + Local file)
+// COMMENTS DATABASE FUNCTIONS (Supabase + Local file fallback)
 // ----------------------------------------------------
 
 function loadCommentsFromFile(): CommentRecord[] {
@@ -317,30 +321,38 @@ function saveCommentsToFile(comments: CommentRecord[]) {
 }
 
 export async function getCommentsAsync(targetKey?: string): Promise<CommentRecord[]> {
-  let allComments: CommentRecord[] = [];
-  const redis = getRedisClient();
-  if (redis) {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
     try {
-      const rawData = await redis.get<any>('jusik_comments_db');
-      if (typeof rawData === 'string') {
-        try { allComments = JSON.parse(rawData); } catch (e) {}
-      } else if (Array.isArray(rawData)) {
-        allComments = rawData;
+      let query = supabase.from('comments').select('*').order('created_at', { ascending: true });
+      if (targetKey) {
+        query = query.eq('target_key', targetKey);
+      }
+      const { data, error } = await query;
+      if (!error && data) {
+        return data.map((row: any) => ({
+          id: row.id,
+          targetKey: row.target_key,
+          nickname: row.nickname,
+          pin: row.pin,
+          content: row.content,
+          avatarUrl: row.avatar_url || undefined,
+          investmentType: row.investment_type || undefined,
+          typeScores: row.type_scores || undefined,
+          createdAt: row.created_at,
+          parentId: row.parent_id || null,
+        }));
+      } else if (error) {
+        console.error('Supabase comments select error:', error.message);
       }
     } catch (e) {
-      console.error('Failed to fetch comments from Redis:', e);
+      console.error('Failed to fetch comments from Supabase:', e);
     }
   }
 
-  if (allComments.length === 0) {
-    if (!globalThis.__jusik_comments_db__) {
-      globalThis.__jusik_comments_db__ = loadCommentsFromFile();
-    }
-    allComments = globalThis.__jusik_comments_db__ || [];
-  } else {
-    globalThis.__jusik_comments_db__ = allComments;
-  }
-
+  // Fallback to local
+  let allComments = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
+  globalThis.__jusik_comments_db__ = allComments;
   if (targetKey) {
     return allComments.filter((c) => c.targetKey === targetKey);
   }
@@ -348,53 +360,98 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
 }
 
 export async function addCommentAsync(newComment: CommentRecord): Promise<CommentRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('comments').insert({
+        id: newComment.id,
+        target_key: newComment.targetKey,
+        nickname: newComment.nickname,
+        pin: newComment.pin,
+        content: newComment.content,
+        avatar_url: newComment.avatarUrl || null,
+        investment_type: newComment.investmentType || null,
+        type_scores: newComment.typeScores || null,
+        created_at: newComment.createdAt,
+        parent_id: newComment.parentId || null,
+      });
+
+      if (error) {
+        console.error('Supabase comments insert error:', error.message);
+      } else {
+        return await getCommentsAsync(newComment.targetKey);
+      }
+    } catch (e) {
+      console.error('Failed to insert comment to Supabase:', e);
+    }
+  }
+
+  // Fallback
   const all = await getCommentsAsync();
   all.push(newComment);
   globalThis.__jusik_comments_db__ = all;
   saveCommentsToFile(all);
-
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      await redis.set('jusik_comments_db', all);
-    } catch (e) {
-      console.error('Failed to save comment to Redis:', e);
-    }
-  }
-
   return all.filter((c) => c.targetKey === newComment.targetKey);
 }
 
-export async function deleteCommentAsync(commentId: string, requesterNickname: string, requesterPin: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteCommentAsync(
+  commentId: string,
+  requesterNickname: string,
+  requesterPin: string
+): Promise<{ success: boolean; error?: string }> {
+  const isMasterAdmin = (requesterNickname === '주식부엉' && requesterPin === '418019');
+
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data: targetComment, error: fetchErr } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('id', commentId)
+        .maybeSingle();
+
+      if (fetchErr || !targetComment) {
+        return { success: false, error: '댓글을 찾을 수 없습니다.' };
+      }
+
+      const isAuthor = (targetComment.nickname === requesterNickname && targetComment.pin === requesterPin);
+      if (!isMasterAdmin && !isAuthor) {
+        return { success: false, error: '삭제 권한이 없습니다.' };
+      }
+
+      // Delete target comment and its direct replies
+      const { error: deleteErr } = await supabase
+        .from('comments')
+        .delete()
+        .or(`id.eq.${commentId},parent_id.eq.${commentId}`);
+
+      if (deleteErr) {
+        console.error('Supabase comment delete error:', deleteErr.message);
+        return { success: false, error: '댓글 삭제 중 오류가 발생했습니다.' };
+      }
+
+      return { success: true };
+    } catch (e) {
+      console.error('Failed to delete comment from Supabase:', e);
+    }
+  }
+
+  // Fallback
   const all = await getCommentsAsync();
   const targetIndex = all.findIndex((c) => c.id === commentId);
-
   if (targetIndex === -1) {
     return { success: false, error: '댓글을 찾을 수 없습니다.' };
   }
 
   const targetComment = all[targetIndex];
-  const isMasterAdmin = (requesterNickname === '주식부엉' && requesterPin === '418019');
   const isAuthor = (targetComment.nickname === requesterNickname && targetComment.pin === requesterPin);
-
   if (!isMasterAdmin && !isAuthor) {
     return { success: false, error: '삭제 권한이 없습니다.' };
   }
 
-  // Also remove direct replies if parent is deleted, or simply filter out
   const updated = all.filter((c) => c.id !== commentId && c.parentId !== commentId);
   globalThis.__jusik_comments_db__ = updated;
   saveCommentsToFile(updated);
 
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      await redis.set('jusik_comments_db', updated);
-    } catch (e) {
-      console.error('Failed to delete comment from Redis:', e);
-    }
-  }
-
   return { success: true };
 }
-
