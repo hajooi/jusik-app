@@ -66,8 +66,8 @@ export async function POST(request: Request) {
     const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl } = body;
 
     const trimmedNickname = nickname?.trim();
-    if (!trimmedNickname || !pin) {
-      return NextResponse.json({ success: false, error: '닉네임과 핀번호를 입력해 주세요.' }, { status: 200 });
+    if (!trimmedNickname) {
+      return NextResponse.json({ success: false, error: '닉네임을 입력해 주세요.' }, { status: 200 });
     }
 
     const validation = validateNickname(trimmedNickname);
@@ -75,12 +75,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: validation.message }, { status: 200 });
     }
 
+    const db = await getServerDbAsync();
+    const existing = db[trimmedNickname] || db[trimmedNickname.toLowerCase()];
+
+    if (action === 'changePin') {
+      const { newPin } = body;
+      if (!newPin || !/^\d{6}$/.test(newPin)) {
+        return NextResponse.json({ success: false, error: '새 핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
+      }
+
+      if (!existing) {
+        return NextResponse.json({ success: false, error: '계정을 찾을 수 없습니다.' }, { status: 200 });
+      }
+
+      existing.pin = newPin;
+      existing.lastActiveAt = new Date().toISOString();
+      db[trimmedNickname] = existing;
+      await saveServerDbAsync(db);
+
+      return NextResponse.json({
+        success: true,
+        message: '핀번호가 성공적으로 변경되었습니다.'
+      });
+    }
+
+    if (!pin) {
+      return NextResponse.json({ success: false, error: '핀번호를 입력해 주세요.' }, { status: 200 });
+    }
+
     if (!/^\d{6}$/.test(pin)) {
       return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
     }
-
-    const db = await getServerDbAsync();
-    const existing = db[trimmedNickname] || db[trimmedNickname.toLowerCase()];
 
     if (action === 'login') {
       if (existing) {

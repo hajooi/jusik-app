@@ -28,6 +28,7 @@ interface AuthContextType {
   toggleAuthPopover: () => void;
   login: (nickname: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  changePin: (newPin: string) => Promise<{ success: boolean; error?: string }>;
   markLessonCompleted: (lessonId: string) => void;
   toggleLessonCompleted: (lessonId: string) => void;
   isLessonCompleted: (lessonId: string) => boolean;
@@ -394,6 +395,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changePin = async (newPin: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user || !user.nickname) {
+      return { success: false, error: '로그인이 필요합니다.' };
+    }
+
+    if (!newPin || !/^\d{6}$/.test(newPin)) {
+      return { success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' };
+    }
+
+    try {
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'changePin',
+          nickname: user.nickname,
+          pin: user.pin,
+          newPin
+        })
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return { success: false, error: data.error || '핀번호 변경에 실패했습니다.' };
+      }
+
+      // Update local state and localStorage
+      const updatedUser = { ...user, pin: newPin };
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      localStorage.setItem('jusik_user_pin', newPin);
+
+      return { success: true };
+    } catch (e) {
+      console.error('changePin error:', e);
+      return { success: false, error: '서버 통신 중 오류가 발생했습니다.' };
+    }
+  };
+
   const logout = () => {
     // 1. Wipe all local storage keys
     localStorage.removeItem(USER_STORAGE_KEY);
@@ -427,6 +467,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleAuthPopover,
         login,
         logout,
+        changePin,
         markLessonCompleted,
         toggleLessonCompleted,
         isLessonCompleted,

@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw } from 'lucide-react';
+import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw, KeyRound } from 'lucide-react';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 
 interface AuthPopoverProps {
@@ -12,7 +12,7 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
-  const { login, user, logout, updateAvatar, isAuthPopoverClosing } = useAuth();
+  const { login, user, logout, changePin, updateAvatar, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [nickname, setNickname] = useState('');
@@ -22,6 +22,45 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // PIN Change State
+  const [isChangingPin, setIsChangingPin] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [newPinConfirm, setNewPinConfirm] = useState('');
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [isPinChanging, setIsPinChanging] = useState(false);
+  const [pinChangeError, setPinChangeError] = useState<string | null>(null);
+  const [pinChangeSuccess, setPinChangeSuccess] = useState<string | null>(null);
+
+  const handlePinChangeSubmit = async () => {
+    if (!newPin || newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
+      setPinChangeError('새 핀번호는 숫자 6자리로 입력해 주세요.');
+      return;
+    }
+    if (newPin !== newPinConfirm) {
+      setPinChangeError('입력하신 두 핀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setIsPinChanging(true);
+    setPinChangeError(null);
+    setPinChangeSuccess(null);
+
+    const res = await changePin(newPin);
+    setIsPinChanging(false);
+
+    if (res.success) {
+      setPinChangeSuccess('핀번호가 성공적으로 변경되었습니다!');
+      setTimeout(() => {
+        setIsChangingPin(false);
+        setNewPin('');
+        setNewPinConfirm('');
+        setPinChangeSuccess(null);
+      }, 1200);
+    } else {
+      setPinChangeError(res.error || '핀번호 변경에 실패했습니다.');
+    }
+  };
 
   // Client-side image resize via HTML5 Canvas (128x128 compressed WebP/JPEG)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,9 +253,117 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             )}
           </div>
 
+          {/* Server Sync Badge */}
           <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             <span>서버 동기화 상태 유지 중</span>
+          </div>
+
+          {/* PIN Change Section */}
+          <div className="pt-0.5">
+            {!isChangingPin ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsChangingPin(true);
+                  setNewPin('');
+                  setNewPinConfirm('');
+                  setPinChangeError(null);
+                  setPinChangeSuccess(null);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all border border-[var(--border-color)] flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                <span>핀번호 변경</span>
+              </button>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                    <span>새 핀번호 설정</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsChangingPin(false)}
+                    className="text-[11px] text-[var(--text-secondary)] hover:text-red-500 font-medium cursor-pointer"
+                  >
+                    취소
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <input
+                      type={showNewPin ? 'text' : 'password'}
+                      maxLength={6}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={newPin}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setNewPin(val);
+                        setPinChangeError(null);
+                      }}
+                      placeholder="새 핀번호 6자리"
+                      className="w-full pl-3 pr-9 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-mono tracking-widest"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPin(!showNewPin)}
+                      className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+                    >
+                      {showNewPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+
+                  <input
+                    type={showNewPin ? 'text' : 'password'}
+                    maxLength={6}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={newPinConfirm}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setNewPinConfirm(val);
+                      setPinChangeError(null);
+                    }}
+                    placeholder="새 핀번호 확인 (6자리)"
+                    className="w-full px-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-mono tracking-widest"
+                  />
+                </div>
+
+                {pinChangeError && (
+                  <div className="text-[11px] text-red-500 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    <span>{pinChangeError}</span>
+                  </div>
+                )}
+
+                {pinChangeSuccess && (
+                  <div className="text-[11px] text-[var(--accent-green)] font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                    <span>{pinChangeSuccess}</span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  disabled={isPinChanging || newPin.length !== 6 || newPinConfirm.length !== 6}
+                  onClick={handlePinChangeSubmit}
+                  className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-[var(--accent-orange)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  {isPinChanging ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>변경 중...</span>
+                    </>
+                  ) : (
+                    <span>핀번호 변경 완료</span>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           <button
