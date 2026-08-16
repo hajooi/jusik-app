@@ -189,7 +189,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                   </span>
                 </div>
                 <Link
-                  href={`/tools/type?result=${user.investmentType}`}
+                  href="/tools/type"
                   onClick={onClose}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
                 >
