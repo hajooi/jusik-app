@@ -22,294 +22,294 @@ export interface PersonalityProfile {
   };
 }
 
-// 40 Questions (10 per Axis) - 쉬운 존댓말 표현 및 직관적 라벨 교정
+// 40 Questions (10 per Axis) - 홀수(정방향: G, A, L, R) vs 짝수(역방향: S, P, T, I) 5:5 교차 배치
 export const QUESTIONS: Question[] = [
-  // --- 1. [목표 축] G (수익형 - Growth) vs S (안전형 - Safety) : 10문항 ---
+  // --- 1. [목표 축] G (성장/수익형) vs S (안전/보존형) : 10문항 ---
   {
     id: 1,
     axis: 'GS',
-    question: '주식 시장이 폭락해 내 계좌가 20% 하락했을 때 내 반응은?',
-    leftLabel: '매우 불안하고 스트레스를 받는다',
-    rightLabel: '덤덤하거나 주식을 더 살 기회로 여긴다',
+    question: '보유 주식이 20% 급락했을 때, 공포감보다는 싸게 살 기회라는 생각이 먼저 든다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 2,
     axis: 'GS',
-    question: '투자 시 목표로 하는 연간 목표 수익률은 어느 정도인가요?',
-    leftLabel: '은행 이자보다 조금 높은 연 5~8%면 충분하다',
-    rightLabel: '위험을 감수하더라도 연 20% 이상 큰 수익을 원한다',
+    question: '투자로 돈을 버는 것보다, 애써 모은 원금을 잃지 않고 지키는 것이 더 중요하다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 3,
     axis: 'GS',
-    question: '투자를 하면서 가장 두려운 상황은 무엇인가요?',
-    leftLabel: '힘들게 모은 원금이 손실 나는 상황',
-    rightLabel: '남들은 다 돈 버는데 나만 기회를 놓치는 상황',
+    question: '원금 손실 위험이 크더라도, 시장 평균을 뛰어넘는 고수익을 노릴 수 있는 종목에 집중 투자하고 싶다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 4,
     axis: 'GS',
-    question: '2배, 3배로 수익이나 손실이 커지는 고위험 상품(레버리지)에 대해 어떻게 생각하나요?',
-    leftLabel: '위험이 너무 커서 쳐다보지도 않는다',
-    rightLabel: '수익률을 극대화하기 위해 적극적으로 활용한다',
+    question: '은행 이자보다 조금 높은 수준(연 5~8%)의 안정적인 수익이라면 만족한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 5,
     axis: 'GS',
-    question: '전체 투자 자산 중 현금의 비중은 어느 정도가 적당하다고 생각하나요?',
-    leftLabel: '안전을 위해 최소 30% 이상은 현금으로 둔다',
-    rightLabel: '현금은 최소한만 두고 거의 100% 주식을 사둔다',
+    question: '변동성이 크더라도, 세상을 바꿀 신기술이나 미래 고성장 기업에 투자하는 것이 매력적이다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 6,
     axis: 'GS',
-    question: '세상을 바꿀 신기술이 등장했을 때 어떻게 행동하나요?',
-    leftLabel: '신기술 대신 이미 검증된 큰 기업 위주로 산다',
-    rightLabel: '변동성이 크더라도 높은 성장이 기대되는 신기술에 투자한다',
+    question: '투자 자산 중 30% 이상은 언제든 꺼낼 수 있는 현금이나 예금으로 두어야 마음이 놓인다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 7,
     axis: 'GS',
-    question: '투자할 종목을 고를 때 어떤 지표를 더 눈여겨보나요?',
-    leftLabel: '부채 비율, 배당 등 기업의 재무적 안정성',
-    rightLabel: '매출 성장률, 미래 시장 점유율의 확장 가능성',
+    question: '배당금이나 이자 같은 고정 수익보다는, 자산 가격의 상승으로 인한 폭발적인 시세 차익을 노린다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 8,
     axis: 'GS',
-    question: '내가 가진 주식이 하루 만에 10% 이상 폭락한다면 어떤가요?',
-    leftLabel: '불안해서 자꾸 계좌를 열어보고 스트레스를 받는다',
-    rightLabel: '주식 시장의 자연스러운 일이라며 담담하다',
+    question: '하루 5~10%씩 급등락하는 종목을 보유하면, 불안해서 일상생활이나 수면에 지장이 있다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 9,
     axis: 'GS',
-    question: '주식으로 얻고 싶은 이익의 크기는 어느 정도인가요?',
-    leftLabel: '소소하고 확실한 이익을 짧은 주기로 챙기는 것',
-    rightLabel: '오래 기다리더라도 몇 배 이상의 큰 수익을 내는 것',
+    question: '시장 상승기에 수익률을 극대화하기 위해, 고위험 상품(성장주·레버리지 등)도 적극 투자할 수 있다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 10,
     axis: 'GS',
-    question: '내 투자 포트폴리오에 금이나 채권 같은 안전자산을 포함시키는 것에 대해 어떻게 생각하나요?',
-    leftLabel: '원금을 지키기 위해 안전자산을 비중 있게 꼭 넣어야 한다',
-    rightLabel: '수익률을 높이기 위해 주식/성장자산 위주로 채우는 것이 좋다',
+    question: '내 자산의 상당 부분은 금, 채권, 배당주, 예금처럼 변동성이 적고 안정적인 자산으로 채워져야 한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
 
-  // --- 2. [실행 축] A (능동형 - Active) vs P (수동형 - Passive) : 10문항 ---
+  // --- 2. [실행 축] A (능동/직접분석형) vs P (수동/패시브형) : 10문항 ---
   {
     id: 11,
     axis: 'AP',
-    question: '기업 재무제표나 기업 분석 보고서를 읽는 것을 어떻게 느끼나요?',
-    leftLabel: '머리 아프고 복잡해서 피하고 싶다',
-    rightLabel: '데이터를 직접 파헤치고 분석하는 과정이 흥미롭다',
+    question: '관심 기업의 실적 보고서나 재무제표를 직접 찾아서 분석해보는 과정이 즐겁다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 12,
     axis: 'AP',
-    question: '선호하는 투자 방식은 어느 쪽에 가깝나요?',
-    leftLabel: '정기적으로 일정 금액을 고민 없이 사는 방식',
-    rightLabel: '시장 상황과 타이밍을 직접 판단해서 사는 방식',
+    question: '종목을 일일이 고르는 데 시간을 쓰기보다, 시장 전체를 추종하는 지수형 상품을 선호한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 13,
     axis: 'AP',
-    question: '매매 일지나 나만의 투자 기록을 작성하는 편인가요?',
-    leftLabel: '귀찮고 번거로워서 굳이 쓰지 않는다',
-    rightLabel: '투자 이유와 기록을 꼼꼼히 적고 복기한다',
+    question: '주식을 사고팔 때마다 투자 이유와 결과를 매매 일지에 기록하고, 정기적으로 복기한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 14,
     axis: 'AP',
-    question: '하루 중 주식 뉴스나 관련 정보, 시세를 찾아보는 시간은 얼마나 되나요?',
-    leftLabel: '며칠에 한 번 보거나 거의 안 본다',
-    rightLabel: '매일 장 시작 전후로 시세와 뉴스를 꼼꼼히 확인한다',
+    question: '전문가가 구성해 둔 펀드나 투자 서비스에 운용을 맡기는 편이 마음 편하다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 15,
     axis: 'AP',
-    question: '투자 관련 책이나 강의로 공부할 때 어떤 방식을 좋아하나요?',
-    leftLabel: '핵심 요약만 쉽고 짧게 정리된 내용을 좋아한다',
-    rightLabel: '수식, 백테스트, 지표까지 깊이 있게 파고드는 내용을 좋아한다',
+    question: '매일 시장 뉴스를 체크하고 주요 종목 시세를 파악하는 데 30분 이상의 시간을 기꺼이 쓴다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 16,
     axis: 'AP',
-    question: '개별 기업 주식과 지수 ETF(여러 기업을 한 번에 사는 상품) 중 어느 쪽을 더 선호하나요?',
-    leftLabel: '신경 쓸 일이 적은 지수 ETF',
-    rightLabel: '더 높은 성과를 기대할 수 있는 개별 기업 주식',
+    question: '주식 투자가 내 본업이나 일상에 방해되지 않도록, 신경 쓰는 시간을 최소화하고 싶다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 17,
     axis: 'AP',
-    question: '자산 비중을 정기적으로 다시 맞추는 작업(리밸런싱)은 어떻게 진행하나요?',
-    leftLabel: '정해둔 정기 주기(분기/연간)에 맞춰 처리한다',
-    rightLabel: '내 판단에 따라 종목 비율을 직접 계산하고 조절한다',
+    question: '남들이 골라준 펀드나 추천에 맡기기보다, 내가 직접 종목을 고르고 자산을 굴리는 편이 낫다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 18,
     axis: 'AP',
-    question: '전문가나 유명인이 추천하는 종목을 알게 되었을 때 어떻게 하나요?',
-    leftLabel: '신뢰할 수 있는 전문가나 유명한 종목이라면 믿고 산다',
-    rightLabel: '내가 직접 재무제표와 차트를 검증하기 전엔 사지 않는다',
+    question: '매달 정해진 날짜에 기계적으로 주식을 모아가도록 세팅해 두는 방식을 선호한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 19,
     axis: 'AP',
-    question: '투자 활동이 본업이나 일상생활에 미치는 영향에 대해 어떻게 생각하나요?',
-    leftLabel: '일상에 방해되지 않도록 최소한의 시간만 쓰고 싶다',
-    rightLabel: '투자는 본업만큼이나 즐겁고 적극적으로 할 만한 가치가 있다',
+    question: '투자 전략을 세우고 시장을 공부하는 과정은, 내 본업이나 취미만큼 즐겁고 가치 있다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 20,
     axis: 'AP',
-    question: '기업들의 실적 발표 시즌이 다가오면 어떤 생각이 드나요?',
-    leftLabel: '신경 써야 할 정보가 늘어나 피곤하게 느껴진다',
-    rightLabel: '성적표를 비교하고 새로운 투자 기회를 찾을 생각에 설렌다',
+    question: '기업 실적 발표나 복잡한 경제 지표를 분석하는 일은 머리 아프고 피곤하게 느껴진다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
 
-  // --- 3. [시간 축] L (장기형 - Long-term) vs T (추세형 - Tactical) : 10문항 ---
+  // --- 3. [시간 축] L (장기/복리형) vs T (전술/추세대응형) : 10문항 ---
   {
     id: 21,
     axis: 'LT',
-    question: '주식을 한 번 사면 어느 정도 기간 동안 보유하길 원하나요?',
-    leftLabel: '몇 주 안에 수익을 내고 유연하게 바꾸고 싶다',
-    rightLabel: '최소 3~5년 이상 들고 가며 복리 효과를 보고 싶다',
+    question: '단기 시세 변동에 일희일비하지 않고, 기업의 장기적 성장과 복리 효과를 누리기 위해 수년간 보유한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 22,
     axis: 'LT',
-    question: '주식 시장의 변동성이 급격히 커질 때 어떻게 대응하나요?',
-    leftLabel: '트렌드와 기회에 맞춰 주식을 자주 사고판다',
-    rightLabel: '시장의 파도와 상관없이 사둔 주식을 묵묵히 들고 간다',
+    question: '시장 트렌드와 흐름에 맞춰, 유연하게 사고팔며 수익을 챙기는 편이 좋다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 23,
     axis: 'LT',
-    question: '금리 인상이나 환율 변동 같은 대형 경제 뉴스가 나올 때 어떻게 행동하나요?',
-    leftLabel: '뉴스를 보고 빠르게 현금이나 종목 비중을 교체하고 싶다',
-    rightLabel: '단기 소음으로 여기고 원래의 장기 계획을 유지한다',
+    question: '내가 산 주식이 단기간에 30% 급등했더라도, 기업 자체의 가치가 변하지 않았다면 팔지 않는다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 24,
     axis: 'LT',
-    question: '내가 산 주식이 한 달 만에 30% 급등하면 어떻게 할 건가요?',
-    leftLabel: '이익을 빠르게 확정 짓기 위해 판다',
-    rightLabel: '기업의 가치가 변하지 않았다면 계속 들고 간다',
+    question: '보유한 주식이 목표 수익에 도달하면, 주저 없이 팔아서 수익을 확정 짓는 편이다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 25,
     axis: 'LT',
-    question: '주식 매매 시 발생하는 수수료나 세금에 대해 어떻게 생각하나요?',
-    leftLabel: '좋은 기회를 잡아 수익을 내는 것이 수수료나 세금 절약보다 중요하다',
-    rightLabel: '잦은 거래는 세금과 수수료로 자산을 갉아먹으므로 피해야 한다',
+    question: '시장의 정확한 타이밍을 맞추는 것은 불가능하므로, 꾸준히 모아가며 시간을 내 편으로 만들어야 한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 26,
     axis: 'LT',
-    question: '바닥에 사고 고점에 파는 타이밍에 대해 어떻게 생각하나요?',
-    leftLabel: '차트와 추세를 잘 분석하면 어느 정도 맞출 수 있다',
-    rightLabel: '타이밍을 맞추는 건 불가능하므로 꾸준히 모아가는 게 정답이다',
+    question: '차트 흐름이나 거래량 변화를 잘 분석하면, 유리한 매매 타이밍을 포착할 수 있다고 믿는다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 27,
     axis: 'LT',
-    question: '투자 성과를 평가하는 주기는 얼마가 적당하다고 보나요?',
-    leftLabel: '매일 또는 매주 단위로 수익률을 체크한다',
-    rightLabel: '최소 연 단위 이상 길게 보며 성과를 평가한다',
+    question: '분기별 실적 부진이나 단기 악재 뉴스로 시장이 흔들려도 장기 로드맵을 믿고 끝까지 버틴다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 28,
     axis: 'LT',
-    question: '세계 경제 위기나 하락장 소식이 들려올 때 어떻게 반응하나요?',
-    leftLabel: '빠르게 주식을 팔아 현금을 확보하고 손실을 줄이고 싶다',
-    rightLabel: '역사적으로 결국 회복했으므로 싼값에 더 사 모은다',
+    question: '하락세가 보이거나 시장의 위험 신호가 느껴지면, 주식을 즉시 팔아 현금을 확보해야 한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 29,
     axis: 'LT',
-    question: '유행하는 테마주나 급등주를 보면 어떤 생각이 드나요?',
-    leftLabel: '수급과 트렌드가 살아있는 곳에 빠르게 올라타고 싶다',
-    rightLabel: '일시적 유행보다는 10년 뒤에도 살아남을 종목에 집중하고 싶다',
+    question: '단기 유행을 타는 테마주보다, 10년 뒤에도 독점적 지위를 유지할 1등 기업에 자산을 묻어둔다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 30,
     axis: 'LT',
-    question: '투자 결과를 얻기까지 얼마나 오래 기다릴 수 있나요?',
-    leftLabel: '3개월 이내에는 결과가 나와야 답답하지 않다',
-    rightLabel: '10년 이상 걸리더라도 큰 열매를 맺는다면 기꺼이 기다린다',
+    question: '시장의 뜨거운 관심을 받으며 거래량이 급증하는 주도주나 테마주에 빠르게 올라타고 싶다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
 
-  // --- 4. [심리 축] R (원칙형 - Rule-based) vs I (직감형 - Intuitive) : 10문항 ---
+  // --- 4. [판단 축] R (원칙/데이터형) vs I (직관/트렌드형) : 10문항 ---
   {
     id: 31,
     axis: 'RI',
-    question: '주식에 투자하기 전 나만의 기준이 정리되어 있나요?',
-    leftLabel: '시장의 분위기와 직관적인 확신에 따라 결정한다',
-    rightLabel: '투자 이유와 목표 비중 등 정해둔 규칙에 따라 결정한다',
+    question: '주식을 사기 전, 가격·비중 등의 조건을 구체적인 수치로 기록해 둔다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 32,
     axis: 'RI',
-    question: '예상치 못한 폭락장이 올 때 나를 움직이게 만드는 것은 무엇인가요?',
-    leftLabel: '지금이 바닥이라는 감각이나 주변 분위기',
-    rightLabel: '사전에 준비해둔 매뉴얼과 과거 데이터',
+    question: '일상에서 내가 직접 써보고 만족한 제품이나, 피부로 느껴지는 유행에서 강한 투자 확신을 얻는다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 33,
     axis: 'RI',
-    question: '내가 정해둔 기준선(-10% 등)에 도달하면 어떻게 행동하나요?',
-    leftLabel: '조금 더 기다리면 회복될 것 같아 감으로 더 견뎌본다',
-    rightLabel: '감정을 배제하고 정해둔 원칙에 따라 대응한다',
+    question: '매매 결정을 내릴 때 감정이나 기분을 철저히 배제하고, 사전에 설계된 수식과 원칙대로만 기계적으로 실행한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 34,
     axis: 'RI',
-    question: '새로운 종목을 볼 때 어떤 점이 더 강한 확신을 주나요?',
-    leftLabel: '제품을 직접 써본 경험이나 세상 변화에 대한 체감',
-    rightLabel: '수치로 검증된 실적, 재무제표와 통계 데이터',
+    question: '시장이 요동칠 때는 정해진 매뉴얼보다, 시장 참여자들의 심리와 분위기를 읽어내는 촉이 더 결정적인 역할을 한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 35,
     axis: 'RI',
-    question: '투자에서 가장 경계해야 할 위험은 무엇이라고 생각하나요?',
-    leftLabel: '융통성 없이 고집을 피우다가 좋은 기회를 놓치는 것',
-    rightLabel: '원칙 없이 감정에 휘둘려 충동적으로 사고파는 것',
+    question: '과거 데이터나 계량화된 통계 수치로 검증되지 않은 투자 전략은 신뢰하지 않는다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 36,
     axis: 'RI',
-    question: '투자 종목별 비중은 어떤 기준으로 정하나요?',
-    leftLabel: '그때그때 더 자신 있는 종목에 비중을 더 싣는다',
-    rightLabel: '자산 배분 공식에 맞춰 정확히 나눈다',
+    question: '유망한 종목이라는 \'감\'이 오면, 일단 소액이라도 바로 사본다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 37,
     axis: 'RI',
-    question: '투자 아이디어가 떠올랐을 때 가장 먼저 하는 행동은?',
-    leftLabel: '소액이라도 일단 바로 사본다',
-    rightLabel: '가설을 충분히 검증해 본다',
+    question: '기업을 평가할 때 감성적인 스토리나 전망보다, PER·PBR·매출액 등 숫자로 확인되는 정량 지표를 먼저 본다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 38,
     axis: 'RI',
-    question: '주식 매매 버튼을 누르는 순간 나의 마음 상태는 어떤가요?',
-    leftLabel: '내 인사이트와 감각이 맞기를 바라는 기대감이 크다',
-    rightLabel: '미리 정해둔 정기 작업을 처리하는 담담한 상태다',
+    question: '재무제표의 과거 숫자보다, CEO의 비전이나 산업의 매력적인 스토리라인에 더 마음이 끌린다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 39,
     axis: 'RI',
-    question: '투자 성과를 개선하고 싶을 때 가장 먼저 점검하는 것은 무엇인가요?',
-    leftLabel: '시장을 바라보는 감각과 트렌드 공부',
-    rightLabel: '투자 규칙, 전략 조건, 비중 계산 방식',
+    question: '투자에서 가장 피해야 할 것은, 원칙 없이 감정에 휩쓸려 즉흥적으로 매매하는 일이다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
   {
     id: 40,
     axis: 'RI',
-    question: '나에게 더 잘 맞는 투자 스타일은 어느 쪽인가요?',
-    leftLabel: '시장의 흐름에 따라 유연하고 기동성 있게 움직이는 스타일',
-    rightLabel: '한번 정한 원칙을 어떤 상황에서도 끝까지 지키는 스타일',
+    question: '복잡한 수치 계산보다, 시장의 흐름과 사람들의 심리를 읽어내는 내 직관을 더 신뢰한다.',
+    leftLabel: '그렇다',
+    rightLabel: '그렇지 않다',
   },
 ];
 
@@ -687,17 +687,35 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   },
 };
 
-// Calculate MBTI scores and percentages from 40 answers (each 1-5 score)
+// Calculate MBTI scores and percentages from 40 answers (each 1-5 score: 1=그렇다, 5=그렇지 않다)
+// 홀수 문항(1, 3, 5...): '그렇다(1점)' 선택 시 G/A/L/R 점수 기여 (score = 6 - ans)
+// 짝수 문항(2, 4, 6...): '그렇다(1점)' 선택 시 S/P/T/I 점수 기여 (score = ans, 즉 G/A/L/R 관점에서는 ans)
 export function calculateSurveyResult(answers: Record<number, number>) {
-  let scoreGS = 0; // 10 questions (id 1..10)
-  let scoreAP = 0; // 10 questions (id 11..20)
-  let scoreLT = 0; // 10 questions (id 21..30)
-  let scoreRI = 0; // 10 questions (id 31..40)
+  let scoreGS = 0; // 10 questions (id 1..10) -> G 점수 누적 (10..50)
+  let scoreAP = 0; // 10 questions (id 11..20) -> A 점수 누적 (10..50)
+  let scoreLT = 0; // 10 questions (id 21..30) -> L 점수 누적 (10..50)
+  let scoreRI = 0; // 10 questions (id 31..40) -> R 점수 누적 (10..50)
 
-  for (let i = 1; i <= 10; i++) scoreGS += answers[i] || 3;
-  for (let i = 11; i <= 20; i++) scoreAP += answers[i] || 3;
-  for (let i = 21; i <= 30; i++) scoreLT += answers[i] || 3;
-  for (let i = 31; i <= 40; i++) scoreRI += answers[i] || 3;
+  // GS (1..10)
+  for (let i = 1; i <= 10; i++) {
+    const ans = answers[i] || 3;
+    scoreGS += i % 2 === 1 ? (6 - ans) : ans;
+  }
+  // AP (11..20)
+  for (let i = 11; i <= 20; i++) {
+    const ans = answers[i] || 3;
+    scoreAP += i % 2 === 1 ? (6 - ans) : ans;
+  }
+  // LT (21..30)
+  for (let i = 21; i <= 30; i++) {
+    const ans = answers[i] || 3;
+    scoreLT += i % 2 === 1 ? (6 - ans) : ans;
+  }
+  // RI (31..40)
+  for (let i = 31; i <= 40; i++) {
+    const ans = answers[i] || 3;
+    scoreRI += i % 2 === 1 ? (6 - ans) : ans;
+  }
 
   // Conversion: raw sum 10~50 -> (sum - 10) * 2.5 = 0~100%
   const pctG = Math.round((scoreGS - 10) * 2.5);

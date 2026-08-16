@@ -589,12 +589,12 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
                   })}
                 </div>
 
-                {/* Left/Right Scale Labels (Symmetric Balanced Line Wrapping with text-wrap:balance) */}
-                <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm font-semibold text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)]">
-                  <div className="text-left leading-relaxed break-keep [text-wrap:balance]">
+                {/* Left/Right Scale Labels (그렇다 vs 그렇지 않다) */}
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)]">
+                  <div className="text-left">
                     {q.leftLabel}
                   </div>
-                  <div className="text-right leading-relaxed break-keep [text-wrap:balance]">
+                  <div className="text-right">
                     {q.rightLabel}
                   </div>
                 </div>
