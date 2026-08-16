@@ -38,6 +38,12 @@ declare global {
   var __jusik_comments_db__: CommentRecord[] | undefined;
 }
 
+// 로컬 개발 환경 격리 모드 (npm run dev 실행 시 운영 DB 오염 방지)
+// 로컬에서 운영 DB를 직접 테스트하고 싶을 때만 .env.local 에 USE_PROD_DB=true 설정
+const isLocalDevMode = (): boolean => {
+  return process.env.NODE_ENV === 'development' && process.env.USE_PROD_DB !== 'true';
+};
+
 // 기본 마스터 계정 초기 데이터
 const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
   '주식부엉': {
@@ -81,10 +87,14 @@ function saveDbToFile(db: Record<string, ServerUserRecord>) {
 }
 
 // ----------------------------------------------------
-// USERS DATABASE FUNCTIONS (Supabase + Local file fallback)
+// USERS DATABASE FUNCTIONS (Supabase on Prod, Local file on Dev)
 // ----------------------------------------------------
 
 export async function getServerDbAsync(): Promise<Record<string, ServerUserRecord>> {
+  if (isLocalDevMode()) {
+    return getServerDb();
+  }
+
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
@@ -119,6 +129,10 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
 export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): Promise<void> {
   globalThis.__jusik_server_db__ = db;
   saveDbToFile(db);
+
+  if (isLocalDevMode()) {
+    return;
+  }
 
   const supabase = getSupabaseAdmin();
   if (supabase) {
@@ -181,10 +195,14 @@ export function saveServerDb(db: Record<string, ServerUserRecord>) {
 }
 
 // ----------------------------------------------------
-// SURVEY STATS FUNCTIONS (Supabase + Local file fallback)
+// SURVEY STATS FUNCTIONS (Supabase on Prod, Local file on Dev)
 // ----------------------------------------------------
 
 export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
+  if (isLocalDevMode()) {
+    return getSurveyStats();
+  }
+
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
@@ -211,10 +229,13 @@ export async function getSurveyStatsAsync(): Promise<SurveyStatsData> {
 }
 
 export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyStatsData> {
+  if (isLocalDevMode()) {
+    return recordSurveyResult(typeCode);
+  }
+
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
-      // Fetch existing count for this type
       const { data: existing } = await supabase
         .from('survey_stats')
         .select('count')
@@ -237,7 +258,6 @@ export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyS
     }
   }
 
-  // Fallback
   return recordSurveyResult(typeCode);
 }
 
@@ -290,7 +310,7 @@ export function recordSurveyResult(typeCode: string): SurveyStatsData {
 }
 
 // ----------------------------------------------------
-// COMMENTS DATABASE FUNCTIONS (Supabase + Local file fallback)
+// COMMENTS DATABASE FUNCTIONS (Supabase on Prod, Local file on Dev)
 // ----------------------------------------------------
 
 function loadCommentsFromFile(): CommentRecord[] {
@@ -321,6 +341,15 @@ function saveCommentsToFile(comments: CommentRecord[]) {
 }
 
 export async function getCommentsAsync(targetKey?: string): Promise<CommentRecord[]> {
+  if (isLocalDevMode()) {
+    let local = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
+    globalThis.__jusik_comments_db__ = local;
+    if (targetKey) {
+      return local.filter((c) => c.targetKey === targetKey);
+    }
+    return local;
+  }
+
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
@@ -360,6 +389,14 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
 }
 
 export async function addCommentAsync(newComment: CommentRecord): Promise<CommentRecord[]> {
+  if (isLocalDevMode()) {
+    const all = await getCommentsAsync();
+    all.push(newComment);
+    globalThis.__jusik_comments_db__ = all;
+    saveCommentsToFile(all);
+    return all.filter((c) => c.targetKey === newComment.targetKey);
+  }
+
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
@@ -400,6 +437,25 @@ export async function deleteCommentAsync(
   requesterPin: string
 ): Promise<{ success: boolean; error?: string }> {
   const isMasterAdmin = (requesterNickname === '주식부엉' && requesterPin === '418019');
+
+  if (isLocalDevMode()) {
+    const all = await getCommentsAsync();
+    const targetIndex = all.findIndex((c) => c.id === commentId);
+    if (targetIndex === -1) {
+      return { success: false, error: '댓글을 찾을 수 없습니다.' };
+    }
+
+    const targetComment = all[targetIndex];
+    const isAuthor = (targetComment.nickname === requesterNickname && targetComment.pin === requesterPin);
+    if (!isMasterAdmin && !isAuthor) {
+      return { success: false, error: '삭제 권한이 없습니다.' };
+    }
+
+    const updated = all.filter((c) => c.id !== commentId && c.parentId !== commentId);
+    globalThis.__jusik_comments_db__ = updated;
+    saveCommentsToFile(updated);
+    return { success: true };
+  }
 
   const supabase = getSupabaseAdmin();
   if (supabase) {
