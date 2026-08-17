@@ -566,7 +566,13 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
               {/* 5-Point Rating Circular Dot Buttons (Clean Aesthetic Radio Dots) */}
               <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between w-full gap-2 sm:gap-4 py-2 px-1">
-                  {[1, 2, 3, 4, 5].map((score) => {
+                  {[
+                    { score: 1, label: '매우 그렇다' },
+                    { score: 2, label: '약간 그렇다' },
+                    { score: 3, label: '보통' },
+                    { score: 4, label: '약간 그렇지 않다' },
+                    { score: 5, label: '매우 그렇지 않다' },
+                  ].map(({ score, label }) => {
                     const isSelected = selectedScore === score;
                     return (
                       <button
@@ -577,8 +583,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
                             ? 'bg-[var(--accent-orange)] border-[var(--accent-orange)] shadow-[0_0_16px_rgba(241,143,1,0.5)] scale-105'
                             : 'glass-card glass-card-hover border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:scale-105'
                         }`}
-                        title={`${score}점 선택`}
-                        aria-label={`점수 ${score}점`}
+                        title={label}
+                        aria-label={label}
                       >
                         <span
                           className={`rounded-full transition-all ${

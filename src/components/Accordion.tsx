@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Level } from '@/data/curriculum';
 import { useAuth } from '@/context/AuthContext';
@@ -47,6 +47,39 @@ export default function Accordion({ levels }: AccordionProps) {
   const completedCount = completedLessons.filter((id) => allLessons.some((l) => l.id === id)).length;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
+  // 게이지 차오르는 애니메이션 (0 -> 목표 수치)
+  const [animatedPercent, setAnimatedPercent] = useState(0);
+  const [animatedCompletedCount, setAnimatedCompletedCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let animId: number;
+    const timer = setTimeout(() => {
+      const duration = 1000;
+      const startTime = performance.now();
+
+      const run = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        setAnimatedPercent(Math.round(ease * progressPercent));
+        setAnimatedCompletedCount(Math.round(ease * completedCount));
+
+        if (progress < 1) {
+          animId = requestAnimationFrame(run);
+        }
+      };
+
+      animId = requestAnimationFrame(run);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [user, progressPercent, completedCount]);
+
   // 상위 % 계산 (서버 DB 실제 수강회원 석차 백분율 우선 반영)
   const topPercentile = completedCount === 0 
     ? null 
@@ -74,11 +107,11 @@ export default function Accordion({ levels }: AccordionProps) {
           {/* Progress Track with embedded count text */}
           <div className="relative w-full h-5 sm:h-5.5 rounded-full bg-[var(--card-hover)] overflow-hidden flex items-center justify-center border border-[var(--border-color)]">
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-all duration-500 rounded-full"
-              style={{ width: `${progressPercent}%` }}
+              className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-all duration-300 rounded-full"
+              style={{ width: `${animatedPercent}%` }}
             />
             <span className="relative z-10 font-mono text-[10px] sm:text-xs font-extrabold text-[var(--text-primary)] drop-shadow-xs select-none px-2">
-              {completedCount} / {totalLessonCount}강 완료
+              {animatedCompletedCount} / {totalLessonCount}강 완료 ({animatedPercent}%)
             </span>
           </div>
         </div>

@@ -259,7 +259,7 @@ export default function TypePreviewPopover({
             onClick={handleClose}
             className="w-full py-2.5 px-4 rounded-xl bg-[var(--accent-orange)] hover:opacity-90 active:scale-98 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs"
           >
-            <span>상세 비교 리포트 보기</span>
+            <span>상세 리포트 보기</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

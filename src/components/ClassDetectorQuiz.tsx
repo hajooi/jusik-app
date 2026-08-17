@@ -7,7 +7,7 @@ type QuizOption = 'A' | 'B' | 'TIMEOUT' | null;
 
 export default function ClassDetectorQuiz() {
   const [selectedOption, setSelectedOption] = useState<QuizOption>(null);
-  const [prepStage, setPrepStage] = useState<'3' | '2' | '1' | 'GO' | null>(null);
+  const [prepStage, setPrepStage] = useState<'3' | '2' | '1' | null>(null);
   const [isPreparing, setIsPreparing] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(5.0);
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -23,18 +23,15 @@ export default function ClassDetectorQuiz() {
       setTimeout(() => {
         setPrepStage('1');
         setTimeout(() => {
-          setPrepStage('GO');
-          setTimeout(() => {
-            setPrepStage(null);
-            setIsPreparing(false);
-            setIsActive(true);
-          }, 600);
+          setPrepStage(null);
+          setIsPreparing(false);
+          setIsActive(true);
         }, 700);
       }, 700);
     }, 700);
   };
 
-  // Auto trigger 3 -> 2 -> 1 -> GO! sequence once when centered in viewport
+  // Auto trigger 3 -> 2 -> 1 sequence once when centered in viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -100,7 +97,7 @@ export default function ClassDetectorQuiz() {
       ref={quizRef}
       className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] shadow-lg transition-all duration-300 relative overflow-hidden my-6 min-h-[300px] sm:min-h-[310px] flex flex-col justify-center"
     >
-      {/* 1. 카운트다운 진행 중 (오직 3 -> 2 -> 1 -> GO! 숫자만 정중앙 표시) */}
+      {/* 1. 카운트다운 진행 중 (오직 3 -> 2 -> 1 숫자만 정중앙 표시) */}
       {isPreparing ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in duration-200">
           {prepStage === '3' && (
@@ -116,11 +113,6 @@ export default function ClassDetectorQuiz() {
           {prepStage === '1' && (
             <div key="1" className="text-8xl sm:text-9xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-md animate-zoom-in-fast font-mono select-none">
               1
-            </div>
-          )}
-          {prepStage === 'GO' && (
-            <div key="go" className="text-7xl sm:text-8xl font-black text-[var(--accent-orange)] tracking-widest drop-shadow-lg animate-zoom-in-fast font-mono select-none">
-              GO!
             </div>
           )}
         </div>
