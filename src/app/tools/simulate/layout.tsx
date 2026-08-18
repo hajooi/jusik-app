@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '투자 전략 시뮬레이터 | 주식앱',
+  title: '투자 전략 시뮬레이터',
   description: '20년 미국 주식 실제 주가 데이터를 기반으로 SPY, QQQ, SCHD, 비트코인 등 다양한 종목의 적립식 투자 수익률, CAGR, MDD 및 하락장 방어 전략을 시뮬레이션하세요.',
   keywords: [
     '주식 백테스트',

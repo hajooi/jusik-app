@@ -11,7 +11,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = code && PERSONALITY_PROFILES[code] ? PERSONALITY_PROFILES[code] : null;
 
   if (profile) {
-    const title = `${profile.name} (${profile.code}) | 주식앱`;
+    const title = `${profile.name} (${profile.code})`;
+    const fullTitle = `${profile.name} (${profile.code}) | 주식앱`;
     const description = `"${profile.tagline}" - 40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단`;
     const imageUrl = `https://jusik.app/types/og/${profile.code}.png`;
     const canonicalUrl = `https://jusik.app/tools/type/${profile.code}`;
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         canonical: canonicalUrl,
       },
       openGraph: {
-        title,
+        title: fullTitle,
         description,
         url: canonicalUrl,
         siteName: '주식앱',
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
       twitter: {
         card: 'summary_large_image',
-        title,
+        title: fullTitle,
         description,
         images: [imageUrl],
       },
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: '투자 성향 진단 | 주식앱',
+    title: '투자 성향 진단',
     description: '40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단',
   };
 }

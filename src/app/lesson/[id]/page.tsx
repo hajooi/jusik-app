@@ -521,7 +521,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!result) return {};
   const { lesson } = result;
 
-  const title = `${lesson.title} | 주식앱`;
+  const title = lesson.title;
+  const fullTitle = `${lesson.title} | 주식앱`;
   const description = lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.';
   const url = `https://jusik.app/lesson/${lesson.id}`;
 
@@ -532,7 +533,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       canonical: url,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url,
       siteName: '주식앱',
@@ -549,7 +550,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: fullTitle,
       description,
       images: ['/og-image.png'],
     },

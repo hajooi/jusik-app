@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '주식앱',
   description: '투자 성향 진단부터 20년 백테스트 시뮬레이션까지! 초보 투자자를 돕는 맞춤형 주식 투자 도구 모음입니다.',
   keywords: [
     '주식 투자 도구',
