@@ -3,6 +3,7 @@ import SidebarDrawer from '@/components/SidebarDrawer';
 import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
+import CiscoManiaGame from '@/components/CiscoManiaGame';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -215,6 +216,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {/* Embedded Interactive Tool */}
                     {section.interactiveTool === 'class_detector' && <ClassDetectorQuiz />}
                     {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
+                    {section.interactiveTool === 'cisco_mania' && <CiscoManiaGame />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
