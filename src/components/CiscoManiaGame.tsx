@@ -35,9 +35,16 @@ class SoundEngine {
     }
   }
 
+  public unlock() {
+    this.init();
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
   public toggleMute() {
     this.isMuted = !this.isMuted;
-    this.init();
+    this.unlock();
     if (this.isMuted) {
       this.stopBattleBgm();
     }
@@ -46,23 +53,24 @@ class SoundEngine {
 
   public playFootstep() {
     if (this.isMuted) return;
-    this.init();
+    this.unlock();
     if (!this.ctx) return;
 
     try {
+      const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(110, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(28, this.ctx.currentTime + 0.04);
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.045);
 
-      gain.gain.setValueAtTime(0.02, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.045);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.045);
     } catch {
       // Audio fallback
     }
@@ -202,6 +210,112 @@ class SoundEngine {
     if (this.bgmInterval) {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
+    }
+  }
+
+  private endingBgmInterval: NodeJS.Timeout | null = null;
+
+  public startEndingBgm(choice: 'A' | 'B' | 'C') {
+    if (this.isMuted) return;
+    this.unlock();
+    if (!this.ctx) return;
+    this.stopEndingBgm();
+    this.stopBattleBgm();
+
+    if (choice === 'A') {
+      // Ending A: Melancholy Nostalgic Piano (F minor pentatonic with soft bell decay)
+      const notes = [174.61, 207.65, 261.63, 311.13, 261.63, 207.65, 174.61, 155.56, 174.61, 261.63, 349.23, 311.13];
+      let idx = 0;
+      this.endingBgmInterval = setInterval(() => {
+        if (this.isMuted || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[idx % notes.length], now);
+
+          gain.gain.setValueAtTime(0.045, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+          idx++;
+        } catch {}
+      }, 340);
+    } else if (choice === 'B') {
+      // Ending B: Somber Clock Tick & Slow Descending Lullaby
+      const notes = [220.00, 196.00, 174.61, 164.81, 146.83, 164.81, 196.00, 220.00];
+      let idx = 0;
+      this.endingBgmInterval = setInterval(() => {
+        if (this.isMuted || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          // Clock tick
+          const tickOsc = this.ctx.createOscillator();
+          const tickGain = this.ctx.createGain();
+          tickOsc.type = 'triangle';
+          tickOsc.frequency.setValueAtTime(idx % 2 === 0 ? 800 : 600, now);
+          tickGain.gain.setValueAtTime(0.02, now);
+          tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+          tickOsc.connect(tickGain);
+          tickGain.connect(this.ctx.destination);
+          tickOsc.start(now);
+          tickOsc.stop(now + 0.03);
+
+          // Somber Chime
+          if (idx % 2 === 0) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(notes[(idx / 2) % notes.length], now);
+            gain.gain.setValueAtTime(0.04, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.6);
+          }
+          idx++;
+        } catch {}
+      }, 380);
+    } else {
+      // Ending C: Warm, Uplifting "To the Moon" style Morning Sunrise Arpeggio (C Major / F Major 7)
+      const notes = [
+        261.63, 329.63, 392.00, 523.25, 493.88, 392.00, 329.63,
+        293.66, 349.23, 440.00, 523.25, 440.00, 349.23, 293.66,
+        220.00, 261.63, 329.63, 440.00, 392.00, 329.63, 261.63,
+        349.23, 440.00, 523.25, 659.25, 523.25, 440.00, 392.00
+      ];
+      let idx = 0;
+      this.endingBgmInterval = setInterval(() => {
+        if (this.isMuted || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(notes[idx % notes.length], now);
+
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+          idx++;
+        } catch {}
+      }, 260);
+    }
+  }
+
+  public stopEndingBgm() {
+    if (this.endingBgmInterval) {
+      clearInterval(this.endingBgmInterval);
+      this.endingBgmInterval = null;
     }
   }
 
@@ -569,8 +683,8 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     indicatorX: 62,
     indicatorY: 60,
     pages: [
-      '[증권사 특급 분석 보고서]\n"인터넷 혁명을 독점 지배하는 세계 1등 기업. 목표주가 10배 상향!"',
-      '"역사상 가장 완벽한 독점 인프라이며, 이 기업이 무너지는 것은 상상할 수 없습니다. 망설이지 말고 투자하십시오."'
+      '[증권가 특종 리포트]\n"세계 최초 시가총액 1조 달러를 돌파할 유일한 혁신 기업."',
+      '"전문가 일치 의견: 지금 가격도 여전히 저평가 상태이며, 조정 없이 영원히 상승할 것입니다."'
     ]
   },
   {
@@ -588,8 +702,8 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     indicatorX: 279,
     indicatorY: 18,
     pages: [
-      '[경제 헤드라인 특종]\n"마이크로소프트를 제치고 전 세계 시가총액 1위 등극! 이 시대의 절대 제왕 탄생."',
-      '"구시대의 낡은 잣대로 새로운 패러다임을 평가하지 마십시오. 이 기업이 없는 포트폴리오는 자산의 사망선고나 다름없습니다."'
+      '[경제 헤드라인 특종]\n"전 세계 시가총액 1위 등극! 이 시대의 절대 제왕 탄생."',
+      '"구시대의 낡은 잣대로 새로운 패러다임을 평가하지 마십시오. 이 기업을 지금이라도 투자하지 않으면, 여러분의 자산이 스스로 사망선고한 것이나 다름없습니다."'
     ]
   },
   {
@@ -765,11 +879,11 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     ]
   },
 
-  // 3. Ending Room Entities
+  // 3. Ending Room Entities (Cinematic Epilogue Narratives)
   {
     id: 'ending_desk_a',
-    name: '야수의 모니터',
-    speaker: '야수의 심장으로 퇴근',
+    name: '25년 뒤 모니터',
+    speaker: '김대리의 회상',
     map: 'ending_room',
     portraitType: 'monster',
     x: 215,
@@ -781,15 +895,16 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     indicatorX: 250,
     indicatorY: 60,
     pages: [
-      '집에 와서도 불을 끄지 못한 채 밤새 모니터 앞을 지키고 있습니다.',
-      '"내일 아침 미국 장이 열리면 내 천만 원은 어떻게 될까...?"',
-      '끝없는 조급함과 두려움에 잠 못 이루는 밤이 깊어갑니다.'
+      '2000년 3월 그날, 나는 세상의 모든 찬사와 뜨거운 광기를 믿고 1,000만 원 전부를 걸었다.',
+      '하지만 유행은 계절보다 빠르게 식어버렸고, 닷컴 버블이 붕괴하며 -90% 폭락했다.',
+      '25년이 흘러 은발이 된 오늘, 겨우 본전 주위를 맴도는 차트를 바라보며 서글픈 진실을 배운다. 물가상승률을 생각하면 내 청춘과 피땀 어린 자산은 사실상 흔적도 없이 사라졌다.',
+      '세상에서 가장 밝게 빛나는 1등 별도 영원할 수는 없었다. 그때 내가 배웠어야 했던 것은 다음 1등의 이름이 아니라, 탐욕을 멈추는 이성의 브레이크였다.'
     ]
   },
   {
     id: 'ending_bed_b',
-    name: '편안한 침대',
-    speaker: '소나기를 피한 퇴근',
+    name: '25년 뒤 침대',
+    speaker: '김대리의 회상',
     map: 'ending_room',
     portraitType: 'desk',
     x: 215,
@@ -801,15 +916,16 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     indicatorX: 250,
     indicatorY: 60,
     pages: [
-      '일단 폭락의 공포를 피해 편안하게 발 뻗고 잠자리에 듭니다.',
-      '"휴, 다행이다... 하지만 내 통장 잔고는 가만히 있는데 세상 물가는 계속 오르네?"',
-      '소나기는 피했지만, 보이지 않는 인플레이션에 소중한 구매력이 조금씩 녹아내리고 있습니다.'
+      '2000년 3월 그날, 나는 두려움에 쫓겨 안전한 은행 금고에 내 모든 땀방울을 묻어두었다.',
+      '폭락의 소나기는 피했다고 안도했지만, 시간은 내가 잠든 사이에도 세상의 물가를 밀어 올렸다. 1,000만 원 숫자는 그대로인데 오늘 점심 국밥 한 그릇은 12,000원이 되었다.',
+      '스스로 일하는 자본을 갖지 못한 대가로, 나는 백발이 성성한 지금까지도 매일 무거운 가방을 들고 출근길에 오른다.',
+      '돈을 잃지 않는 것보다 더 무서운 것은, 내 인생의 소중한 시간을 인플레이션에 조용히 빼앗기는 것이었다.'
     ]
   },
   {
     id: 'ending_study_c',
-    name: '여유로운 서재',
-    speaker: '현명한 투자자의 정시 퇴근',
+    name: '25년 뒤 서재',
+    speaker: '김대리의 회상',
     map: 'ending_room',
     portraitType: 'desk',
     x: 215,
@@ -821,9 +937,28 @@ const BASE_TSUKURU_OBJECTS: TsukuruObject[] = [
     indicatorX: 250,
     indicatorY: 60,
     pages: [
-      '마음 편히 정시 퇴근하여 여유로운 저녁 일상을 누립니다.',
-      '"영원한 1등 기업은 없지만, 시장 시스템은 알아서 최고의 기업들로 채워지며 우상향한다."',
-      '25년 동안 시장의 거인들과 함께할 위대한 첫 단추를 채우고, 단단한 멘탈의 투자자로 첫걸음을 내딛었습니다!'
+      '2000년 3월 그날, 시대를 모르는 겁쟁이라 비웃음당하면서도 나는 미국 500개 기업(S&P 500)을 조용히 사 모았다.',
+      '닷컴 버블과 수많은 위기가 스쳐 지나갔지만... 시장 시스템은 뒤처진 옛 1등을 스스로 비우고 애플, 마이크로소프트, 엔비디아를 알아서 채워 넣었다.',
+      '25년이 흐른 오늘, 내가 심었던 작은 1,000만 원의 씨앗은 8,000만 원(+700%)의 거대한 아름드리나무가 되어 내 삶을 든든하게 지켜주고 있다.',
+      '우리가 사야 했던 것은 내일의 1등 기업을 맞히는 도박이 아니라, 영원히 전진하는 자본주의 혁신의 생태계 그 자체였다. 25년 전의 나에게, 고마움을 전한다.'
+    ]
+  },
+  {
+    id: 'ending_window',
+    name: '25년 뒤 창문',
+    speaker: '창밖 풍경',
+    map: 'ending_room',
+    portraitType: 'plant',
+    x: 70,
+    y: 18,
+    width: 70,
+    height: 48,
+    standX: 105,
+    standY: 85,
+    indicatorX: 105,
+    indicatorY: 10,
+    pages: [
+      '창밖을 바라보았다.'
     ]
   }
 ];
@@ -942,6 +1077,7 @@ export default function CiscoManiaGame() {
   const [battleLog, setBattleLog] = useState<string>('광기의 FOMO가 나타났다! 조급함의 압박을 견뎌내라!');
   const [hasDefeatedBoss, setHasDefeatedBoss] = useState<boolean>(false);
   const [hasPickedUpGlasses, setHasPickedUpGlasses] = useState<boolean>(false);
+  const [isTurnProcessing, setIsTurnProcessing] = useState<boolean>(false);
   
   // Game flow state
   const [showChoiceModal, setShowChoiceModal] = useState<boolean>(false);
@@ -972,12 +1108,26 @@ export default function CiscoManiaGame() {
   const handleToggleSound = () => {
     const muted = sounds.toggleMute();
     setIsMuted(muted);
+    if (muted) {
+      sounds.stopBattleBgm();
+      sounds.stopEndingBgm();
+    } else if (currentMap === 'ending_room' && selectedChoice) {
+      sounds.startEndingBgm(selectedChoice);
+    } else if (inBattle) {
+      sounds.startBattleBgm();
+    }
   };
 
   // Keyboard Handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (showChoiceModal || isWarping || inBattle) return;
+      sounds.unlock();
+      if (showChoiceModal || isWarping || inBattle) {
+        if (e.code === 'Escape' || e.key.toLowerCase() === 'escape') {
+          if (showChoiceModal) setShowChoiceModal(false);
+        }
+        return;
+      }
 
       const code = e.code;
       const key = e.key.toLowerCase();
@@ -1093,8 +1243,11 @@ export default function CiscoManiaGame() {
         setPlayerMental(100);
         setBattleLog('광기의 FOMO가 나타났다! 조급함의 압박을 견뎌내라!');
         sounds.startBattleBgm();
-      } else if (finishedId === 'my_desk' && (visitedNpcs.has('manager') || visitedNpcs.has('peer') || visitedNpcs.has('lee') || hasPickedUpGlasses)) {
-        setShowChoiceModal(true);
+      } else if (finishedId === 'my_desk') {
+        const hasTalkedToAll = visitedNpcs.has('manager') && visitedNpcs.has('peer') && visitedNpcs.has('lee');
+        if (hasTalkedToAll) {
+          setShowChoiceModal(true);
+        }
       }
     }
   };
@@ -1126,14 +1279,56 @@ export default function CiscoManiaGame() {
       }
     }
 
-    // Check desk quest condition
-    if (obj.id === 'my_desk' && !visitedNpcs.has('manager') && !visitedNpcs.has('peer') && !visitedNpcs.has('lee') && !hasPickedUpGlasses) {
+    // Check desk quest condition (Must talk to manager, peer, lee)
+    const hasTalkedToAll = visitedNpcs.has('manager') && visitedNpcs.has('peer') && visitedNpcs.has('lee');
+    const currentCount = ['manager', 'peer', 'lee'].filter(id => visitedNpcs.has(id)).length;
+
+    if (obj.id === 'my_desk') {
+      if (!hasTalkedToAll) {
+        setActiveObj({
+          ...obj,
+          pages: [
+            `사무실 분위기가 심상치 않다. 김과장님, 박동기, 이대리의 이야기를 모두 들어보고 신중히 결정하자! (현재 완료: ${currentCount}/3)`,
+            '💡 사무실 안의 동료 3명에게 다가가 말을 걸어보세요.'
+          ]
+        });
+        setPageIndex(0);
+        return;
+      } else {
+        setActiveObj({
+          ...obj,
+          pages: [
+            '주변 동료들의 조언과 광기를 모두 확인했다... 이제 내 소중한 1,000만 원의 운명을 결정할 시간이다.'
+          ]
+        });
+        setPageIndex(0);
+        return;
+      }
+    }
+
+    // Check ending window condition
+    if (obj.id === 'ending_window') {
+      let windowPages = ['창밖을 바라보았다.'];
+      if (selectedChoice === 'A') {
+        windowPages = [
+          '창밖으로 차가운 밤비가 쏟아져 내린다. 저 멀리 희미하게 빛나던 달빛마저 짙은 먹구름 뒤로 숨어버렸다.',
+          '25년 전 그토록 뜨겁게 타올랐던 환호와 유행들은, 차가운 빗물과 함께 흔적도 없이 씻겨 내려갔다.'
+        ];
+      } else if (selectedChoice === 'B') {
+        windowPages = [
+          '창밖에는 지난 25년 동안 눈부시게 솟아오른 초고층 빌딩들이 화려한 불빛을 내뿜고 있다.',
+          '세상은 내가 두려움에 멈춰 있던 25년 동안 저토록 빠르게 전진했다. 저 거대한 성장의 과실 중, 내 몫은 어디에도 없었다.'
+        ];
+      } else if (selectedChoice === 'C') {
+        windowPages = [
+          '창가로 눈부신 아침 햇살이 부드럽게 쏟아져 들어온다. 맑고 푸른 하늘 아래 활기찬 세상이 시작되고 있다.',
+          '25년 전 심었던 작은 시장의 씨앗이, 오늘날 저 찬란한 햇살처럼 내 삶을 따뜻하고 평온하게 비추어 준다.'
+        ];
+      }
       setActiveObj({
         ...obj,
-        pages: [
-          '통장에 1,000만 원이 있긴 한데... 지금 사무실 분위기가 심상치 않다.',
-          '먼저 주변 동료들의 이야기를 들어보거나 사무실을 둘러본 뒤 결정하자.'
-        ]
+        speaker: '창밖 풍경',
+        pages: windowPages
       });
       setPageIndex(0);
       return;
@@ -1145,7 +1340,7 @@ export default function CiscoManiaGame() {
       if (obj.id === 'manager') {
         displayPages.push('(집 보증금까지 걸 정도로 다들 이성을 잃었어... 폭락의 전조다.)');
       } else if (obj.id === 'peer') {
-        displayPages.push('(하루 만에 월급을 번다고 들떠있지만... 비정상적인 급등 뒤에는 큰 위험이 따라.)');
+        displayPages.push('(하루 만에 월급을 번다고 들떠있지만... 비정상적인 급등 뒤에는 큰 위험이 따르지.)');
       } else if (obj.id === 'lee') {
         displayPages.push('(나만 안 사서 손해 보는 것 같은 불안함... 이 조급함에 휩쓸려 충동적으로 사면 안 돼.)');
       }
@@ -1190,6 +1385,7 @@ export default function CiscoManiaGame() {
 
   // Canvas Click/Touch Handler with Manhattan (L-shaped) Grid Walking & Obstacle Avoidance
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    sounds.unlock();
     if (showChoiceModal || isWarping || inBattle) return;
 
     if (activeObj) {
@@ -1732,178 +1928,201 @@ export default function CiscoManiaGame() {
           ctx.fillText('✨ 멘탈의 안경', gx + 10, gy - 2 + bounce);
         }
       } else if (currentMap === 'ending_room') {
-        // --- ENDING ROOM MAP ---
+        // --- ENDING ROOM MAP (Cinematic Pixel Artwork) ---
         if (selectedChoice === 'A') {
-          // === ENDING A: Dark Night Room with glowing chart & FOMO shadow ===
-          ctx.fillStyle = '#050811';
+          // === ENDING A: The Mirage of 2000 (Melancholy Midnight Blue) ===
+          ctx.fillStyle = '#030712';
           ctx.fillRect(0, 0, mapWidth, mapHeight);
 
-          // Floor
-          ctx.fillStyle = '#111827';
+          // Floor (Cold dark slate)
+          ctx.fillStyle = '#0f172a';
           ctx.fillRect(0, 50, mapWidth, mapHeight - 50);
 
-          // Window (Night sky with stars)
+          // Rain outside Window
           ctx.fillStyle = '#020617';
-          ctx.fillRect(80, 20, 60, 45);
+          ctx.fillRect(70, 18, 70, 48);
           ctx.strokeStyle = '#334155';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(80, 20, 60, 45);
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillRect(95, 30, 2, 2);
-          ctx.fillRect(120, 25, 1.5, 1.5);
-          ctx.fillRect(105, 45, 1.5, 1.5);
-          ctx.fillRect(130, 50, 2, 2);
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(70, 18, 70, 48);
 
-          // Spooky FOMO Silhouette behind monitor (Center)
-          const fomoPulse = Math.sin(Date.now() / 180) * 3;
-          ctx.fillStyle = 'rgba(185, 28, 28, 0.35)';
+          // Raindrops
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+          const rainTime = Date.now() / 80;
+          for (let r = 0; r < 8; r++) {
+            const rx = 75 + ((r * 11 + rainTime * 3) % 60);
+            const ry = 22 + ((r * 17 + rainTime * 7) % 40);
+            ctx.fillRect(rx, ry, 1, 4);
+          }
+
+          // Faint cold moon
+          ctx.fillStyle = '#94a3b8';
           ctx.beginPath();
-          ctx.arc(250, 65, 32 + fomoPulse, 0, Math.PI * 2);
+          ctx.arc(125, 30, 6, 0, Math.PI * 2);
           ctx.fill();
-          // Red glowing eyes in shadow
-          ctx.fillStyle = '#ef4444';
-          ctx.fillRect(240, 58, 6, 4);
-          ctx.fillRect(254, 58, 6, 4);
-          ctx.fillStyle = '#fef08a';
-          ctx.fillRect(242, 59, 2, 2);
-          ctx.fillRect(256, 59, 2, 2);
 
-          // Desk
-          ctx.fillStyle = '#1f2937';
-          ctx.fillRect(215, 95, 70, 36);
-          ctx.fillStyle = '#374151';
-          ctx.fillRect(217, 97, 66, 32);
+          // Old Wooden Desk
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(205, 88, 90, 42);
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(207, 90, 86, 38);
 
-          // Glowing Monitor with volatile plunging chart
+          // CRT Monitor with dying red chart
           ctx.fillStyle = '#0f172a';
-          ctx.fillRect(235, 70, 30, 24);
-          ctx.fillStyle = '#0284c7';
-          ctx.fillRect(237, 72, 26, 20);
+          ctx.fillRect(235, 66, 34, 26);
+          ctx.fillStyle = '#18181b';
+          ctx.fillRect(237, 68, 30, 22);
+
+          // Red plunged chart line
           ctx.strokeStyle = '#ef4444';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.moveTo(238, 76);
-          ctx.lineTo(245, 74);
-          ctx.lineTo(252, 86);
-          ctx.lineTo(261, 90);
+          ctx.moveTo(239, 72);
+          ctx.lineTo(246, 70);
+          ctx.lineTo(252, 84);
+          ctx.lineTo(265, 87);
           ctx.stroke();
 
-          // Monitor light glow beam on desk
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+          // CRT Monitor Flickering Glow Cone
+          const glowPulse = 0.08 + Math.sin(Date.now() / 250) * 0.03;
+          ctx.fillStyle = `rgba(239, 68, 68, ${glowPulse})`;
           ctx.beginPath();
-          ctx.moveTo(235, 94);
-          ctx.lineTo(205, 140);
-          ctx.lineTo(295, 140);
-          ctx.lineTo(265, 94);
+          ctx.moveTo(235, 92);
+          ctx.lineTo(190, 145);
+          ctx.lineTo(310, 145);
+          ctx.lineTo(269, 92);
           ctx.fill();
-
-          ctx.font = 'bold 9px monospace';
-          ctx.fillStyle = '#f87171';
-          ctx.textAlign = 'center';
-          ctx.fillText('[야수의 심장으로 퇴근]', 250, 148);
 
         } else if (selectedChoice === 'B') {
-          // === ENDING B: Cozy Moonlit Bedroom ===
-          ctx.fillStyle = '#0b132b';
+          // === ENDING B: The Frozen Time (Lonely Streetlamp & Cold Dusk) ===
+          ctx.fillStyle = '#0a0f1d';
           ctx.fillRect(0, 0, mapWidth, mapHeight);
 
-          // Floor
-          ctx.fillStyle = '#1c2541';
+          // Floor (Cold wet pavement)
+          ctx.fillStyle = '#111c33';
           ctx.fillRect(0, 50, mapWidth, mapHeight - 50);
 
-          // Window (Crescent moon)
-          ctx.fillStyle = '#1e293b';
-          ctx.fillRect(80, 20, 60, 45);
-          ctx.strokeStyle = '#475569';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(80, 20, 60, 45);
-          ctx.fillStyle = '#fde047';
-          ctx.beginPath();
-          ctx.arc(115, 40, 10, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#1e293b';
-          ctx.beginPath();
-          ctx.arc(119, 38, 9, 0, Math.PI * 2);
-          ctx.fill();
+          // Distant City Skyline Silhouettes through Window
+          ctx.fillStyle = '#020617';
+          ctx.fillRect(70, 18, 70, 48);
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(70, 18, 70, 48);
 
-          // Bed with Blanket
+          // Modern neon towers (Orange & Cyan tiny dots in window)
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(78, 30, 10, 36);
+          ctx.fillRect(92, 24, 14, 42);
+          ctx.fillRect(112, 34, 12, 32);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(96, 28, 2, 2);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(116, 38, 2, 2);
+
+          // Grandfather Clock in Room with frozen hands
+          ctx.fillStyle = '#451a03';
+          ctx.fillRect(170, 55, 20, 60);
+          ctx.fillStyle = '#fef08a';
+          ctx.beginPath();
+          ctx.arc(180, 70, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#78350f';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(180, 70);
+          ctx.lineTo(180, 66); // 12 o'clock
+          ctx.moveTo(180, 70);
+          ctx.lineTo(183, 70); // 3 o'clock
+          ctx.stroke();
+
+          // Bed with bankbook
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(215, 82, 75, 48);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillRect(220, 85, 20, 12); // Pillow
           ctx.fillStyle = '#334155';
-          ctx.fillRect(215, 80, 70, 50);
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillRect(220, 83, 20, 12); // Pillow
-          ctx.fillStyle = '#059669';
-          ctx.fillRect(225, 95, 56, 32); // Green Blanket
+          ctx.fillRect(225, 96, 60, 30); // Blanket
 
-          // Floating zZZ particles
-          const zPulse = (Date.now() / 300) % 3;
-          ctx.font = 'bold 9px sans-serif';
-          ctx.fillStyle = '#93c5fd';
-          ctx.fillText('z', 235 - zPulse * 3, 75 - zPulse * 6);
-          ctx.fillText('Z', 242 - zPulse * 3, 68 - zPulse * 6);
-
-          // Nightstand with Bankbook & Coins
+          // Nightstand with 1,000만 원 bankbook
           ctx.fillStyle = '#78350f';
-          ctx.fillRect(295, 85, 24, 24);
+          ctx.fillRect(298, 88, 22, 24);
           ctx.fillStyle = '#3b82f6';
-          ctx.fillRect(298, 88, 10, 8); // Bankbook
+          ctx.fillRect(302, 92, 12, 8); // Bankbook
           ctx.fillStyle = '#fde047';
           ctx.beginPath();
-          ctx.arc(312, 92, 3, 0, Math.PI * 2); // Coin
+          ctx.arc(314, 96, 2.5, 0, Math.PI * 2); // Coin
           ctx.fill();
-
-          ctx.font = 'bold 9px monospace';
-          ctx.fillStyle = '#34d399';
-          ctx.textAlign = 'center';
-          ctx.fillText('[소나기를 피한 퇴근]', 250, 148);
 
         } else {
-          // === ENDING C: Warm Morning Study with S&P 500 ===
-          ctx.fillStyle = '#292524';
+          // === ENDING C: Standing on Giants (Warm Sunlight & Growing Tree) ===
+          ctx.fillStyle = '#1c1917';
           ctx.fillRect(0, 0, mapWidth, mapHeight);
 
-          // Floor (Warm parquet)
-          ctx.fillStyle = '#44403c';
+          // Floor (Warm parquet wood)
+          ctx.fillStyle = '#292524';
           ctx.fillRect(0, 50, mapWidth, mapHeight - 50);
 
-          // Sunlit Window (Morning Sun)
-          ctx.fillStyle = '#fef3c7';
-          ctx.fillRect(80, 20, 60, 45);
+          // Sunlit Window (Morning Sun & Blue Sky)
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(70, 18, 70, 48);
           ctx.strokeStyle = '#78350f';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(80, 20, 60, 45);
-          ctx.fillStyle = '#f59e0b';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(70, 18, 70, 48);
+
+          // Golden Morning Sun
+          ctx.fillStyle = '#fef08a';
           ctx.beginPath();
-          ctx.arc(110, 48, 12, 0, Math.PI * 2);
+          ctx.arc(110, 38, 14, 0, Math.PI * 2);
           ctx.fill();
 
-          // Warm Study Desk & Chair
-          ctx.fillStyle = '#78350f';
-          ctx.fillRect(215, 85, 70, 40);
-          ctx.fillStyle = '#9a3412';
-          ctx.fillRect(217, 87, 66, 36);
+          // Warm Sunbeams
+          ctx.fillStyle = 'rgba(254, 240, 138, 0.12)';
+          ctx.beginPath();
+          ctx.moveTo(110, 38);
+          ctx.lineTo(40, 150);
+          ctx.lineTo(190, 150);
+          ctx.fill();
 
-          // Laptop Screen with Smooth Green Upward S&P 500 curve
+          // Giant Lush Tree Potted next to Window
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(150, 96, 18, 20); // Pot
+          ctx.fillStyle = '#15803d';
+          ctx.beginPath();
+          ctx.arc(159, 82, 18, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#22c55e';
+          ctx.beginPath();
+          ctx.arc(155, 75, 14, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#86efac';
+          // Glistening gold leaves
+          const leafTime = Date.now() / 200;
+          ctx.fillRect(152 + Math.sin(leafTime) * 2, 70, 3, 3);
+          ctx.fillRect(162 + Math.cos(leafTime) * 2, 78, 3, 3);
+
+          // Modern Minimalist Study Desk
+          ctx.fillStyle = '#57534e';
+          ctx.fillRect(205, 88, 90, 42);
+          ctx.fillStyle = '#78716c';
+          ctx.fillRect(207, 90, 86, 38);
+
+          // Laptop with Green S&P 500 growth curve
           ctx.fillStyle = '#0f172a';
-          ctx.fillRect(235, 72, 30, 22);
+          ctx.fillRect(235, 68, 34, 24);
           ctx.fillStyle = '#064e3b';
-          ctx.fillRect(237, 74, 26, 18);
+          ctx.fillRect(237, 70, 30, 20);
           ctx.strokeStyle = '#4ade80';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.moveTo(239, 88);
-          ctx.quadraticCurveTo(248, 86, 261, 76);
+          ctx.moveTo(239, 86);
+          ctx.quadraticCurveTo(250, 84, 265, 74);
           ctx.stroke();
 
-          // Steaming Coffee Cup & Open Book
+          // Steaming Coffee Cup
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(222, 94, 6, 7); // Coffee Cup
-          ctx.fillStyle = '#fdba74';
-          ctx.fillRect(272, 94, 10, 8); // Book
-
-          ctx.font = 'bold 9px monospace';
-          ctx.fillStyle = '#4ade80';
-          ctx.textAlign = 'center';
-          ctx.fillText('[현명한 투자자의 정시 퇴근]', 250, 148);
+          ctx.fillRect(218, 96, 7, 8);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          const steam = (Date.now() / 200) % 4;
+          ctx.fillRect(221, 91 - steam, 2, 3);
         }
       }
 
@@ -2097,8 +2316,10 @@ export default function CiscoManiaGame() {
     return () => cancelAnimationFrame(animId);
   }, [activeObj, showChoiceModal, selectedChoice, currentMap, inBattle, hasDefeatedBoss, hasPickedUpGlasses]);
 
-  // Turn-Based RPG Battle Commands
+  // Turn-Based RPG Battle Commands (Strict Turn-Locking)
   const handlePlayerAttack = () => {
+    if (isTurnProcessing) return;
+    setIsTurnProcessing(true);
     sounds.playAttack();
     const dmg = 45;
     const newHp = Math.max(0, bossHp - dmg);
@@ -2111,6 +2332,7 @@ export default function CiscoManiaGame() {
         sounds.playVictory();
         setHasDefeatedBoss(true);
         setInBattle(false);
+        setIsTurnProcessing(false);
         setBattleLog('FOMO를 격파했다! 바닥에 [냉철한 멘탈의 안경]이 떨어졌다!');
       }, 1000);
       return;
@@ -2126,10 +2348,15 @@ export default function CiscoManiaGame() {
         setPlayerMental((prev) => Math.max(10, prev - bossDmg));
         setBattleLog(`FOMO의 유혹: "너만 빼고 다 부자 됐어!" (멘탈 -${bossDmg} 피해!)`);
       }
+      setTimeout(() => {
+        setIsTurnProcessing(false);
+      }, 400);
     }, 900);
   };
 
   const handlePlayerDefend = () => {
+    if (isTurnProcessing) return;
+    setIsTurnProcessing(true);
     sounds.playSelect();
     setIsShieldActive(true);
     setBattleLog('김대리가 [이성의 방패]를 펼쳤다! "남들의 속도에 흔들리지 않는다!" (방어 태세)');
@@ -2137,10 +2364,15 @@ export default function CiscoManiaGame() {
     setTimeout(() => {
       setBattleLog('FOMO의 압박을 [이성의 방패]로 튕겨냈다! (데미지 0)');
       setIsShieldActive(false);
-    }, 800);
+      setTimeout(() => {
+        setIsTurnProcessing(false);
+      }, 400);
+    }, 900);
   };
 
   const handlePlayerHeal = () => {
+    if (isTurnProcessing) return;
+    setIsTurnProcessing(true);
     sounds.playSelect();
     setPlayerMental((prev) => Math.min(100, prev + 35));
     setBattleLog('김대리가 믹스커피의 온기를 떠올리며 [심호흡]을 했다! (멘탈 +35 회복)');
@@ -2150,22 +2382,28 @@ export default function CiscoManiaGame() {
         setBattleLog('FOMO의 유혹 공격을 방어했다!');
         setIsShieldActive(false);
       } else {
-        setPlayerMental((prev) => Math.max(10, prev - 20));
-        setBattleLog('FOMO가 조급함을 자극했다! (멘탈 -20)');
+        const bossDmg = 20;
+        setPlayerMental((prev) => Math.max(10, prev - bossDmg));
+        setBattleLog(`FOMO가 조급함을 자극했다! (멘탈 -${bossDmg})`);
       }
-    }, 800);
+      setTimeout(() => {
+        setIsTurnProcessing(false);
+      }, 400);
+    }, 900);
   };
 
   const handleRunAway = () => {
     sounds.stopBattleBgm();
+    sounds.stopEndingBgm();
     sounds.playSelect();
     setInBattle(false);
+    setIsTurnProcessing(false);
     setCurrentMap('office');
     playerRef.current.x = 98;
     playerRef.current.y = 95;
   };
 
-  // Choice Selection
+  // Choice Selection -> Warp Transition -> 25-Year Ending Room & Auto-Trigger Dialogue & BGM
   const handleSelectChoice = (choice: 'A' | 'B' | 'C') => {
     sounds.playSelect();
     setShowChoiceModal(false);
@@ -2178,11 +2416,25 @@ export default function CiscoManiaGame() {
     setTimeout(() => {
       setSelectedChoice(choice);
       setIsWarping(false);
-    }, 1000);
+      setCurrentMap('ending_room');
+      playerRef.current.x = 250;
+      playerRef.current.y = 210;
+      playerRef.current.targetX = 250;
+      playerRef.current.targetY = 210;
+
+      // Automatically start emotional ending BGM & dialogue
+      sounds.startEndingBgm(choice);
+      const targetEndingId = choice === 'A' ? 'ending_desk_a' : choice === 'B' ? 'ending_bed_b' : 'ending_study_c';
+      const targetEndingObj = BASE_TSUKURU_OBJECTS.find(o => o.id === targetEndingId);
+      if (targetEndingObj) {
+        startDialogue(targetEndingObj);
+      }
+    }, 1100);
   };
 
   const handleReset = () => {
     sounds.stopBattleBgm();
+    sounds.stopEndingBgm();
     sounds.playSelect();
     setSelectedChoice(null);
     setShowChoiceModal(false);
@@ -2190,6 +2442,7 @@ export default function CiscoManiaGame() {
     setPageIndex(0);
     setIsWarping(false);
     setInBattle(false);
+    setIsTurnProcessing(false);
     setCurrentMap('office');
     setHasDefeatedBoss(false);
     setHasPickedUpGlasses(false);
@@ -2201,9 +2454,9 @@ export default function CiscoManiaGame() {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-[var(--accent-orange)]/50 bg-neutral-950 text-white shadow-2xl my-6 select-none font-sans">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-neutral-800 bg-neutral-950 text-white shadow-2xl my-6 select-none font-sans">
       {/* Header Bar */}
-      <div className="bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between border-b border-neutral-700">
+      <div className="bg-gradient-to-r from-neutral-900 via-neutral-850 to-neutral-900 px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between border-b border-neutral-800">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -2218,6 +2471,15 @@ export default function CiscoManiaGame() {
               <span>멘탈의 안경 착용 중</span>
             </span>
           )}
+          {currentMap === 'office' && !selectedChoice && (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 border border-neutral-700/60 hidden xs:inline-flex items-center gap-1">
+              {['manager', 'peer', 'lee'].filter(id => visitedNpcs.has(id)).length === 3 ? (
+                <span className="text-[var(--accent-orange)] font-bold animate-pulse">💡 내 책상에서 선택 가능!</span>
+              ) : (
+                <span>동료 대화: {['manager', 'peer', 'lee'].filter(id => visitedNpcs.has(id)).length}/3</span>
+              )}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -2225,8 +2487,8 @@ export default function CiscoManiaGame() {
             onClick={handleToggleSound}
             className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
               isMuted
-                ? 'bg-neutral-800 text-neutral-400 border-neutral-700'
-                : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50'
+                ? 'bg-neutral-800 text-neutral-400 border-neutral-700/60'
+                : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
             }`}
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />}
@@ -2236,7 +2498,7 @@ export default function CiscoManiaGame() {
           {selectedChoice && (
             <button
               onClick={handleReset}
-              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer border border-neutral-700 flex items-center gap-1"
+              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer border border-neutral-700/60 flex items-center gap-1"
             >
               <RotateCcw className="w-3 h-3" />
               <span className="text-[11px]">다시 하기</span>
@@ -2270,7 +2532,7 @@ export default function CiscoManiaGame() {
             </div>
 
             {/* Middle: Battle Log Box */}
-            <div className="p-2.5 sm:p-3.5 rounded-xl bg-neutral-900/90 border-2 border-neutral-700 text-[11px] sm:text-sm text-neutral-200 font-mono leading-relaxed text-center min-h-[44px] sm:min-h-[50px] flex items-center justify-center">
+            <div className="p-2.5 sm:p-3.5 rounded-xl bg-neutral-900/90 border border-neutral-700/60 text-[11px] sm:text-sm text-neutral-200 font-mono leading-relaxed text-center min-h-[44px] sm:min-h-[50px] flex items-center justify-center">
               {battleLog}
             </div>
 
@@ -2287,32 +2549,36 @@ export default function CiscoManiaGame() {
                 />
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons (Disabled during Turn Processing) */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 pt-0.5">
                 <button
                   onClick={handlePlayerAttack}
-                  className="p-2 sm:p-2.5 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  disabled={isTurnProcessing}
+                  className="p-2 sm:p-2.5 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400" />
                   <span>원칙의 일격</span>
                 </button>
                 <button
                   onClick={handlePlayerDefend}
-                  className="p-2 sm:p-2.5 rounded-xl bg-blue-950/80 hover:bg-blue-900 border border-blue-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  disabled={isTurnProcessing}
+                  className="p-2 sm:p-2.5 rounded-xl bg-blue-950/80 hover:bg-blue-900 border border-blue-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
                   <span>이성의 방패</span>
                 </button>
                 <button
                   onClick={handlePlayerHeal}
-                  className="p-2 sm:p-2.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  disabled={isTurnProcessing}
+                  className="p-2 sm:p-2.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500 text-white text-[11px] sm:text-xs font-extrabold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   <Coffee className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                   <span>심호흡</span>
                 </button>
                 <button
                   onClick={handleRunAway}
-                  className="p-2 sm:p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-600 text-neutral-300 text-[11px] sm:text-xs font-bold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  disabled={isTurnProcessing}
+                  className="p-2 sm:p-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/60 text-neutral-300 text-[11px] sm:text-xs font-bold flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   <DoorOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400" />
                   <span>도망치기</span>
@@ -2342,7 +2608,7 @@ export default function CiscoManiaGame() {
               ⏳
             </div>
             <p className="text-xs sm:text-sm font-bold text-neutral-300">
-              시간이 흐르는 중...
+              25년의 시간이 흐르는 중...
             </p>
           </div>
         )}
@@ -2353,10 +2619,10 @@ export default function CiscoManiaGame() {
             onClick={handleDialogueAction}
             className="absolute bottom-2.5 inset-x-2.5 sm:inset-x-8 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150 cursor-pointer"
           >
-            <div className="relative p-3 sm:p-4 rounded-xl bg-gradient-to-b from-neutral-950/95 via-neutral-900/95 to-neutral-950/95 border-2 border-neutral-400 shadow-2xl backdrop-blur-md flex gap-3 sm:gap-4 items-start">
+            <div className="relative p-3 sm:p-4 rounded-xl bg-gradient-to-b from-neutral-950/95 via-neutral-900/95 to-neutral-950/95 border border-neutral-700/60 shadow-2xl backdrop-blur-md flex gap-3 sm:gap-4 items-start">
               
               {/* Character Portrait */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-neutral-950 border border-neutral-600 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-neutral-950 border border-neutral-700/60 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
                 <FacePortrait type={activeObj.portraitType} />
               </div>
 
@@ -2387,215 +2653,72 @@ export default function CiscoManiaGame() {
             </div>
           </div>
         )}
+
+        {/* In-Game Choice Modal Overlay */}
+        {showChoiceModal && !selectedChoice && (
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-sm z-30 p-3 sm:p-5 flex flex-col justify-center animate-in fade-in duration-200">
+            <div className="max-w-md mx-auto w-full space-y-2.5 sm:space-y-3 bg-neutral-900/95 p-3.5 sm:p-5 rounded-2xl border border-neutral-800 shadow-2xl">
+              <div className="flex items-center justify-between pb-1.5 border-b border-neutral-800">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="p-1 rounded-lg bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-white">
+                    [당신의 선택] 1,000만 원, 어떤 결정을 내리시겠습니까?
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setShowChoiceModal(false)}
+                  className="text-[11px] sm:text-xs text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700/60"
+                >
+                  취소
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                {/* Choice A */}
+                <button
+                  onClick={() => handleSelectChoice('A')}
+                  className="p-2.5 sm:p-3 rounded-xl text-left bg-neutral-800/80 hover:bg-red-950/50 border border-neutral-700/60 hover:border-red-500/80 transition-all flex items-center gap-2.5 cursor-pointer group"
+                >
+                  <span className="w-6 h-6 rounded-lg bg-red-500/20 text-red-400 font-black flex items-center justify-center text-xs shrink-0">
+                    A
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-white group-hover:text-red-300 transition-colors">
+                    세계 1등 기업에 1,000만 원 투자
+                  </span>
+                </button>
+
+                {/* Choice B */}
+                <button
+                  onClick={() => handleSelectChoice('B')}
+                  className="p-2.5 sm:p-3 rounded-xl text-left bg-neutral-800/80 hover:bg-amber-950/50 border border-neutral-700/60 hover:border-amber-500/80 transition-all flex items-center gap-2.5 cursor-pointer group"
+                >
+                  <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-black flex items-center justify-center text-xs shrink-0">
+                    B
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
+                    불안하니 전액 100% 안전한 은행 정기예금에 보관
+                  </span>
+                </button>
+
+                {/* Choice C */}
+                <button
+                  onClick={() => handleSelectChoice('C')}
+                  className="p-2.5 sm:p-3 rounded-xl text-left bg-neutral-800/80 hover:bg-emerald-950/50 border border-neutral-700/60 hover:border-emerald-500/80 transition-all flex items-center gap-2.5 cursor-pointer group"
+                >
+                  <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs shrink-0">
+                    C
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    묵묵히 미국 500개 우량 기업(S&P 500) 투자
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Decision Modal */}
-      {showChoiceModal && !selectedChoice && (
-        <div className="p-4 sm:p-6 bg-neutral-900 border-t border-neutral-700 space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]">
-                <Coins className="w-4 h-4" />
-              </span>
-              <h4 className="text-sm sm:text-base font-extrabold text-white">
-                [당신의 선택] 평생 모은 소중한 자금 1,000만 원, 어떤 선택을 내리시겠습니까?
-              </h4>
-            </div>
-            <button
-              onClick={() => setShowChoiceModal(false)}
-              className="text-xs text-neutral-400 hover:text-white px-2.5 py-1 rounded bg-neutral-800 cursor-pointer"
-            >
-              더 둘러보기 [ESC]
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-2.5">
-            {/* Choice A */}
-            <button
-              onClick={() => handleSelectChoice('A')}
-              className="p-3.5 sm:p-4 rounded-xl text-left bg-neutral-800/90 hover:bg-red-950/40 border border-neutral-700 hover:border-red-500 transition-all flex items-start gap-3 cursor-pointer group"
-            >
-              <span className="w-6 h-6 rounded-lg bg-red-500/20 text-red-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5">
-                A
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-xs sm:text-sm font-bold text-white group-hover:text-red-300 transition-colors block">
-                  &quot;모두가 극찬하는 세계 1등, 결국은 오를 거니까 그 전설적인 혁신 기업에 1,000만 원을 올인한다!&quot;
-                </span>
-                <span className="text-[11px] text-red-400 font-medium block">
-                  🔥 세계 1위 독점 테크 기업에 전 재산 100% 집중 투자
-                </span>
-              </div>
-            </button>
-
-            {/* Choice B */}
-            <button
-              onClick={() => handleSelectChoice('B')}
-              className="p-3.5 sm:p-4 rounded-xl text-left bg-neutral-800/90 hover:bg-amber-950/40 border border-neutral-700 hover:border-amber-500 transition-all flex items-start gap-3 cursor-pointer group"
-            >
-              <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5">
-                B
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors block">
-                  &quot;도저히 불안해서 안 되겠다. 주식을 전량 팔고 100% 안전한 정기예금에 묻어둔다.&quot;
-                </span>
-                <span className="text-[11px] text-amber-400 font-medium block">
-                  🛡️ 주식 시장에서 완전히 발을 빼고 은행 금고에 현금 보관
-                </span>
-              </div>
-            </button>
-
-            {/* Choice C */}
-            <button
-              onClick={() => handleSelectChoice('C')}
-              className="p-3.5 sm:p-4 rounded-xl text-left bg-neutral-800/90 hover:bg-emerald-950/40 border border-neutral-700 hover:border-emerald-500 transition-all flex items-start gap-3 cursor-pointer group"
-            >
-              <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5">
-                C
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition-colors block">
-                  &quot;주변 동료들에게 &apos;시대를 모르는 겁쟁이&apos;라 조롱받아도, 묵묵히 미국 상위 500개 기업(S&P 500)을 사 모은다.&quot;
-                </span>
-                <span className="text-[11px] text-emerald-400 font-medium block">
-                  🌐 개별 기업 예측을 포기하고 미국 시장 시스템 전체를 공동 구매
-                </span>
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Results Display */}
-      {selectedChoice && (
-        <div className="p-4 sm:p-7 bg-neutral-900 border-t border-neutral-700 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-[var(--accent-orange)] flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4" />
-              <span>➔ 당신의 선택에 따른 25년 뒤 결말</span>
-            </span>
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer border border-neutral-700 font-bold"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>처음부터 다시 플레이</span>
-            </button>
-          </div>
-
-          {/* Result A */}
-          {selectedChoice === 'A' && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-red-950/30 border-2 border-red-500/40 space-y-4">
-              <div className="flex items-center gap-2 text-red-400 font-black text-base sm:text-lg">
-                <XCircle className="w-5 h-5 shrink-0 stroke-[2.5]" />
-                <span>[선택 A (올인)를 누른 당신의 결말]</span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-neutral-950/80 border border-red-500/20 space-y-2">
-                <h5 className="font-extrabold text-sm sm:text-base text-red-400">
-                  &quot;눈물의 25년 터널, 본전에 갇혀버린 자산&quot;
-                </h5>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  당신이 전재산을 밀어 넣은 직후, 거짓말처럼 시장의 분위기가 꺾이고 버블이 붕괴되었습니다. 당신의 1,000만 원은 순식간에 <strong className="text-red-400">-90% 폭락하여 100만 원</strong>짜리 종잇조각으로 변했습니다.
-                </p>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  더 서늘한 진실은, 무려 <strong className="text-white">25년이 흘러서야 겨우 본전 주위를 맴돌게 되었다는 점</strong>입니다. 물가상승률을 감안하면 당신의 자산은 사실상 형체도 없이 녹아내렸습니다. 세계 1등 기업이라는 대중의 맹신이 가져다준 가장 참혹한 결말입니다.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs font-mono">
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">최대 낙폭 (MDD)</span>
-                  <span className="text-red-400 font-extrabold text-sm">-90% 폭락</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">원금 회복 소요 기간</span>
-                  <span className="text-red-400 font-extrabold text-sm">약 25년</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800 col-span-2 sm:col-span-1">
-                  <span className="text-neutral-400 block text-[10px]">실질 구매력 변화</span>
-                  <span className="text-red-400 font-extrabold text-sm">완전 소멸</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Result B */}
-          {selectedChoice === 'B' && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-amber-950/30 border-2 border-amber-500/40 space-y-4">
-              <div className="flex items-center gap-2 text-amber-400 font-black text-base sm:text-lg">
-                <AlertTriangle className="w-5 h-5 shrink-0 stroke-[2.5]" />
-                <span>[선택 B (예금 100%)를 고른 당신의 결말]</span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-neutral-950/80 border border-amber-500/20 space-y-2">
-                <h5 className="font-extrabold text-sm sm:text-base text-amber-400">
-                  &quot;대폭락은 피했으나, 인플레이션에게 영혼까지 털려버린 자산&quot;
-                </h5>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  이성적으로 판단하여 광기 서린 폭락장은 피했습니다. 하지만 폭락이 끝난 뒤 찾아온 20여 년간의 대세 상승장 동안 당신의 1,000만 원은 금고 속에서 서서히 갉아먹혔습니다.
-                </p>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  25년 뒤의 1,000만 원은 시장에서 살 수 있는 구매력 자체가 다릅니다. <strong className="text-white">돈의 원금은 지켰을지 모르지만, 결국 자본을 소유하지 못해 평생을 노동의 굴레 속에서 쳇바퀴 돌듯 살아가야만 합니다.</strong>
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs font-mono">
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">명목 원금 보존</span>
-                  <span className="text-amber-400 font-extrabold text-sm">1,000만 원 (100%)</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">인플레이션 방어</span>
-                  <span className="text-red-400 font-extrabold text-sm">실패 (-50% 이상)</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800 col-span-2 sm:col-span-1">
-                  <span className="text-neutral-400 block text-[10px]">경제적 자유 도달</span>
-                  <span className="text-red-400 font-extrabold text-sm">불가능</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Result C */}
-          {selectedChoice === 'C' && (
-            <div className="p-5 sm:p-6 rounded-2xl bg-emerald-950/30 border-2 border-emerald-500/40 space-y-4">
-              <div className="flex items-center gap-2 text-emerald-400 font-black text-base sm:text-lg">
-                <CheckCircle2 className="w-5 h-5 shrink-0 stroke-[2.5]" />
-                <span>[선택 C (S&P 500)를 고른 당신의 결말]</span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-neutral-950/80 border border-emerald-500/20 space-y-2">
-                <h5 className="font-extrabold text-sm sm:text-base text-emerald-400">
-                  &quot;조롱을 견뎌낸 위대한 동업자의 승리&quot;
-                </h5>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  당시 동료들에게 구시대의 바보라 불렸던 당신의 선택이 옳았습니다. 버블 붕괴로 일시적인 하락은 겪었지만, S&P 500 시스템은 뒤처진 그 세계 1등 기업의 비중을 가차 없이 줄이고 그 자리에 <strong className="text-white">애플, 마이크로소프트, 엔비디아</strong>라는 새로운 시대의 거인들을 알아서 채워 넣었습니다.
-                </p>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-medium">
-                  25년이 지난 오늘날, 당신의 1,000만 원은 <strong className="text-emerald-400 font-extrabold text-sm sm:text-base">약 8,000만 원(+700%)</strong>의 거대한 자산으로 조용히 복리를 불려 나갔습니다.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs font-mono">
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">최종 자산 (25년 후)</span>
-                  <span className="text-emerald-400 font-extrabold text-sm sm:text-base">약 8,000만 원</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800">
-                  <span className="text-neutral-400 block text-[10px]">자정 정화 작용</span>
-                  <span className="text-emerald-400 font-extrabold text-sm">자동 종목 교체</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800 col-span-2 sm:col-span-1">
-                  <span className="text-neutral-400 block text-[10px]">승리의 요인</span>
-                  <span className="text-emerald-400 font-extrabold text-sm">미국 시장과 동업</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
