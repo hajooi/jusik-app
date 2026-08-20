@@ -1149,7 +1149,7 @@ export default function CiscoManiaGame() {
         e.preventDefault();
         if (activeObj) {
           handleDialogueAction();
-        } else if (!showChoiceModal && !selectedChoice) {
+        } else if (!showChoiceModal) {
           checkNearbyInteraction();
         }
       }
@@ -1393,7 +1393,7 @@ export default function CiscoManiaGame() {
 
     for (const obj of currentObjs) {
       const dist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
-      if (dist < 48) {
+      if (dist < 54) {
         startDialogue(obj);
         return;
       }
