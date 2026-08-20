@@ -69,6 +69,7 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
 function SpectrumGaugeItem({
   item,
   axisExp,
+  dominantCode,
 }: {
   item: {
     key: string;
@@ -81,11 +82,13 @@ function SpectrumGaugeItem({
     rightPct: number;
   };
   axisExp: AxisExplanation;
+  dominantCode?: string;
 }) {
   const [animatedLeft, setAnimatedLeft] = useState(0);
   const [animatedRight, setAnimatedRight] = useState(0);
 
-  const isRightWinner = item.rightPct > item.leftPct;
+  // Determine winner: if tied (50:50), strictly follow dominantCode from profile (G, A, L, R priority)
+  const isRightWinner = item.rightPct > item.leftPct || (item.rightPct === item.leftPct && item.rightCode === dominantCode);
   const leftCode = isRightWinner ? item.rightCode : item.leftCode;
   const leftLabel = isRightWinner ? item.rightLabel : item.leftLabel;
   const leftPct = isRightWinner ? item.rightPct : item.leftPct;
@@ -96,7 +99,7 @@ function SpectrumGaugeItem({
   const rightPct = isRightWinner ? item.leftPct : item.rightPct;
   const rightDesc = isRightWinner ? axisExp.leftDesc : axisExp.rightDesc;
 
-  const isLeftWinner = leftPct >= rightPct;
+  const isLeftWinner = true; // Left side is always placed as the winner/dominant trait
 
   useEffect(() => {
     let animId: number;
@@ -131,34 +134,28 @@ function SpectrumGaugeItem({
       {/* Header Labels: Only the dominant/winner trait gets the percentage */}
       <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
         <div className="flex items-center gap-1.5">
-          <span className={isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-            {leftLabel}({leftCode}) {isLeftWinner && `${animatedLeft}%`}
+          <span className="text-[var(--accent-orange)] font-black">
+            {leftLabel}({leftCode}) {`${animatedLeft}%`}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className={!isLeftWinner ? 'text-[var(--accent-orange)] font-black' : 'text-[var(--text-secondary)]/60 font-semibold'}>
-            {!isLeftWinner && `${animatedRight}%`} {rightLabel}({rightCode})
+          <span className="text-[var(--text-secondary)]/60 font-semibold">
+            {rightLabel}({rightCode})
           </span>
         </div>
       </div>
 
       {/* Gauge Bar (Winner: Signature Orange Glow, Loser: Soft Translucent Muted Tone) */}
       <div className="w-full h-3.5 rounded-full bg-[var(--bg-main)] overflow-hidden flex p-0.5 border border-[var(--border-color)] shadow-inner">
-        {/* Left Side Fill */}
+        {/* Left Side Fill (Dominant Winner) */}
         <div
-          className={`h-full rounded-l-full ${isLeftWinner
-            ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-            : 'bg-[var(--text-secondary)]/12'
-            }`}
+          className="h-full rounded-l-full bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]"
           style={{ width: `${animatedLeft}%` }}
         />
-        {/* Right Side Fill */}
+        {/* Right Side Fill (Muted) */}
         <div
-          className={`h-full rounded-r-full ${!isLeftWinner
-            ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.4)]'
-            : 'bg-[var(--text-secondary)]/12'
-            }`}
+          className="h-full rounded-r-full bg-[var(--text-secondary)]/12"
           style={{ width: `${animatedRight}%` }}
         />
       </div>
@@ -330,11 +327,12 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               rightLabel: '원칙형',
               rightPct: scores.RI.R,
             },
-          ].map((item) => (
+          ].map((item, idx) => (
             <SpectrumGaugeItem
               key={item.key}
               item={item}
               axisExp={AXIS_EXPLANATIONS[item.key]}
+              dominantCode={profile.code[idx]}
             />
           ))}
         </div>
