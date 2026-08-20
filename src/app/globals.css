@@ -95,6 +95,104 @@
   color: #FFFFFF;
 }
 
+/* jusik.app Unified Button & Choice Tokens */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 1rem; /* rounded-2xl */
+  background-color: var(--accent-orange);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 22px rgba(241, 143, 1, 0.45);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  background-color: var(--card-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background-color: var(--card-hover);
+  border-color: rgba(241, 143, 1, 0.55);
+  box-shadow: 0 0 16px rgba(241, 143, 1, 0.20);
+  color: var(--accent-orange);
+}
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Choice Card (1234 4지선다 카드) */
+.choice-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 1rem;
+  background-color: var(--card-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+}
+.choice-card:hover {
+  background-color: var(--card-hover);
+  border-color: rgba(241, 143, 1, 0.60) !important;
+  box-shadow: 0 0 18px rgba(241, 143, 1, 0.18);
+}
+.choice-card:active {
+  transform: scale(0.985);
+}
+
+/* Choice Badge (1234 번호 뱃지) */
+.choice-badge {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  background-color: rgba(241, 143, 1, 0.10);
+  color: var(--accent-orange);
+  border: 1px solid rgba(241, 143, 1, 0.28);
+  transition: all 0.2s ease;
+}
+.choice-card:hover .choice-badge {
+  background-color: var(--accent-orange);
+  color: #ffffff;
+  border-color: var(--accent-orange);
+}
+
 /* Custom Smooth Transitions & Animated Dynamic Mesh Gradients */
 html {
   scroll-behavior: smooth;

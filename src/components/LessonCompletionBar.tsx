@@ -53,10 +53,10 @@ export default function LessonCompletionBar({ lessonId }: LessonCompletionBarPro
       <button
         type="button"
         onClick={handleToggle}
-        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 active:scale-95 shadow-sm shrink-0 cursor-pointer ${
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 shrink-0 cursor-pointer ${
           completed
-            ? 'bg-[var(--accent-green)] text-white hover:bg-[var(--accent-green)]/90 hover:shadow-[0_0_15px_rgba(36,97,59,0.3)]'
-            : 'bg-[var(--card-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40'
+            ? 'bg-[var(--accent-green)] text-white hover:bg-[var(--accent-green)]/90 hover:shadow-[0_0_18px_rgba(36,97,59,0.35)] shadow-sm'
+            : 'btn-secondary !rounded-full !py-2.5 !px-4'
         }`}
       >
         {completed ? (

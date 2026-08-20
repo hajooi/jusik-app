@@ -12,7 +12,7 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
-  const { login, user, logout, changePin, updateAvatar, isAuthPopoverClosing } = useAuth();
+  const { login, user, logout, changePin, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [nickname, setNickname] = useState('');
@@ -213,45 +213,73 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             </div>
           </div>
 
-          {/* Investment Type Card */}
-          <div className="p-3.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-1.5 text-center">
-            <div className="text-[11px] text-[var(--text-secondary)] font-medium flex items-center justify-center gap-1">
-              <Compass className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-              <span>나의 투자 성향</span>
-            </div>
-            {user.investmentType && user.investmentType !== '미진단' && PERSONALITY_PROFILES[user.investmentType] ? (
-              <div className="space-y-1.5 pt-0.5">
-                <div className="text-sm font-extrabold text-[var(--text-primary)]">
-                  {PERSONALITY_PROFILES[user.investmentType].name}{' '}
-                  <span className="text-xs font-bold text-[var(--accent-orange)] font-mono">
-                    ({user.investmentType})
-                  </span>
+          {/* Badge Selection Cards (Visible ONLY if at least one badge is earned) */}
+          {(() => {
+            const hasInvestmentType = !!(user.investmentType && user.investmentType !== '미진단');
+            const hasTermsQuizBest = !!user.termsQuizBest;
+
+            if (!hasInvestmentType && !hasTermsQuizBest) return null;
+
+            const isTypeActive = user.activeBadge === 'investmentType' || (!user.activeBadge && hasInvestmentType);
+            const isQuizActive = user.activeBadge === 'terms_percentile';
+            const cardCount = (hasInvestmentType ? 1 : 0) + (hasTermsQuizBest ? 1 : 0);
+
+            return (
+              <div className="space-y-1.5">
+                <div className="text-[11px] text-[var(--text-secondary)] font-bold px-0.5">
+                  댓글 노출 뱃지 선택
                 </div>
-                <Link
-                  href="/tools/type"
-                  onClick={onClose}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
-                >
-                  <span>진단 결과 보기</span>
-                  <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-1.5 pt-0.5">
-                <div className="text-xs text-[var(--text-secondary)] opacity-70">
-                  아직 진단을 진행하지 않았습니다.
+
+                <div className={`grid gap-2 ${cardCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Option 1: Investment Type Badge */}
+                  {hasInvestmentType && (
+                    <button
+                      type="button"
+                      onClick={() => updateActiveBadge?.(isTypeActive ? 'none' : 'investmentType')}
+                      className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                        isTypeActive
+                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
+                          : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)]">투자 성향</span>
+                        {isTypeActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)]" />
+                        )}
+                      </div>
+                      <span className="text-xs font-extrabold font-mono text-[var(--text-primary)]">
+                        {user.investmentType}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Option 2: Terms Quiz Rank Badge */}
+                  {hasTermsQuizBest && (
+                    <button
+                      type="button"
+                      onClick={() => updateActiveBadge?.(isQuizActive ? 'none' : 'terms_percentile')}
+                      className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                        isQuizActive
+                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
+                          : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)]">용어 퀴즈</span>
+                        {isQuizActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)]" />
+                        )}
+                      </div>
+                      <span className="text-xs font-extrabold font-mono text-[var(--text-primary)]">
+                        {user.termsQuizBest?.badgeName || `상위 ${user.termsQuizBest?.percentile}%`}
+                      </span>
+                    </button>
+                  )}
                 </div>
-                <Link
-                  href="/tools/type"
-                  onClick={onClose}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
-                >
-                  <span>내 성향 진단하기</span>
-                  <ChevronRight className="w-3 h-3" />
-                </Link>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Server Sync Badge */}
           <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">

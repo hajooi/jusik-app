@@ -1,11 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt } from 'lucide-react';
+import { HelpCircle, Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 
 export default function ToolsPage() {
   const tools = [
+    {
+      title: '주식 용어 퀴즈',
+      description: '주식 시장 필수 기초 용어! 퀴즈로 쉽고 재미있게 내 진짜 실력 점검하기',
+      href: '/tools/terms',
+      icon: HelpCircle,
+      tag: '15문항 랭킹전',
+      isComingSoon: false,
+    },
     {
       title: '투자 성향 진단',
       description: '손실이 걱정되는 사람부터 큰 기회를 찾는 사람까지! 나에게 딱 맞는 투자 스타일 찾기',

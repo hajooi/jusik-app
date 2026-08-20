@@ -50,6 +50,8 @@ export async function GET(request: Request) {
         investmentType: userRecord.investmentType,
         typeAnswers: userRecord.typeAnswers,
         simulatorSettings: userRecord.simulatorSettings,
+        activeBadge: userRecord.activeBadge,
+        termsQuizBest: userRecord.termsQuizBest,
         rankPercentile
       }
     });
@@ -63,7 +65,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname) {
@@ -129,6 +131,12 @@ export async function POST(request: Request) {
         if (!existing.avatarUrl && avatarUrl) {
           existing.avatarUrl = avatarUrl;
         }
+        if (activeBadge) {
+          existing.activeBadge = activeBadge;
+        }
+        if (termsQuizBest) {
+          existing.termsQuizBest = termsQuizBest;
+        }
 
         existing.lastActiveAt = new Date().toISOString();
 
@@ -148,6 +156,8 @@ export async function POST(request: Request) {
             investmentType: existing.investmentType,
             typeAnswers: existing.typeAnswers,
             simulatorSettings: existing.simulatorSettings,
+            activeBadge: existing.activeBadge,
+            termsQuizBest: existing.termsQuizBest,
             rankPercentile
           }
         });
@@ -161,7 +171,9 @@ export async function POST(request: Request) {
           completedLessons: completedLessons || [],
           investmentType,
           typeAnswers,
-          simulatorSettings
+          simulatorSettings,
+          activeBadge,
+          termsQuizBest
         };
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
@@ -179,6 +191,8 @@ export async function POST(request: Request) {
             investmentType: newRecord.investmentType,
             typeAnswers: newRecord.typeAnswers,
             simulatorSettings: newRecord.simulatorSettings,
+            activeBadge: newRecord.activeBadge,
+            termsQuizBest: newRecord.termsQuizBest,
             rankPercentile
           }
         });
@@ -195,6 +209,8 @@ export async function POST(request: Request) {
       if (typeAnswers !== undefined) existing.typeAnswers = typeAnswers;
       if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
       if (avatarUrl !== undefined) existing.avatarUrl = avatarUrl;
+      if (activeBadge !== undefined) existing.activeBadge = activeBadge;
+      if (termsQuizBest !== undefined) existing.termsQuizBest = termsQuizBest;
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
@@ -213,6 +229,8 @@ export async function POST(request: Request) {
           investmentType: existing.investmentType,
           typeAnswers: existing.typeAnswers,
           simulatorSettings: existing.simulatorSettings,
+          activeBadge: existing.activeBadge,
+          termsQuizBest: existing.termsQuizBest,
           rankPercentile
         }
       });

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { calculateSurveyResult } from '@/data/investmentSurvey';
 
 export interface ServerUserRecord {
   nickname: string;
@@ -12,6 +13,15 @@ export interface ServerUserRecord {
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
   avatarUrl?: string;
+  activeBadge?: string;
+  termsQuizBest?: {
+    level?: number;
+    score?: number;
+    correctCount?: number;
+    timeSpentSec?: number;
+    percentile?: number;
+    badgeName?: string;
+  };
 }
 
 export interface CommentRecord {
@@ -23,6 +33,16 @@ export interface CommentRecord {
   avatarUrl?: string;
   investmentType?: string;
   typeScores?: { g: number; a: number; l: number; r: number };
+  activeBadge?: string;
+  termsQuiz?: {
+    level?: number;
+    score?: number;
+    correctCount?: number;
+    totalQuestions?: number;
+    timeSpentSec?: number;
+    percentile?: number;
+    badgeName?: string;
+  };
   createdAt: string;
   parentId?: string | null; // 대댓글 부모 ID
 }
@@ -342,51 +362,91 @@ function saveCommentsToFile(comments: CommentRecord[]) {
 }
 
 export async function getCommentsAsync(targetKey?: string): Promise<CommentRecord[]> {
+  let rawComments: CommentRecord[] = [];
+
   if (isLocalDevMode()) {
     let local = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
     globalThis.__jusik_comments_db__ = local;
-    if (targetKey) {
-      return local.filter((c) => c.targetKey === targetKey);
+    rawComments = local;
+  } else {
+    const supabase = getSupabaseAdmin();
+    if (supabase) {
+      try {
+        let query = supabase.from('comments').select('*').order('created_at', { ascending: true });
+        if (targetKey) {
+          query = query.eq('target_key', targetKey);
+        }
+        const { data, error } = await query;
+        if (!error && data) {
+          rawComments = data.map((row: any) => ({
+            id: row.id,
+            targetKey: row.target_key,
+            nickname: row.nickname,
+            pin: row.pin,
+            content: row.content,
+            avatarUrl: row.avatar_url || undefined,
+            investmentType: row.investment_type || undefined,
+            typeScores: row.type_scores || undefined,
+            activeBadge: row.active_badge || undefined,
+            termsQuiz: row.terms_quiz || undefined,
+            createdAt: row.created_at,
+            parentId: row.parent_id || null,
+          }));
+        } else if (error) {
+          console.error('Supabase comments select error:', error.message);
+        }
+      } catch (e) {
+        console.error('Failed to fetch comments from Supabase:', e);
+      }
     }
-    return local;
+
+    if (rawComments.length === 0) {
+      // Fallback to local
+      let allComments = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
+      globalThis.__jusik_comments_db__ = allComments;
+      rawComments = allComments;
+    }
   }
 
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    try {
-      let query = supabase.from('comments').select('*').order('created_at', { ascending: true });
-      if (targetKey) {
-        query = query.eq('target_key', targetKey);
-      }
-      const { data, error } = await query;
-      if (!error && data) {
-        return data.map((row: any) => ({
-          id: row.id,
-          targetKey: row.target_key,
-          nickname: row.nickname,
-          pin: row.pin,
-          content: row.content,
-          avatarUrl: row.avatar_url || undefined,
-          investmentType: row.investment_type || undefined,
-          typeScores: row.type_scores || undefined,
-          createdAt: row.created_at,
-          parentId: row.parent_id || null,
-        }));
-      } else if (error) {
-        console.error('Supabase comments select error:', error.message);
-      }
-    } catch (e) {
-      console.error('Failed to fetch comments from Supabase:', e);
-    }
-  }
+  // Filter by targetKey if provided
+  const filtered = targetKey ? rawComments.filter((c) => c.targetKey === targetKey) : rawComments;
 
-  // Fallback to local
-  let allComments = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
-  globalThis.__jusik_comments_db__ = allComments;
-  if (targetKey) {
-    return allComments.filter((c) => c.targetKey === targetKey);
+  // Real-time enrichment: join with latest user profile in server DB
+  try {
+    const userDb = await getServerDbAsync();
+    return filtered.map((c) => {
+      const u = userDb[c.nickname] || userDb[c.nickname.toLowerCase()];
+      if (u) {
+        let typeScores = c.typeScores;
+        if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {
+          try {
+            const surveyRes = calculateSurveyResult(u.typeAnswers);
+            if (surveyRes?.scores) {
+              typeScores = {
+                g: surveyRes.scores.GS.G,
+                a: surveyRes.scores.AP.A,
+                l: surveyRes.scores.LT.L,
+                r: surveyRes.scores.RI.R,
+              };
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+        return {
+          ...c,
+          avatarUrl: u.avatarUrl || c.avatarUrl,
+          investmentType: (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : c.investmentType,
+          typeScores,
+          activeBadge: u.activeBadge || c.activeBadge || 'investmentType',
+          termsQuiz: u.termsQuizBest || c.termsQuiz,
+        };
+      }
+      return c;
+    });
+  } catch (e) {
+    return filtered;
   }
-  return allComments;
 }
 
 export async function addCommentAsync(newComment: CommentRecord): Promise<CommentRecord[]> {
@@ -512,3 +572,178 @@ export async function deleteCommentAsync(
 
   return { success: true };
 }
+
+// ----------------------------------------------------
+// TERMS QUIZ LEADERBOARD FUNCTIONS
+// ----------------------------------------------------
+
+export interface TermsQuizLeaderboardEntry {
+  id: string;
+  nickname: string;
+  level: number;
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  timeSpentSec: number;
+  createdAt: string;
+  avatarUrl?: string;
+  investmentType?: string;
+  typeScores?: { g: number; a: number; l: number; r: number };
+  percentile?: number;
+  activeBadge?: string;
+  termsQuizBest?: {
+    level?: number;
+    score?: number;
+    correctCount?: number;
+    timeSpentSec?: number;
+    percentile?: number;
+    badgeName?: string;
+  };
+}
+
+const QUIZ_FILE_PATH = path.join(process.cwd(), '.data', 'terms_quiz.json');
+
+declare global {
+  var __jusik_quiz_db__: TermsQuizLeaderboardEntry[] | undefined;
+}
+
+function loadQuizFromFile(): TermsQuizLeaderboardEntry[] {
+  try {
+    if (fs.existsSync(QUIZ_FILE_PATH)) {
+      const data = fs.readFileSync(QUIZ_FILE_PATH, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load quiz db from file:', e);
+  }
+  return [];
+}
+
+function saveQuizToFile(entries: TermsQuizLeaderboardEntry[]) {
+  try {
+    const dir = path.dirname(QUIZ_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(QUIZ_FILE_PATH, JSON.stringify(entries, null, 2), 'utf-8');
+  } catch (e) {
+    // Read-only filesystem fallback
+  }
+}
+
+export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQuizLeaderboardEntry[]> {
+  let all: TermsQuizLeaderboardEntry[] = [];
+  if (!globalThis.__jusik_quiz_db__) {
+    globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+  }
+  all = [...globalThis.__jusik_quiz_db__];
+
+  if (level) {
+    all = all.filter((entry) => entry.level === level);
+  }
+
+  // Sort by correctCount desc, then timeSpentSec asc, then createdAt asc
+  all.sort((a, b) => {
+    if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+    if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
+
+  // Real-time user DB join
+  try {
+    const userDb = await getServerDbAsync();
+    return all.map((entry) => {
+      const u = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      if (u) {
+        let typeScores = entry.typeScores;
+        if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {
+          try {
+            const surveyRes = calculateSurveyResult(u.typeAnswers);
+            if (surveyRes?.scores) {
+              typeScores = {
+                g: surveyRes.scores.GS.G,
+                a: surveyRes.scores.AP.A,
+                l: surveyRes.scores.LT.L,
+                r: surveyRes.scores.RI.R,
+              };
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+        return {
+          ...entry,
+          avatarUrl: u.avatarUrl || entry.avatarUrl,
+          investmentType: (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType,
+          typeScores,
+          activeBadge: u.activeBadge || 'investmentType',
+          termsQuizBest: u.termsQuizBest,
+        };
+      }
+      return entry;
+    });
+  } catch (e) {
+    return all;
+  }
+}
+
+export async function saveTermsQuizEntryAsync(
+  entry: Omit<TermsQuizLeaderboardEntry, 'id' | 'createdAt'>
+): Promise<{ success: boolean; entry: TermsQuizLeaderboardEntry; percentile: number; rank: number; totalParticipants: number }> {
+  const newEntry: TermsQuizLeaderboardEntry = {
+    ...entry,
+    id: `quiz_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (!globalThis.__jusik_quiz_db__) {
+    globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+  }
+
+  // Keep best score per user per level
+  const existingIndex = globalThis.__jusik_quiz_db__.findIndex(
+    (e) => e.nickname === entry.nickname && e.level === entry.level
+  );
+
+  if (existingIndex >= 0) {
+    const existing = globalThis.__jusik_quiz_db__[existingIndex];
+    const isNewBetter =
+      entry.correctCount > existing.correctCount ||
+      (entry.correctCount === existing.correctCount && entry.timeSpentSec < existing.timeSpentSec);
+    if (isNewBetter) {
+      globalThis.__jusik_quiz_db__[existingIndex] = newEntry;
+    }
+  } else {
+    globalThis.__jusik_quiz_db__.push(newEntry);
+  }
+
+  saveQuizToFile(globalThis.__jusik_quiz_db__);
+
+  // Calculate rank and percentile for this level
+  const levelEntries = globalThis.__jusik_quiz_db__
+    .filter((e) => e.level === entry.level)
+    .sort((a, b) => {
+      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+
+  const totalParticipants = levelEntries.length;
+  const userRankIndex = levelEntries.findIndex((e) => e.nickname === entry.nickname);
+  const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
+  const percentile = Math.max(1, Math.round((rank / Math.max(1, totalParticipants)) * 100));
+
+  newEntry.percentile = percentile;
+
+  return {
+    success: true,
+    entry: newEntry,
+    percentile,
+    rank,
+    totalParticipants,
+  };
+}
+

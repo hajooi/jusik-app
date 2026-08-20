@@ -13,6 +13,15 @@ export interface UserAccount {
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
   rankPercentile?: number;
+  termsQuizBest?: {
+    level: number;
+    score: number;
+    correctCount: number;
+    timeSpentSec: number;
+    percentile?: number;
+    badgeName?: string;
+  };
+  activeBadge?: 'type_only' | 'terms_percentile' | 'terms_master' | string;
 }
 
 interface AuthContextType {
@@ -35,6 +44,15 @@ interface AuthContextType {
   updateInvestmentType: (typeCode: string, answers: Record<number, number>) => void;
   updateSimulatorSettings: (settings: any) => void;
   updateAvatar: (avatarUrl: string) => void;
+  updateTermsQuizResult: (result: {
+    level: number;
+    score: number;
+    correctCount: number;
+    timeSpentSec: number;
+    percentile?: number;
+    badgeName?: string;
+  }) => void;
+  updateActiveBadge: (badgeMode: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,6 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (data.user.investmentType) {
                   setInvestmentType(data.user.investmentType);
                   localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
+                }
+                if (data.user.termsQuizBest) {
+                  localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(data.user.termsQuizBest));
                 }
                 if (data.user.typeAnswers) {
                   setTypeAnswers(data.user.typeAnswers);
@@ -281,6 +302,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             simulatorSettings
           })
         }).catch((e) => console.error('Server updateAvatar error:', e));
+      }
+    }
+  };
+
+  // 퀴즈 결과 및 뱃지 업데이트
+  const updateTermsQuizResult = (result: {
+    level: number;
+    score: number;
+    correctCount: number;
+    timeSpentSec: number;
+    percentile?: number;
+    badgeName?: string;
+  }) => {
+    const prevBest = user?.termsQuizBest;
+    const isBetter =
+      !prevBest ||
+      result.score > prevBest.score ||
+      (result.score === prevBest.score && result.timeSpentSec < prevBest.timeSpentSec);
+
+    const targetBadgeName =
+      result.percentile && result.percentile <= 10
+        ? `상위 ${result.percentile}%`
+        : result.level === 4 && result.correctCount >= 14
+        ? '마스터'
+        : `상위 ${result.percentile || 50}%`;
+
+    const newBest = isBetter
+      ? { ...result, badgeName: targetBadgeName }
+      : prevBest;
+
+    const updatedUser: UserAccount = {
+      ...(user || {
+        nickname: '익명_' + Math.random().toString(36).substring(2, 6),
+        pin: '',
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      }),
+      termsQuizBest: newBest,
+      activeBadge: user?.activeBadge || 'terms_percentile',
+    };
+
+    setUser(updatedUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(newBest));
+
+    if (user?.pin) {
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'syncData',
+          nickname: user.nickname,
+          pin: user.pin,
+          termsQuizBest: newBest,
+          activeBadge: updatedUser.activeBadge,
+        }),
+      }).catch(console.error);
+    }
+  };
+
+  const updateActiveBadge = (badgeMode: string) => {
+    if (user) {
+      const updatedUser: UserAccount = {
+        ...user,
+        activeBadge: badgeMode,
+      };
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+      if (user.pin) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname: user.nickname,
+            pin: user.pin,
+            activeBadge: badgeMode,
+          }),
+        }).catch(console.error);
       }
     }
   };
@@ -473,7 +574,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLessonCompleted,
         updateInvestmentType,
         updateSimulatorSettings,
-        updateAvatar
+        updateAvatar,
+        updateTermsQuizResult,
+        updateActiveBadge
       }}
     >
       {children}

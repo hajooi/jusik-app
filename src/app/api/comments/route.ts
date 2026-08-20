@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, targetKey, nickname, pin, content, investmentType, parentId, commentId, avatarUrl } = body;
+    const { action, targetKey, nickname, pin, content, investmentType, parentId, commentId, avatarUrl, activeBadge, termsQuiz } = body;
 
     // 1. Delete Action
     if (action === 'delete') {
@@ -68,6 +68,8 @@ export async function POST(request: Request) {
       avatarUrl: avatarUrl || undefined,
       investmentType: investmentType || undefined,
       typeScores: typeScores && typeof typeScores === 'object' ? typeScores : undefined,
+      activeBadge: activeBadge || undefined,
+      termsQuiz: termsQuiz && typeof termsQuiz === 'object' ? termsQuiz : undefined,
       createdAt: new Date().toISOString(),
       parentId: parentId || null,
     };

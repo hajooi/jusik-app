@@ -2,7 +2,7 @@ export type ModuleType = 'guide_steps' | 'resources' | 'cta';
 
 export interface GuideStep {
   stepNumber: number;
-  title: string;
+  title?: string;
   description?: string;
   bullets?: string[];
   icon?: string;
@@ -12,6 +12,7 @@ export interface GuideStepsModule {
   type: 'guide_steps';
   title: string;
   description?: string;
+  icon?: string;
   steps: GuideStep[];
 }
 
@@ -49,7 +50,7 @@ export interface BookSection {
   };
   paragraphs: string[];
   callout?: string;
-  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania';
+  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania' | 'basic_terms_quiz';
 }
 
 export type LessonModule = GuideStepsModule | ResourcesModule | CTAModule;
@@ -398,65 +399,29 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv1",
         lessonNumber: 2,
         title: "2강. 필수 용어",
-        subtitle: "주식 뉴스와 시세가 쏙쏙 들리는 기초 핵심 용어 총정리",
+        subtitle: "주식 시장에서 살아남기 위한 최소한의 기초 체력",
         youtubeId: "tf6vMw3u7LU",
         duration: "6:27",
         cardNewsTitles: [
-          "주식 & 기업 가치",
-          "주식 시장 & 거래",
-          "주식의 종류",
-          "초보자를 위한 투자"
+          "10대 필수 용어 퀴즈",
+          "실전 용어 점검"
+        ],
+        bookSections: [
+          {
+            title: "기초 필수 용어 퀴즈",
+            paragraphs: [],
+            interactiveTool: "basic_terms_quiz"
+          }
         ],
         modules: [
           {
-            type: "guide_steps",
-            title: "강의 노트",
-            steps: [
-              {
-                stepNumber: 1,
-                title: "주식 & 기업 가치",
-                icon: "Sparkles",
-                bullets: [
-                  "주식: 회사의 소유권을 잘게 쪼갠 소유권 조각",
-                  "주가: 주식 한 개의 가격",
-                  "시가총액: 주가에 총 주식 수를 곱한 시장이 평가하는 회사의 전체 몸값",
-                  "유상증자: 기업이 자금이 필요할 때 새로운 주식을 추가로 발행해서 투자자들에게 파는 것",
-                  "자사주 매입: 회사가 자기 자금으로 시중에 유통되는 자기 회사 주식을 사들이는 것",
-                  "배당금: 회사가 번 이익의 일부를 주주들에게 현금으로 나눠주는 보너스 용돈"
-                ]
-              },
-              {
-                stepNumber: 2,
-                title: "주식 시장 & 거래",
-                icon: "TrendingUp",
-                bullets: [
-                  "증권거래소: 주식을 사고파는 공식 시장 (코스피, 코스닥, 나스닥, 뉴욕증권거래소)",
-                  "지수: 시장 전체의 전반적인 분위기와 성적을 보여주는 평균 점수",
-                  "예수금: 주식을 사기 위해 증권사 계좌에 넣어둔 현금 총알",
-                  "매수 / 매도: 주식을 사는 것 / 파는 것",
-                  "호가: 투자자들이 사고팔기 위해 제시하는 가격"
-                ]
-              },
-              {
-                stepNumber: 3,
-                title: "주식의 종류",
-                icon: "Target",
-                bullets: [
-                  "우량주: 오랫동안 안정적인 실적을 내온 전교 1등 모범생 같은 주식",
-                  "성장주: 미래에 폭발적인 성장이 기대되는 슈퍼스타 같은 주식",
-                  "가치주: 기업의 가치에 비해 현재 주가가 낮아 시장에서 주목받지 못하는 주식"
-                ]
-              },
-              {
-                stepNumber: 4,
-                title: "초보자를 위한 투자",
-                icon: "Lightbulb",
-                bullets: [
-                  "ETF: 대표 기업들을 조금씩 나눠 담은 과일 바구니 형태의 주식 종합 선물 세트",
-                  "자산운용사: ETF 선물 세트를 만드는 회사 (TIGER, KODEX, iShares, Vanguard)"
-                ]
-              }
-            ]
+            type: "cta",
+            badge: "실전 학습 진단서",
+            title: "주식 용어 퀴즈",
+            description: "기초 필수 개념부터 실전 매매·거시경제·심화 금융까지! 4개 난이도(초급·중급·고급·마스터) 실전 퀴즈를 풀고 나의 실시간 백분위 랭킹과 명예의 전당 뱃지를 획득해 보세요.",
+            buttonText: "주식 용어 퀴즈 바로가기",
+            buttonUrl: "/tools/terms",
+            isExternal: false
           }
         ]
       },

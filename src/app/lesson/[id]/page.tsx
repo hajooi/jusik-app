@@ -4,6 +4,7 @@ import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
 import CiscoManiaGame from '@/components/CiscoManiaGame';
+import BasicTermsQuiz from '@/components/BasicTermsQuiz';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -11,6 +12,7 @@ import { notFound } from 'next/navigation';
 import { 
   ArrowLeft, 
   ArrowRight, 
+  Layers,
   Award, 
   Clock, 
   BookOpen, 
@@ -36,6 +38,8 @@ import {
 function renderStepIcon(iconName?: string) {
   const iconProps = { className: "w-4 h-4 text-[var(--accent-orange)] shrink-0 stroke-[2.2]" };
   switch (iconName) {
+    case 'Layers':
+      return <Layers {...iconProps} />;
     case 'Bot':
       return <Bot {...iconProps} />;
     case 'History':
@@ -191,11 +195,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* BOOK MANUSCRIPT SECTIONS */}
           {lesson.bookSections && lesson.bookSections.length > 0 && (
-            <div className="space-y-8 py-2">
+            <div className="space-y-6">
               {lesson.bookSections.map((section, sIdx) => (
                 <RevealOnScroll key={sIdx}>
                   <section 
-                    className="glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
+                    className={`glass-card p-5 rounded-2xl sm:rounded-3xl shadow-2xs space-y-5 sm:space-y-6 ${
+                      section.interactiveTool ? 'sm:p-7 sm:pb-6' : 'sm:p-8'
+                    }`}
                   >
                     <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight flex items-center gap-2.5">
                       <span className="w-2 h-5 rounded-full bg-[var(--accent-orange)] inline-block shrink-0" />
@@ -217,6 +223,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'class_detector' && <ClassDetectorQuiz />}
                     {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
                     {section.interactiveTool === 'cisco_mania' && <CiscoManiaGame />}
+                    {section.interactiveTool === 'basic_terms_quiz' && <BasicTermsQuiz />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -226,23 +233,25 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     )}
 
                     {/* Book Paragraphs */}
-                    <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
-                      {section.paragraphs.map((para, pIdx) => {
-                        const isQuote = para.startsWith('"') && para.endsWith('"');
-                        if (isQuote) {
+                    {section.paragraphs && section.paragraphs.length > 0 && (
+                      <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
+                        {section.paragraphs.map((para, pIdx) => {
+                          const isQuote = para.startsWith('"') && para.endsWith('"');
+                          if (isQuote) {
+                            return (
+                              <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                                {para}
+                              </blockquote>
+                            );
+                          }
                           return (
-                            <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                            <p key={pIdx} className="font-medium text-justify">
                               {para}
-                            </blockquote>
+                            </p>
                           );
-                        }
-                        return (
-                          <p key={pIdx} className="font-medium text-justify">
-                            {para}
-                          </p>
-                        );
-                      })}
-                    </div>
+                        })}
+                      </div>
+                    )}
                   </section>
                 </RevealOnScroll>
               ))}
@@ -279,61 +288,79 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* DYNAMIC CONTENT MODULES BLOCK (Resources, CTA) */}
           {lesson.modules && lesson.modules.length > 0 && (
-            <div className="space-y-6">
+            <div className="space-y-6 -mt-3 sm:-mt-4">
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
+                  const hasSingleUntitledStep = module.steps.length === 1 && !module.steps[0].title;
                   return (
                     <RevealOnScroll key={index}>
                       <div 
-                        className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xs space-y-6"
+                        className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xs space-y-5"
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2.5">
                             <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                              <BookOpen className="w-4.5 h-4.5 stroke-[1.7]" />
+                              {renderStepIcon(module.icon || module.steps[0]?.icon || 'BookOpen')}
                             </span>
-                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
+                            <h3 className="text-lg sm:text-xl font-extrabold tracking-tight text-[var(--text-primary)]">
                               {module.title}
                             </h3>
                           </div>
                           {module.description && (
-                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8">
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-9">
                               {module.description}
                             </p>
                           )}
                         </div>
 
                         {/* Step Guides Stack */}
-                        <div className="space-y-4 pt-1">
-                          {module.steps.map((step, sIdx) => (
-                            <div 
-                              key={sIdx}
-                              className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-2.5 shadow-2xs"
-                            >
-                              <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
-                                <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">
-                                  {renderStepIcon(step.icon)}
-                                </span>
-                                <span>{step.title}</span>
-                              </h4>
-                              {step.description && (
-                                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-4">
-                                  {step.description}
-                                </p>
-                              )}
-                              {step.bullets && step.bullets.length > 0 && (
-                                <ul className="space-y-1.5 pl-4 pt-1">
-                                  {step.bullets.map((bullet, bulletIdx) => (
-                                    <li key={bulletIdx} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium leading-relaxed">
-                                      <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-0.5">•</span>
-                                      <span>{bullet}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        {hasSingleUntitledStep ? (
+                          <div className="pt-1">
+                            {module.steps[0].bullets && module.steps[0].bullets.length > 0 && (
+                              <ul className="space-y-3 pl-2 sm:pl-3">
+                                {module.steps[0].bullets.map((bullet, bulletIdx) => (
+                                  <li key={bulletIdx} className="flex items-start gap-2.5 text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed sm:leading-loose">
+                                    <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-1 sm:mt-1.5">•</span>
+                                    <span className="whitespace-pre-line flex-1">{bullet}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-4 pt-1">
+                            {module.steps.map((step, sIdx) => (
+                              <div 
+                                key={sIdx}
+                                className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-2.5 shadow-2xs"
+                              >
+                                {step.title && (
+                                  <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
+                                    <span className="p-1 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] inline-flex items-center justify-center shrink-0">
+                                      {renderStepIcon(step.icon)}
+                                    </span>
+                                    <span>{step.title}</span>
+                                  </h4>
+                                )}
+                                {step.description && (
+                                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-4">
+                                    {step.description}
+                                  </p>
+                                )}
+                                {step.bullets && step.bullets.length > 0 && (
+                                  <ul className="space-y-2 pl-4 pt-1">
+                                    {step.bullets.map((bullet, bulletIdx) => (
+                                      <li key={bulletIdx} className="flex items-start gap-2 text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">
+                                        <span className="text-[var(--accent-orange)] font-bold shrink-0 mt-0.5">•</span>
+                                        <span className="whitespace-pre-line flex-1">{bullet}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </RevealOnScroll>
                   );
@@ -401,11 +428,11 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <RevealOnScroll key={index}>
                       <div 
-                        className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs space-y-4 my-2 border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)]"
+                        className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs border border-[var(--border-color)] transition-all duration-300"
                       >
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                         
-                        <div className="relative z-10 space-y-4">
+                        <div className={`relative z-10 ${module.benefits && module.benefits.length > 0 ? 'space-y-4' : ''}`}>
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="space-y-1.5 min-w-0 flex-1">
                               {module.badge && (
@@ -427,7 +454,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                                   href={module.buttonUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_15px_rgba(241,143,1,0.3)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
                                 >
                                   {module.buttonText}
                                   <ExternalLink className="w-4 h-4 stroke-[1.7]" />
@@ -435,7 +462,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               ) : (
                                 <Link
                                   href={module.buttonUrl}
-                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:opacity-90 active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
+                                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_15px_rgba(241,143,1,0.3)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs"
                                 >
                                   {module.buttonText}
                                   <ArrowRight className="w-4 h-4 stroke-[1.7]" />

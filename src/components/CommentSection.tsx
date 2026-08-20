@@ -7,6 +7,7 @@ import { formatRelativeTime } from '@/utils/relativeTime';
 import { calculateSurveyResult } from '@/data/investmentSurvey';
 import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2 } from 'lucide-react';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
+import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 
 export interface CommentData {
   id: string;
@@ -16,6 +17,16 @@ export interface CommentData {
   avatarUrl?: string;
   investmentType?: string;
   typeScores?: { g: number; a: number; l: number; r: number };
+  activeBadge?: string;
+  termsQuiz?: {
+    level?: number;
+    score?: number;
+    correctCount?: number;
+    totalQuestions?: number;
+    timeSpentSec?: number;
+    percentile?: number;
+    badgeName?: string;
+  };
   createdAt: string;
   parentId?: string | null;
 }
@@ -45,11 +56,21 @@ export default function CommentSection({
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Type popover target
   const [previewTarget, setPreviewTarget] = useState<{
     id: string;
     code: string;
     authorNickname?: string;
     typeScores?: { g: number; a: number; l: number; r: number };
+    anchorRect?: { top: number; bottom: number; left: number; right: number; width: number; height: number };
+  } | null>(null);
+
+  // Quiz popover target (floating popover with exact anchorRect)
+  const [quizPopoverTarget, setQuizPopoverTarget] = useState<{
+    id: string;
+    authorNickname?: string;
+    termsQuiz?: any;
     anchorRect?: { top: number; bottom: number; left: number; right: number; width: number; height: number };
   } | null>(null);
 
@@ -138,6 +159,8 @@ export default function CommentSection({
           avatarUrl: user.avatarUrl,
           investmentType: user.investmentType,
           typeScores: computedScores,
+          activeBadge: user.activeBadge,
+          termsQuiz: user.termsQuizBest,
         }),
       });
       const data = await res.json();
@@ -190,6 +213,8 @@ export default function CommentSection({
           avatarUrl: user.avatarUrl,
           investmentType: user.investmentType,
           typeScores: computedScores,
+          activeBadge: user.activeBadge,
+          termsQuiz: user.termsQuizBest,
         }),
       });
       const data = await res.json();
@@ -292,64 +317,75 @@ export default function CommentSection({
                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)]"
               />
               <span>{user.nickname}</span>
-              {user.investmentType && user.investmentType !== '미진단' && (
+
+              {/* Dynamic Active Badge on Comment Form Header */}
+              {user.activeBadge === 'none' ? null : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                  {user.termsQuizBest.badgeName}
+                </span>
+              ) : (user.activeBadge === 'investmentType' || !user.activeBadge) && user.investmentType && user.investmentType !== '미진단' ? (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                   {user.investmentType}
                 </span>
-              )}
+              ) : null}
+
               {isMasterAdmin && (
-                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
+                <span className="inline-flex items-center text-[var(--accent-orange)]" title="관리자">
                   <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-[var(--text-secondary)]">{content.length}/500</span>
+            <span className="text-[11px] text-[var(--text-secondary)] font-mono">{content.length}/500</span>
           </div>
 
           <div className="relative">
             <textarea
-              rows={2}
+              rows={3}
               maxLength={500}
               placeholder="댓글을 남겨보세요."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full p-3.5 pr-20 rounded-2xl bg-[var(--bg-main)] text-xs sm:text-sm text-[var(--text-primary)] border border-[var(--border-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-orange)] resize-none transition-all shadow-inner"
+              className="w-full p-3.5 pr-20 rounded-2xl bg-[var(--bg-main)] text-xs sm:text-sm text-[var(--text-primary)] border border-[var(--border-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent-orange)] resize-none shadow-inner"
             />
             <button
               type="submit"
               disabled={!content.trim() || submitting}
-              className="absolute right-2.5 bottom-3.5 px-3 py-1.5 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold flex items-center gap-1 shadow-xs hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="absolute right-2.5 bottom-3.5 px-3 py-1.5 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
             >
-              <Send className="w-3 h-3" />
-              <span>등록</span>
+              <Send className="w-3.5 h-3.5" />
+              <span>{submitting ? '등록 중...' : '등록'}</span>
             </button>
           </div>
         </form>
       ) : (
-        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <p className="text-xs text-[var(--text-secondary)] font-medium">
-            로그인한 후 댓글을 작성할 수 있습니다.
-          </p>
+        <div className="p-4 rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <div className="space-y-0.5">
+            <div className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+              로그인 후 댓글과 질문을 남겨보세요!
+            </div>
+            <div className="text-[11px] text-[var(--text-secondary)]">
+              닉네임과 6자리 핀번호만으로 3초 만에 간편 로그인할 수 있습니다.
+            </div>
+          </div>
           <button
             type="button"
             onClick={openAuthPopover}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
+            className="px-4 py-2 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs hover:opacity-90 transition-all cursor-pointer shrink-0"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>로그인하기</span>
+            <span>간편 로그인 / 생성</span>
           </button>
         </div>
       )}
 
-      {/* Comments List */}
-      <div className="space-y-3.5 pt-1">
+      {/* Comment List */}
+      <div className="space-y-3 pt-2">
         {loading ? (
-          <div className="py-8 text-center text-xs text-[var(--text-secondary)] animate-pulse">
-            댓글을 불러오는 중입니다...
-          </div>
-        ) : rootComments.length === 0 ? (
-          <div className="py-8 text-center space-y-1 bg-[var(--bg-main)]/30 rounded-2xl border border-dashed border-[var(--border-color)]">
-            <p className="text-xs text-[var(--text-secondary)] font-medium">첫 번째 댓글을 남겨보세요!</p>
+          <div className="py-8 text-center text-xs text-[var(--text-secondary)]">댓글을 불러오는 중입니다...</div>
+        ) : comments.length === 0 ? (
+          <div className="py-8 text-center space-y-1">
+            <p className="text-xs text-[var(--text-secondary)]">아직 작성된 댓글이 없습니다.</p>
+            <p className="text-xs font-bold text-[var(--accent-orange)]">첫 번째 댓글의 주인공이 되어보세요!</p>
           </div>
         ) : (
           rootComments.map((root) => {
@@ -371,7 +407,47 @@ export default function CommentSection({
                       className="w-6 h-6 rounded-full object-cover border border-[var(--border-color)] bg-[var(--card-surface)] shrink-0 shadow-2xs"
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
-                    {root.investmentType && root.investmentType !== '미진단' && (
+
+                    {/* User Active Badge: Terms Quiz Rank Badge OR Investment Type Badge (Unified Styling) */}
+                    {root.activeBadge === 'none' ? null : root.activeBadge === 'terms_percentile' && root.termsQuiz?.badgeName ? (
+                      <div className="relative inline-block">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setQuizPopoverTarget(
+                              quizPopoverTarget?.id === root.id
+                                ? null
+                                : {
+                                    id: root.id,
+                                    authorNickname: root.nickname,
+                                    termsQuiz: root.termsQuiz,
+                                    anchorRect: {
+                                      top: rect.top,
+                                      bottom: rect.bottom,
+                                      left: rect.left,
+                                      right: rect.right,
+                                      width: rect.width,
+                                      height: rect.height,
+                                    },
+                                  }
+                            );
+                          }}
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          title={`${root.nickname}님의 실전 용어 퀴즈 랭킹 보기`}
+                        >
+                          {root.termsQuiz.badgeName}
+                        </button>
+                        {quizPopoverTarget?.id === root.id && (
+                          <TermsQuizPreviewPopover
+                            authorNickname={quizPopoverTarget.authorNickname}
+                            termsQuiz={quizPopoverTarget.termsQuiz}
+                            anchorRect={quizPopoverTarget.anchorRect}
+                            onClose={() => setQuizPopoverTarget(null)}
+                          />
+                        )}
+                      </div>
+                    ) : (root.activeBadge === 'investmentType' || !root.activeBadge) && root.investmentType && root.investmentType !== '미진단' ? (
                       <div className="relative inline-block">
                         <button
                           type="button"
@@ -396,7 +472,7 @@ export default function CommentSection({
                                   }
                             );
                           }}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
                           title={`${root.nickname}님의 ${root.investmentType} 성향 미리보기`}
                         >
                           {root.investmentType}
@@ -411,7 +487,8 @@ export default function CommentSection({
                           />
                         )}
                       </div>
-                    )}
+                    ) : null}
+
                     {root.nickname === '주식부엉' && (
                       <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
                         <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
@@ -504,7 +581,47 @@ export default function CommentSection({
                                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shrink-0"
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
-                              {reply.investmentType && reply.investmentType !== '미진단' && (
+
+                              {/* Reply Badge: Terms Quiz Rank Badge OR Investment Type Badge (Unified Styling) */}
+                              {reply.activeBadge === 'none' ? null : reply.activeBadge === 'terms_percentile' && reply.termsQuiz?.badgeName ? (
+                                <div className="relative inline-block">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      setQuizPopoverTarget(
+                                        quizPopoverTarget?.id === reply.id
+                                          ? null
+                                          : {
+                                              id: reply.id,
+                                              authorNickname: reply.nickname,
+                                              termsQuiz: reply.termsQuiz,
+                                              anchorRect: {
+                                                top: rect.top,
+                                                bottom: rect.bottom,
+                                                left: rect.left,
+                                                right: rect.right,
+                                                width: rect.width,
+                                                height: rect.height,
+                                              },
+                                            }
+                                      );
+                                    }}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                    title={`${reply.nickname}님의 실전 용어 퀴즈 랭킹 보기`}
+                                  >
+                                    {reply.termsQuiz.badgeName}
+                                  </button>
+                                  {quizPopoverTarget?.id === reply.id && (
+                                    <TermsQuizPreviewPopover
+                                      authorNickname={quizPopoverTarget.authorNickname}
+                                      termsQuiz={quizPopoverTarget.termsQuiz}
+                                      anchorRect={quizPopoverTarget.anchorRect}
+                                      onClose={() => setQuizPopoverTarget(null)}
+                                    />
+                                  )}
+                                </div>
+                              ) : (reply.activeBadge === 'investmentType' || !reply.activeBadge) && reply.investmentType && reply.investmentType !== '미진단' ? (
                                 <div className="relative inline-block">
                                   <button
                                     type="button"
@@ -529,7 +646,7 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
                                     title={`${reply.nickname}님의 ${reply.investmentType} 성향 미리보기`}
                                   >
                                     {reply.investmentType}
@@ -544,7 +661,8 @@ export default function CommentSection({
                                     />
                                   )}
                                 </div>
-                              )}
+                              ) : null}
+
                               {reply.nickname === '주식부엉' && (
                                 <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
                                   <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
