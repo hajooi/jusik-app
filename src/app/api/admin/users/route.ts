@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerDbAsync } from '@/utils/serverDb';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // GET /api/admin/users?nickname=...&pin=...
 export async function GET(request: Request) {
@@ -11,14 +12,30 @@ export async function GET(request: Request) {
     const pin = searchParams.get('pin')?.trim();
 
     if (nickname !== '주식부엉' || !pin) {
-      return NextResponse.json({ success: false, error: '관리자 권한이 없습니다.' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: '관리자 권한이 없습니다.' },
+        {
+          status: 403,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+        }
+      );
     }
 
     const db = await getServerDbAsync();
-    const adminRecord = db['주식부엉'] || db['주식부엉'];
+    const adminRecord = db['주식부엉'];
 
     if (!adminRecord || adminRecord.pin !== pin) {
-      return NextResponse.json({ success: false, error: '관리자 인증에 실패했습니다.' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: '관리자 인증에 실패했습니다.' },
+        {
+          status: 403,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+        }
+      );
     }
 
     // Prepare user list excluding pin numbers
@@ -34,13 +51,29 @@ export async function GET(request: Request) {
     // Sort by createdAt descending (newest first)
     users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return NextResponse.json({
-      success: true,
-      totalUsers: users.length,
-      users
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        totalUsers: users.length,
+        users,
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Admin API Error:', error);
-    return NextResponse.json({ success: false, error: '서버 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: '서버 오류가 발생했습니다.' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        },
+      }
+    );
   }
 }

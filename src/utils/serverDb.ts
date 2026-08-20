@@ -139,6 +139,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             typeAnswers: row.type_answers || undefined,
             simulatorSettings: row.simulator_settings || undefined,
             avatarUrl: row.avatar_url || undefined,
+            activeBadge: row.active_badge || undefined,
+            termsQuizBest: row.terms_quiz_best || undefined,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -174,6 +176,8 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
         type_answers: u.typeAnswers || null,
         simulator_settings: u.simulatorSettings || null,
         avatar_url: u.avatarUrl || null,
+        active_badge: u.activeBadge || null,
+        terms_quiz_best: u.termsQuizBest || null,
       }));
 
       if (rows.length > 0) {

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSurveyStatsAsync, recordSurveyResultAsync } from '@/utils/serverDb';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/survey-stats
 export async function GET() {
   try {
@@ -15,15 +18,31 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      totalCount: stats.totalCount,
-      typeCounts: stats.typeCounts,
-      percentages
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        totalCount: stats.totalCount,
+        typeCounts: stats.typeCounts,
+        percentages,
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        },
+      }
+    );
   } catch (error) {
     console.error('API GET survey-stats error:', error);
-    return NextResponse.json({ success: false, error: '통계 로드 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: '통계 로드 중 오류가 발생했습니다.' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        },
+      }
+    );
   }
 }
 

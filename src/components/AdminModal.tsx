@@ -63,9 +63,20 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
       }
 
       const adminNickname = user?.nickname || '주식부엉';
+      const timestamp = Date.now();
+      const noCacheHeaders = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      };
 
-      // 1. Fetch Admin Users List
-      const res = await fetch(`/api/admin/users?nickname=${encodeURIComponent(adminNickname)}&pin=${encodeURIComponent(storedPin)}`);
+      // 1. Fetch Admin Users List (Real-time No-Cache)
+      const res = await fetch(
+        `/api/admin/users?nickname=${encodeURIComponent(adminNickname)}&pin=${encodeURIComponent(storedPin)}&_t=${timestamp}`,
+        {
+          cache: 'no-store',
+          headers: noCacheHeaders,
+        }
+      );
       const data = await res.json();
 
       if (!data.success) {
@@ -75,8 +86,11 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
         setTotalUsers(data.totalUsers || 0);
       }
 
-      // 2. Fetch All Anonymous & Member Survey Stats
-      const statsRes = await fetch('/api/survey-stats');
+      // 2. Fetch All Anonymous & Member Survey Stats (Real-time No-Cache)
+      const statsRes = await fetch(`/api/survey-stats?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: noCacheHeaders,
+      });
       const statsData = await statsRes.json();
       if (statsData.success) {
         setSurveyStats({
