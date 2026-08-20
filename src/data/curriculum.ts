@@ -162,7 +162,7 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv0",
         lessonNumber: 2,
         title: "2강. 복리와 시간",
-        subtitle: "이 선택이 당신의 계급을 결정합니다",
+        subtitle: "시간이 지날수록 자산이 눈덩이처럼 불어나는 비밀",
         youtubeId: "vDo857gB1j0",
         duration: "5:39",
         summary: [
