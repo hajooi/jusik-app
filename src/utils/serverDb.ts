@@ -641,80 +641,148 @@ function saveQuizToFile(entries: TermsQuizLeaderboardEntry[]) {
 }
 
 export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQuizLeaderboardEntry[]> {
-  let all: TermsQuizLeaderboardEntry[] = [];
-  if (!globalThis.__jusik_quiz_db__) {
-    globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+  // 1. 로컬 개발 모드: 로컬 파일 격리
+  if (isLocalDevMode()) {
+    let all: TermsQuizLeaderboardEntry[] = [];
+    if (!globalThis.__jusik_quiz_db__) {
+      globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+    }
+    all = [...globalThis.__jusik_quiz_db__];
+
+    if (level) {
+      all = all.filter((entry) => entry.level === level);
+    }
+
+    all.sort((a, b) => {
+      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+
+    const userDb = getServerDb();
+    return all.map((entry) => attachUserMetadata(entry, userDb));
   }
-  all = [...globalThis.__jusik_quiz_db__];
 
-  if (level) {
-    all = all.filter((entry) => entry.level === level);
-  }
-
-  // Sort by correctCount desc, then timeSpentSec asc, then createdAt asc
-  all.sort((a, b) => {
-    if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
-    if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
-    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-  });
-
-  // Real-time user DB join
+  // 2. 운영 환경: Supabase users DB 기반 영구 리더보드 조회
   try {
     const userDb = await getServerDbAsync();
-    return all.map((entry) => {
-      const u = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
-      let effectiveType = entry.investmentType;
-      let typeScores = entry.typeScores;
-      let activeBadge = entry.activeBadge || 'investmentType';
-      let avatarUrl = entry.avatarUrl;
-      let termsQuizBest = entry.termsQuizBest;
+    let all: TermsQuizLeaderboardEntry[] = [];
 
-      if (u) {
-        avatarUrl = u.avatarUrl || entry.avatarUrl;
-        effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
-        activeBadge = u.activeBadge || 'investmentType';
-        termsQuizBest = u.termsQuizBest || entry.termsQuizBest;
+    // Memory cache + Supabase users join
+    if (!globalThis.__jusik_quiz_db__) {
+      globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+    }
+    const memEntries = [...globalThis.__jusik_quiz_db__];
 
-        if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {
-          try {
-            const surveyRes = calculateSurveyResult(u.typeAnswers);
-            if (surveyRes?.scores) {
-              typeScores = {
-                g: surveyRes.scores.GS.G,
-                a: surveyRes.scores.AP.A,
-                l: surveyRes.scores.LT.L,
-                r: surveyRes.scores.RI.R,
-              };
-            }
-          } catch (e) {
-            // ignore
-          }
+    // Collect all quiz entries from Supabase user records
+    const userEntries: TermsQuizLeaderboardEntry[] = [];
+    Object.values(userDb).forEach((u) => {
+      const settings = u.simulatorSettings as any;
+      if (settings && Array.isArray(settings.__quizEntries)) {
+        settings.__quizEntries.forEach((entry: TermsQuizLeaderboardEntry) => {
+          userEntries.push(entry);
+        });
+      } else if (u.termsQuizBest) {
+        userEntries.push({
+          id: `quiz_user_${u.nickname}_${u.termsQuizBest.level || 1}`,
+          nickname: u.nickname,
+          level: u.termsQuizBest.level || 1,
+          score: u.termsQuizBest.score || 0,
+          correctCount: u.termsQuizBest.correctCount || 0,
+          totalQuestions: 15,
+          timeSpentSec: u.termsQuizBest.timeSpentSec || 0,
+          createdAt: u.lastActiveAt || u.createdAt,
+          avatarUrl: u.avatarUrl,
+          investmentType: u.investmentType,
+          percentile: u.termsQuizBest.percentile,
+          termsQuizBest: u.termsQuizBest,
+        });
+      }
+    });
+
+    // Merge memory entries and Supabase user entries (keep best score per user per level)
+    const combinedMap = new Map<string, TermsQuizLeaderboardEntry>();
+    [...memEntries, ...userEntries].forEach((entry) => {
+      const key = `${entry.nickname}_lvl_${entry.level}`;
+      const existing = combinedMap.get(key);
+      if (!existing) {
+        combinedMap.set(key, entry);
+      } else {
+        const isBetter =
+          entry.correctCount > existing.correctCount ||
+          (entry.correctCount === existing.correctCount && entry.timeSpentSec < existing.timeSpentSec);
+        if (isBetter) {
+          combinedMap.set(key, entry);
         }
       }
-
-      // If still no typeScores but effectiveType exists, generate standard fallback scores
-      if (!typeScores && effectiveType && effectiveType !== '미진단' && effectiveType.length === 4) {
-        const code = effectiveType.toUpperCase();
-        typeScores = {
-          g: code[0] === 'G' ? 70 : 30,
-          a: code[1] === 'A' ? 70 : 30,
-          l: code[2] === 'L' ? 70 : 30,
-          r: code[3] === 'R' ? 70 : 30,
-        };
-      }
-
-      return {
-        ...entry,
-        avatarUrl,
-        investmentType: effectiveType,
-        typeScores,
-        activeBadge,
-        termsQuizBest,
-      };
     });
+
+    all = Array.from(combinedMap.values());
+
+    if (level) {
+      all = all.filter((entry) => entry.level === level);
+    }
+
+    all.sort((a, b) => {
+      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+
+    return all.map((entry) => attachUserMetadata(entry, userDb));
   } catch (e) {
-    return all;
+    console.error('Failed to get quiz entries from Supabase:', e);
+    return [];
   }
+}
+
+function attachUserMetadata(entry: TermsQuizLeaderboardEntry, userDb: Record<string, ServerUserRecord>): TermsQuizLeaderboardEntry {
+  const u = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+  let effectiveType = entry.investmentType;
+  let typeScores = entry.typeScores;
+  let activeBadge = entry.activeBadge || 'investmentType';
+  let avatarUrl = entry.avatarUrl;
+  let termsQuizBest = entry.termsQuizBest;
+
+  if (u) {
+    avatarUrl = u.avatarUrl || entry.avatarUrl;
+    effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
+    activeBadge = u.activeBadge || 'investmentType';
+    termsQuizBest = u.termsQuizBest || entry.termsQuizBest;
+
+    if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {
+      try {
+        const surveyRes = calculateSurveyResult(u.typeAnswers);
+        if (surveyRes?.scores) {
+          typeScores = {
+            g: surveyRes.scores.GS.G,
+            a: surveyRes.scores.AP.A,
+            l: surveyRes.scores.LT.L,
+            r: surveyRes.scores.RI.R,
+          };
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (!typeScores && effectiveType && effectiveType !== '미진단' && effectiveType.length === 4) {
+    const code = effectiveType.toUpperCase();
+    typeScores = {
+      g: code[0] === 'G' ? 70 : 30,
+      a: code[1] === 'A' ? 70 : 30,
+      l: code[2] === 'L' ? 70 : 30,
+      r: code[3] === 'R' ? 70 : 30,
+    };
+  }
+
+  return {
+    ...entry,
+    avatarUrl,
+    investmentType: effectiveType,
+    typeScores,
+    activeBadge,
+    termsQuizBest,
+  };
 }
 
 export async function saveTermsQuizEntryAsync(
@@ -730,7 +798,7 @@ export async function saveTermsQuizEntryAsync(
     globalThis.__jusik_quiz_db__ = loadQuizFromFile();
   }
 
-  // Keep best score per user per level
+  // Keep best score per user per level in memory/file
   const existingIndex = globalThis.__jusik_quiz_db__.findIndex(
     (e) => e.nickname === entry.nickname && e.level === entry.level
   );
@@ -749,17 +817,51 @@ export async function saveTermsQuizEntryAsync(
 
   saveQuizToFile(globalThis.__jusik_quiz_db__);
 
-  // Calculate rank and percentile for this level
-  const levelEntries = globalThis.__jusik_quiz_db__
-    .filter((e) => e.level === entry.level)
-    .sort((a, b) => {
-      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
-      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
+  // 운영 환경: Supabase users 레코드에 영구 저장 (배포 시 초기화 방지)
+  if (!isLocalDevMode()) {
+    try {
+      const userDb = await getServerDbAsync();
+      const userRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      if (userRecord) {
+        const settings = userRecord.simulatorSettings || {};
+        const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(settings.__quizEntries) ? settings.__quizEntries : [];
+        const idx = quizList.findIndex((q) => q.level === entry.level);
+        if (idx >= 0) {
+          const prev = quizList[idx];
+          if (entry.correctCount > prev.correctCount || (entry.correctCount === prev.correctCount && entry.timeSpentSec < prev.timeSpentSec)) {
+            quizList[idx] = newEntry;
+          }
+        } else {
+          quizList.push(newEntry);
+        }
+        settings.__quizEntries = quizList;
+        userRecord.simulatorSettings = settings;
 
-  const totalParticipants = levelEntries.length;
-  const userRankIndex = levelEntries.findIndex((e) => e.nickname === entry.nickname);
+        // Update termsQuizBest if this entry is overall best
+        const prevBest = userRecord.termsQuizBest;
+        const isOverallBetter = !prevBest || entry.score > (prevBest.score || 0) || (entry.score === prevBest.score && entry.timeSpentSec < (prevBest.timeSpentSec || 999));
+        if (isOverallBetter) {
+          userRecord.termsQuizBest = {
+            level: entry.level,
+            score: entry.score,
+            correctCount: entry.correctCount,
+            timeSpentSec: entry.timeSpentSec,
+            badgeName: entry.level === 4 && entry.correctCount >= 14 ? '마스터' : undefined,
+          };
+        }
+        userRecord.lastActiveAt = new Date().toISOString();
+        userDb[entry.nickname] = userRecord;
+        await saveServerDbAsync(userDb);
+      }
+    } catch (err) {
+      console.error('Failed to persist quiz entry to Supabase:', err);
+    }
+  }
+
+  // Calculate rank and percentile for this level
+  const allEntries = await getTermsQuizEntriesAsync(entry.level);
+  const totalParticipants = allEntries.length;
+  const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
   const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
   const percentile = Math.max(1, Math.round((rank / Math.max(1, totalParticipants)) * 100));
 
@@ -779,19 +881,8 @@ export async function calculateTermsQuizPercentileAsync(
   correctCount: number,
   timeSpentSec: number
 ): Promise<{ success: boolean; percentile: number; rank: number; totalParticipants: number }> {
-  if (!globalThis.__jusik_quiz_db__) {
-    globalThis.__jusik_quiz_db__ = loadQuizFromFile();
-  }
+  const levelEntries = await getTermsQuizEntriesAsync(level);
 
-  const levelEntries = globalThis.__jusik_quiz_db__
-    .filter((e) => e.level === level)
-    .sort((a, b) => {
-      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
-      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
-
-  // Calculate virtual rank among existing participants + this attempt
   let rank = 1;
   for (const entry of levelEntries) {
     if (
