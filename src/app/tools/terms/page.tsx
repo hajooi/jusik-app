@@ -121,6 +121,7 @@ function TermsQuizContent() {
     timeSpentSec: number;
     percentile?: number;
     rank?: number;
+    totalParticipants?: number;
     badgeName?: string;
   } | null>(null);
 
@@ -240,43 +241,49 @@ function TermsQuizContent() {
     const totalQ = questions.length;
     const rawScore = correctAnswers * 1000;
 
-    let percentile = 50;
+    let percentile = 1;
     let rank = 1;
+    let totalParticipants = 1;
 
-    // Submit to server if logged in
-    if (user?.nickname) {
-      try {
-        const res = await fetch('/api/terms-leaderboard', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nickname: user.nickname,
-            level: selectedLevel,
-            score: rawScore,
-            correctCount: correctAnswers,
-            totalQuestions: totalQ,
-            timeSpentSec: totalTime,
-            avatarUrl: user.avatarUrl,
-            investmentType: user.investmentType,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          percentile = data.percentile || 50;
-          rank = data.rank || 1;
-        }
-      } catch (e) {
-        console.error('Failed to submit score:', e);
+    try {
+      const res = await fetch('/api/terms-leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isGuest: !user?.nickname,
+          nickname: user?.nickname || undefined,
+          level: selectedLevel,
+          score: rawScore,
+          correctCount: correctAnswers,
+          totalQuestions: totalQ,
+          timeSpentSec: totalTime,
+          avatarUrl: user?.avatarUrl,
+          investmentType: user?.investmentType,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        percentile = data.percentile || 1;
+        rank = data.rank || 1;
+        totalParticipants = data.totalParticipants || (leaderboard.length + 1);
       }
-    } else {
-      // Offline calculation for guests
-      percentile = Math.max(1, Math.round(((totalQ - correctAnswers + 1) / totalQ) * 100));
+    } catch (e) {
+      console.error('Failed to calculate/submit score:', e);
+      // Offline fallback calculation using loaded leaderboard
+      const virtualParticipants = leaderboard.length + 1;
+      const virtualRank =
+        leaderboard.filter(
+          (entry) =>
+            entry.correctCount > correctAnswers ||
+            (entry.correctCount === correctAnswers && entry.timeSpentSec <= totalTime)
+        ).length + 1;
+      rank = virtualRank;
+      totalParticipants = virtualParticipants;
+      percentile = Math.max(1, Math.round((virtualRank / virtualParticipants) * 100));
     }
 
     const badgeName =
-      percentile <= 10
-        ? `상위 ${percentile}%`
-        : selectedLevel === 4 && correctAnswers >= 14
+      selectedLevel === 4 && correctAnswers >= 14
         ? '마스터'
         : `상위 ${percentile}%`;
 
@@ -287,6 +294,7 @@ function TermsQuizContent() {
       timeSpentSec: totalTime,
       percentile,
       rank,
+      totalParticipants,
       badgeName,
     };
 
@@ -306,9 +314,14 @@ function TermsQuizContent() {
     setQuizState('summary');
   };
 
-  // Sync result after user logs in on the result page
+  const lastSyncedUserRef = useRef<string | null>(null);
+
+  // Sync result after guest user logs in on the result page
   useEffect(() => {
-    if (user && finalResult && quizState === 'summary') {
+    if (user && user.nickname && finalResult && quizState === 'summary') {
+      if (lastSyncedUserRef.current === user.nickname) return;
+      lastSyncedUserRef.current = user.nickname;
+
       fetch('/api/terms-leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -332,6 +345,7 @@ function TermsQuizContent() {
                     ...prev,
                     percentile: data.percentile || prev.percentile,
                     rank: data.rank || prev.rank,
+                    totalParticipants: data.totalParticipants || prev.totalParticipants,
                   }
                 : null
             );
@@ -347,6 +361,8 @@ function TermsQuizContent() {
           }
         })
         .catch(console.error);
+    } else if (!user) {
+      lastSyncedUserRef.current = null;
     }
   }, [user, quizState]);
 
@@ -622,6 +638,13 @@ function TermsQuizContent() {
                               type="button"
                               onClick={(e) => {
                                 const rect = e.currentTarget.getBoundingClientRect();
+                                const effectiveScores = item.typeScores || (item.investmentType && item.investmentType.length === 4 ? {
+                                  g: item.investmentType[0].toUpperCase() === 'G' ? 70 : 30,
+                                  a: item.investmentType[1].toUpperCase() === 'A' ? 70 : 30,
+                                  l: item.investmentType[2].toUpperCase() === 'L' ? 70 : 30,
+                                  r: item.investmentType[3].toUpperCase() === 'R' ? 70 : 30,
+                                } : undefined);
+
                                 setPreviewTarget(
                                   previewTarget?.id === (item.id || item.nickname)
                                     ? null
@@ -629,7 +652,7 @@ function TermsQuizContent() {
                                         id: item.id || item.nickname,
                                         code: item.investmentType!,
                                         authorNickname: item.nickname,
-                                        typeScores: item.typeScores,
+                                        typeScores: effectiveScores,
                                         anchorRect: {
                                           top: rect.top,
                                           bottom: rect.bottom,
@@ -828,13 +851,18 @@ function TermsQuizContent() {
             {/* Result Main Card */}
             <div className="glass-card p-6 sm:p-8 rounded-3xl text-center space-y-6 shadow-sm border border-[var(--border-color)]">
               <div className="space-y-2">
-                <span className="text-xs font-mono font-extrabold px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--border-color)]">
-                  {levelInfo.title}
-                </span>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xs font-mono font-extrabold px-3 py-1 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--border-color)]">
+                    {levelInfo.title}
+                  </span>
+                  {finalResult.percentile && (
+                    <span className="text-xs font-mono font-extrabold px-3 py-1 rounded-full bg-[var(--accent-green)]/15 text-[var(--accent-green)] border border-[var(--border-color)]">
+                      전체 {finalResult.totalParticipants || 1}명 중 {finalResult.rank || 1}위
+                    </span>
+                  )}
+                </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
-                  {finalResult.percentile && finalResult.percentile <= 10
-                    ? `상위 ${finalResult.percentile}% 달성!`
-                    : '테스트 완료!'}
+                  {finalResult.percentile ? `상위 ${finalResult.percentile}% 달성! 🏆` : '테스트 완료!'}
                 </h1>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
                   총 15문항 중 <strong className="text-[var(--text-primary)]">{finalResult.correctCount}문제</strong>를 맞혔습니다.
@@ -860,18 +888,23 @@ function TermsQuizContent() {
 
               {/* Guest Login Callout Banner (If not logged in) */}
               {!user ? (
-                <div className="p-4 rounded-2xl bg-[var(--card-surface)] border border-[var(--accent-orange)] space-y-2.5 text-center">
-                  <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-                    로그인하고 내 기록을 명예의 전당과 댓글 뱃지에 등록하세요!
+                <div className="p-4 rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] space-y-2 text-center">
+                  <span className="text-[11px] text-[var(--text-secondary)] font-bold">
+                    명예의 전당 기록 보관
+                  </span>
+                  <p className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">
+                    로그인하면 내 순위({finalResult.rank || 1}위)와 백분위를 리더보드에 등록할 수 있습니다.
                   </p>
-                  <button
-                    type="button"
-                    onClick={openAuthPopover}
-                    className="py-2.5 px-5 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-xs hover:opacity-90 cursor-pointer"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    <span>내 기록 등록하기 (로그인)</span>
-                  </button>
+                  <div className="pt-0.5">
+                    <button
+                      type="button"
+                      onClick={openAuthPopover}
+                      className="py-2 px-4 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all border border-[var(--border-color)] inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                    >
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>내 기록 등록하기 (로그인)</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Awarded Badge Display (No square brackets as instructed) */

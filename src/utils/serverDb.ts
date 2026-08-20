@@ -72,7 +72,13 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
     createdAt: '2026-08-04T00:00:00.000Z',
     lastActiveAt: new Date().toISOString(),
     completedLessons: ['lv0-1', 'lv0-2', 'lv0-3', 'lv1-1', 'lv1-2', 'lv1-3'],
-    investmentType: 'GATR'
+    investmentType: 'GATR',
+    typeAnswers: {
+      1: 1, 2: 5, 3: 1, 4: 5, 5: 1, 6: 5, 7: 1, 8: 5, 9: 1, 10: 5, // G 100%
+      11: 1, 12: 5, 13: 1, 14: 5, 15: 1, 16: 5, 17: 1, 18: 5, 19: 1, 20: 5, // A 100%
+      21: 5, 22: 1, 23: 5, 24: 1, 25: 5, 26: 1, 27: 5, 28: 1, 29: 5, 30: 1, // T 100%
+      31: 1, 32: 5, 33: 1, 34: 5, 35: 1, 36: 5, 37: 1, 38: 5, 39: 1, 40: 5  // R 100%
+    }
   }
 };
 
@@ -657,8 +663,18 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
     const userDb = await getServerDbAsync();
     return all.map((entry) => {
       const u = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      let effectiveType = entry.investmentType;
+      let typeScores = entry.typeScores;
+      let activeBadge = entry.activeBadge || 'investmentType';
+      let avatarUrl = entry.avatarUrl;
+      let termsQuizBest = entry.termsQuizBest;
+
       if (u) {
-        let typeScores = entry.typeScores;
+        avatarUrl = u.avatarUrl || entry.avatarUrl;
+        effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
+        activeBadge = u.activeBadge || 'investmentType';
+        termsQuizBest = u.termsQuizBest || entry.termsQuizBest;
+
         if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {
           try {
             const surveyRes = calculateSurveyResult(u.typeAnswers);
@@ -674,16 +690,27 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
             // ignore
           }
         }
-        return {
-          ...entry,
-          avatarUrl: u.avatarUrl || entry.avatarUrl,
-          investmentType: (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType,
-          typeScores,
-          activeBadge: u.activeBadge || 'investmentType',
-          termsQuizBest: u.termsQuizBest,
+      }
+
+      // If still no typeScores but effectiveType exists, generate standard fallback scores
+      if (!typeScores && effectiveType && effectiveType !== '미진단' && effectiveType.length === 4) {
+        const code = effectiveType.toUpperCase();
+        typeScores = {
+          g: code[0] === 'G' ? 70 : 30,
+          a: code[1] === 'A' ? 70 : 30,
+          l: code[2] === 'L' ? 70 : 30,
+          r: code[3] === 'R' ? 70 : 30,
         };
       }
-      return entry;
+
+      return {
+        ...entry,
+        avatarUrl,
+        investmentType: effectiveType,
+        typeScores,
+        activeBadge,
+        termsQuizBest,
+      };
     });
   } catch (e) {
     return all;
@@ -741,6 +768,47 @@ export async function saveTermsQuizEntryAsync(
   return {
     success: true,
     entry: newEntry,
+    percentile,
+    rank,
+    totalParticipants,
+  };
+}
+
+export async function calculateTermsQuizPercentileAsync(
+  level: number,
+  correctCount: number,
+  timeSpentSec: number
+): Promise<{ success: boolean; percentile: number; rank: number; totalParticipants: number }> {
+  if (!globalThis.__jusik_quiz_db__) {
+    globalThis.__jusik_quiz_db__ = loadQuizFromFile();
+  }
+
+  const levelEntries = globalThis.__jusik_quiz_db__
+    .filter((e) => e.level === level)
+    .sort((a, b) => {
+      if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+      if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+
+  // Calculate virtual rank among existing participants + this attempt
+  let rank = 1;
+  for (const entry of levelEntries) {
+    if (
+      entry.correctCount > correctCount ||
+      (entry.correctCount === correctCount && entry.timeSpentSec <= timeSpentSec)
+    ) {
+      rank++;
+    } else {
+      break;
+    }
+  }
+
+  const totalParticipants = levelEntries.length + 1;
+  const percentile = Math.max(1, Math.round((rank / totalParticipants) * 100));
+
+  return {
+    success: true,
     percentile,
     rank,
     totalParticipants,

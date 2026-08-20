@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsedUser.typeAnswers) setTypeAnswers(parsedUser.typeAnswers);
         if (parsedUser.simulatorSettings) setSimulatorSettings(parsedUser.simulatorSettings);
 
-        // 서버 최신 데이터 동기화
+        // 서버 최신 데이터 동기화 및 자동 복구(Auto-Healing)
         const userPin = parsedUser.pin || (parsedUser.nickname === '주식부엉' ? '418019' : '');
         if (parsedUser.nickname && userPin) {
           fetch(`/api/sync?nickname=${encodeURIComponent(parsedUser.nickname)}&pin=${encodeURIComponent(userPin)}`)
@@ -129,6 +129,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   setSimulatorSettings(data.user.simulatorSettings);
                   localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
                 }
+              } else if (data.notFound) {
+                // [Auto-Healing] 서버 DB에 계정이 누락된 경우, 브라우저 로컬 데이터(핀번호, 성향 등)로 서버에 즉시 자동 복구 등록
+                fetch('/api/sync', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'login',
+                    nickname: parsedUser.nickname,
+                    pin: userPin,
+                    completedLessons: parsedUser.completedLessons || initialCompleted,
+                    investmentType: parsedUser.investmentType || localStorage.getItem(LOCAL_TYPE_CODE_KEY) || undefined,
+                    typeAnswers: parsedUser.typeAnswers || (localStorage.getItem(LOCAL_TYPE_ANSWERS_KEY) ? JSON.parse(localStorage.getItem(LOCAL_TYPE_ANSWERS_KEY)!) : undefined),
+                    simulatorSettings: parsedUser.simulatorSettings || undefined,
+                    avatarUrl: parsedUser.avatarUrl || undefined,
+                    activeBadge: parsedUser.activeBadge || undefined,
+                    termsQuizBest: parsedUser.termsQuizBest || undefined,
+                  })
+                })
+                  .then((r) => r.json())
+                  .then((healData) => {
+                    if (healData.success && healData.user) {
+                      console.log('[Auto-Healing] User successfully restored on server:', parsedUser.nickname);
+                    }
+                  })
+                  .catch((err) => console.error('[Auto-Healing] error:', err));
               }
             })
             .catch((err) => console.error('Server sync fetch error:', err));
@@ -332,33 +357,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? { ...result, badgeName: targetBadgeName }
       : prevBest;
 
-    const updatedUser: UserAccount = {
-      ...(user || {
-        nickname: '익명_' + Math.random().toString(36).substring(2, 6),
-        pin: '',
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
-      }),
-      termsQuizBest: newBest,
-      activeBadge: user?.activeBadge || 'terms_percentile',
-    };
+    if (user) {
+      const updatedUser: UserAccount = {
+        ...user,
+        termsQuizBest: newBest,
+        activeBadge: user.activeBadge || 'terms_percentile',
+      };
 
-    setUser(updatedUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
-    localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(newBest));
+      setUser(updatedUser);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(newBest));
 
-    if (user?.pin) {
-      fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'syncData',
-          nickname: user.nickname,
-          pin: user.pin,
-          termsQuizBest: newBest,
-          activeBadge: updatedUser.activeBadge,
-        }),
-      }).catch(console.error);
+      if (user.pin) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'syncData',
+            nickname: user.nickname,
+            pin: user.pin,
+            termsQuizBest: newBest,
+            activeBadge: updatedUser.activeBadge,
+          }),
+        }).catch(console.error);
+      }
+    } else {
+      // 비로그인(게스트) 상태일 때는 user 계정을 임의로 생성하지 않고 최고 기록만 로컬에 보관
+      localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(newBest));
     }
   };
 

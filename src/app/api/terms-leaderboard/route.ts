@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getTermsQuizEntriesAsync, saveTermsQuizEntryAsync } from '@/utils/serverDb';
+import { getTermsQuizEntriesAsync, saveTermsQuizEntryAsync, calculateTermsQuizPercentileAsync } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
 // GET /api/terms-leaderboard?level=1
@@ -29,14 +29,32 @@ export async function GET(request: Request) {
 }
 
 // POST /api/terms-leaderboard
-// Body: { nickname, level, score, correctCount, totalQuestions, timeSpentSec, avatarUrl, investmentType }
+// Body: { isGuest, nickname, level, score, correctCount, totalQuestions, timeSpentSec, avatarUrl, investmentType }
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { nickname, level, score, correctCount, totalQuestions, timeSpentSec, avatarUrl, investmentType } = body;
+    const { isGuest, nickname, level, score, correctCount, totalQuestions, timeSpentSec, avatarUrl, investmentType } = body;
 
-    if (!nickname || typeof nickname !== 'string' || !nickname.trim()) {
-      return NextResponse.json({ success: false, error: '닉네임이 필요합니다.' }, { status: 400 });
+    const parsedLevel = Number(level) || 1;
+    const parsedScore = Number(score) || 0;
+    const parsedCorrectCount = Number(correctCount) || 0;
+    const parsedTotalQuestions = Number(totalQuestions) || 15;
+    const parsedTimeSpent = Math.max(0.1, Number(timeSpentSec) || 0);
+
+    // Guest Mode: Calculate real percentile & rank without saving to DB
+    if (isGuest || !nickname || typeof nickname !== 'string' || !nickname.trim()) {
+      const result = await calculateTermsQuizPercentileAsync(
+        parsedLevel,
+        parsedCorrectCount,
+        parsedTimeSpent
+      );
+      return NextResponse.json({
+        success: true,
+        isGuest: true,
+        rank: result.rank,
+        percentile: result.percentile,
+        totalParticipants: result.totalParticipants,
+      });
     }
 
     const trimmedNickname = nickname.trim();
@@ -44,12 +62,6 @@ export async function POST(request: Request) {
     if (!nicknameValidation.isValid) {
       return NextResponse.json({ success: false, error: nicknameValidation.message || '유효하지 않은 닉네임입니다.' }, { status: 400 });
     }
-
-    const parsedLevel = Number(level) || 1;
-    const parsedScore = Number(score) || 0;
-    const parsedCorrectCount = Number(correctCount) || 0;
-    const parsedTotalQuestions = Number(totalQuestions) || 25;
-    const parsedTimeSpent = Math.max(0.1, Number(timeSpentSec) || 0);
 
     const result = await saveTermsQuizEntryAsync({
       nickname: trimmedNickname,
@@ -74,3 +86,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: '퀴즈 결과 저장 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }
+

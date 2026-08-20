@@ -139,10 +139,18 @@ export default function TypePreviewPopover({
 
   if (!profile || !mounted) return null;
 
-  // Construct target link with author scores if present
+  // Construct target link with author scores if present, or generate code-based fallback scores
+  const code = profile.code.toUpperCase();
+  const effectiveScores = typeScores || {
+    g: code[0] === 'G' ? 70 : 30,
+    a: code[1] === 'A' ? 70 : 30,
+    l: code[2] === 'L' ? 70 : 30,
+    r: code[3] === 'R' ? 70 : 30,
+  };
+
   let targetHref = `/tools/type/${profile.code}`;
-  if (authorNickname && typeScores) {
-    targetHref = `/tools/type/${profile.code}?u=${encodeURIComponent(authorNickname)}&g=${typeScores.g}&a=${typeScores.a}&l=${typeScores.l}&r=${typeScores.r}`;
+  if (authorNickname) {
+    targetHref = `/tools/type/${profile.code}?u=${encodeURIComponent(authorNickname)}&g=${effectiveScores.g}&a=${effectiveScores.a}&l=${effectiveScores.l}&r=${effectiveScores.r}`;
   }
 
   // Position calculations with screen boundaries
