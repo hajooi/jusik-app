@@ -77,10 +77,10 @@ export default function TermsQuizPreviewPopover({
   };
 
   const levelTitles: Record<number, string> = {
-    1: '1단계: 초급 (기초 체력)',
-    2: '2단계: 중급 (실전 매매)',
-    3: '3단계: 고급 (거시경제 & 파생)',
-    4: '4단계: 마스터 (전문가/금융자격)',
+    1: 'Lv.1 초급',
+    2: 'Lv.2 중급',
+    3: 'Lv.3 고급',
+    4: 'Lv.4 마스터',
   };
 
   // Position calculations identical to TypePreviewPopover

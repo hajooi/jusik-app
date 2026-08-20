@@ -514,7 +514,7 @@ function TermsQuizContent() {
                 className="btn-primary !w-full !py-4 !px-6 !text-base tracking-wide"
               >
                 <Zap className="w-5 h-5 fill-current" />
-                {QUIZ_LEVELS[selectedLevel].title} 시작하기 (15문항)
+                {selectedLevel}단계: {QUIZ_LEVELS[selectedLevel].title} 시작하기 (15문항)
               </button>
             </div>
 
