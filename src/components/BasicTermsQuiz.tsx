@@ -241,8 +241,8 @@ export default function BasicTermsQuiz() {
         </h3>
       </div>
 
-      {/* 4지 선다 보기 버튼 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+      {/* 4지 선다 보기 버튼 (모바일/데스크톱 2분할 통일) */}
+      <div className="grid grid-cols-2 gap-2.5 pt-0.5">
         {currentQ.options.map((option, idx) => {
           const isSelected = selectedOption === idx;
           const isCorrectAnswer = idx === currentQ.answerIndex;
@@ -268,10 +268,10 @@ export default function BasicTermsQuiz() {
               key={idx}
               onClick={() => handleSelectOption(idx)}
               disabled={isAnswered}
-              className={`choice-card ${cardStateClass}`}
+              className={`choice-card ${cardStateClass} !py-3 !px-2.5 sm:!px-3`}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className={`choice-badge ${badgeStateClass}`}>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`choice-badge ${badgeStateClass} shrink-0`}>
                   {idx + 1}
                 </span>
                 <span className="font-bold text-xs sm:text-sm tracking-tight truncate">
@@ -279,10 +279,10 @@ export default function BasicTermsQuiz() {
                 </span>
               </div>
               {isAnswered && isCorrectAnswer && (
-                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               )}
               {isAnswered && isSelected && !isCorrectAnswer && (
-                <XCircle className="w-5 h-5 text-rose-500 shrink-0" />
+                <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
               )}
             </button>
           );

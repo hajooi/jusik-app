@@ -19,6 +19,9 @@ module.exports = {
         orange: '#F18F01',
         'deep-brown': '#833500',
       },
+      borderColor: {
+        DEFAULT: 'var(--border-color)',
+      },
       fontFamily: {
         sans: ['Pretendard', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },

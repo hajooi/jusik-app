@@ -53,6 +53,10 @@
     --glow-color-secondary: rgba(104, 166, 125, 0.16);
   }
 
+  *, ::before, ::after {
+    border-color: var(--border-color);
+  }
+
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);

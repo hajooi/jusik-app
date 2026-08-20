@@ -476,22 +476,25 @@ function TermsQuizContent() {
                 <span className="text-xs text-[var(--text-secondary)] font-mono">단계별 15문항</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-stretch">
                 {([1, 2, 3, 4] as const).map((lvl) => {
                   const info = QUIZ_LEVELS[lvl];
                   const isSelected = selectedLevel === lvl;
                   return (
-                    <button
+                    <div
                       key={lvl}
-                      type="button"
-                      onClick={() => handleSelectLevel(lvl)}
-                      className={`p-5 rounded-2xl text-left transition-all duration-200 border cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                      onClick={() => {
+                        if (!isSelected) {
+                          handleSelectLevel(lvl);
+                        }
+                      }}
+                      className={`p-4 sm:p-5 rounded-2xl text-left transition-all duration-200 border relative overflow-hidden flex flex-col justify-between h-full min-h-[195px] ${
                         isSelected
-                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.25)] scale-[1.01]'
-                          : 'glass-card border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]'
+                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.20)]'
+                          : 'glass-card border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.15)] cursor-pointer'
                       }`}
                     >
-                      <div className="space-y-2.5">
+                      <div className="space-y-2.5 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--border-color)]">
                             Lv.{lvl}
@@ -512,26 +515,30 @@ function TermsQuizContent() {
                         </div>
                       </div>
 
-                      <div className="pt-3 mt-3 border-t border-[var(--border-color)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
-                        <span>15문제</span>
-                        <span className="font-bold text-[var(--accent-orange)]">Lv.{lvl} 실전 테스트</span>
+                      <div className="pt-3 mt-3 border-t border-[var(--border-color)] h-11 flex items-center">
+                        {isSelected ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startQuiz(lvl);
+                            }}
+                            className="btn-primary !w-full !py-2.5 !px-4 !text-xs sm:!text-sm font-bold tracking-wide flex items-center justify-center gap-1.5 shadow-md active:scale-98 animate-fadeIn cursor-pointer"
+                          >
+                            <Zap className="w-4 h-4 fill-current" />
+                            <span>시작하기</span>
+                          </button>
+                        ) : (
+                          <div className="w-full flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono px-0.5">
+                            <span>15문제</span>
+                            <span className="font-medium text-[var(--text-secondary)]/70">선택</span>
+                          </div>
+                        )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
-            </div>
-
-            {/* Start CTA Button */}
-            <div>
-              <button
-                type="button"
-                onClick={() => startQuiz(selectedLevel)}
-                className="btn-primary !w-full !py-4 !px-6 !text-base tracking-wide"
-              >
-                <Zap className="w-5 h-5 fill-current" />
-                {selectedLevel}단계: {QUIZ_LEVELS[selectedLevel].title} 시작하기 (15문항)
-              </button>
             </div>
 
             {/* Real-time Leaderboard Section */}
@@ -977,21 +984,20 @@ function TermsQuizContent() {
                   return (
                     <div
                       key={q.id || qIdx}
-                      className={`p-4 rounded-2xl border transition-all ${
-                        isCorrect
+                      onClick={() => toggleQuestionReview(qIdx)}
+                      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)] ${
+                        isExpanded
+                          ? 'border-[var(--accent-orange)]/50 bg-[var(--card-surface)]/90 shadow-[0_0_15px_rgba(241,143,1,0.12)]'
+                          : isCorrect
                           ? 'bg-[var(--bg-main)]/50 border-[var(--border-color)]'
                           : 'bg-rose-500/5 border-rose-500/30'
                       }`}
                     >
                       {/* Question Row Header (Clickable) */}
-                      <button
-                        type="button"
-                        onClick={() => toggleQuestionReview(qIdx)}
-                        className="w-full flex items-start justify-between gap-3 text-left cursor-pointer"
-                      >
+                      <div className="w-full flex items-start justify-between gap-3 text-left">
                         <div className="flex items-start gap-2.5 min-w-0 flex-1">
                           <span
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 shadow-2xs ${
                               isCorrect
                                 ? 'bg-emerald-500 text-white'
                                 : 'bg-rose-500 text-white'
@@ -1009,10 +1015,14 @@ function TermsQuizContent() {
                           </div>
                         </div>
 
-                        <div className="shrink-0 text-[var(--text-secondary)] pt-1">
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        <div className="shrink-0 text-[var(--text-secondary)] pt-1 transition-transform duration-200">
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-[var(--accent-orange)]" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
                         </div>
-                      </button>
+                      </div>
 
                       {/* Expanded Details (CSS Grid Smooth Height Transition) */}
                       <div className={`grid transition-all duration-300 ease-out overflow-hidden ${
@@ -1045,7 +1055,7 @@ function TermsQuizContent() {
                           </div>
 
                           {/* Explanation Box */}
-                          <div className="p-3.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1 text-xs text-[var(--text-primary)] leading-relaxed">
+                          <div className="p-3.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1 text-xs text-[var(--text-primary)] leading-relaxed shadow-2xs">
                             <span className="font-bold text-[var(--accent-orange)] block">💡 해설</span>
                             <p className="whitespace-pre-line">{q.explanation}</p>
                           </div>
