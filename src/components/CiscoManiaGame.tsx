@@ -1099,6 +1099,11 @@ export default function CiscoManiaGame() {
   });
 
   const keysRef = useRef<{ [key: string]: boolean }>({});
+  const lastTouchTimeRef = useRef<number>(0);
+  const isPointerDownRef = useRef<boolean>(false);
+  const pointerStartPosRef = useRef<{ clientX: number; clientY: number; time: number }>({ clientX: 0, clientY: 0, time: 0 });
+  const isDraggingRef = useRef<boolean>(false);
+  const lastDialogueActionTimeRef = useRef<number>(0);
 
   // 1.5x Zoom-in Viewport
   const VIEWPORT_WIDTH = 320;
@@ -1175,6 +1180,12 @@ export default function CiscoManiaGame() {
   // 2-Step Dialogue Action (Skip Typing -> Next Page / Trigger Event)
   const handleDialogueAction = () => {
     if (!activeObj) return;
+
+    const now = Date.now();
+    if (now - lastDialogueActionTimeRef.current < 200) {
+      return;
+    }
+    lastDialogueActionTimeRef.current = now;
 
     // 1. If currently typing, skip typing and immediately show 100% of current page
     const fullText = activeObj.pages[pageIndex] || '';
@@ -1254,6 +1265,12 @@ export default function CiscoManiaGame() {
 
   const startDialogue = (obj: TsukuruObject) => {
     sounds.playSelect();
+    
+    // Stop player movement & clear remaining path/targets immediately
+    playerRef.current.isMoving = false;
+    playerRef.current.targetX = playerRef.current.x;
+    playerRef.current.targetY = playerRef.current.y;
+    playerRef.current.targetObjId = null;
     
     // Check exit door condition
     if (obj.id === 'door') {
@@ -1383,31 +1400,12 @@ export default function CiscoManiaGame() {
     }
   }, [currentMap, visitedNpcs, hasDefeatedBoss, hasPickedUpGlasses, selectedChoice]);
 
-  // Canvas Click/Touch Handler with Manhattan (L-shaped) Grid Walking & Obstacle Avoidance
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    sounds.unlock();
-    if (showChoiceModal || isWarping || inBattle) return;
-
-    if (activeObj) {
-      handleDialogueAction();
-      return;
-    }
-
+  // Continuous Hold & Drag to Move Engine with Manhattan Obstacle Avoidance
+  const updateMoveTarget = useCallback((clientX: number, clientY: number, isHoldOrDrag: boolean) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    let clientX = 0;
-    let clientY = 0;
-
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
     const scaleX = VIEWPORT_WIDTH / rect.width;
     const scaleY = VIEWPORT_HEIGHT / rect.height;
     
@@ -1422,41 +1420,47 @@ export default function CiscoManiaGame() {
     const targetGridX = Math.round(worldClickX / 20) * 20;
     const targetGridY = Math.round(worldClickY / 20) * 20;
 
-    const currentObjs = BASE_TSUKURU_OBJECTS.filter(o => {
-      if (o.map !== currentMap) return false;
-      if (currentMap === 'office' && selectedChoice !== null) {
-        return o.id === 'door';
-      }
-      if (o.id === 'fomo_monster' && hasDefeatedBoss) return false;
-      if (o.id === 'dropped_glasses' && (!hasDefeatedBoss || hasPickedUpGlasses)) return false;
-      if (currentMap === 'ending_room') {
-        if (o.id === 'ending_desk_a' && selectedChoice !== 'A') return false;
-        if (o.id === 'ending_bed_b' && selectedChoice !== 'B') return false;
-        if (o.id === 'ending_study_c' && selectedChoice !== 'C') return false;
-      }
-      return true;
-    });
+    // Single Tap Mode: Check for NPC click target
+    if (!isHoldOrDrag) {
+      const currentObjs = BASE_TSUKURU_OBJECTS.filter(o => {
+        if (o.map !== currentMap) return false;
+        if (currentMap === 'office' && selectedChoice !== null) {
+          return o.id === 'door';
+        }
+        if (o.id === 'fomo_monster' && hasDefeatedBoss) return false;
+        if (o.id === 'dropped_glasses' && (!hasDefeatedBoss || hasPickedUpGlasses)) return false;
+        if (currentMap === 'ending_room') {
+          if (o.id === 'ending_desk_a' && selectedChoice !== 'A') return false;
+          if (o.id === 'ending_bed_b' && selectedChoice !== 'B') return false;
+          if (o.id === 'ending_study_c' && selectedChoice !== 'C') return false;
+        }
+        return true;
+      });
 
-    for (const obj of currentObjs) {
-      const isClicked = 
-        worldClickX >= obj.x - 14 && worldClickX <= obj.x + obj.width + 14 &&
-        worldClickY >= obj.y - 14 && worldClickY <= obj.y + obj.height + 18;
+      for (const obj of currentObjs) {
+        const isClicked = 
+          worldClickX >= obj.x - 16 && worldClickX <= obj.x + obj.width + 16 &&
+          worldClickY >= obj.y - 16 && worldClickY <= obj.y + obj.height + 20;
 
-      if (isClicked) {
-        const currentDist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
-        
-        if (currentDist < 52) {
-          startDialogue(obj);
+        if (isClicked) {
+          const currentDist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
+          
+          // If standing near the object (within interaction range), open dialogue immediately
+          if (currentDist < 52) {
+            startDialogue(obj);
+            return;
+          }
+
+          // Otherwise walk to object's stand position then trigger dialogue
+          p.targetX = obj.standX;
+          p.targetY = obj.standY;
+          p.targetObjId = obj.id;
           return;
         }
-
-        p.targetX = obj.standX;
-        p.targetY = obj.standY;
-        p.targetObjId = obj.id;
-        return;
       }
     }
 
+    // Continuous Drag/Hold or Non-NPC Tap: Free movement without premature dialogue trigger
     playerRef.current.targetObjId = null;
     const clampedTargetX = Math.max(24, Math.min(536, targetGridX));
     const clampedTargetY = Math.max(52, Math.min(296, targetGridY));
@@ -1478,13 +1482,61 @@ export default function CiscoManiaGame() {
           break;
         }
       }
-      if (!resolved) {
+      if (!resolved && !isHoldOrDrag) {
         playerRef.current.targetX = p.x;
         playerRef.current.targetY = p.y;
       }
     } else {
       playerRef.current.targetX = clampedTargetX;
       playerRef.current.targetY = clampedTargetY;
+    }
+  }, [currentMap, hasDefeatedBoss, hasPickedUpGlasses, selectedChoice, visitedNpcs]);
+
+  const handlePointerDown = (clientX: number, clientY: number) => {
+    sounds.unlock();
+    if (showChoiceModal || isWarping || inBattle) return;
+
+    if (activeObj) {
+      handleDialogueAction();
+      return;
+    }
+
+    isPointerDownRef.current = true;
+    pointerStartPosRef.current = { clientX, clientY, time: Date.now() };
+    isDraggingRef.current = false;
+  };
+
+  const handlePointerMove = (clientX: number, clientY: number) => {
+    if (!isPointerDownRef.current) return;
+    if (showChoiceModal || isWarping || inBattle || activeObj) return;
+
+    const dx = clientX - pointerStartPosRef.current.clientX;
+    const dy = clientY - pointerStartPosRef.current.clientY;
+    if (Math.hypot(dx, dy) > 6 || Date.now() - pointerStartPosRef.current.time > 150) {
+      isDraggingRef.current = true;
+    }
+
+    if (isDraggingRef.current) {
+      updateMoveTarget(clientX, clientY, true);
+    }
+  };
+
+  const handlePointerUp = (clientX: number, clientY: number) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    if (showChoiceModal || isWarping || inBattle || activeObj) return;
+
+    const pressDuration = Date.now() - pointerStartPosRef.current.time;
+    const dx = clientX - pointerStartPosRef.current.clientX;
+    const dy = clientY - pointerStartPosRef.current.clientY;
+    const dist = Math.hypot(dx, dy);
+
+    // Single Tap Check (Short press duration & minimal movement)
+    if (!isDraggingRef.current && pressDuration < 380 && dist < 16) {
+      updateMoveTarget(pointerStartPosRef.current.clientX, pointerStartPosRef.current.clientY, false);
+    } else {
+      // Hold/Drag finished: Clear target object to prevent accidental dialogue triggers
+      playerRef.current.targetObjId = null;
     }
   };
 
@@ -1645,6 +1697,8 @@ export default function CiscoManiaGame() {
             }
           }
         }
+      } else {
+        p.isMoving = false;
       }
 
       // Bounds clamp
@@ -2463,12 +2517,12 @@ export default function CiscoManiaGame() {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
           </span>
           <span className="font-mono text-xs sm:text-sm font-extrabold text-[var(--accent-orange)] tracking-wide">
-            그때 그 광기
+            김 대리의 1,000만 원
           </span>
           {hasPickedUpGlasses && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
+            <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 sm:px-2 py-0.5 rounded border border-emerald-500/30 shrink-0 font-medium">
               <Award className="w-3 h-3" />
-              <span>멘탈의 안경 착용 중</span>
+              <span>멘탈의 안경</span>
             </span>
           )}
           {currentMap === 'office' && !selectedChoice && (
@@ -2485,14 +2539,14 @@ export default function CiscoManiaGame() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleToggleSound}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border ${
+            aria-label={isMuted ? '음소거 해제' : '음소거'}
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold flex items-center justify-center transition-colors cursor-pointer border ${
               isMuted
-                ? 'bg-neutral-800 text-neutral-400 border-neutral-700/60'
-                : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                ? 'bg-neutral-800 text-neutral-400 border-neutral-700/60 hover:text-white'
+                : 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900'
             }`}
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />}
-            <span className="text-[11px] hidden sm:inline">{isMuted ? '음소거' : '사운드 ON'}</span>
           </button>
 
           {selectedChoice && (
@@ -2594,10 +2648,53 @@ export default function CiscoManiaGame() {
             ref={canvasRef}
             width={VIEWPORT_WIDTH}
             height={VIEWPORT_HEIGHT}
-            onClick={handleCanvasClick}
-            onTouchStart={handleCanvasClick}
-            className="w-full h-full object-contain cursor-pointer"
-            style={{ imageRendering: 'pixelated' }}
+            onMouseDown={(e) => {
+              if (Date.now() - lastTouchTimeRef.current < 600) return;
+              handlePointerDown(e.clientX, e.clientY);
+            }}
+            onMouseMove={(e) => {
+              if (Date.now() - lastTouchTimeRef.current < 600) return;
+              handlePointerMove(e.clientX, e.clientY);
+            }}
+            onMouseUp={(e) => {
+              if (Date.now() - lastTouchTimeRef.current < 600) return;
+              handlePointerUp(e.clientX, e.clientY);
+            }}
+            onMouseLeave={() => {
+              if (isPointerDownRef.current) {
+                isPointerDownRef.current = false;
+              }
+            }}
+            onTouchStart={(e) => {
+              lastTouchTimeRef.current = Date.now();
+              if (e.touches.length > 0) {
+                handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+              }
+            }}
+            onTouchMove={(e) => {
+              lastTouchTimeRef.current = Date.now();
+              if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+              }
+            }}
+            onTouchEnd={(e) => {
+              lastTouchTimeRef.current = Date.now();
+              if (e.changedTouches.length > 0) {
+                handlePointerUp(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+              } else {
+                isPointerDownRef.current = false;
+              }
+            }}
+            onTouchCancel={() => {
+              isPointerDownRef.current = false;
+            }}
+            className="w-full h-full object-contain cursor-pointer select-none touch-none"
+            style={{ 
+              imageRendering: 'pixelated', 
+              touchAction: 'none', 
+              userSelect: 'none', 
+              WebkitUserSelect: 'none' 
+            }}
           />
         )}
 
@@ -2616,8 +2713,14 @@ export default function CiscoManiaGame() {
         {/* Authentic Tsukuru RPG Dialogue Box */}
         {!inBattle && activeObj && !showChoiceModal && (
           <div 
-            onClick={handleDialogueAction}
-            className="absolute bottom-2.5 inset-x-2.5 sm:inset-x-8 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDialogueAction();
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+            }}
+            className="absolute bottom-2.5 inset-x-2.5 sm:inset-x-8 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150 cursor-pointer select-none"
           >
             <div className="relative p-3 sm:p-4 rounded-xl bg-gradient-to-b from-neutral-950/95 via-neutral-900/95 to-neutral-950/95 border border-neutral-700/60 shadow-2xl backdrop-blur-md flex gap-3 sm:gap-4 items-start">
               
@@ -2658,18 +2761,18 @@ export default function CiscoManiaGame() {
         {showChoiceModal && !selectedChoice && (
           <div className="absolute inset-0 bg-black/85 backdrop-blur-sm z-30 p-3 sm:p-5 flex flex-col justify-center animate-in fade-in duration-200">
             <div className="max-w-md mx-auto w-full space-y-2.5 sm:space-y-3 bg-neutral-900/95 p-3.5 sm:p-5 rounded-2xl border border-neutral-800 shadow-2xl">
-              <div className="flex items-center justify-between pb-1.5 border-b border-neutral-800">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="p-1 rounded-lg bg-[var(--accent-orange)]/20 text-[var(--accent-orange)]">
+              <div className="flex items-center justify-between pb-1.5 border-b border-neutral-800 gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <span className="p-1 rounded-lg bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] shrink-0">
                     <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </span>
-                  <h4 className="text-xs sm:text-sm font-extrabold text-white">
-                    [당신의 선택] 1,000만 원, 어떤 결정을 내리시겠습니까?
+                  <h4 className="text-xs sm:text-sm font-extrabold text-white truncate">
+                    1,000만 원의 투자 선택
                   </h4>
                 </div>
                 <button
                   onClick={() => setShowChoiceModal(false)}
-                  className="text-[11px] sm:text-xs text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700/60"
+                  className="shrink-0 whitespace-nowrap text-[11px] sm:text-xs text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 transition-colors cursor-pointer border border-neutral-700/60"
                 >
                   취소
                 </button>
