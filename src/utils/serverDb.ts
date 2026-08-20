@@ -663,18 +663,12 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
     return all.map((entry) => attachUserMetadata(entry, userDb));
   }
 
-  // 2. 운영 환경: Supabase users DB 기반 영구 리더보드 조회
+  // 2. 운영 환경: Supabase users DB 기반 영구 리더보드 조회 (로컬 파일 완전 배제)
   try {
     const userDb = await getServerDbAsync();
     let all: TermsQuizLeaderboardEntry[] = [];
 
-    // Memory cache + Supabase users join
-    if (!globalThis.__jusik_quiz_db__) {
-      globalThis.__jusik_quiz_db__ = loadQuizFromFile();
-    }
-    const memEntries = [...globalThis.__jusik_quiz_db__];
-
-    // Collect all quiz entries from Supabase user records
+    // Collect all quiz entries from Supabase user records only
     const userEntries: TermsQuizLeaderboardEntry[] = [];
     Object.values(userDb).forEach((u) => {
       const settings = u.simulatorSettings as any;
@@ -700,9 +694,9 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       }
     });
 
-    // Merge memory entries and Supabase user entries (keep best score per user per level)
+    // Keep best score per user per level
     const combinedMap = new Map<string, TermsQuizLeaderboardEntry>();
-    [...memEntries, ...userEntries].forEach((entry) => {
+    userEntries.forEach((entry) => {
       const key = `${entry.nickname}_lvl_${entry.level}`;
       const existing = combinedMap.get(key);
       if (!existing) {
