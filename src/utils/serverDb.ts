@@ -51,7 +51,8 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
     pin: '418019',
     createdAt: '2026-08-04T00:00:00.000Z',
     lastActiveAt: new Date().toISOString(),
-    completedLessons: ['lv0-1', 'lv0-2']
+    completedLessons: ['lv0-1', 'lv0-2', 'lv0-3', 'lv1-1', 'lv1-2', 'lv1-3'],
+    investmentType: 'GATR'
   }
 };
 
