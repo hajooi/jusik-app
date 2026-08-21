@@ -1,5 +1,4 @@
 import { CommentRecord } from './serverDb';
-import { CURRICULUM_DATA } from '@/data/curriculum';
 
 interface PageInfo {
   name: string;
@@ -8,58 +7,50 @@ interface PageInfo {
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://jusik.app').replace(/\/$/, '');
 
-// 모든 레슨 목록 평탄화 캐싱
-const allLessons = CURRICULUM_DATA.flatMap((level) => level.lessons);
-
 /**
- * targetKey를 읽기 쉬운 페이지 이름과 링크로 변환합니다.
+ * targetKey를 깔끔한 위치명과 정확한 링크로 변환합니다.
  */
 export function getPageInfo(targetKey: string): PageInfo {
-  const cleanKey = targetKey.trim().toLowerCase();
+  const cleanKey = targetKey.trim();
+  const lower = cleanKey.toLowerCase();
 
-  // 1. 강의(Lesson) 체크 (예: lv0-1, lv1-2 등)
-  const matchedLesson = allLessons.find(
-    (l) => l.id.toLowerCase() === cleanKey || l.id.replace('-', '').toLowerCase() === cleanKey
-  );
-  if (matchedLesson) {
+  // 1. 강의 체크 (lesson-lv0-2 또는 lv0-2)
+  if (lower.startsWith('lesson-')) {
+    const lessonId = cleanKey.replace(/^lesson-/i, '');
     return {
-      name: `[강의] ${matchedLesson.title}`,
-      url: `${SITE_URL}/lesson/${matchedLesson.id}`,
+      name: cleanKey,
+      url: `${SITE_URL}/lesson/${lessonId}`,
+    };
+  }
+  if (/^lv\d+-\d+$/i.test(cleanKey)) {
+    return {
+      name: `lesson-${cleanKey}`,
+      url: `${SITE_URL}/lesson/${cleanKey}`,
     };
   }
 
-  // 2. 투자 도구(Tools) 체크
-  if (cleanKey.includes('type')) {
+  // 2. 도구 체크
+  if (lower.includes('type')) {
     return {
-      name: '💡 [도구] 주식 투자 성향 테스트 (16가지 유형)',
+      name: 'tools-type',
       url: `${SITE_URL}/tools/type`,
     };
   }
-
-  if (cleanKey.includes('simulate')) {
+  if (lower.includes('simulate')) {
     return {
-      name: '📈 [도구] 포트폴리오 백테스터 & 복리 계산기',
+      name: 'tools-simulate',
       url: `${SITE_URL}/tools/simulate`,
     };
   }
-
-  if (cleanKey.includes('term') || cleanKey.includes('quiz')) {
+  if (lower.includes('term') || lower.includes('quiz')) {
     return {
-      name: '🧩 [도구] 주식 기초 용어 400제 퀴즈',
+      name: 'tools-terms',
       url: `${SITE_URL}/tools/terms`,
     };
   }
 
-  if (cleanKey.includes('class') || cleanKey.includes('detector')) {
-    return {
-      name: '🔍 [도구] 자본주의 계층 판독기',
-      url: `${SITE_URL}/lesson/lv0-1`,
-    };
-  }
-
-  // 기본값
   return {
-    name: `📄 [페이지] ${targetKey}`,
+    name: cleanKey,
     url: SITE_URL,
   };
 }
@@ -96,8 +87,6 @@ async function sendTelegram(text: string): Promise<void> {
  */
 async function sendDiscord(payload: {
   title: string;
-  description: string;
-  url?: string;
   fields?: Array<{ name: string; value: string; inline?: boolean }>;
 }): Promise<void> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL?.trim();
@@ -110,13 +99,11 @@ async function sendDiscord(payload: {
     embeds: [
       {
         title: payload.title,
-        description: payload.description,
-        url: payload.url,
-        color: 0xf18f01, // jusik.app 시그니처 오렌지 (#F18F01)
+        color: 0xf18f01,
         fields: payload.fields || [],
         timestamp: new Date().toISOString(),
         footer: {
-          text: 'jusik.app • 주식 초보를 위한 가장 쉬운 설명서',
+          text: 'jusik.app',
         },
       },
     ],
@@ -135,7 +122,7 @@ async function sendDiscord(payload: {
 }
 
 /**
- * HTML 특수문자 이스케이프 (텔레그램 HTML 모드용)
+ * HTML 특수문자 이스케이프
  */
 function escapeHtml(str: string): string {
   return str
@@ -151,15 +138,7 @@ export async function sendCommentNotification(comment: CommentRecord): Promise<v
   try {
     const pageInfo = getPageInfo(comment.targetKey);
     const isReply = !!comment.parentId;
-    const actionLabel = isReply ? '새 답글(대댓글)' : '새 댓글';
-
-    // 성향 뱃지 또는 라벨
-    let badgeText = '';
-    if (comment.activeBadge) {
-      badgeText = ` [${comment.activeBadge}]`;
-    } else if (comment.investmentType) {
-      badgeText = ` [${comment.investmentType}]`;
-    }
+    const actionLabel = isReply ? '새 답글' : '새 댓글';
 
     const nowFormatted = new Date().toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -172,58 +151,45 @@ export async function sendCommentNotification(comment: CommentRecord): Promise<v
       hour12: false,
     });
 
-    // 1. 텔레그램 메시지 구성
-    const safeNick = escapeHtml(comment.nickname + badgeText);
+    const safeNick = escapeHtml(comment.nickname);
     const safeContent = escapeHtml(comment.content);
     const safePageName = escapeHtml(pageInfo.name);
 
+    // 1. 심플한 텔레그램 메시지 구성
     const telegramText = [
-      `🔔 <b>[jusik.app] ${actionLabel}이 등록되었습니다!</b>`,
+      `🔔 <b>[jusik.app] ${actionLabel}</b>`,
       ``,
-      `📍 <b>위치:</b> ${safePageName}`,
-      `👤 <b>작성자:</b> ${safeNick}`,
-      `⏰ <b>일시:</b> ${nowFormatted}`,
+      `위치: ${safePageName}`,
+      `작성자: ${safeNick}`,
+      `일시: ${nowFormatted}`,
       ``,
       `💬 <b>내용:</b>`,
       `<blockquote>${safeContent}</blockquote>`,
       ``,
-      `👉 <a href="${pageInfo.url}">게시글 바로가기</a>`,
+      `👉 <a href="${pageInfo.url}">바로가기</a>`,
     ].join('\n');
 
     // 2. 디스코드 임베드 필드 구성
     const discordPayload = {
-      title: `🔔 [jusik.app] ${actionLabel} 등록!`,
-      description: `**${pageInfo.name}** 페이지에 새로운 의견이 남겨졌습니다.`,
-      url: pageInfo.url,
+      title: `🔔 [jusik.app] ${actionLabel}`,
       fields: [
+        { name: '위치', value: pageInfo.name, inline: true },
+        { name: '작성자', value: comment.nickname, inline: true },
+        { name: '일시', value: nowFormatted, inline: false },
         {
-          name: '👤 작성자',
-          value: comment.nickname + badgeText,
-          inline: true,
-        },
-        {
-          name: '⏰ 작성 일시',
-          value: nowFormatted,
-          inline: true,
-        },
-        {
-          name: '💬 댓글 내용',
+          name: '내용',
           value: comment.content.length > 1000 ? comment.content.substring(0, 1000) + '...' : comment.content,
         },
-        {
-          name: '🔗 바로가기',
-          value: `[페이지 열기](${pageInfo.url})`,
-        },
+        { name: '링크', value: `[바로가기](${pageInfo.url})` },
       ],
     };
 
-    // 3. 비동기 병렬 발송 (하나가 실패해도 다른 쪽에 영향 없음)
+    // 3. 비동기 병렬 발송
     await Promise.allSettled([
       sendTelegram(telegramText),
       sendDiscord(discordPayload),
     ]);
   } catch (err) {
-    // 알림 발송 실패가 사용자 경험에 영향을 주지 않도록 로깅만 수행
     console.error('sendCommentNotification Error:', err);
   }
 }
