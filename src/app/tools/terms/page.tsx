@@ -41,6 +41,7 @@ interface LeaderboardItem {
   investmentType?: string;
   typeScores?: { g: number; a: number; l: number; r: number };
   percentile?: number;
+  createdAt?: string;
   activeBadge?: string;
   termsQuizBest?: {
     level?: number;
@@ -112,6 +113,9 @@ function TermsQuizContent() {
     3: new Set(),
     4: new Set(),
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isAdvancingRef = useRef(false);
 
   // Final Result State
   const [finalResult, setFinalResult] = useState<{
@@ -200,6 +204,8 @@ function TermsQuizContent() {
     setElapsedTime(0);
     setTimerActive(true);
     setExpandedQuestions({});
+    setIsSubmitting(false);
+    isAdvancingRef.current = false;
     setQuizState('playing');
   };
 
@@ -210,9 +216,15 @@ function TermsQuizContent() {
 
   // Move to next question or finish sprint
   const handleAdvance = () => {
-    if (selectedOption === null) return;
+    if (selectedOption === null || isAdvancingRef.current || isSubmitting) return;
+    isAdvancingRef.current = true;
 
     const currentQ = questions[currentIndex];
+    if (!currentQ) {
+      isAdvancingRef.current = false;
+      return;
+    }
+
     const isCorrect = selectedOption === currentQ.answerIndex;
 
     const updatedAnswers = [
@@ -228,7 +240,11 @@ function TermsQuizContent() {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
+      setTimeout(() => {
+        isAdvancingRef.current = false;
+      }, 120);
     } else {
+      setIsSubmitting(true);
       finishSprint(updatedAnswers);
     }
   };
@@ -241,46 +257,19 @@ function TermsQuizContent() {
     const totalQ = questions.length;
     const rawScore = correctAnswers * 1000;
 
-    let percentile = 1;
-    let rank = 1;
-    let totalParticipants = 1;
+    // 1. Calculate optimistic rank & percentile immediately from current leaderboard
+    const currentLeaderboard = [...leaderboard];
+    const virtualRank =
+      currentLeaderboard.filter(
+        (entry) =>
+          entry.correctCount > correctAnswers ||
+          (entry.correctCount === correctAnswers && entry.timeSpentSec <= totalTime)
+      ).length + 1;
 
-    try {
-      const res = await fetch('/api/terms-leaderboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          isGuest: !user?.nickname,
-          nickname: user?.nickname || undefined,
-          level: selectedLevel,
-          score: rawScore,
-          correctCount: correctAnswers,
-          totalQuestions: totalQ,
-          timeSpentSec: totalTime,
-          avatarUrl: user?.avatarUrl,
-          investmentType: user?.investmentType,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        percentile = data.percentile || 1;
-        rank = data.rank || 1;
-        totalParticipants = data.totalParticipants || (leaderboard.length + 1);
-      }
-    } catch (e) {
-      console.error('Failed to calculate/submit score:', e);
-      // Offline fallback calculation using loaded leaderboard
-      const virtualParticipants = leaderboard.length + 1;
-      const virtualRank =
-        leaderboard.filter(
-          (entry) =>
-            entry.correctCount > correctAnswers ||
-            (entry.correctCount === correctAnswers && entry.timeSpentSec <= totalTime)
-        ).length + 1;
-      rank = virtualRank;
-      totalParticipants = virtualParticipants;
-      percentile = Math.max(1, Math.round((virtualRank / virtualParticipants) * 100));
-    }
+    const totalParticipants = Math.max(1, currentLeaderboard.length + 1);
+    // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
+    const percentile = virtualRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((virtualRank / totalParticipants) * 100)));
+    const rank = virtualRank;
 
     const badgeName =
       selectedLevel === 4 && correctAnswers >= 14
@@ -300,7 +289,33 @@ function TermsQuizContent() {
 
     setFinalResult(resultData);
 
-    if (user) {
+    // 2. Optimistic instant leaderboard injection for logged in user (0ms reflection!)
+    if (user?.nickname) {
+      const optimisticEntry: LeaderboardItem = {
+        id: `optimistic_${Date.now()}`,
+        nickname: user.nickname,
+        level: selectedLevel,
+        score: rawScore,
+        correctCount: correctAnswers,
+        totalQuestions: totalQ,
+        timeSpentSec: totalTime,
+        createdAt: new Date().toISOString(),
+        avatarUrl: user.avatarUrl,
+        investmentType: user.investmentType,
+        percentile,
+        rank,
+      };
+
+      setLeaderboard((prev) => {
+        const filtered = prev.filter((item) => item.nickname !== user.nickname);
+        const updated = [...filtered, optimisticEntry].sort((a, b) => {
+          if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+          if (a.timeSpentSec !== b.timeSpentSec) return a.timeSpentSec - b.timeSpentSec;
+          return 0;
+        });
+        return updated.map((item, idx) => ({ ...item, rank: idx + 1 }));
+      });
+
       updateTermsQuizResult({
         level: selectedLevel,
         score: rawScore,
@@ -312,6 +327,43 @@ function TermsQuizContent() {
     }
 
     setQuizState('summary');
+    setIsSubmitting(false);
+    isAdvancingRef.current = false;
+
+    // 3. Background sync to server & fetch latest leaderboard
+    try {
+      const res = await fetch('/api/terms-leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isGuest: !user?.nickname,
+          nickname: user?.nickname || undefined,
+          level: selectedLevel,
+          score: rawScore,
+          correctCount: correctAnswers,
+          totalQuestions: totalQ,
+          timeSpentSec: totalTime,
+          avatarUrl: user?.avatarUrl,
+          investmentType: user?.investmentType,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFinalResult((prev) =>
+          prev
+            ? {
+                ...prev,
+                percentile: data.percentile || prev.percentile,
+                rank: data.rank || prev.rank,
+                totalParticipants: data.totalParticipants || prev.totalParticipants,
+              }
+            : null
+        );
+        fetchLeaderboard(selectedLevel);
+      }
+    } catch (e) {
+      console.error('Failed to submit score to server:', e);
+    }
   };
 
   const lastSyncedUserRef = useRef<string | null>(null);
@@ -812,12 +864,19 @@ function TermsQuizContent() {
                 <button
                   type="button"
                   onClick={handleAdvance}
-                  disabled={selectedOption === null}
+                  disabled={selectedOption === null || isSubmitting}
                   className={`btn-primary !py-3.5 !px-7 !rounded-xl ${
-                    selectedOption === null ? 'opacity-40 cursor-not-allowed !pointer-events-none' : ''
+                    selectedOption === null || isSubmitting ? 'opacity-50 cursor-not-allowed !pointer-events-none' : ''
                   }`}
                 >
-                  <span>{currentIndex + 1 < questions.length ? '다음 문제로 →' : '최종 결과 확인하기 🏆'}</span>
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>결과 분석 중...</span>
+                    </span>
+                  ) : (
+                    <span>{currentIndex + 1 < questions.length ? '다음 문제로 →' : '결과 확인하기 →'}</span>
+                  )}
                 </button>
               </div>
             </div>

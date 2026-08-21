@@ -129,6 +129,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
       if (!error && data) {
         const db: Record<string, ServerUserRecord> = { ...DEFAULT_MASTER_USERS };
         data.forEach((row: any) => {
+          const settings = row.simulator_settings || {};
           db[row.nickname] = {
             nickname: row.nickname,
             pin: row.pin,
@@ -139,8 +140,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             typeAnswers: row.type_answers || undefined,
             simulatorSettings: row.simulator_settings || undefined,
             avatarUrl: row.avatar_url || undefined,
-            activeBadge: row.active_badge || undefined,
-            termsQuizBest: row.terms_quiz_best || undefined,
+            activeBadge: settings.activeBadge || undefined,
+            termsQuizBest: settings.termsQuizBest || undefined,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -166,19 +167,26 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
-      const rows = Object.values(db).map((u) => ({
-        nickname: u.nickname,
-        pin: u.pin,
-        created_at: u.createdAt,
-        last_active_at: u.lastActiveAt,
-        completed_lessons: u.completedLessons || [],
-        investment_type: u.investmentType || null,
-        type_answers: u.typeAnswers || null,
-        simulator_settings: u.simulatorSettings || null,
-        avatar_url: u.avatarUrl || null,
-        active_badge: u.activeBadge || null,
-        terms_quiz_best: u.termsQuizBest || null,
-      }));
+      const rows = Object.values(db).map((u) => {
+        const currentSettings = u.simulatorSettings || {};
+        const safeSettings = {
+          ...currentSettings,
+          activeBadge: u.activeBadge || currentSettings.activeBadge || null,
+          termsQuizBest: u.termsQuizBest || currentSettings.termsQuizBest || null,
+        };
+
+        return {
+          nickname: u.nickname,
+          pin: u.pin,
+          created_at: u.createdAt,
+          last_active_at: u.lastActiveAt,
+          completed_lessons: u.completedLessons || [],
+          investment_type: u.investmentType || null,
+          type_answers: u.typeAnswers || null,
+          simulator_settings: safeSettings,
+          avatar_url: u.avatarUrl || null,
+        };
+      });
 
       if (rows.length > 0) {
         const { error } = await supabase.from('users').upsert(rows, { onConflict: 'nickname' });
@@ -815,55 +823,68 @@ export async function saveTermsQuizEntryAsync(
 
   saveQuizToFile(globalThis.__jusik_quiz_db__);
 
+  // Calculate rank and percentile for this level first
+  const allEntries = await getTermsQuizEntriesAsync(entry.level);
+  const totalParticipants = Math.max(1, allEntries.length);
+  const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
+  const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
+  // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
+  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+
+  newEntry.percentile = percentile;
+
   // 운영 환경: Supabase users 레코드에 영구 저장 (배포 시 초기화 방지)
   if (!isLocalDevMode()) {
     try {
       const userDb = await getServerDbAsync();
-      const userRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
-      if (userRecord) {
-        const settings = userRecord.simulatorSettings || {};
-        const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(settings.__quizEntries) ? settings.__quizEntries : [];
-        const idx = quizList.findIndex((q) => q.level === entry.level);
-        if (idx >= 0) {
-          const prev = quizList[idx];
-          if (entry.correctCount > prev.correctCount || (entry.correctCount === prev.correctCount && entry.timeSpentSec < prev.timeSpentSec)) {
-            quizList[idx] = newEntry;
-          }
-        } else {
-          quizList.push(newEntry);
-        }
-        settings.__quizEntries = quizList;
-        userRecord.simulatorSettings = settings;
-
-        // Update termsQuizBest if this entry is overall best
-        const prevBest = userRecord.termsQuizBest;
-        const isOverallBetter = !prevBest || entry.score > (prevBest.score || 0) || (entry.score === prevBest.score && entry.timeSpentSec < (prevBest.timeSpentSec || 999));
-        if (isOverallBetter) {
-          userRecord.termsQuizBest = {
-            level: entry.level,
-            score: entry.score,
-            correctCount: entry.correctCount,
-            timeSpentSec: entry.timeSpentSec,
-            badgeName: entry.level === 4 && entry.correctCount >= 14 ? '마스터' : undefined,
-          };
-        }
-        userRecord.lastActiveAt = new Date().toISOString();
-        userDb[entry.nickname] = userRecord;
-        await saveServerDbAsync(userDb);
+      let userRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      if (!userRecord) {
+        userRecord = {
+          nickname: entry.nickname,
+          pin: '000000',
+          createdAt: new Date().toISOString(),
+          lastActiveAt: new Date().toISOString(),
+          completedLessons: [],
+          investmentType: entry.investmentType,
+          avatarUrl: entry.avatarUrl,
+          simulatorSettings: {},
+        };
       }
+
+      const settings = userRecord.simulatorSettings || {};
+      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(settings.__quizEntries) ? settings.__quizEntries : [];
+      const idx = quizList.findIndex((q) => q.level === entry.level);
+      if (idx >= 0) {
+        const prev = quizList[idx];
+        if (entry.correctCount > prev.correctCount || (entry.correctCount === prev.correctCount && entry.timeSpentSec < prev.timeSpentSec)) {
+          quizList[idx] = newEntry;
+        }
+      } else {
+        quizList.push(newEntry);
+      }
+      settings.__quizEntries = quizList;
+
+      // Update termsQuizBest if this entry is overall best
+      const prevBest = userRecord.termsQuizBest;
+      const isOverallBetter = !prevBest || entry.score > (prevBest.score || 0) || (entry.score === prevBest.score && entry.timeSpentSec < (prevBest.timeSpentSec || 999));
+      if (isOverallBetter) {
+        userRecord.termsQuizBest = {
+          level: entry.level,
+          score: entry.score,
+          correctCount: entry.correctCount,
+          timeSpentSec: entry.timeSpentSec,
+          percentile,
+          badgeName: entry.level === 4 && entry.correctCount >= 14 ? '마스터' : undefined,
+        };
+      }
+      userRecord.lastActiveAt = new Date().toISOString();
+      userRecord.simulatorSettings = settings;
+      userDb[entry.nickname] = userRecord;
+      await saveServerDbAsync(userDb);
     } catch (err) {
       console.error('Failed to persist quiz entry to Supabase:', err);
     }
   }
-
-  // Calculate rank and percentile for this level
-  const allEntries = await getTermsQuizEntriesAsync(entry.level);
-  const totalParticipants = allEntries.length;
-  const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
-  const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
-  const percentile = Math.max(1, Math.round((rank / Math.max(1, totalParticipants)) * 100));
-
-  newEntry.percentile = percentile;
 
   return {
     success: true,
@@ -893,8 +914,9 @@ export async function calculateTermsQuizPercentileAsync(
     }
   }
 
-  const totalParticipants = levelEntries.length + 1;
-  const percentile = Math.max(1, Math.round((rank / totalParticipants) * 100));
+  const totalParticipants = Math.max(1, levelEntries.length + 1);
+  // 1위만 상위 1%, 나머지는 공식 적용
+  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
 
   return {
     success: true,
