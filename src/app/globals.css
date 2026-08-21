@@ -248,6 +248,20 @@ html {
   animation: floatY 4s ease-in-out infinite;
 }
 
+@keyframes border-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-border-rotate {
+  animation: border-rotate 6s linear infinite;
+  will-change: transform;
+}
+
 @keyframes slideInLeft {
   from {
     transform: translateX(-100%);

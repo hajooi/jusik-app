@@ -121,7 +121,7 @@ export default function FeeComparisonBox() {
       {/* 3단 비교 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
         {/* 1. 시중 증권사 일반 */}
-        <div className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-[var(--border-color)]/20 flex flex-col justify-between space-y-3">
+        <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-[var(--border-color)] flex flex-col justify-between space-y-3 shadow-2xs">
           <div>
             <span className="text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] border border-[var(--border-color)]/30">
               일반 계좌
@@ -151,7 +151,7 @@ export default function FeeComparisonBox() {
         </div>
 
         {/* 2. 타사 이벤트 계좌 */}
-        <div className="glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-[var(--border-color)]/20 flex flex-col justify-between space-y-3">
+        <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-[var(--border-color)] flex flex-col justify-between space-y-3 shadow-2xs">
           <div>
             <span className="text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--bg-main)] text-[var(--text-secondary)] border border-[var(--border-color)]/30">
               기간 한정
@@ -180,44 +180,52 @@ export default function FeeComparisonBox() {
           </div>
         </div>
 
-        {/* 3. 주식부엉 제휴 계좌 (집중 강조 카드) */}
+        {/* 3. 주식부엉 제휴 계좌 (기본 주황 테두리 + 회전 하이라이트 빛 반사 프리미엄 카드) */}
         <div
           onClick={triggerConfetti}
-          className="cursor-pointer glass-card p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-[var(--accent-orange)] bg-[var(--accent-orange)]/[0.06] shadow-[0_0_20px_rgba(241,143,1,0.18)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_26px_rgba(241,143,1,0.28)] active:scale-[0.99] transition-all duration-300 flex flex-col justify-between space-y-3 relative overflow-hidden outline-none focus:outline-none focus:ring-0 select-none"
+          className="relative p-[2px] rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group bg-[var(--accent-orange)] shadow-[0_0_22px_rgba(241,143,1,0.22)] hover:shadow-[0_0_32px_rgba(241,143,1,0.38)] active:scale-[0.99] transition-all duration-300 select-none flex flex-col"
         >
-          <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 pointer-events-none">
-            <div className="w-20 h-20 bg-[var(--accent-orange)]/15 rounded-full blur-xl" />
-          </div>
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white flex items-center gap-1 shadow-2xs">
-                <Sparkles className="w-3 h-3" />
-                평생 우대
-              </span>
-              <span className="text-[11px] font-bold text-[var(--accent-orange)]">
-                업계 최저 수준
-              </span>
+          {/* 회전하는 화이트-골드 하이라이트 반사광 레이어 */}
+          <div className="absolute inset-[-150%] animate-border-rotate bg-[conic-gradient(from_0deg,transparent_0_70%,rgba(255,255,255,0.4)_82%,rgba(255,255,255,1)_90%,rgba(254,240,138,0.95)_94%,transparent_100%)] pointer-events-none opacity-90 group-hover:opacity-100 transition-opacity" />
+
+          {/* 내부 카드 본체 */}
+          <div className="relative z-10 w-full h-full rounded-[calc(0.75rem-1px)] sm:rounded-[calc(1rem-1px)] bg-[#FFF8EE] dark:bg-[#181512] p-4 sm:p-5 flex flex-col justify-between space-y-3 overflow-hidden">
+            {/* 내부 앰비언트 글로우 블러 */}
+            <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2 pointer-events-none">
+              <div className="w-24 h-24 bg-[var(--accent-orange)]/15 rounded-full blur-xl" />
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] mt-2">
-              주식부엉 제휴 계좌
-            </h3>
-            <div className="mt-3">
-              <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-[var(--accent-orange)] via-amber-300 to-[var(--accent-orange)] bg-clip-text text-transparent animate-text-shimmer tracking-tight">
-                평생 0.04%
+
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white flex items-center gap-1 shadow-2xs">
+                  <Sparkles className="w-3 h-3" />
+                  평생 우대
+                </span>
+                <span className="text-[11px] font-bold text-[var(--accent-orange)]">
+                  업계 최저 수준
+                </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-[var(--accent-orange)] font-semibold mt-0.5">
-                조건 없이 평생 고정
-              </p>
+              <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] mt-2">
+                주식부엉 제휴 계좌
+              </h3>
+              <div className="mt-3">
+                <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-[var(--accent-orange)] via-amber-400 to-[var(--accent-orange)] bg-clip-text text-transparent animate-text-shimmer tracking-tight">
+                  평생 0.04%
+                </div>
+                <p className="text-[11px] sm:text-xs text-[var(--accent-orange)] font-semibold mt-0.5">
+                  조건 없이 평생 고정
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="pt-3 border-t border-[var(--accent-orange)]/25 space-y-1.5 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-[var(--text-secondary)]">1억 원 거래 시</span>
-              <span className="font-extrabold text-[var(--accent-orange)] text-sm">단 40,000원</span>
-            </div>
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="text-[var(--text-secondary)]">환전 수수료</span>
-              <span className="font-bold text-[var(--accent-orange)]">무료 (0원)</span>
+            <div className="pt-3 border-t border-[var(--accent-orange)]/25 space-y-1.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--text-secondary)]">1억 원 거래 시</span>
+                <span className="font-extrabold text-[var(--accent-orange)] text-sm">단 40,000원</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-[var(--text-secondary)]">환전 수수료</span>
+                <span className="font-bold text-[var(--accent-orange)]">무료 (0원)</span>
+              </div>
             </div>
           </div>
         </div>
