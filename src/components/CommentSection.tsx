@@ -74,13 +74,13 @@ export default function CommentSection({
     anchorRect?: { top: number; bottom: number; left: number; right: number; width: number; height: number };
   } | null>(null);
 
-  // Helper to get avatar source
+  // Helper to get avatar source (커스텀 아바타 최우선 즉시 반영)
   const getAvatarSrc = (commentNick: string, avatarUrl?: string) => {
-    if (commentNick === '주식부엉') return '/icon.png';
     if (avatarUrl && !avatarUrl.includes('default-avatar') && !avatarUrl.includes('guest.png')) {
       return avatarUrl;
     }
-    return '/guest.png';
+    if (commentNick?.trim() === '주식부엉') return '/icon.png?v=3';
+    return '/guest.png?v=3';
   };
 
   // Fetch comments for current targetKey

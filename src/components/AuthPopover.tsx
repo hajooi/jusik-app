@@ -126,12 +126,18 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
     }
   };
 
-  // Avatar source resolution
-  const userAvatarSrc = user?.nickname === '주식부엉'
-    ? '/icon.png'
-    : user?.avatarUrl && !user.avatarUrl.includes('default-avatar') && !user.avatarUrl.includes('guest.png')
+  // Avatar source resolution (커스텀 아바타 최우선 즉시 반영)
+  const userAvatarSrc = (user?.avatarUrl && !user.avatarUrl.includes('default-avatar') && !user.avatarUrl.includes('guest.png'))
     ? user.avatarUrl
-    : '/guest.png';
+    : user?.nickname?.trim() === '주식부엉'
+    ? '/icon.png?v=3'
+    : '/guest.png?v=3';
+
+  // 아바타 초기화 (기본 이미지로 복구)
+  const handleResetAvatar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateAvatar('');
+  };
 
   return (
     <div 
@@ -177,26 +183,40 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
           {/* Profile Avatar & Nickname Card (Centered) */}
           <div className="p-4 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
             {/* Centered Avatar with Clickable Camera Overlay */}
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="relative group shrink-0 cursor-pointer"
-              title="클릭하여 프로필 사진 변경"
-            >
-              <img
-                src={userAvatarSrc}
-                alt={user.nickname}
-                className="w-14 h-14 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:opacity-85"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white">
-                <Camera className="w-4 h-4" />
+            <div className="relative inline-block">
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="relative group shrink-0 cursor-pointer"
+                title="클릭하여 프로필 사진 변경"
+              >
+                <img
+                  src={userAvatarSrc}
+                  alt={user.nickname}
+                  className="w-14 h-14 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:opacity-85"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+
+              {/* 커스텀 아바타가 등록되어 있을 때 기본 이미지로 복구하는 버튼 */}
+              {user.avatarUrl && !user.avatarUrl.includes('default-avatar') && !user.avatarUrl.includes('guest.png') && (
+                <button
+                  type="button"
+                  onClick={handleResetAvatar}
+                  title="기본 프로필 이미지로 복구"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent-crimson)] hover:border-[var(--accent-crimson)] flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-2.5 h-2.5" />
+                </button>
+              )}
             </div>
 
             {/* Centered Nickname & Status */}
