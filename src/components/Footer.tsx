@@ -42,7 +42,7 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer ref={footerRef} className="w-full pt-6 pb-24 mt-4 transition-colors">
+    <footer ref={footerRef} className="w-full pt-6 pb-28 sm:pb-32 mt-4 transition-colors">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col items-center justify-center text-center space-y-2">
         
         {/* Ultra-Minimal Interactive Brand Identity Button (Explicit Click Only) */}

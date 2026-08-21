@@ -8,16 +8,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        charcoal: '#353535',
-        slate: '#5F5F5F',
-        'dark-green': '#24613B',
-        'mid-green': '#68A67D',
-        'light-green': '#8FBF9F',
-        'base-cream': '#F5ECD7',
-        'soft-beige': '#EBE2CD',
-        'dark-beige': '#C2BAA6',
+        'buong-orange': '#F18F01',
+        'deep-amber': '#D97706',
+        'fintech-emerald': '#10B981',
+        'signal-crimson': '#F43F5E',
+        'snow-slate': '#F8FAFC',
+        'hairline-gray': '#E2E8F0',
+        'muted-steel': '#64748B',
+        'graphite-slate': '#1E293B',
+        'oled-obsidian': '#09090B',
         orange: '#F18F01',
-        'deep-brown': '#833500',
       },
       borderColor: {
         DEFAULT: 'var(--border-color)',

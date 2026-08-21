@@ -31,8 +31,8 @@ export function triggerConfetti() {
   };
   window.addEventListener('resize', handleResize);
 
-  // 시그니처 화려한 칼라 (주황, 초록, 골드, 핑크, 옐로우, 크림)
-  const colors = ['#F18F01', '#24613B', '#8FBF9F', '#FFD700', '#FF5722', '#00E676', '#FF4081', '#FFFFFF'];
+  // 시그니처 10색 팔레트 (주황, 에메랄드, 골드/앰버, 크림슨, 화이트)
+  const colors = ['#F18F01', '#10B981', '#D97706', '#F43F5E', '#FFFFFF', '#64748B'];
 
   interface Particle {
     x: number;

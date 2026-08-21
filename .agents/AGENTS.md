@@ -49,14 +49,14 @@ iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵�
    - 실시간 강의/도구 댓글 시스템(`CommentSection`), 욕설 필터링(`badWordsFilter`), 관리자 동기화 도구(`AdminModal`, `/api/sync`)
 
 ## 6. UI/UX Rules & Visual Polish
-- **Bottom Navigation Active State**:
-  - **Dark Mode**: 고대비 순백색 (`text-white`) + Bold (`font-bold`)
-  - **Light Mode**: 고대비 딥 숯색 (`text-neutral-900`) + Bold (`font-bold`)
-  - **Icon Style**: 활성화 탭은 인스타그램 스타일 **Filled Icon** (`fill="currentColor"`, `stroke-[2.2px]`), 비활성화 탭은 **Outline Icon** (`stroke-[1.8px]`).
+- **Floating Pill Bar (Scroll-to-Hide Navigation)**:
+  - 데스크톱/모바일 공통 화면 중앙 하단에 부유하는 Glassmorphic Capsule (`rounded-full`, `backdrop-blur-xl`, `border-[var(--border-color)]`, 앰비언트 글로우).
+  - 아래로 스크롤 시 콘텐츠 몰입을 위해 부드럽게 숨겨지고(`translate-y-24 opacity-0`), 위로 스크롤하거나 상단/하단 도달 시 다시 복귀(`translate-y-0 opacity-100`).
+  - 활성화 탭은 유려한 슬라이딩 오렌지 서피스 인디케이터 적용.
 - **Unified Design Tokens & Container Hover Effects**:
-  - 하드코딩된 색상 코드(예: `#EBE2CD`, `#464646` 등) 사용을 엄격히 금지하고, 모든 카드, 모듈, 버튼, 팝오버는 반드시 CSS 변수 기반 디자인 토큰(`bg-[var(--card-surface)]/90 backdrop-blur-md`, `hover:bg-[var(--card-hover)]`, `border-[var(--border-color)]/20`)을 사용.
-  - **Ambient Orange Glow Hover Rule**: 모든 인터랙티브 카드, 모듈, 버튼(커리큘럼 레벨, 레슨 항목, 투자도구 카드, 성향 리포트 카드, 비디오 커버, CTA 모듈 등)은 마우스 오버 시 일관되게 은은한 주황색 미세 테두리와 앰비언트 글로우(`hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_20px_rgba(241,143,1,0.18)]`)가 연출되어야 함.
-  - 모든 카드와 모듈은 은은한 그림자(`shadow-sm`/`shadow-2xs`)와 절제된 미세 테두리로 통일감을 부여.
+  - 하드코딩된 임의의 색상 사용을 엄격히 금지하고, 모든 카드, 모듈, 버튼, 팝오버는 반드시 CSS 변수 기반 디자인 토큰(`bg-[var(--card-surface)]/90 backdrop-blur-md`, `hover:bg-[var(--card-hover)]`, `border-[var(--border-color)]/90`)을 사용.
+  - **Ambient Orange Glow Hover Rule**: 모든 인터랙티브 카드, 모듈, 버튼은 마우스 오버 시 일관되게 은은한 주황색 미세 테두리와 앰비언트 글로우(`hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)]`)가 연출되어야 함.
+  - 모든 카드와 모듈은 은은한 그림자(`shadow-sm`/`shadow-2xs`)와 1px Apple식 초미세 헤어라인 테두리로 통일감을 부여.
 - **Lesson Page Modular Layout**:
   - 정적인 '핵심 요약' 및 '고정 도식'을 배제하고, 각 강의 데이터(`curriculum.ts`)에 따라 유연하게 렌더링되는 **동적 모듈 블록 (Modular Layout System)** 적용.
   - 지원 모듈: `guide_steps` (강의 노트/단계별 Step 가이드), `resources` (참고 데이터/자료 링크), `cta` (도구/외부 링크 이동 강조 카드).
@@ -66,10 +66,20 @@ iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵�
   - 16가지 투자 성향 리포트 4대 세부 비율 스펙트럼은 전체 100% 바에 우세 성향(`Signature Orange` fill + `우세` 뱃지)과 열세 성향(`Soft Slate Gray` fill)이 투톤으로 명확히 구분 및 대조되어야 함.
 - **No Cursor Tracking**: 과도한 마우스 추적 Glow 효과나 조잡한 애니메이션 배제.
 
-## 7. Color System & Auto Dark/Light Mode
-- **Palette**: Charcoal(`#353535`), Slate(`#5F5F5F`), Dark Green(`#24613B`), Mid Green(`#68A67D`), Light Green(`#8FBF9F`), Base Cream(`#F5ECD7`), Soft Beige(`#EBE2CD`), Dark Beige(`#C2BAA6`), Orange(`#F18F01`), Deep Brown(`#833500`)
-- **Light Mode**: Base Cream 배경 / Soft Beige 카드 / Charcoal 텍스트
-- **Dark Mode**: Charcoal 배경 / Slate 카드 / Base Cream 텍스트 (자동 감지)
+## 7. Color System & Auto Dark/Light Mode (주식부엉 2.0 10색 시그니처 팔레트)
+- **Palette**:
+  1. `Buong Orange` (`#F18F01` - 메인 브랜드, 핵심 CTA, 로고)
+  2. `Deep Amber` (`#D97706` - 앰버/골드 보조)
+  3. `Fintech Emerald` (`#10B981` - 수익, 정답, 상승)
+  4. `Signal Crimson` (`#F43F5E` - 손실, 오답, 리스크)
+  5. `Pure White` (`#FFFFFF` - 카드 서피스, 다크 텍스트)
+  6. `Snow Slate` (`#F8FAFC` - 라이트모드 메인 배경)
+  7. `Hairline Gray` (`#E2E8F0` - 1px 초미세 보더)
+  8. `Muted Steel` (`#64748B` - 부연 설명, 단위 라벨)
+  9. `Graphite Slate` (`#1E293B` - 라이트 텍스트, 다크 카드)
+  10. `OLED Obsidian` (`#09090B` - 다크모드 메인 배경)
+- **Light Mode**: Snow Slate (`#F8FAFC`) 배경 / Pure White (`#FFFFFF`) 카드 / Graphite Slate (`#0F172A`) 텍스트
+- **Dark Mode**: OLED Obsidian (`#09090B`) 배경 / Dark Slate (`#18181B`) 카드 / Snow Slate (`#F8FAFC`) 텍스트
 
 ## 8. SEO & Dynamic Sitemap Automation Rules
 - **자동 사이트맵 (Dynamic Sitemap)**:

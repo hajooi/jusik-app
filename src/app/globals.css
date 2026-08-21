@@ -4,53 +4,56 @@
 
 @layer base {
   :root {
-    --bg-main: #F4EBD7;        /* Gentle Natural Cream Background */
-    --card-surface: rgba(248, 243, 233, 0.78);  /* Perfectly Balanced Soft Glass Surface */
-    --card-hover: rgba(255, 253, 248, 0.90);    /* Soft Bright Hover */
-    --border-color: rgba(131, 53, 0, 0.07);      /* Balanced Subtle Glass Border */
-    --border-highlight: rgba(255, 255, 255, 0.5); /* Soft Top Highlight */
-    --text-primary: #353535;   /* Charcoal Text */
-    --text-secondary: #5F5F5F; /* Slate Grey Text */
-    --accent-green: #24613B;   /* Dark Green */
-    --accent-mid-green: #68A67D; /* Mid Green */
-    --accent-orange: #F18F01;  /* Signature Orange */
-    --accent-deep-brown: #833500; /* Deep Brown */
-    --glow-color: rgba(241, 143, 1, 0.45); /* Bold Ambient Orange Glow */
-    --glow-color-secondary: rgba(104, 166, 125, 0.40); /* Vibrant Green Secondary Glow */
+    --bg-main: #F8FAFC;        /* Snow Slate Clean Background */
+    --card-surface: rgba(255, 255, 255, 0.88);  /* Pure White Glass Surface */
+    --card-hover: rgba(255, 255, 255, 0.98);    /* Pure White Bright Hover */
+    --border-color: rgba(226, 232, 240, 0.90);  /* Apple-style Hairline Gray Border */
+    --border-highlight: rgba(255, 255, 255, 0.8); /* Soft Crisp Highlight */
+    --text-primary: #0F172A;   /* Deep Slate/Graphite Text */
+    --text-secondary: #64748B; /* Muted Steel Gray Text */
+    --accent-green: #10B981;   /* Fintech Emerald Green */
+    --accent-mid-green: #059669; /* Emerald Mid Tone */
+    --accent-orange: #F18F01;  /* Buong Signature Orange */
+    --accent-deep-amber: #D97706; /* Deep Amber / Gold */
+    --accent-crimson: #F43F5E; /* Signal Crimson (Loss/Error) */
+    --glow-color: rgba(241, 143, 1, 0.18); /* Subtle Ambient Orange Glow */
+    --glow-color-secondary: rgba(16, 185, 129, 0.14); /* Subtle Emerald Secondary Glow */
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-main: #242424;        /* Deep Charcoal Dark Background */
-      --card-surface: rgba(48, 48, 48, 0.70);   /* Translucent Balanced Glass Surface */
-      --card-hover: rgba(60, 60, 60, 0.85);     /* Smooth Glass Hover */
-      --border-color: rgba(194, 186, 166, 0.10); /* Warm Dark Beige Translucent Border (No harsh white outline) */
-      --border-highlight: rgba(0, 0, 0, 0.2); /* Soft Dark Inner Highlight in Dark Mode */
-      --text-primary: #F5ECD7;   /* Base Cream Text in Dark Mode */
-      --text-secondary: #C2BAA6; /* Dark Beige Secondary Text */
-      --accent-green: #8FBF9F;   /* Light Green */
-      --accent-mid-green: #68A67D; /* Mid Green */
-      --accent-orange: #F18F01;  /* Signature Orange */
-      --accent-deep-brown: #833500; /* Deep Brown */
-      --glow-color: rgba(241, 143, 1, 0.22); /* Smooth Orange Radial Glow */
-      --glow-color-secondary: rgba(104, 166, 125, 0.16); /* Gentle Green Glow */
+      --bg-main: #09090B;        /* OLED Obsidian Deep Black */
+      --card-surface: rgba(24, 24, 27, 0.75);   /* Dark Slate Glass Surface */
+      --card-hover: rgba(39, 39, 42, 0.90);     /* Slightly Elevated Slate Hover */
+      --border-color: rgba(255, 255, 255, 0.08); /* 1px Hairline White Border */
+      --border-highlight: rgba(255, 255, 255, 0.12); /* Subtle Glass Highlight */
+      --text-primary: #F8FAFC;   /* Snow Slate Crisp White Text */
+      --text-secondary: #A1A1AA; /* Muted Zinc Secondary Text */
+      --accent-green: #10B981;   /* Fintech Emerald Green */
+      --accent-mid-green: #34D399; /* Light Emerald */
+      --accent-orange: #F18F01;  /* Buong Signature Orange */
+      --accent-deep-amber: #D97706; /* Deep Amber / Gold */
+      --accent-crimson: #F43F5E; /* Signal Crimson */
+      --glow-color: rgba(241, 143, 1, 0.16); /* Smooth Orange Radial Glow */
+      --glow-color-secondary: rgba(16, 185, 129, 0.10); /* Gentle Emerald Glow */
     }
   }
 
   .dark {
-    --bg-main: #242424;
-    --card-surface: rgba(48, 48, 48, 0.70);
-    --card-hover: rgba(60, 60, 60, 0.85);
-    --border-color: rgba(194, 186, 166, 0.10);
-    --border-highlight: rgba(0, 0, 0, 0.2);
-    --text-primary: #F5ECD7;
-    --text-secondary: #C2BAA6;
-    --accent-green: #8FBF9F;
-    --accent-mid-green: #68A67D;
+    --bg-main: #09090B;
+    --card-surface: rgba(24, 24, 27, 0.75);
+    --card-hover: rgba(39, 39, 42, 0.90);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-highlight: rgba(255, 255, 255, 0.12);
+    --text-primary: #F8FAFC;
+    --text-secondary: #A1A1AA;
+    --accent-green: #10B981;
+    --accent-mid-green: #34D399;
     --accent-orange: #F18F01;
-    --accent-deep-brown: #833500;
-    --glow-color: rgba(241, 143, 1, 0.22);
-    --glow-color-secondary: rgba(104, 166, 125, 0.16);
+    --accent-deep-amber: #D97706;
+    --accent-crimson: #F43F5E;
+    --glow-color: rgba(241, 143, 1, 0.16);
+    --glow-color-secondary: rgba(16, 185, 129, 0.10);
   }
 
   *, ::before, ::after {

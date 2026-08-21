@@ -44,7 +44,7 @@ export default function FeeComparisonBox() {
       }
     }
 
-    const colors = ['#F18F01', '#FBBF24', '#F5ECD7', '#FFFFFF', '#EA580C', '#68A67D'];
+    const colors = ['#F18F01', '#D97706', '#10B981', '#FFFFFF', '#64748B', '#F8FAFC'];
     const particleCount = 40;
     const particles: Particle[] = [];
 

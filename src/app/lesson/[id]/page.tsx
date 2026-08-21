@@ -335,7 +335,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                             {module.steps.map((step, sIdx) => (
                               <div 
                                 key={sIdx}
-                                className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-2.5 shadow-2xs"
+                                className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-[var(--border-color)] space-y-2.5 shadow-2xs"
                               >
                                 {step.title && (
                                   <h4 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2.5">
