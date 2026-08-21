@@ -134,7 +134,7 @@ export default function FeeComparisonBox() {
                 0.25%
               </div>
               <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] mt-0.5">
-                해외주식 기본 정가
+                해외주식 기본
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function FeeComparisonBox() {
                 0.05 ~ 0.09%
               </div>
               <p className="text-[11px] sm:text-xs text-amber-500/90 font-medium mt-0.5">
-                기간 종료 시 원래대로 원복
+                기간 종료 시 혜택 종료
               </p>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function FeeComparisonBox() {
                   평생 0.04%
                 </div>
                 <p className="text-[11px] sm:text-xs text-[var(--accent-orange)] font-semibold mt-0.5">
-                  조건 없이 평생 고정
+                  조건 없이 평생 우대
                 </p>
               </div>
             </div>

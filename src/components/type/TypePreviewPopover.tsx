@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { PERSONALITY_PROFILES, TYPE_EMOJIS } from '@/data/investmentSurvey';
+import { PERSONALITY_PROFILES, TYPE_EMOJIS, calculateSurveyResult } from '@/data/investmentSurvey';
 import { useAuth } from '@/context/AuthContext';
 import { ArrowRight, X, HeartHandshake } from 'lucide-react';
 
@@ -71,37 +71,55 @@ export default function TypePreviewPopover({
   const myType = user?.investmentType && user.investmentType !== '미진단' ? user.investmentType.toUpperCase() : null;
   const myProfile = myType && PERSONALITY_PROFILES[myType] ? PERSONALITY_PROFILES[myType] : null;
 
+  // 상대방 4대 축 점수 (g, a, l, r: 0~100)
+  const code = profile?.code.toUpperCase() || '';
+  const targetScores = {
+    g: typeScores?.g ?? (code[0] === 'G' ? 70 : 30),
+    a: typeScores?.a ?? (code[1] === 'A' ? 70 : 30),
+    l: typeScores?.l ?? (code[2] === 'L' ? 70 : 30),
+    r: typeScores?.r ?? (code[3] === 'R' ? 70 : 30),
+  };
+
   let targetScore: number | null = null;
   let matchTitle = '';
   let matchColor = 'var(--accent-orange)';
 
   if (myProfile && profile) {
-    let matchCount = 0;
-    for (let i = 0; i < 4; i++) {
-      if (myProfile.code[i] === profile.code[i]) {
-        matchCount++;
-      }
+    // 내 4대 축 점수 계산 (설문 답변 기반 or 코드 기반)
+    let myScores = {
+      g: myType![0] === 'G' ? 70 : 30,
+      a: myType![1] === 'A' ? 70 : 30,
+      l: myType![2] === 'L' ? 70 : 30,
+      r: myType![3] === 'R' ? 70 : 30,
+    };
+
+    if (user?.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+      const myResult = calculateSurveyResult(user.typeAnswers);
+      myScores = {
+        g: myResult.scores.GS.G,
+        a: myResult.scores.AP.A,
+        l: myResult.scores.LT.L,
+        r: myResult.scores.RI.R,
+      };
     }
 
-    if (matchCount === 4) {
-      targetScore = 100;
-      matchTitle = '찰떡궁합! 투자 환상의 짝꿍';
+    // 상세 비교 모달과 100% 동일한 4대 축 점수 차이 계산
+    const diffGS = Math.abs(targetScores.g - myScores.g);
+    const diffAP = Math.abs(targetScores.a - myScores.a);
+    const diffLT = Math.abs(targetScores.l - myScores.l);
+    const diffRI = Math.abs(targetScores.r - myScores.r);
+
+    const avgDiff = (diffGS + diffAP + diffLT + diffRI) / 4;
+    targetScore = Math.max(20, Math.min(100, Math.round(100 - avgDiff)));
+
+    if (targetScore >= 80) {
+      matchTitle = '🔥 찰떡궁합! 투자 환상의 짝꿍';
       matchColor = 'var(--accent-green)';
-    } else if (matchCount === 3) {
-      targetScore = 78;
-      matchTitle = '뜻이 잘 통하는 든든한 동반자';
+    } else if (targetScore >= 60) {
+      matchTitle = '🤝 조화로운 시너지! 좋은 동반자';
       matchColor = 'var(--accent-orange)';
-    } else if (matchCount === 2) {
-      targetScore = 55;
-      matchTitle = '균형 잡힌 상호 시너지 관계';
-      matchColor = 'var(--accent-orange)';
-    } else if (matchCount === 1) {
-      targetScore = 38;
-      matchTitle = '다채로운 시각의 신선한 자극제';
-      matchColor = 'var(--text-secondary)';
     } else {
-      targetScore = 20;
-      matchTitle = '극과 극! 상보적 보완 관계';
+      matchTitle = '⚡ 극과 극! 상보적 보완 관계';
       matchColor = 'var(--text-secondary)';
     }
   }
@@ -140,13 +158,7 @@ export default function TypePreviewPopover({
   if (!profile || !mounted) return null;
 
   // Construct target link with author scores if present, or generate code-based fallback scores
-  const code = profile.code.toUpperCase();
-  const effectiveScores = typeScores || {
-    g: code[0] === 'G' ? 70 : 30,
-    a: code[1] === 'A' ? 70 : 30,
-    l: code[2] === 'L' ? 70 : 30,
-    r: code[3] === 'R' ? 70 : 30,
-  };
+  const effectiveScores = targetScores;
 
   let targetHref = `/tools/type/${profile.code}`;
   if (authorNickname) {
