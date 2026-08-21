@@ -574,9 +574,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const description = lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.';
   const url = `https://jusik.app/lesson/${lesson.id}`;
 
+  const isUnlisted = lesson.id === 'lv1-3';
+
   return {
     title,
     description,
+    ...(isUnlisted && {
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
+      },
+    }),
     alternates: {
       canonical: url,
     },

@@ -785,17 +785,6 @@ export const CURRICULUM_DATA: Level[] = [
     iconName: "TrendingUp",
     isComingSoon: true,
     lessons: []
-  },
-  {
-    id: "lv5",
-    levelId: "lv5",
-    levelNumber: 5,
-    title: "AI 투자 시스템",
-    description: "AI 기반 종목 & 공시 스마트 스크리닝, 자동 매매 알고리즘 구축까지 완벽 가이드",
-    badgeText: "AI 투자 시스템",
-    iconName: "Cpu",
-    isComingSoon: true,
-    lessons: []
   }
 ];
 
