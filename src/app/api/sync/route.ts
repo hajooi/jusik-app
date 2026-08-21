@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerDbAsync, saveServerDbAsync, ServerUserRecord } from '@/utils/serverDb';
+import { getServerDbAsync, saveServerDbAsync, updateCommentsForUserAsync, ServerUserRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
 function computeRankPercentile(db: Record<string, any>, completedLessons?: string[]) {
@@ -221,7 +221,10 @@ export async function POST(request: Request) {
         }
       }
       if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
-      if (avatarUrl !== undefined) existing.avatarUrl = avatarUrl;
+      if (avatarUrl !== undefined) {
+        existing.avatarUrl = avatarUrl;
+        await updateCommentsForUserAsync(trimmedNickname, avatarUrl);
+      }
       if (activeBadge !== undefined) existing.activeBadge = activeBadge;
       if (termsQuizBest !== undefined) existing.termsQuizBest = termsQuizBest;
       existing.lastActiveAt = new Date().toISOString();

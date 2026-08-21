@@ -466,7 +466,7 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
         }
         return {
           ...c,
-          avatarUrl: u.avatarUrl || c.avatarUrl,
+          avatarUrl: (u.avatarUrl !== undefined && u.avatarUrl !== null) ? u.avatarUrl : c.avatarUrl,
           investmentType: (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : c.investmentType,
           typeScores,
           activeBadge: u.activeBadge || c.activeBadge || 'investmentType',
@@ -477,6 +477,43 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
     });
   } catch (e) {
     return filtered;
+  }
+}
+
+// 유저 프로필 변경 시 해당 유저의 기존 작성 댓글 아바타 일괄 동기화 (로컬 파일 & Supabase DB)
+export async function updateCommentsForUserAsync(nickname: string, avatarUrl: string): Promise<void> {
+  try {
+    // 1. Local / In-memory comments update
+    let allComments = globalThis.__jusik_comments_db__ || loadCommentsFromFile();
+    let hasChanges = false;
+    allComments = allComments.map((c) => {
+      if (c.nickname === nickname || c.nickname.toLowerCase() === nickname.toLowerCase()) {
+        hasChanges = true;
+        return {
+          ...c,
+          avatarUrl: avatarUrl ? avatarUrl : undefined,
+        };
+      }
+      return c;
+    });
+
+    if (hasChanges) {
+      globalThis.__jusik_comments_db__ = allComments;
+      saveCommentsToFile(allComments);
+    }
+
+    // 2. Production Supabase comments update
+    if (!isLocalDevMode()) {
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        await supabase
+          .from('comments')
+          .update({ avatar_url: avatarUrl || null })
+          .eq('nickname', nickname);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to sync avatarUrl to comments:', err);
   }
 }
 

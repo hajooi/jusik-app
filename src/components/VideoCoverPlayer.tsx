@@ -151,25 +151,28 @@ export default function VideoCoverPlayer({
   return (
     <div className="relative w-full group/ambient-container my-4">
       {/* 
-        Dual-Layer Crossfade Ambient Glow (No Border Artifacts & 2.5s Echo Fade)
+        3-Layer Organic Fluid Wave Ambient Glow (No Border Artifacts & 2.5s Echo Fade)
         Light Mode: Enhanced strength (playing 0.92 / idle 0.68)
         Dark Mode: Preserved current strength (playing 0.65 / idle 0.45)
       */}
       <div 
-        className="absolute -inset-4 sm:-inset-6 rounded-[2.5rem] sm:rounded-[3.5rem] blur-2xl sm:blur-3xl pointer-events-none z-0 overflow-hidden opacity-[var(--glow-op-light)] dark:opacity-[var(--glow-op-dark)]"
+        className="absolute -inset-5 sm:-inset-8 rounded-[3rem] sm:rounded-[4rem] blur-2xl sm:blur-3xl pointer-events-none z-0 overflow-hidden opacity-[var(--glow-op-light)] dark:opacity-[var(--glow-op-dark)]"
         style={{
           transition: 'opacity 2500ms ease-in-out, transform 2500ms ease-in-out',
           '--glow-op-light': lightOpacity,
           '--glow-op-dark': darkOpacity,
           transform:
-            playerState === 'playing' ? 'scale(1.04)' : 'scale(1.00)'
+            playerState === 'playing' ? 'scale(1.05)' : 'scale(1.00)'
         } as React.CSSProperties}
       >
-        {/* Layer A: Ambient Warm Orange Aura */}
-        <div className="absolute inset-0 bg-[var(--accent-orange)] rounded-full animate-glow-orange" />
+        {/* Layer A: Ambient Warm Orange Fluid Blob (Top-Left Drift Wave) */}
+        <div className="absolute inset-0 bg-[var(--accent-orange)] animate-glow-orange" />
 
-        {/* Layer B: Ambient Soft Green Aura */}
-        <div className="absolute inset-0 bg-[var(--accent-mid-green)] rounded-full animate-glow-green" />
+        {/* Layer B: Ambient Soft Emerald Fluid Blob (Bottom-Right Drift Wave) */}
+        <div className="absolute inset-0 bg-[var(--accent-mid-green)] animate-glow-green" />
+
+        {/* Layer C: Ambient Core Breathing Pulse (Center Aura Depth) */}
+        <div className="absolute inset-2 bg-gradient-to-tr from-[var(--accent-orange)]/50 via-[var(--accent-mid-green)]/40 to-[var(--accent-orange)]/50 animate-glow-pulse rounded-full" />
       </div>
 
       <div className="relative z-10 w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-[var(--card-surface)] border border-[var(--border-color)]">
