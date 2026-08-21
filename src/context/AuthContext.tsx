@@ -63,6 +63,11 @@ const LOCAL_TYPE_ANSWERS_KEY = 'jusik_type_answers';
 const LOCAL_TYPE_CODE_KEY = 'jusik_type_code';
 const LOCAL_SIMULATOR_SETTINGS_KEY = 'jusik_custom_simulator_settings';
 
+// 40문항 완결 검증 헬퍼 (40문항 미만의 임시 데이터가 계정이나 서버 DB를 오염시키는 것을 원천 차단)
+const isFullSurveyAnswers = (answers?: Record<number, number> | null): boolean => {
+  return !!answers && typeof answers === 'object' && Object.keys(answers).length === 40;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserAccount | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
@@ -92,7 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCompletedLessons(merged);
         }
         if (parsedUser.investmentType) setInvestmentType(parsedUser.investmentType);
-        if (parsedUser.typeAnswers) setTypeAnswers(parsedUser.typeAnswers);
+        if (parsedUser.typeAnswers && isFullSurveyAnswers(parsedUser.typeAnswers)) {
+          setTypeAnswers(parsedUser.typeAnswers);
+        }
         if (parsedUser.simulatorSettings) setSimulatorSettings(parsedUser.simulatorSettings);
 
         // 서버 최신 데이터 동기화 및 자동 복구(Auto-Healing)
@@ -120,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (data.user.termsQuizBest) {
                   localStorage.setItem('jusik_terms_quiz_best', JSON.stringify(data.user.termsQuizBest));
                 }
-                if (data.user.typeAnswers) {
+                if (data.user.typeAnswers && isFullSurveyAnswers(data.user.typeAnswers)) {
                   setTypeAnswers(data.user.typeAnswers);
                   localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
                   localStorage.setItem('jusik_type_completed', 'true');
@@ -131,6 +138,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               } else if (data.notFound) {
                 // [Auto-Healing] 서버 DB에 계정이 누락된 경우, 브라우저 로컬 데이터(핀번호, 성향 등)로 서버에 즉시 자동 복구 등록
+                const validAnswers = parsedUser.typeAnswers && isFullSurveyAnswers(parsedUser.typeAnswers)
+                  ? parsedUser.typeAnswers
+                  : (() => {
+                      try {
+                        const localAns = localStorage.getItem(LOCAL_TYPE_ANSWERS_KEY);
+                        const parsed = localAns ? JSON.parse(localAns) : null;
+                        return isFullSurveyAnswers(parsed) ? parsed : undefined;
+                      } catch {
+                        return undefined;
+                      }
+                    })();
+
                 fetch('/api/sync', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -140,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     pin: userPin,
                     completedLessons: parsedUser.completedLessons || initialCompleted,
                     investmentType: parsedUser.investmentType || localStorage.getItem(LOCAL_TYPE_CODE_KEY) || undefined,
-                    typeAnswers: parsedUser.typeAnswers || (localStorage.getItem(LOCAL_TYPE_ANSWERS_KEY) ? JSON.parse(localStorage.getItem(LOCAL_TYPE_ANSWERS_KEY)!) : undefined),
+                    typeAnswers: validAnswers,
                     simulatorSettings: parsedUser.simulatorSettings || undefined,
                     avatarUrl: parsedUser.avatarUrl || undefined,
                     activeBadge: parsedUser.activeBadge || undefined,
@@ -213,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pin: userPin,
             completedLessons: newCompletedList,
             investmentType,
-            typeAnswers,
+            typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings
           })
         }).catch((e) => console.error('Server syncData error:', e));
@@ -223,6 +242,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 투자 성향 진단 결과 서버 동기화
   const updateInvestmentType = (typeCode: string, answers: Record<number, number>) => {
+    if (!isFullSurveyAnswers(answers)) {
+      console.warn('Incomplete survey answers (not 40 questions), skipped updateInvestmentType sync.');
+      return;
+    }
+
     setInvestmentType(typeCode);
     setTypeAnswers(answers);
     localStorage.setItem(LOCAL_TYPE_CODE_KEY, typeCode);
@@ -290,7 +314,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               pin: userPin,
               completedLessons,
               investmentType,
-              typeAnswers,
+              typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
               simulatorSettings: settings
             })
           }).catch((e) => console.error('Server updateSimulatorSettings error:', e));
@@ -323,7 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             avatarUrl,
             completedLessons,
             investmentType,
-            typeAnswers,
+            typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings
           })
         }).catch((e) => console.error('Server updateAvatar error:', e));
@@ -444,7 +468,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           pin,
           completedLessons,
           investmentType,
-          typeAnswers,
+          typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
           simulatorSettings
         })
       });
@@ -475,7 +499,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(LOCAL_TYPE_CODE_KEY, investmentType);
       }
 
-      if (data.user.typeAnswers && Object.keys(data.user.typeAnswers).length > 0) {
+      if (data.user.typeAnswers && isFullSurveyAnswers(data.user.typeAnswers)) {
         setTypeAnswers(data.user.typeAnswers);
         localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
         localStorage.setItem('jusik_type_completed', 'true');

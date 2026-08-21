@@ -62,19 +62,25 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   useEffect(() => {
     try {
       const savedAnswers = localStorage.getItem('jusik_type_answers');
+      const savedDraft = localStorage.getItem('jusik_type_draft_answers');
       const savedCompleted = localStorage.getItem('jusik_type_completed');
       const savedPage = localStorage.getItem('jusik_type_current_page');
 
-      if (user && user.typeAnswers && Object.keys(user.typeAnswers).length > 0) {
+      // 1) 공식 완성 계정 성향 데이터 우선 (40문항 완결 시에만)
+      if (user && user.typeAnswers && Object.keys(user.typeAnswers).length === 40) {
         setAnswers(user.typeAnswers);
         setIsCompleted(true);
-      } else if (savedAnswers) {
+      } else if (savedCompleted === 'true' && savedAnswers) {
         const parsedAnswers = JSON.parse(savedAnswers);
-        setAnswers(parsedAnswers);
-
-        if (savedCompleted === 'true') {
+        if (parsedAnswers && Object.keys(parsedAnswers).length === 40) {
+          setAnswers(parsedAnswers);
           setIsCompleted(true);
-        } else if (savedPage !== null) {
+        }
+      } else if (savedDraft) {
+        // 2) 진행 중인 미완료 임시 데이터(Draft) 복원
+        const parsedDraft = JSON.parse(savedDraft);
+        setAnswers(parsedDraft);
+        if (savedPage !== null) {
           const pageNum = parseInt(savedPage, 10);
           if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
             setCurrentPage(pageNum);
@@ -93,7 +99,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
   // Fetch stats (GET read-only) when viewing completed result
   useEffect(() => {
-    if (isCompleted && Object.keys(answers).length > 0) {
+    if (isCompleted && Object.keys(answers).length === 40) {
       const resultData = calculateSurveyResult(answers);
       fetch('/api/survey-stats')
         .then((res) => res.json())
@@ -118,7 +124,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   const handleSelectScore = (questionId: number, score: number, pageIdx: number) => {
     const nextAnswers = { ...answers, [questionId]: score };
     setAnswers(nextAnswers);
-    localStorage.setItem('jusik_type_answers', JSON.stringify(nextAnswers));
+    // 미완료 응답은 오직 draft 임시 키에만 저장하여 공식 계정 데이터와 격리
+    localStorage.setItem('jusik_type_draft_answers', JSON.stringify(nextAnswers));
 
     // Smooth precision auto-scroll to next question card with navbar offset
     if (pageIdx < pageQuestions.length - 1) {
@@ -141,26 +148,32 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
       setCurrentPage(nextPage);
       localStorage.setItem('jusik_type_current_page', nextPage.toString());
     } else {
-      setIsCompleted(true);
-      setIsTakingTest(false);
-      setJustFinishedTest(true);
-      localStorage.setItem('jusik_type_completed', 'true');
-      const resultData = calculateSurveyResult(answers);
-      updateInvestmentType(resultData.typeCode, answers);
+      // 40문항 전체 완료 시에만 공식 승격
+      if (Object.keys(answers).length === 40) {
+        setIsCompleted(true);
+        setIsTakingTest(false);
+        setJustFinishedTest(true);
+        localStorage.setItem('jusik_type_completed', 'true');
+        localStorage.setItem('jusik_type_answers', JSON.stringify(answers));
+        localStorage.removeItem('jusik_type_draft_answers');
+        
+        const resultData = calculateSurveyResult(answers);
+        updateInvestmentType(resultData.typeCode, answers);
 
-      // Post survey stats
-      fetch('/api/survey-stats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ typeCode: resultData.typeCode }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.percentages) {
-            setTypePercentage(data.percentages[resultData.typeCode] || 0);
-          }
+        // Post survey stats
+        fetch('/api/survey-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ typeCode: resultData.typeCode }),
         })
-        .catch((e) => console.error(e));
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && data.percentages) {
+              setTypePercentage(data.percentages[resultData.typeCode] || 0);
+            }
+          })
+          .catch((e) => console.error(e));
+      }
     }
   };
 
@@ -179,8 +192,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     setJustFinishedTest(false);
     setIsTakingTest(true);
     setTypePercentage(undefined);
-    localStorage.removeItem('jusik_type_answers');
-    localStorage.removeItem('jusik_type_completed');
+    localStorage.removeItem('jusik_type_draft_answers');
+    localStorage.removeItem('jusik_type_current_page');
   };
 
   // Extract 1:1 comparison params if present in shared link (e.g. created from "이 비교 결과 공유하기")
@@ -215,8 +228,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     setIsCompleted(false);
     setIsTakingTest(true);
     setTypePercentage(undefined);
-    localStorage.removeItem('jusik_type_answers');
-    localStorage.removeItem('jusik_type_completed');
+    localStorage.removeItem('jusik_type_draft_answers');
     localStorage.removeItem('jusik_type_current_page');
 
     // 1:1 비교 파라미터(myCode, myU 등)가 URL에 있다면 제거하여 테스트 완료 후 내 결과 + 공유자 궁합으로 직행
@@ -233,7 +245,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   };
 
   // Case 1: [방금 테스트 완료!] 사용자가 설문을 직접 풀어서 방금 막 끝마친 경우 -> 내 성향 리포트 최우선 노출
-  if (justFinishedTest && isCompleted && Object.keys(answers).length > 0) {
+  if (justFinishedTest && isCompleted && Object.keys(answers).length === 40) {
     const myResultData = calculateSurveyResult(answers);
 
     return (
@@ -271,7 +283,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
   // Case 2: [우선순위 1] 1:1 궁합 전용 공유 링크 (두 사람의 성향이 모두 파라미터로 넘어왔을 때)
   if (compareUserFromParams && sharedProfile && !isTakingTest) {
-    const myResultData = isCompleted && Object.keys(answers).length > 0 ? calculateSurveyResult(answers) : null;
+    const myResultData = isCompleted && Object.keys(answers).length === 40 ? calculateSurveyResult(answers) : null;
 
     // 만약 사용자가 '나와 투자 성향 비교하기' 버튼을 눌렀다면 나와 친구의 1:1 성향 비교 화면만 단독 노출! (내가 기준: targetUser=나)
     if (viewMyComparison && myResultData) {
@@ -344,7 +356,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
   // Case 3: [우선순위 2] 친구 1인의 성향 공유 링크로 들어왔을 때 (기존 진단 완료자이거나 미진단자)
   if (sharedProfile && !isTakingTest) {
-    const myResultData = isCompleted && Object.keys(answers).length > 0 ? calculateSurveyResult(answers) : null;
+    const myResultData = isCompleted && Object.keys(answers).length === 40 ? calculateSurveyResult(answers) : null;
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
@@ -415,7 +427,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   }
 
   // 3. [우선순위 3] 공유 링크가 아닌 상태에서 내가 직접 테스트를 완료했을 때
-  if (isCompleted && Object.keys(answers).length > 0) {
+  if (isCompleted && Object.keys(answers).length === 40) {
     const myResultData = calculateSurveyResult(answers);
 
     return (

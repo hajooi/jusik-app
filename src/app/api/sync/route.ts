@@ -11,6 +11,10 @@ function computeRankPercentile(db: Record<string, any>, completedLessons?: strin
   return Math.max(1, Math.round((userRank / Math.max(1, allUsers.length)) * 100));
 }
 
+const isFullSurveyAnswers = (answers?: any): boolean => {
+  return !!answers && typeof answers === 'object' && Object.keys(answers).length === 40;
+};
+
 // GET /api/sync?nickname=...&pin=...
 export async function GET(request: Request) {
   try {
@@ -122,8 +126,10 @@ export async function POST(request: Request) {
         if (!existing.investmentType && investmentType && investmentType !== '미진단') {
           existing.investmentType = investmentType;
         }
-        if ((!existing.typeAnswers || Object.keys(existing.typeAnswers).length === 0) && typeAnswers && Object.keys(typeAnswers).length > 0) {
-          existing.typeAnswers = typeAnswers;
+        if (typeAnswers && isFullSurveyAnswers(typeAnswers)) {
+          if (!existing.typeAnswers || Object.keys(existing.typeAnswers).length < 40) {
+            existing.typeAnswers = typeAnswers;
+          }
         }
         if (!existing.simulatorSettings && simulatorSettings) {
           existing.simulatorSettings = simulatorSettings;
@@ -170,7 +176,7 @@ export async function POST(request: Request) {
           lastActiveAt: new Date().toISOString(),
           completedLessons: completedLessons || [],
           investmentType,
-          typeAnswers,
+          typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
           simulatorSettings,
           activeBadge,
           termsQuizBest
@@ -205,8 +211,15 @@ export async function POST(request: Request) {
       }
 
       if (completedLessons !== undefined) existing.completedLessons = completedLessons;
-      if (investmentType !== undefined) existing.investmentType = investmentType;
-      if (typeAnswers !== undefined) existing.typeAnswers = typeAnswers;
+      if (typeAnswers !== undefined && isFullSurveyAnswers(typeAnswers)) {
+        existing.typeAnswers = typeAnswers;
+      }
+      if (investmentType !== undefined) {
+        // 불완전한 typeAnswers와 함께 investmentType이 들어올 경우 덮어쓰기 방어
+        if (investmentType === '미진단' || !typeAnswers || isFullSurveyAnswers(typeAnswers)) {
+          existing.investmentType = investmentType;
+        }
+      }
       if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
       if (avatarUrl !== undefined) existing.avatarUrl = avatarUrl;
       if (activeBadge !== undefined) existing.activeBadge = activeBadge;

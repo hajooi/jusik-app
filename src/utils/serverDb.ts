@@ -130,14 +130,25 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
         const db: Record<string, ServerUserRecord> = { ...DEFAULT_MASTER_USERS };
         data.forEach((row: any) => {
           const settings = row.simulator_settings || {};
+          const isFull = row.type_answers && typeof row.type_answers === 'object' && Object.keys(row.type_answers).length === 40;
+          
+          let validatedTypeAnswers = isFull ? row.type_answers : undefined;
+          let validatedInvestmentType = row.investment_type || undefined;
+
+          // '주식부엉' 계정의 성향 데이터가 오염되었거나 누락된 경우 기본 마스터 GATR 데이터로 즉시 자동 복원
+          if (row.nickname === '주식부엉' && (!isFull || !validatedInvestmentType || validatedInvestmentType !== 'GATR')) {
+            validatedTypeAnswers = DEFAULT_MASTER_USERS['주식부엉'].typeAnswers;
+            validatedInvestmentType = 'GATR';
+          }
+
           db[row.nickname] = {
             nickname: row.nickname,
             pin: row.pin,
             createdAt: row.created_at || new Date().toISOString(),
             lastActiveAt: row.last_active_at || new Date().toISOString(),
             completedLessons: Array.isArray(row.completed_lessons) ? row.completed_lessons : [],
-            investmentType: row.investment_type || undefined,
-            typeAnswers: row.type_answers || undefined,
+            investmentType: validatedInvestmentType,
+            typeAnswers: validatedTypeAnswers,
             simulatorSettings: row.simulator_settings || undefined,
             avatarUrl: row.avatar_url || undefined,
             activeBadge: settings.activeBadge || undefined,
@@ -175,6 +186,8 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           termsQuizBest: u.termsQuizBest || currentSettings.termsQuizBest || null,
         };
 
+        const isFull = u.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40;
+
         return {
           nickname: u.nickname,
           pin: u.pin,
@@ -182,7 +195,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           last_active_at: u.lastActiveAt,
           completed_lessons: u.completedLessons || [],
           investment_type: u.investmentType || null,
-          type_answers: u.typeAnswers || null,
+          type_answers: isFull ? u.typeAnswers : (u.nickname === '주식부엉' ? DEFAULT_MASTER_USERS['주식부엉'].typeAnswers : null),
           simulator_settings: safeSettings,
           avatar_url: u.avatarUrl || null,
         };
