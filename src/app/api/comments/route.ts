@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCommentsAsync, addCommentAsync, deleteCommentAsync, CommentRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
+import { sendCommentNotification } from '@/utils/notifier';
 
 // GET /api/comments?targetKey=...
 export async function GET(request: Request) {
@@ -76,6 +77,11 @@ export async function POST(request: Request) {
 
     const updatedComments = await addCommentAsync(newComment);
     const sanitized = updatedComments.map(({ pin: _, ...rest }) => rest);
+
+    // 비동기 알림 발송 (사용자 응답 속도에 영향 없도록 비차단 처리)
+    sendCommentNotification(newComment).catch((err) => {
+      console.error('Comment notification trigger error:', err);
+    });
 
     return NextResponse.json({ success: true, comments: sanitized });
   } catch (error) {
