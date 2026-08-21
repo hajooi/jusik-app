@@ -311,9 +311,9 @@ export const CURRICULUM_DATA: Level[] = [
   {
     id: "lv1",
     levelNumber: 1,
-    title: "첫 구매 실습",
+    title: "첫 투자 실습",
     description: "필수 주식 용어부터 계좌 개설, 주식 모으기 자동 적립까지 실전으로 따라하기",
-    badgeText: "첫 구매 실습",
+    badgeText: "첫 투자 실습",
     iconName: "ShoppingBag",
     lessons: [
       {
