@@ -55,6 +55,12 @@
 
   *, ::before, ::after {
     border-color: var(--border-color);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 1.5px rgba(241, 143, 1, 0.5) !important;
   }
 
   body {
@@ -486,6 +492,23 @@ input[type='range']::-moz-range-thumb:hover {
 .animate-glow-green {
   animation: ambientGlowGreen 14s ease-in-out infinite;
   will-change: opacity, transform;
+}
+
+/* Dynamic Gradient Text Shimmer & Subtle Glow for Highlighted Numbers */
+@keyframes textShimmerOrange {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 2px rgba(241, 143, 1, 0.25));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 8px rgba(241, 143, 1, 0.5));
+  }
+}
+
+.animate-text-shimmer {
+  background-size: 200% auto;
+  animation: textShimmerOrange 4.5s ease-in-out infinite;
 }
 
 /* Pure CSS Zoom In Keyframe Animation for READY & GO Overlay */

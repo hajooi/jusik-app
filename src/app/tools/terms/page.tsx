@@ -25,6 +25,7 @@ import { TERMS_QUIZ_DATA, QUIZ_LEVELS, QuizQuestion } from '@/data/termsQuizData
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
+import { triggerConfetti } from '@/utils/confetti';
 
 type QuizState = 'intro' | 'playing' | 'summary';
 
@@ -327,6 +328,7 @@ function TermsQuizContent() {
     }
 
     setQuizState('summary');
+    triggerConfetti();
     setIsSubmitting(false);
     isAdvancingRef.current = false;
 

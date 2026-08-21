@@ -5,6 +5,7 @@ import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
 import CiscoManiaGame from '@/components/CiscoManiaGame';
 import BasicTermsQuiz from '@/components/BasicTermsQuiz';
+import FeeComparisonBox from '@/components/FeeComparisonBox';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -32,7 +33,8 @@ import {
   Target,
   Scale,
   Ghost,
-  RefreshCw
+  RefreshCw,
+  Check
 } from 'lucide-react';
 
 function renderStepIcon(iconName?: string) {
@@ -224,6 +226,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'wealth_chart' && <WealthComparisonChart />}
                     {section.interactiveTool === 'cisco_mania' && <CiscoManiaGame />}
                     {section.interactiveTool === 'basic_terms_quiz' && <BasicTermsQuiz />}
+                    {section.interactiveTool === 'fee_comparison' && <FeeComparisonBox />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -428,7 +431,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   return (
                     <RevealOnScroll key={index}>
                       <div 
-                        className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl shadow-2xs border border-[var(--border-color)] transition-all duration-300"
+                        className="relative overflow-hidden glass-card p-5 sm:p-6 rounded-2xl border border-[var(--accent-orange)] bg-[var(--accent-orange)]/[0.04] shadow-[0_0_15px_rgba(241,143,1,0.08)]"
                       >
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--accent-orange)]/15 rounded-full blur-2xl pointer-events-none" />
                         
@@ -470,6 +473,22 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               )}
                             </div>
                           </div>
+
+                          {module.benefits && module.benefits.length > 0 && (
+                            <div className="pt-4 border-t border-[var(--accent-orange)]/25 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {module.benefits.map((benefit, bIdx) => (
+                                <div
+                                  key={bIdx}
+                                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--accent-orange)]/20 text-xs font-medium text-[var(--text-primary)] shadow-2xs"
+                                >
+                                  <div className="w-4 h-4 rounded-full bg-[var(--accent-orange)]/20 flex items-center justify-center shrink-0">
+                                    <Check className="w-2.5 h-2.5 text-[var(--accent-orange)] stroke-[2.8]" />
+                                  </div>
+                                  <span>{benefit}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </RevealOnScroll>
