@@ -149,6 +149,76 @@ class SoundEngine {
     }
   }
 
+  public playFomoAttack() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      
+      // Sinister Sawtooth sweep (psychological madness & temptation attack)
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(180, now);
+      osc1.frequency.exponentialRampToValueAtTime(580, now + 0.12);
+      osc1.frequency.exponentialRampToValueAtTime(95, now + 0.32);
+
+      gain1.gain.setValueAtTime(0.14, now);
+      gain1.gain.linearRampToValueAtTime(0.001, now + 0.32);
+
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.32);
+
+      // Low rumble distortion
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(110, now);
+      osc2.frequency.exponentialRampToValueAtTime(45, now + 0.28);
+
+      gain2.gain.setValueAtTime(0.12, now);
+      gain2.gain.linearRampToValueAtTime(0.001, now + 0.28);
+
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.28);
+    } catch {
+      // Audio fallback
+    }
+  }
+
+  public playShieldBlock() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      // High crisp metallic bell/shield clink (880Hz -> 1320Hz)
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 0.22);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch {
+      // Audio fallback
+    }
+  }
+
   public playItemGet() {
     if (this.isMuted) return;
     this.init();
@@ -1392,8 +1462,10 @@ export default function CiscoManiaGame() {
     });
 
     for (const obj of currentObjs) {
-      const dist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
-      if (dist < 54) {
+      const closestX = Math.max(obj.x, Math.min(p.x, obj.x + obj.width));
+      const closestY = Math.max(obj.y, Math.min(p.y, obj.y + obj.height));
+      const dist = Math.hypot(p.x - closestX, p.y - closestY);
+      if (dist <= 32) {
         startDialogue(obj);
         return;
       }
@@ -1443,10 +1515,12 @@ export default function CiscoManiaGame() {
           worldClickY >= obj.y - 16 && worldClickY <= obj.y + obj.height + 20;
 
         if (isClicked) {
-          const currentDist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
+          const closestX = Math.max(obj.x, Math.min(p.x, obj.x + obj.width));
+          const closestY = Math.max(obj.y, Math.min(p.y, obj.y + obj.height));
+          const currentDist = Math.hypot(p.x - closestX, p.y - closestY);
           
           // If standing near the object (within interaction range), open dialogue immediately
-          if (currentDist < 52) {
+          if (currentDist <= 32) {
             startDialogue(obj);
             return;
           }
@@ -2346,9 +2420,11 @@ export default function CiscoManiaGame() {
       currentObjs.forEach((obj) => {
         const ix = obj.indicatorX ?? (obj.x + obj.width / 2);
         const iy = obj.indicatorY ?? (obj.y - 12);
-        const dist = Math.hypot((obj.x + obj.width / 2) - p.x, (obj.y + obj.height / 2) - p.y);
+        const closestX = Math.max(obj.x, Math.min(p.x, obj.x + obj.width));
+        const closestY = Math.max(obj.y, Math.min(p.y, obj.y + obj.height));
+        const dist = Math.hypot(p.x - closestX, p.y - closestY);
 
-        if (dist < 48) {
+        if (dist <= 55) {
           const bounce = Math.sin(Date.now() / 160) * 3;
           ctx.fillStyle = '#ef4444';
           ctx.beginPath();
@@ -2395,9 +2471,11 @@ export default function CiscoManiaGame() {
     // Boss Turn
     setTimeout(() => {
       if (isShieldActive) {
+        sounds.playShieldBlock();
         setBattleLog('FOMO의 유혹: "너만 빼고 다 부자 됐어!" ➔ [이성의 방패]로 완벽 방어!');
         setIsShieldActive(false);
       } else {
+        sounds.playFomoAttack();
         const bossDmg = 25;
         setPlayerMental((prev) => Math.max(10, prev - bossDmg));
         setBattleLog(`FOMO의 유혹: "너만 빼고 다 부자 됐어!" (멘탈 -${bossDmg} 피해!)`);
@@ -2416,6 +2494,7 @@ export default function CiscoManiaGame() {
     setBattleLog('김대리가 [이성의 방패]를 펼쳤다! "남들의 속도에 흔들리지 않는다!" (방어 태세)');
 
     setTimeout(() => {
+      sounds.playShieldBlock();
       setBattleLog('FOMO의 압박을 [이성의 방패]로 튕겨냈다! (데미지 0)');
       setIsShieldActive(false);
       setTimeout(() => {
@@ -2433,9 +2512,11 @@ export default function CiscoManiaGame() {
 
     setTimeout(() => {
       if (isShieldActive) {
+        sounds.playShieldBlock();
         setBattleLog('FOMO의 유혹 공격을 방어했다!');
         setIsShieldActive(false);
       } else {
+        sounds.playFomoAttack();
         const bossDmg = 20;
         setPlayerMental((prev) => Math.max(10, prev - bossDmg));
         setBattleLog(`FOMO가 조급함을 자극했다! (멘탈 -${bossDmg})`);
