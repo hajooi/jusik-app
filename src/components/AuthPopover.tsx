@@ -127,11 +127,11 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
   };
 
   // Avatar source resolution
-  const userAvatarSrc = user?.avatarUrl
+  const userAvatarSrc = user?.nickname === '주식부엉'
+    ? '/icon.png'
+    : user?.avatarUrl && !user.avatarUrl.includes('default-avatar') && !user.avatarUrl.includes('guest.png')
     ? user.avatarUrl
-    : user?.nickname === '주식부엉'
-    ? '/logo.png'
-    : '/default-avatar.png';
+    : '/guest.png';
 
   return (
     <div 

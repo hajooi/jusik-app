@@ -76,9 +76,11 @@ export default function CommentSection({
 
   // Helper to get avatar source
   const getAvatarSrc = (commentNick: string, avatarUrl?: string) => {
-    if (avatarUrl) return avatarUrl;
-    if (commentNick === '주식부엉') return '/logo.png';
-    return '/default-avatar.png';
+    if (commentNick === '주식부엉') return '/icon.png';
+    if (avatarUrl && !avatarUrl.includes('default-avatar') && !avatarUrl.includes('guest.png')) {
+      return avatarUrl;
+    }
+    return '/guest.png';
   };
 
   // Fetch comments for current targetKey
