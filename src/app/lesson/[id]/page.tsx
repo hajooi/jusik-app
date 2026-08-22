@@ -7,6 +7,7 @@ import CiscoManiaGame from '@/components/CiscoManiaGame';
 import BasicTermsQuiz from '@/components/BasicTermsQuiz';
 import FeeComparisonBox from '@/components/FeeComparisonBox';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
+import StockTradeGuide from '@/components/StockTradeGuide';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -299,6 +300,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     return (
                       <RevealOnScroll key={index}>
                         <AccountOpenGuide />
+                      </RevealOnScroll>
+                    );
+                  }
+                  if (lesson.id === 'lv1-4') {
+                    return (
+                      <RevealOnScroll key={index}>
+                        <StockTradeGuide />
                       </RevealOnScroll>
                     );
                   }
