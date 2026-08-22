@@ -6,6 +6,7 @@ import WealthComparisonChart from '@/components/WealthComparisonChart';
 import CiscoManiaGame from '@/components/CiscoManiaGame';
 import BasicTermsQuiz from '@/components/BasicTermsQuiz';
 import FeeComparisonBox from '@/components/FeeComparisonBox';
+import AccountOpenGuide from '@/components/AccountOpenGuide';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -294,6 +295,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             <div className="space-y-6 -mt-3 sm:-mt-4">
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
+                  if (lesson.id === 'lv1-3') {
+                    return (
+                      <RevealOnScroll key={index}>
+                        <AccountOpenGuide />
+                      </RevealOnScroll>
+                    );
+                  }
                   const hasSingleUntitledStep = module.steps.length === 1 && !module.steps[0].title;
                   return (
                     <RevealOnScroll key={index}>

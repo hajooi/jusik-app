@@ -522,22 +522,6 @@ export const CURRICULUM_DATA: Level[] = [
                 ]
               }
             ]
-          },
-          {
-            type: "cta",
-            badge: "평생 우대 혜택",
-            title: "주식부엉 x 오로라투자자문 수수료 우대 혜택 신청",
-            description: "아래 혜택은 안내된 제휴 절차(DB증권 비대면 계좌 개설 & 자문사 앱 연동)를 진행하셔야 평생 적용됩니다.",
-            benefits: [
-              "해외주식 수수료 ── 0.04% [업계 최저 수준]",
-              "환전 수수료 ── 무료 (0원)",
-              "국내주식 수수료 ── 0.015%",
-              "이체 수수료 ── 무료 (0원)",
-              "해외선물 수수료 ── $2.49"
-            ],
-            buttonText: "혜택 신청 폼 작성하기",
-            buttonUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfMK-ZxVqgFSmKq0VyJu-K8IcLQJFjdmyaouG5Pls7hfX8siA/viewform",
-            isExternal: true
           }
         ]
       },

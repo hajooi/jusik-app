@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useCallback } from 'react';
-import { Sparkles, ShieldCheck } from 'lucide-react';
+import { Sparkles, ShieldCheck, Check } from 'lucide-react';
 
 interface Particle {
   x: number;
@@ -15,6 +15,14 @@ interface Particle {
   alpha: number;
   shape: 'rect' | 'circle';
 }
+
+const BENEFIT_LIST = [
+  { label: '해외주식 수수료', value: '0.04%', tag: '업계 최저 수준' },
+  { label: '환전 수수료', value: '무료 (0원)', tag: '환전 우대' },
+  { label: '국내주식 수수료', value: '0.015%', tag: '평생 우대' },
+  { label: '이체 수수료', value: '무료 (0원)', tag: '무제한 무료' },
+  { label: '해외선물 수수료', value: '$2.49', tag: '선물 옵션' }
+];
 
 export default function FeeComparisonBox() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -111,7 +119,7 @@ export default function FeeComparisonBox() {
   }, []);
 
   return (
-    <div className="relative w-full my-2 space-y-4">
+    <div className="relative w-full my-3 space-y-4">
       {/* 폭죽 캔버스 오버레이 */}
       <canvas
         ref={canvasRef}
@@ -228,6 +236,33 @@ export default function FeeComparisonBox() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 평생 우대 혜택 리스트 박스 */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-zinc-900/60 border border-[var(--border-color)] shadow-2xs space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="p-1.5 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+            <Sparkles className="w-4 h-4" />
+          </span>
+          <h4 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+            주식부엉 X 오로라투자자문 평생 우대 혜택
+          </h4>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+          {BENEFIT_LIST.map((b, idx) => (
+            <div 
+              key={idx}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--card-hover)]/70 border border-[var(--border-color)]/70 text-xs"
+            >
+              <div className="flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[var(--emerald)] stroke-[3]" />
+                <span className="text-[var(--text-secondary)] font-medium">{b.label}</span>
+              </div>
+              <span className="font-extrabold text-[var(--text-primary)]">{b.value}</span>
+            </div>
+          ))}
         </div>
       </div>
 
