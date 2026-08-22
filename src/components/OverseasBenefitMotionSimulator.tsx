@@ -259,11 +259,12 @@ export default function OverseasBenefitMotionSimulator({
                             <span className="tracking-tighter">해외주식</span>
                           </div>
 
+                          {/* Translucent White Touch Ring */}
                           {scene1Step === 3 && (
                             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                              <span className="relative flex h-5 w-5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                                <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                              <span className="relative flex h-6 w-6">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                                <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                               </span>
                             </div>
                           )}
@@ -309,11 +310,12 @@ export default function OverseasBenefitMotionSimulator({
                     <span className="text-zinc-400">주문</span>
                     <span className="text-zinc-400">잔고</span>
 
+                    {/* Translucent White Touch Ring */}
                     {scene1Step === 1 && (
-                      <div className="absolute left-2 top-0 pointer-events-none">
-                        <span className="relative flex h-5 w-5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-80" />
-                          <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-600/70 border border-white shadow-sm" />
+                      <div className="absolute left-1 top-0 pointer-events-none">
+                        <span className="relative flex h-6 w-6">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                          <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                         </span>
                       </div>
                     )}
@@ -364,11 +366,12 @@ export default function OverseasBenefitMotionSimulator({
                           </div>
                         </div>
 
+                        {/* Translucent White Touch Ring */}
                         {scene2Step === 1 && (
                           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                            <span className="relative flex h-5 w-5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                              <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                            <span className="relative flex h-6 w-6">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                              <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                             </span>
                           </div>
                         )}
@@ -451,11 +454,12 @@ export default function OverseasBenefitMotionSimulator({
                         </div>
                       </div>
 
+                      {/* Translucent White Touch Ring */}
                       {scene3Step === 1 && (
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                          <span className="relative flex h-5 w-5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                            <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                          <span className="relative flex h-6 w-6">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                            <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                           </span>
                         </div>
                       )}
@@ -524,11 +528,12 @@ export default function OverseasBenefitMotionSimulator({
                         제출
                       </div>
 
+                      {/* Translucent White Touch Ring */}
                       {scene4Step === 1 && (
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                          <span className="relative flex h-5 w-5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                            <span className="relative inline-flex rounded-full h-5 w-5 bg-white/70 border border-purple-600 shadow-sm" />
+                          <span className="relative flex h-6 w-6">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                            <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                           </span>
                         </div>
                       )}

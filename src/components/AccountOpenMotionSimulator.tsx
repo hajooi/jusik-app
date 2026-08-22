@@ -302,12 +302,12 @@ export default function AccountOpenMotionSimulator({
                               {scene2Step >= 3 && <Check className="w-3 h-3 stroke-[3]" />}
                             </div>
 
-                            {/* Centered touch pulse */}
+                            {/* Centered Translucent White Touch Ring */}
                             {scene2Step === 2 && (
                               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                <span className="relative flex h-5 w-5">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                                  <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                                <span className="relative flex h-6 w-6">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                                  <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                                 </span>
                               </div>
                             )}
@@ -376,12 +376,12 @@ export default function AccountOpenMotionSimulator({
                           scene3Step === 3 ? 'bg-emerald-100 border-emerald-500 text-emerald-800' : 'bg-zinc-50 border-zinc-300 text-zinc-700'
                         }`}>
                           [등록/선택] 버튼 탭
-                          {/* Centered touch pulse */}
+                          {/* Centered Translucent White Touch Ring */}
                           {scene3Step === 3 && (
                             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                              <span className="relative flex h-5 w-5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                                <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                              <span className="relative flex h-6 w-6">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                                <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
                               </span>
                             </div>
                           )}
@@ -440,26 +440,50 @@ export default function AccountOpenMotionSimulator({
             </div>
 
             {/* Bottom Screen Button */}
-            <div className="pt-2">
+            <div className="pt-2 relative">
               {activeScene === 1 && (
-                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 relative ${
                   scene1Step >= 2 ? 'bg-emerald-500 shadow-md scale-[0.98]' : 'bg-emerald-500'
                 }`}>
                   계좌개설 시작
+                  {scene1Step === 1 && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <span className="relative flex h-6 w-6">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                        <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
               {activeScene === 2 && (
-                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 relative ${
                   scene2Step >= 4 ? 'bg-emerald-500 shadow-md' : 'bg-zinc-300'
                 }`}>
                   다음
+                  {scene2Step === 4 && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <span className="relative flex h-6 w-6">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                        <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
               {activeScene === 3 && (
-                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 relative ${
                   scene3Step >= 4 ? 'bg-emerald-500 shadow-md' : 'bg-zinc-300'
                 }`}>
                   다음
+                  {scene3Step === 4 && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <span className="relative flex h-6 w-6">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-80" />
+                        <span className="relative inline-flex rounded-full h-6 w-6 bg-white/80 backdrop-blur-xs border border-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
               {activeScene === 4 && (
