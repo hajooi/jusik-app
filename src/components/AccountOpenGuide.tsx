@@ -11,17 +11,14 @@ import {
   ChevronRight, 
   ExternalLink, 
   Download, 
-  ArrowRight,
-  Maximize2,
-  X,
-  HelpCircle,
-  ShieldCheck,
-  Check,
-  Mail,
-  Phone,
-  Building,
-  KeyRound,
-  Unlock
+  HelpCircle, 
+  ShieldCheck, 
+  Mail, 
+  Phone, 
+  Building, 
+  KeyRound, 
+  Unlock,
+  FileCheck2
 } from 'lucide-react';
 import AccountOpenMotionSimulator from '@/components/AccountOpenMotionSimulator';
 import AdvisoryMotionSimulator from '@/components/AdvisoryMotionSimulator';
@@ -33,22 +30,12 @@ interface StepData {
   title: string;
   shortTitle: string;
   icon: React.ReactNode;
-  breadcrumbs?: string[];
   details: string[];
-  tips?: string;
-  image?: string;
-  imageAlt?: string;
   appDownload?: {
     appName: string;
     iosUrl: string;
     androidUrl: string;
   }[];
-  ctaForm?: {
-    title: string;
-    description: string;
-    buttonText: string;
-    buttonUrl: string;
-  };
 }
 
 const STEPS: StepData[] = [
@@ -81,12 +68,7 @@ const STEPS: StepData[] = [
     title: "2단계: DB증권 비대면 계좌 개설",
     shortTitle: "계좌개설",
     icon: <Sparkles className="w-5 h-5 text-[var(--accent-orange)]" />,
-    details: [
-      "1. 비대면 계좌개설 시작: 약관 동의 및 비대면 계좌 개설 절차를 시작합니다.",
-      "2. FA종합매매계좌 선택: 화면을 아래로 내려 [FA자문사 연계 계좌] ➔ [FA종합매매계좌]를 선택합니다.",
-      "3. 관리점 정보 입력: 관리지점에 [강남금융센터], 관리자에 [김주호]를 입력합니다.",
-      "4. 비대면 계좌개설 완료: 본인 인증 및 계좌 개설 절차가 성공적으로 마무리됩니다."
-    ]
+    details: []
   },
   {
     id: 3,
@@ -94,31 +76,15 @@ const STEPS: StepData[] = [
     title: "3단계: 수수료 우대 연동",
     shortTitle: "우대연동",
     icon: <Target className="w-5 h-5 text-[var(--accent-orange)]" />,
-    details: [
-      "1. 자문사 앱 가입 & 분석: 자문사 앱 실행 후 [1분 투자로 가입하기] 또는 로그인 ➔ 간단한 [투자성향 분석]을 완료합니다.",
-      "2. 오로라투자자문 선택: 홈 화면에서 [자문사 찾기]를 누른 후 자문사 목록에서 [오로라투자자문]을 찾아 선택합니다.",
-      "3. 오로라x주식부엉 자율형MP: 운용포트폴리오에서 [오로라x주식부엉 자율형MP]를 누르고 [포트폴리오 투자하기]를 누릅니다.",
-      "4. 계좌연결 완료: 개설 계좌를 선택하고 연동 절차를 완료하면 평생 우대 혜택이 연결됩니다."
-    ]
+    details: []
   },
   {
     id: 4,
     stepNum: 4,
-    title: "4단계: 해외주식 신청 & 혜택 폼 작성",
-    shortTitle: "혜택신청",
+    title: "4단계: 해외주식 거래 이용신청",
+    shortTitle: "해외신청",
     icon: <CheckCircle2 className="w-5 h-5 text-[var(--accent-orange)]" />,
-    details: [
-      "1. 해외주식 메뉴 이동: DB증권 앱 홈 하단 [메뉴] ➔ 상단 [해외주식] 탭으로 이동합니다.",
-      "2. 해외거래 이용신청: 좌측 [서비스신청] ➔ [해외주식거래이용신청]을 선택합니다.",
-      "3. 해외주식 신청 완료: 약관 확인 후 해외주식 거래 이용신청을 완료합니다.",
-      "4. 혜택 신청 폼 제출: 아래 구글 폼에 개설 정보를 입력하고 제출하면 평생 우대가 적용됩니다."
-    ],
-    ctaForm: {
-      title: "주식부엉 x 오로라투자자문 수수료 평생 우대 혜택 신청",
-      description: "안내된 절차(DB증권 계좌 개설 및 자문사 앱 연동)를 완료하신 후 아래 폼을 작성해 주세요.",
-      buttonText: "혜택 신청 폼 작성하기",
-      buttonUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfMK-ZxVqgFSmKq0VyJu-K8IcLQJFjdmyaouG5Pls7hfX8siA/viewform"
-    }
+    details: []
   },
   {
     id: 5,
@@ -148,22 +114,20 @@ const STEP4_SUBSTEPS = [
   { num: 1, title: "해외주식 메뉴 이동", desc: "DB증권 앱 홈 하단 [메뉴] ➔ 상단 [해외주식] 탭으로 이동합니다." },
   { num: 2, title: "해외거래 이용신청", desc: "좌측 [서비스신청] ➔ [해외주식거래이용신청]을 선택합니다." },
   { num: 3, title: "해외주식 신청 완료", desc: "약관 확인 후 해외주식 거래 이용신청을 완료합니다." },
-  { num: 4, title: "혜택 신청 폼 제출", desc: "아래 구글 폼에 개설 정보를 입력하고 제출하면 평생 우대가 적용됩니다." }
+  { num: 4, title: "혜택 신청 폼 제출", desc: "개설 정보를 구글 폼에 제출하시면 평생 우대 혜택이 최종 적용됩니다." }
 ];
 
 const CONTACT_LIST = [
   {
     role: "주식부엉",
     contact: "booung@jusik.app",
-    type: "email",
-    desc: "가이드 및 계좌 개설 관련 전반 문의",
+    desc: "가이드 및 계좌 개설 전반 문의",
     href: "mailto:booung@jusik.app",
     icon: <Mail className="w-4 h-4 text-[var(--accent-orange)]" />
   },
   {
     role: "DB증권 강남금융센터",
     contact: "02-568-3872",
-    type: "phone",
     desc: "DB증권 계좌 개설 및 지점 유선 안내",
     href: "tel:02-568-3872",
     icon: <Building className="w-4 h-4 text-indigo-500" />
@@ -171,20 +135,20 @@ const CONTACT_LIST = [
   {
     role: "오로라투자자문",
     contact: "02-6956-9439",
-    type: "phone",
     desc: "자문사 앱 연동 및 포트폴리오 유선 안내",
     href: "tel:02-6956-9439",
     icon: <Phone className="w-4 h-4 text-emerald-500" />
   }
 ];
 
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfMK-ZxVqgFSmKq0VyJu-K8IcLQJFjdmyaouG5Pls7hfX8siA/viewform";
+
 export default function AccountOpenGuide() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0); // 0: Step1, 1: Step2, 2: Step3, 3: Step4, 4: Step5
   const [userOS, setUserOS] = useState<'ios' | 'android'>('ios');
   const [simulatorScene, setSimulatorScene] = useState<1 | 2 | 3 | 4>(1);
   const [advisoryScene, setAdvisoryScene] = useState<1 | 2 | 3 | 4>(1);
   const [overseasScene, setOverseasScene] = useState<1 | 2 | 3 | 4>(1);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     const ua = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || '';
@@ -197,12 +161,66 @@ export default function AccountOpenGuide() {
 
   const step = STEPS[currentStep];
 
+  // 2-1 -> 2-2 -> 2-3 -> 2-4 -> 3-1 -> 3-2 ... 순차 서브스텝 이동 핸들러
   const handlePrev = () => {
-    if (currentStep > 0) setCurrentStep(prev => prev - 1);
+    if (currentStep === 4) {
+      setCurrentStep(3);
+      setOverseasScene(4);
+    } else if (currentStep === 3) {
+      if (overseasScene > 1) {
+        setOverseasScene((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(2);
+        setAdvisoryScene(4);
+      }
+    } else if (currentStep === 2) {
+      if (advisoryScene > 1) {
+        setAdvisoryScene((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(1);
+        setSimulatorScene(4);
+      }
+    } else if (currentStep === 1) {
+      if (simulatorScene > 1) {
+        setSimulatorScene((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(0);
+      }
+    }
   };
 
   const handleNext = () => {
-    if (currentStep < STEPS.length - 1) setCurrentStep(prev => prev + 1);
+    if (currentStep === 0) {
+      setCurrentStep(1);
+      setSimulatorScene(1);
+    } else if (currentStep === 1) {
+      if (simulatorScene < 4) {
+        setSimulatorScene((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(2);
+        setAdvisoryScene(1);
+      }
+    } else if (currentStep === 2) {
+      if (advisoryScene < 4) {
+        setAdvisoryScene((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(3);
+        setOverseasScene(1);
+      }
+    } else if (currentStep === 3) {
+      if (overseasScene < 4) {
+        setOverseasScene((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+      } else {
+        setCurrentStep(4);
+      }
+    }
+  };
+
+  const handleMainTabClick = (idx: number) => {
+    setCurrentStep(idx);
+    if (idx === 1) setSimulatorScene(1);
+    if (idx === 2) setAdvisoryScene(1);
+    if (idx === 3) setOverseasScene(1);
   };
 
   const handleAppDownload = (app: { iosUrl: string; androidUrl: string }) => {
@@ -211,9 +229,9 @@ export default function AccountOpenGuide() {
   };
 
   return (
-    <div className="glass-card rounded-3xl p-5 sm:p-7 border border-[var(--border-color)]/90 shadow-sm space-y-6">
+    <div className="glass-card rounded-3xl p-4 sm:p-7 border border-[var(--border-color)]/90 shadow-sm space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)]/60 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)]/60 pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
@@ -229,7 +247,7 @@ export default function AccountOpenGuide() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex items-center gap-1.5 self-start sm:self-center px-3 py-1 rounded-full bg-[var(--card-hover)] border border-[var(--border-color)]/80 text-xs font-bold text-[var(--accent-orange)]">
+        <div className="flex items-center gap-1.5 self-start sm:self-center px-3 py-1 rounded-full bg-[var(--card-hover)] border border-[var(--border-color)]/80 text-xs font-bold text-[var(--accent-orange)] whitespace-nowrap">
           <span>단계</span>
           <span className="font-extrabold">{currentStep + 1}</span>
           <span className="text-[var(--text-secondary)]">/</span>
@@ -238,7 +256,7 @@ export default function AccountOpenGuide() {
       </div>
 
       {/* Step Tabs Navigation with Sliding Pill Animation */}
-      <div className="relative p-1.5 rounded-2xl bg-[var(--card-hover)]/70 border border-[var(--border-color)]/50 select-none">
+      <div className="relative p-1 rounded-2xl bg-[var(--card-hover)]/80 border border-[var(--border-color)]/50 select-none">
         <div className="grid grid-cols-5 relative">
           {/* Liquid Sliding Pill Highlight */}
           <div 
@@ -256,8 +274,9 @@ export default function AccountOpenGuide() {
             return (
               <button
                 key={s.id}
-                onClick={() => setCurrentStep(idx)}
-                className={`relative z-10 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-center transition-colors duration-200 ${
+                type="button"
+                onClick={() => handleMainTabClick(idx)}
+                className={`relative z-10 flex flex-col items-center justify-center py-2 px-0.5 text-center transition-colors duration-200 ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'
                     : isDone
@@ -265,10 +284,10 @@ export default function AccountOpenGuide() {
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium'
                 }`}
               >
-                <span className="text-[10px] sm:text-xs opacity-80">
+                <span className="text-[9px] sm:text-[11px] leading-tight tracking-tighter opacity-80 whitespace-nowrap">
                   {isDone ? '완료' : `STEP 0${s.stepNum}`}
                 </span>
-                <span className="text-xs sm:text-sm truncate w-full px-0.5 mt-0.5">
+                <span className="text-[11px] sm:text-sm font-bold tracking-tight whitespace-nowrap mt-0.5">
                   {s.shortTitle}
                 </span>
               </button>
@@ -278,13 +297,13 @@ export default function AccountOpenGuide() {
       </div>
 
       {/* Active Step Content Card */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
+      <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
         {/* Step Title */}
         <div className="flex items-center gap-2.5">
           <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
             {step.icon}
           </span>
-          <h4 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+          <h4 className="text-base sm:text-lg font-black text-[var(--text-primary)]">
             {step.title}
           </h4>
         </div>
@@ -319,7 +338,7 @@ export default function AccountOpenGuide() {
           </div>
         )}
 
-        {/* STEP 2 SPECIAL: 4-Step Interactive Navigation + Account Simulator */}
+        {/* STEP 2 SPECIAL: 4-Step Interactive Substep Cards + Account Simulator */}
         {step.stepNum === 2 && (
           <div className="space-y-4 pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -367,7 +386,7 @@ export default function AccountOpenGuide() {
           </div>
         )}
 
-        {/* STEP 3 SPECIAL: 4-Step Interactive Navigation + Advisory Simulator */}
+        {/* STEP 3 SPECIAL: 4-Step Interactive Substep Cards + Advisory Simulator */}
         {step.stepNum === 3 && (
           <div className="space-y-4 pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -415,7 +434,7 @@ export default function AccountOpenGuide() {
           </div>
         )}
 
-        {/* STEP 4 SPECIAL: 4-Step Interactive Navigation + Overseas Simulator + Simple CTA Form */}
+        {/* STEP 4 SPECIAL: 4-Step Interactive Substep Cards + Overseas Simulator */}
         {step.stepNum === 4 && (
           <div className="space-y-4 pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -460,35 +479,6 @@ export default function AccountOpenGuide() {
                 onSceneChange={setOverseasScene}
               />
             </div>
-
-            {/* Simple Integrated CTA Form Box */}
-            {step.ctaForm && (
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/10 to-transparent border border-[var(--accent-orange)]/40 space-y-3.5 mt-4">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-lg bg-[var(--accent-orange)] text-white">
-                    <ShieldCheck className="w-4 h-4" />
-                  </span>
-                  <h5 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)]">
-                    {step.ctaForm.title}
-                  </h5>
-                </div>
-
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-                  {step.ctaForm.description}
-                </p>
-
-                {/* Google Form Button (No parenthesis) */}
-                <a
-                  href={step.ctaForm.buttonUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-[var(--accent-orange)] hover:bg-[#d97706] text-white font-extrabold text-sm sm:text-base transition-all shadow-md hover:shadow-lg scale-[1.00] hover:scale-[1.01]"
-                >
-                  <span>{step.ctaForm.buttonText}</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            )}
           </div>
         )}
 
@@ -593,24 +583,22 @@ export default function AccountOpenGuide() {
       {/* Prev / Next Navigation Buttons */}
       <div className="flex items-center justify-between pt-2 gap-3">
         <button
+          type="button"
           onClick={handlePrev}
           disabled={currentStep === 0}
           className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
             currentStep === 0
               ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-secondary)]'
-              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50'
+              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
           이전 단계
         </button>
 
-        <div className="text-xs text-[var(--text-secondary)] font-semibold hidden sm:block">
-          {currentStep === STEPS.length - 1 ? '모든 절차가 완료되었습니다 🎉' : `${currentStep + 1} / ${STEPS.length} 진행 중`}
-        </div>
-
-        {currentStep < STEPS.length - 1 ? (
+        {currentStep < 4 ? (
           <button
+            type="button"
             onClick={handleNext}
             className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:bg-[#d97706] text-white transition-all shadow-xs"
           >
@@ -619,7 +607,8 @@ export default function AccountOpenGuide() {
           </button>
         ) : (
           <button
-            onClick={() => setCurrentStep(0)}
+            type="button"
+            onClick={() => handleMainTabClick(0)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 transition-all"
           >
             처음부터 다시 보기
@@ -627,27 +616,34 @@ export default function AccountOpenGuide() {
         )}
       </div>
 
-      {/* Image Lightbox Modal */}
-      {previewImage && (
-        <div 
-          onClick={() => setPreviewImage(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-2xl w-full max-h-[90vh] flex flex-col items-center">
-            <button 
-              onClick={() => setPreviewImage(null)}
-              className="absolute -top-10 right-0 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <img 
-              src={previewImage} 
-              alt="화면 확대" 
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
-            />
+      {/* 🌟 독립된 상시 노출 혜택 신청 폼 박스 (언제든 한눈에 확인 가능) */}
+      <div className="relative p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/15 to-transparent border-2 border-[var(--accent-orange)]/50 shadow-[0_0_24px_rgba(241,143,1,0.15)] space-y-4 mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-[var(--accent-orange)] text-white shadow-xs">
+                <FileCheck2 className="w-4 h-4" />
+              </span>
+              <h4 className="text-sm sm:text-base font-black text-[var(--text-primary)]">
+                주식부엉 X 오로라투자자문 평생 우대 혜택 신청
+              </h4>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] font-medium pl-8 sm:pl-0">
+              계좌 개설 및 자문사 앱 연동을 마치신 후, 아래 폼을 작성해 주시면 영업일 기준 1~2일 내에 우대 혜택이 세팅됩니다.
+            </p>
           </div>
+
+          <a
+            href={GOOGLE_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[var(--accent-orange)] hover:bg-[#d97706] text-white font-extrabold text-xs sm:text-sm transition-all shadow-md hover:shadow-lg scale-[1.00] hover:scale-[1.02] shrink-0 whitespace-nowrap"
+          >
+            <span>혜택 신청 폼 작성하기</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
         </div>
-      )}
+      </div>
     </div>
   );
 }

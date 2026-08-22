@@ -36,11 +36,6 @@ export default function OverseasBenefitMotionSimulator({
   const [scene3Step, setScene3Step] = useState(0); // 0: apply screen, 1: pulse apply card, 2: apply completed
   const [scene4Step, setScene4Step] = useState(0); // 0: google form, 1: pulse submit btn, 2: submitted
 
-  const handleSceneSelect = (s: 1 | 2 | 3 | 4) => {
-    setInternalScene(s);
-    if (onSceneChange) onSceneChange(s);
-  };
-
   // Scene 1 Auto Loop (Home -> Menu -> Overseas Tab)
   useEffect(() => {
     if (activeScene !== 1) return;
@@ -166,42 +161,8 @@ export default function OverseasBenefitMotionSimulator({
     return () => { isMounted = false; clearTimeout(timerId); };
   }, [activeScene]);
 
-  const sceneTitles = [
-    { num: 1, label: '1. 해외메뉴' },
-    { num: 2, label: '2. 서비스' },
-    { num: 3, label: '3. 이용신청' },
-    { num: 4, label: '4. 폼제출' }
-  ];
-
   return (
-    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 space-y-5 shadow-sm backdrop-blur-xl transition-all">
-      {/* Centered Glassmorphic 4-Scene Switcher */}
-      <div className="flex justify-center">
-        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[420px] select-none">
-          {/* Animated Sliding Pill Surface */}
-          <div 
-            className="absolute top-1 bottom-1 rounded-xl bg-[var(--accent-orange)] text-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-            style={{
-              width: 'calc(25% - 2px)',
-              transform: `translateX(${(activeScene - 1) * 100}%)`,
-            }}
-          />
-
-          {sceneTitles.map((st) => (
-            <button
-              key={st.num}
-              type="button"
-              onClick={() => handleSceneSelect(st.num as 1 | 2 | 3 | 4)}
-              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 whitespace-nowrap px-1 ${
-                activeScene === st.num ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 shadow-sm backdrop-blur-xl transition-all">
       {/* Premium Titanium iPhone 16 Pro Smartphone Device Frame */}
       <div className="relative mx-auto max-w-[310px] w-full rounded-[2.8rem] p-2.5 bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-950 border border-zinc-600/60 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         {/* Screen Bezel Frame */}
@@ -265,7 +226,7 @@ export default function OverseasBenefitMotionSimulator({
                     </div>
                   </div>
                 ) : (
-                  /* DB증권 전체메뉴 화면 재현 (1.56.36) - No-Wrap & Tight Spacing */
+                  /* DB증권 전체메뉴 화면 재현 (1.56.36) */
                   <div className="space-y-2 pt-1 flex flex-col justify-between h-full">
                     <div>
                       {/* Top Header Icons */}
@@ -280,7 +241,7 @@ export default function OverseasBenefitMotionSimulator({
                         🌱 간편한 계좌개설, 시작해볼까요?
                       </div>
 
-                      {/* 5 Main Menu Category Tabs (글자 줄바꿈 완벽 방지) */}
+                      {/* 5 Main Menu Category Tabs */}
                       <div className="grid grid-cols-5 gap-0.5 pt-2 border-b border-zinc-200 pb-2 text-center text-[8px] font-bold">
                         <div className="p-0.5 rounded text-zinc-400 whitespace-nowrap">
                           <TrendingUp className="w-3 h-3 mx-auto mb-0.5 opacity-60" />
@@ -517,7 +478,7 @@ export default function OverseasBenefitMotionSimulator({
               </div>
             )}
 
-            {/* SCENE 4: 실제 구글 폼 제휴 계좌 개설 정보 제출 (1.57.23, 1.57.26) */}
+            {/* SCENE 4: 실제 구글 폼 제휴 계좌 개설 정보 제출 */}
             {activeScene === 4 && (
               <div className="flex flex-col h-full justify-between pt-0.5">
                 {scene4Step < 2 ? (

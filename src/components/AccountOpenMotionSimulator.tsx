@@ -9,7 +9,9 @@ import {
   Sparkles, 
   ChevronRight, 
   X,
+  CreditCard,
   Building,
+  UserCheck,
   ShieldCheck
 } from 'lucide-react';
 
@@ -25,16 +27,11 @@ export default function AccountOpenMotionSimulator({
   const [internalScene, setInternalScene] = useState<1 | 2 | 3 | 4>(1);
   const activeScene = currentScene ?? internalScene;
 
-  // Animation step states
-  const [scene1Step, setScene1Step] = useState(0); // 0: initial, 1: pulse on non-face-to-face button, 2: selected
-  const [scene2Step, setScene2Step] = useState(0); // 0: top list, 1: scroll down, 2: pulse FA radio, 3: FA active, 4: pulse confirm
-  const [scene3Step, setScene3Step] = useState(0); // 0: empty inputs, 1: branch filled, 2: manager filled, 3: pulse confirm
-  const [scene4Step, setScene4Step] = useState(0); // 0: loading, 1: success card reveal, 2: pulse next button
-
-  const handleSceneSelect = (s: 1 | 2 | 3 | 4) => {
-    setInternalScene(s);
-    if (onSceneChange) onSceneChange(s);
-  };
+  // Scene-specific animation steps
+  const [scene1Step, setScene1Step] = useState(0); // 0: initial, 1: pulse on start, 2: clicked
+  const [scene2Step, setScene2Step] = useState(0); // 0: top list, 1: scroll down, 2: pulse FA, 3: FA active, 4: next active
+  const [scene3Step, setScene3Step] = useState(0); // 0: typing ID, 1: ID done, 2: pw done, 3: manager pulse, 4: manager filled
+  const [scene4Step, setScene4Step] = useState(0); // 0: complete reveal
 
   // Scene 1 Auto Loop
   useEffect(() => {
@@ -48,11 +45,11 @@ export default function AccountOpenMotionSimulator({
 
       timerId = setTimeout(() => {
         if (!isMounted) return;
-        setScene1Step(1); // Pulse touch ring
+        setScene1Step(1); // Pulse touch ring on bottom button
 
         timerId = setTimeout(() => {
           if (!isMounted) return;
-          setScene1Step(2); // Selected highlight
+          setScene1Step(2); // Button clicked state
 
           timerId = setTimeout(() => {
             if (!isMounted) return;
@@ -66,7 +63,7 @@ export default function AccountOpenMotionSimulator({
     return () => { isMounted = false; clearTimeout(timerId); };
   }, [activeScene]);
 
-  // Scene 2 Auto Loop
+  // Scene 2 Auto Loop (Scroll down & click FA Account)
   useEffect(() => {
     if (activeScene !== 2) return;
     let isMounted = true;
@@ -90,13 +87,13 @@ export default function AccountOpenMotionSimulator({
 
             timerId = setTimeout(() => {
               if (!isMounted) return;
-              setScene2Step(4); // Pulse on confirm button
+              setScene2Step(4); // Next button active
 
               timerId = setTimeout(() => {
                 if (!isMounted) return;
                 runScene2();
               }, 2600);
-            }, 700);
+            }, 600);
           }, 500);
         }, 800);
       }, 700);
@@ -106,7 +103,7 @@ export default function AccountOpenMotionSimulator({
     return () => { isMounted = false; clearTimeout(timerId); };
   }, [activeScene]);
 
-  // Scene 3 Auto Loop
+  // Scene 3 Auto Loop (Type ID, PW, Select Manager)
   useEffect(() => {
     if (activeScene !== 3) return;
     let isMounted = true;
@@ -118,21 +115,26 @@ export default function AccountOpenMotionSimulator({
 
       timerId = setTimeout(() => {
         if (!isMounted) return;
-        setScene3Step(1); // Typing branch
+        setScene3Step(1); // Type ID (jusikapp)
 
         timerId = setTimeout(() => {
           if (!isMounted) return;
-          setScene3Step(2); // Typing manager
+          setScene3Step(2); // Type PW
 
           timerId = setTimeout(() => {
             if (!isMounted) return;
-            setScene3Step(3); // Pulse confirm button
+            setScene3Step(3); // Pulse on Manager button
 
             timerId = setTimeout(() => {
               if (!isMounted) return;
-              runScene3();
-            }, 2600);
-          }, 700);
+              setScene3Step(4); // Manager selected: 김주호 / 강남금융센터
+
+              timerId = setTimeout(() => {
+                if (!isMounted) return;
+                runScene3();
+              }, 2800);
+            }, 600);
+          }, 600);
         }, 700);
       }, 800);
     };
@@ -153,60 +155,21 @@ export default function AccountOpenMotionSimulator({
 
       timerId = setTimeout(() => {
         if (!isMounted) return;
-        setScene4Step(1); // Reveal success card
+        setScene4Step(1);
 
         timerId = setTimeout(() => {
           if (!isMounted) return;
-          setScene4Step(2); // Pulse on done button
-
-          timerId = setTimeout(() => {
-            if (!isMounted) return;
-            runScene4();
-          }, 3200);
-        }, 800);
-      }, 600);
+          runScene4();
+        }, 3200);
+      }, 500);
     };
 
     runScene4();
     return () => { isMounted = false; clearTimeout(timerId); };
   }, [activeScene]);
 
-  const sceneTitles = [
-    { num: 1, label: '1. 개설시작' },
-    { num: 2, label: '2. 계좌선택' },
-    { num: 3, label: '3. 관리점' },
-    { num: 4, label: '4. 완료' }
-  ];
-
   return (
-    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 space-y-5 shadow-sm backdrop-blur-xl transition-all">
-      {/* Centered Glassmorphic 4-Scene Switcher */}
-      <div className="flex justify-center">
-        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[420px] select-none">
-          {/* Animated Sliding Pill Surface */}
-          <div 
-            className="absolute top-1 bottom-1 rounded-xl bg-[var(--accent-orange)] text-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-            style={{
-              width: 'calc(25% - 2px)',
-              transform: `translateX(${(activeScene - 1) * 100}%)`,
-            }}
-          />
-
-          {sceneTitles.map((st) => (
-            <button
-              key={st.num}
-              type="button"
-              onClick={() => handleSceneSelect(st.num as 1 | 2 | 3 | 4)}
-              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 whitespace-nowrap px-1 ${
-                activeScene === st.num ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 shadow-sm backdrop-blur-xl transition-all">
       {/* Premium Titanium iPhone 16 Pro Smartphone Device Frame */}
       <div className="relative mx-auto max-w-[310px] w-full rounded-[2.8rem] p-2.5 bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-950 border border-zinc-600/60 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         {/* Screen Bezel Frame */}
@@ -221,82 +184,58 @@ export default function AccountOpenMotionSimulator({
 
           {/* Smartphone Screen Inner */}
           <div className="bg-white text-zinc-900 rounded-b-[2.2rem] overflow-hidden h-[450px] flex flex-col justify-between px-3 pb-3 pt-1 font-sans text-xs relative select-none shadow-inner">
-            
-            {/* SCENE 1: 앱 실행 -> 비대면 계좌개설 메뉴 선택 */}
-            {activeScene === 1 && (
-              <div className="flex flex-col h-full justify-between">
-                {/* Header */}
-                <div className="flex items-center justify-between pb-1 border-b border-zinc-100">
-                  <span className="font-extrabold text-sm text-zinc-900">DB증권</span>
-                  <span className="text-[10px] text-zinc-400 font-medium">로그인 &gt;</span>
-                </div>
-
-                {/* Main Hero Card */}
-                <div className="space-y-2.5 my-auto">
-                  <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-3.5 text-white shadow-md">
-                    <div className="text-[10px] font-medium opacity-90">처음 오셨나요?</div>
-                    <div className="text-sm font-extrabold mt-0.5 leading-snug">
-                      영업점 방문 없이<br />간편하게 계좌 개설
-                    </div>
-                  </div>
-
-                  {/* Target Button: 비대면 계좌개설 */}
-                  <div className="relative">
-                    <div className={`p-3 rounded-2xl border-2 transition-all duration-300 ${
-                      scene1Step >= 1 
-                        ? 'border-emerald-500 bg-emerald-50 shadow-md scale-[0.98]' 
-                        : 'border-zinc-200 bg-zinc-50'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-xs shadow-xs">
-                            DB
-                          </div>
-                          <div>
-                            <div className="font-extrabold text-xs text-zinc-900">비대면 계좌개설</div>
-                            <div className="text-[9px] text-zinc-500">신분증 준비 후 3분 만에 완료</div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-zinc-400" />
-                      </div>
-                    </div>
-
-                    {/* Micro Touch Ring Pulse */}
-                    {scene1Step === 1 && (
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <span className="relative flex h-5 w-5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                          <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/60 border border-white shadow-sm" />
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-2.5 rounded-xl border border-zinc-100 bg-zinc-50/60 text-[9px] text-zinc-400">
-                    간편 인증 및 약관 확인 절차
-                  </div>
-                </div>
-
-                <div className="pt-2 text-center text-[10px] font-bold text-emerald-600">
-                  {scene1Step >= 2 ? '[비대면 계좌개설] 선택 완료!' : '메뉴에서 [비대면 계좌개설] 터치'}
-                </div>
+            {/* Top Navigation Bar */}
+            <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-zinc-700">
+              <div className="flex items-center gap-1 font-bold text-[11px]">
+                {activeScene > 1 && <ChevronLeft className="w-3.5 h-3.5" />}
+                <span>
+                  {activeScene === 1 && '비대면 계좌개설'}
+                  {activeScene === 2 && '계좌 종류 선택'}
+                  {activeScene === 3 && 'ID 및 관리점 정보 입력'}
+                  {activeScene === 4 && '계좌 개설 완료'}
+                </span>
               </div>
-            )}
+              <span className="text-[10px] text-zinc-400 font-mono font-bold">
+                {activeScene} / 4
+              </span>
+            </div>
 
-            {/* SCENE 2: 계좌 종류 선택 (맨 아래로 스크롤하여 FA종합매매계좌 선택) */}
-            {activeScene === 2 && (
-              <div className="flex flex-col h-full justify-between">
-                {/* Header */}
-                <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-zinc-700">
-                  <div className="flex items-center gap-1 font-bold text-[11px]">
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>개설 계좌 종류 선택</span>
+            {/* SCENE CONTENTS */}
+            <div className="flex-1 overflow-hidden py-1">
+              {/* SCENE 1: 비대면 계좌개설 시작 & 준비물 안내 화면 */}
+              {activeScene === 1 && (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <h5 className="text-sm font-extrabold text-zinc-900 leading-tight">
+                      영업점 방문 없이<br />
+                      <span className="text-emerald-600">스마트폰으로 간편하게</span> 개설하세요
+                    </h5>
                   </div>
-                  <span className="text-[10px] text-zinc-400">2 / 5</span>
-                </div>
 
-                {/* Account List Container (Simulated Scroll) */}
-                <div className="relative flex-1 overflow-hidden py-1">
+                  <div className="space-y-2 pt-1">
+                    <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-1.5 text-[10px]">
+                      <div className="font-bold text-zinc-800 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
+                        <span>개설 전 준비물</span>
+                      </div>
+                      <div className="text-[9px] text-zinc-500 pl-5 space-y-0.5">
+                        <div>• 주민등록증 또는 운전면허증</div>
+                        <div>• 본인 명의 스마트폰</div>
+                        <div>• 타 금융기관 본인 계좌</div>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[9px] text-emerald-800 space-y-0.5">
+                      <div className="font-bold">⭐ 주식부엉 제휴 혜택</div>
+                      <div>안내에 따라 FA종합매매계좌를 선택하시면 평생 수수료 우대 혜택이 적용됩니다.</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SCENE 2: 계좌 종류 선택 (맨 아래로 스크롤하여 FA종합매매계좌 선택) */}
+              {activeScene === 2 && (
+                <div className="relative h-full overflow-hidden">
                   <div 
                     className="space-y-2 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                     style={{ transform: scene2Step >= 1 ? 'translateY(-130px)' : 'translateY(0px)' }}
@@ -363,12 +302,12 @@ export default function AccountOpenMotionSimulator({
                               {scene2Step >= 3 && <Check className="w-3 h-3 stroke-[3]" />}
                             </div>
 
-                            {/* Precise Touch Pulse Centered on the Check Circle */}
+                            {/* Centered touch pulse */}
                             {scene2Step === 2 && (
                               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                                 <span className="relative flex h-5 w-5">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-                                  <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/60 border border-white shadow-sm" />
+                                  <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
                                 </span>
                               </div>
                             )}
@@ -387,158 +326,153 @@ export default function AccountOpenMotionSimulator({
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Bottom CTA Button */}
-                <div className="pt-2 relative">
-                  <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
-                    scene2Step >= 3 ? 'bg-emerald-600 shadow-md scale-[0.98]' : 'bg-emerald-500'
-                  }`}>
-                    다음
+              {/* SCENE 3: ID 및 관리점 정보 입력 */}
+              {activeScene === 3 && (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <h5 className="text-sm font-extrabold text-zinc-900 leading-tight">
+                      사용하실 <span className="text-emerald-600">ID와 관리점 정보</span>를<br />
+                      입력해주세요
+                    </h5>
                   </div>
 
-                  {scene2Step === 4 && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <span className="relative flex h-5 w-5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 shadow-sm" />
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 3: 관리점 및 관리자 정보 입력 */}
-            {activeScene === 3 && (
-              <div className="flex flex-col h-full justify-between">
-                {/* Header */}
-                <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-zinc-700">
-                  <div className="flex items-center gap-1 font-bold text-[11px]">
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>관리점 정보 입력</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-400">4 / 5</span>
-                </div>
-
-                {/* Input Fields Container */}
-                <div className="space-y-3 my-auto">
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[10px] text-amber-900 leading-snug">
-                    <span className="font-bold">⭐ 필수 확인:</span> 정확히 입력하셔야 수수료 우대 혜택이 정상 적용됩니다.
-                  </div>
-
-                  {/* Input 1: Branch */}
+                  {/* ID Field (jusikapp) */}
                   <div className="space-y-1">
-                    <div className="text-[10px] font-bold text-zinc-600 flex justify-between">
-                      <span>관리지점</span>
-                      {scene3Step >= 1 && <span className="text-emerald-600 font-extrabold text-[9px]">입력 완료</span>}
+                    <div className="text-[9px] text-zinc-600 font-bold">ID 등록(필수)</div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex-1 px-2.5 py-1.5 rounded-lg border border-zinc-300 bg-zinc-50 text-[10px] text-zinc-800 font-mono font-bold flex items-center min-h-[30px]">
+                        {scene3Step >= 1 ? (
+                          <span className="text-zinc-900 font-extrabold">jusikapp</span>
+                        ) : (
+                          <span className="w-1.5 h-3.5 bg-zinc-400 animate-pulse inline-block" />
+                        )}
+                      </div>
+                      <span className="px-2 py-1.5 rounded-lg bg-zinc-200 text-zinc-700 text-[9px] font-bold">중복확인</span>
                     </div>
-                    <div className={`p-2.5 rounded-xl border-2 flex items-center justify-between transition-colors duration-300 ${
-                      scene3Step >= 1 ? 'border-emerald-500 bg-emerald-50/50' : 'border-zinc-200 bg-white'
-                    }`}>
-                      <span className={`font-bold text-xs ${scene3Step >= 1 ? 'text-zinc-900' : 'text-zinc-400'}`}>
-                        {scene3Step >= 1 ? '강남금융센터' : '관리지점을 검색하세요'}
-                      </span>
-                      <Search className="w-3.5 h-3.5 text-zinc-400" />
-                    </div>
+                    {scene3Step >= 1 && (
+                      <div className="text-[8px] text-emerald-600 font-bold">※ 사용 가능한 ID입니다</div>
+                    )}
                   </div>
 
-                  {/* Input 2: Manager */}
+                  {/* Password Mock */}
                   <div className="space-y-1">
-                    <div className="text-[10px] font-bold text-zinc-600 flex justify-between">
-                      <span>관리자</span>
-                      {scene3Step >= 2 && <span className="text-emerald-600 font-extrabold text-[9px]">입력 완료</span>}
-                    </div>
-                    <div className={`p-2.5 rounded-xl border-2 flex items-center justify-between transition-colors duration-300 ${
-                      scene3Step >= 2 ? 'border-emerald-500 bg-emerald-50/50' : 'border-zinc-200 bg-white'
-                    }`}>
-                      <span className={`font-bold text-xs ${scene3Step >= 2 ? 'text-zinc-900' : 'text-zinc-400'}`}>
-                        {scene3Step >= 2 ? '김주호' : '관리자 성명을 입력하세요'}
-                      </span>
-                      <Building className="w-3.5 h-3.5 text-zinc-400" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom CTA Button */}
-                <div className="pt-2 relative">
-                  <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
-                    scene3Step >= 2 ? 'bg-emerald-600 shadow-md scale-[0.98]' : 'bg-zinc-300'
-                  }`}>
-                    다음
-                  </div>
-
-                  {scene3Step === 3 && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <span className="relative flex h-5 w-5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 shadow-sm" />
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* SCENE 4: 개설 완료 (가상 계좌번호로 완벽 보호 & 줄바꿈 방지) */}
-            {activeScene === 4 && (
-              <div className="flex flex-col h-full justify-between">
-                {/* Header */}
-                <div className="flex items-center justify-between pb-1 border-b border-zinc-100 text-zinc-700">
-                  <span className="font-bold text-[11px] text-zinc-900">비대면 계좌개설 완료</span>
-                  <span className="text-[10px] text-emerald-600 font-bold">5 / 5 완료</span>
-                </div>
-
-                {/* Main Content */}
-                <div className="space-y-3 my-auto">
-                  <div className="text-center space-y-1">
-                    <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-xs">
-                      <Check className="w-6 h-6 stroke-[3]" />
-                    </div>
-                    <div className="font-black text-sm text-zinc-900 pt-1">
-                      계좌 개설이 완료되었습니다!
-                    </div>
-                    <div className="text-[9px] text-zinc-500">
-                      신분증 및 본인 확인이 정상 처리되었습니다.
+                    <div className="text-[9px] text-zinc-600 font-bold">접속비밀번호 입력</div>
+                    <div className="px-2.5 py-1.5 rounded-lg border border-zinc-300 bg-zinc-50 text-[10px] text-zinc-500 font-mono tracking-widest min-h-[30px] flex items-center">
+                      {scene3Step >= 2 ? '••••••••' : ''}
                     </div>
                   </div>
 
-                  {/* Account Summary Card with No-Wrap */}
-                  <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-2">
-                    <div className="flex items-center justify-between text-[10px] whitespace-nowrap">
-                      <span className="text-zinc-500 font-medium">계좌종류</span>
-                      <span className="font-extrabold text-zinc-900">종합매매 [FA자문사]</span>
+                  {/* TARGET SECTION: 관리자 / 지점 등록 */}
+                  <div className="pt-1 border-t border-zinc-100 space-y-1.5">
+                    <div className="font-extrabold text-[10px] text-zinc-900">
+                      투자권유대행인, 관리자, 지점 등록
                     </div>
-                    <div className="flex items-center justify-between text-[10px] whitespace-nowrap">
-                      <span className="text-zinc-500 font-medium">계좌번호</span>
-                      <span className="font-mono font-black text-emerald-600">100-12-3456-78</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] border-t border-zinc-200/60 pt-1.5 whitespace-nowrap">
-                      <span className="text-zinc-500 font-medium">관리지점 / 관리자</span>
-                      <span className="font-bold text-zinc-800">강남금융센터 / 김주호</span>
+
+                    <div className="relative px-0.5">
+                      {scene3Step < 4 ? (
+                        <div className={`w-full py-2 text-center rounded-xl border-2 text-[10px] font-bold transition-all relative ${
+                          scene3Step === 3 ? 'bg-emerald-100 border-emerald-500 text-emerald-800' : 'bg-zinc-50 border-zinc-300 text-zinc-700'
+                        }`}>
+                          [등록/선택] 버튼 탭
+                          {/* Centered touch pulse */}
+                          {scene3Step === 3 && (
+                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                              <span className="relative flex h-5 w-5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
+                                <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500/70 border border-white shadow-sm" />
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/90 shadow-xs space-y-1 text-[10px] transition-all">
+                          <div className="flex justify-between items-center text-zinc-700 font-medium whitespace-nowrap">
+                            <span>투자권유대행인</span>
+                            <span className="font-extrabold text-zinc-900">김주호</span>
+                          </div>
+                          <div className="flex justify-between items-center text-zinc-700 font-medium whitespace-nowrap">
+                            <span>관리자</span>
+                            <span className="font-extrabold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">김주호</span>
+                          </div>
+                          <div className="flex justify-between items-center text-zinc-700 font-medium whitespace-nowrap">
+                            <span>관리지점</span>
+                            <span className="font-extrabold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">강남금융센터</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Bottom CTA Button */}
-                <div className="pt-2 relative">
-                  <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs bg-emerald-600 shadow-md transition-all duration-300 ${
-                    scene4Step >= 2 ? 'scale-[0.98] bg-emerald-700' : ''
-                  }`}>
-                    다음 단계(우대 연동)로 이동
+              {/* SCENE 4: 개설 완료 화면 */}
+              {activeScene === 4 && (
+                <div className="space-y-4 pt-2 text-center">
+                  <div className="w-14 h-14 rounded-full bg-blue-50 border-2 border-blue-500 flex items-center justify-center mx-auto text-blue-500 shadow-sm animate-pulse">
+                    <Check className="w-8 h-8 stroke-[3]" />
                   </div>
 
-                  {scene4Step === 2 && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <span className="relative flex h-5 w-5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 shadow-sm" />
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                  <div className="space-y-1">
+                    <h5 className="text-base font-extrabold text-zinc-900">
+                      주식부엉님의 계좌가<br />
+                      개설되었습니다.
+                    </h5>
+                    <p className="text-[10px] text-zinc-500 font-medium">
+                      로그인 후 이용이 가능합니다.
+                    </p>
+                  </div>
 
+                  {/* Registered Account Box */}
+                  <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200 text-left space-y-1 text-[10px]">
+                    <div className="flex justify-between items-center whitespace-nowrap">
+                      <span className="font-bold text-zinc-700">종합매매 [FA자문사]</span>
+                      <span className="font-mono text-zinc-900 font-bold">100-12-3456-78</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[9px] text-zinc-400 leading-relaxed pt-1">
+                    MTS 접속을 위한 간편인증(6자리숫자) 등록 및 해외주식 거래신청이 가능합니다.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Screen Button */}
+            <div className="pt-2">
+              {activeScene === 1 && (
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                  scene1Step >= 2 ? 'bg-emerald-500 shadow-md scale-[0.98]' : 'bg-emerald-500'
+                }`}>
+                  계좌개설 시작
+                </div>
+              )}
+              {activeScene === 2 && (
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                  scene2Step >= 4 ? 'bg-emerald-500 shadow-md' : 'bg-zinc-300'
+                }`}>
+                  다음
+                </div>
+              )}
+              {activeScene === 3 && (
+                <div className={`w-full py-2.5 rounded-xl text-center font-bold text-white text-xs transition-all duration-300 ${
+                  scene3Step >= 4 ? 'bg-emerald-500 shadow-md' : 'bg-zinc-300'
+                }`}>
+                  다음
+                </div>
+              )}
+              {activeScene === 4 && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="py-2 rounded-xl border border-zinc-300 text-center font-bold text-[10px] text-zinc-700 bg-white whitespace-nowrap">
+                    해외주식 거래신청
+                  </div>
+                  <div className="py-2 rounded-xl text-center font-bold text-[10px] text-white bg-emerald-500 shadow-xs whitespace-nowrap">
+                    간편인증등록
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

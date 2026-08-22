@@ -4,13 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Check, 
   ChevronLeft, 
-  ChevronDown, 
   Search, 
-  Sparkles, 
   ChevronRight, 
   X,
-  Building,
-  ShieldCheck,
   UserCheck
 } from 'lucide-react';
 
@@ -31,11 +27,6 @@ export default function AdvisoryMotionSimulator({
   const [scene2Step, setScene2Step] = useState(0); // 0: home, 1: pulse find advisory btn, 2: list scroll, 3: pulse aurora, 4: aurora selected
   const [scene3Step, setScene3Step] = useState(0); // 0: aurora detail, 1: pulse on MP, 2: MP active, 3: pulse invest btn
   const [scene4Step, setScene4Step] = useState(0); // 0: modal DB, 1: pulse confirm, 2: complete 0 krw
-
-  const handleSceneSelect = (s: 1 | 2 | 3 | 4) => {
-    setInternalScene(s);
-    if (onSceneChange) onSceneChange(s);
-  };
 
   // Scene 1 Auto Loop (Landing & Survey)
   useEffect(() => {
@@ -177,42 +168,8 @@ export default function AdvisoryMotionSimulator({
     return () => { isMounted = false; clearTimeout(timerId); };
   }, [activeScene]);
 
-  const sceneTitles = [
-    { num: 1, label: '1. 앱가입' },
-    { num: 2, label: '2. 자문사' },
-    { num: 3, label: '3. 제휴MP' },
-    { num: 4, label: '4. 연결완료' }
-  ];
-
   return (
-    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 space-y-5 shadow-sm backdrop-blur-xl transition-all">
-      {/* Centered Glassmorphic 4-Scene Switcher */}
-      <div className="flex justify-center">
-        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[420px] select-none">
-          {/* Animated Sliding Pill Surface */}
-          <div 
-            className="absolute top-1 bottom-1 rounded-xl bg-[var(--accent-orange)] text-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-            style={{
-              width: 'calc(25% - 2px)',
-              transform: `translateX(${(activeScene - 1) * 100}%)`,
-            }}
-          />
-
-          {sceneTitles.map((st) => (
-            <button
-              key={st.num}
-              type="button"
-              onClick={() => handleSceneSelect(st.num as 1 | 2 | 3 | 4)}
-              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 whitespace-nowrap px-1 ${
-                activeScene === st.num ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 shadow-sm backdrop-blur-xl transition-all">
       {/* Premium Titanium iPhone 16 Pro Smartphone Device Frame */}
       <div className="relative mx-auto max-w-[310px] w-full rounded-[2.8rem] p-2.5 bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-950 border border-zinc-600/60 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         {/* Screen Bezel Frame */}
@@ -449,7 +406,7 @@ export default function AdvisoryMotionSimulator({
                       <span className="text-[9px] text-rose-500 font-bold">1.55%</span>
                     </div>
 
-                    {/* TARGET MP: 오로라x주식부엉 자율형MP (줄바꿈 방지) */}
+                    {/* TARGET MP: 오로라x주식부엉 자율형MP */}
                     <div className="relative">
                       <div className={`p-2.5 rounded-xl border-2 transition-all duration-300 ${
                         scene3Step >= 2 
@@ -494,7 +451,7 @@ export default function AdvisoryMotionSimulator({
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                       <span className="relative flex h-5 w-5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                        <span className="relative inline-flex rounded-full h-5 w-5 bg-white/70 border border-emerald-600 shadow-sm" />
+                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 shadow-sm" />
                       </span>
                     </div>
                   )}
@@ -502,7 +459,7 @@ export default function AdvisoryMotionSimulator({
               </div>
             )}
 
-            {/* SCENE 4: 증권사 DB증권 선택 & 0원 연결 완료 (줄바꿈 방지) */}
+            {/* SCENE 4: 증권사 DB증권 선택 & 0원 연결 완료 */}
             {activeScene === 4 && (
               <div className="flex flex-col h-full justify-between">
                 {scene4Step < 2 ? (
@@ -540,7 +497,7 @@ export default function AdvisoryMotionSimulator({
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                           <span className="relative flex h-5 w-5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80" />
-                            <span className="relative inline-flex rounded-full h-5 w-5 bg-white/70 border border-indigo-600 shadow-sm" />
+                            <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-600 shadow-sm" />
                           </span>
                         </div>
                       )}
