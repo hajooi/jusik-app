@@ -167,17 +167,17 @@ export default function OverseasBenefitMotionSimulator({
   }, [activeScene]);
 
   const sceneTitles = [
-    { num: 1, label: '1. 해외주식' },
-    { num: 2, label: '2. 서비스신청' },
+    { num: 1, label: '1. 해외메뉴' },
+    { num: 2, label: '2. 서비스' },
     { num: 3, label: '3. 이용신청' },
-    { num: 4, label: '4. 폼 제출' }
+    { num: 4, label: '4. 폼제출' }
   ];
 
   return (
     <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 space-y-5 shadow-sm backdrop-blur-xl transition-all">
       {/* Centered Glassmorphic 4-Scene Switcher */}
       <div className="flex justify-center">
-        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[440px] select-none">
+        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[420px] select-none">
           {/* Animated Sliding Pill Surface */}
           <div 
             className="absolute top-1 bottom-1 rounded-xl bg-[var(--accent-orange)] text-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
@@ -192,7 +192,7 @@ export default function OverseasBenefitMotionSimulator({
               key={st.num}
               type="button"
               onClick={() => handleSceneSelect(st.num as 1 | 2 | 3 | 4)}
-              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 truncate px-1 ${
+              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 whitespace-nowrap px-1 ${
                 activeScene === st.num ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -265,7 +265,7 @@ export default function OverseasBenefitMotionSimulator({
                     </div>
                   </div>
                 ) : (
-                  /* DB증권 전체메뉴 화면 재현 (1.56.36) */
+                  /* DB증권 전체메뉴 화면 재현 (1.56.36) - No-Wrap & Tight Spacing */
                   <div className="space-y-2 pt-1 flex flex-col justify-between h-full">
                     <div>
                       {/* Top Header Icons */}
@@ -280,22 +280,22 @@ export default function OverseasBenefitMotionSimulator({
                         🌱 간편한 계좌개설, 시작해볼까요?
                       </div>
 
-                      {/* 5 Main Menu Category Tabs */}
-                      <div className="grid grid-cols-5 gap-1 pt-2 border-b border-zinc-200 pb-2 text-center text-[8px] font-bold">
-                        <div className="p-1 rounded-lg text-zinc-400">
-                          <TrendingUp className="w-3.5 h-3.5 mx-auto mb-0.5 opacity-60" />
-                          <span>국내주식</span>
+                      {/* 5 Main Menu Category Tabs (글자 줄바꿈 완벽 방지) */}
+                      <div className="grid grid-cols-5 gap-0.5 pt-2 border-b border-zinc-200 pb-2 text-center text-[8px] font-bold">
+                        <div className="p-0.5 rounded text-zinc-400 whitespace-nowrap">
+                          <TrendingUp className="w-3 h-3 mx-auto mb-0.5 opacity-60" />
+                          <span className="tracking-tighter">국내주식</span>
                         </div>
 
                         {/* TARGET: 해외주식 */}
                         <div className="relative">
-                          <div className={`p-1 rounded-lg transition-all duration-300 ${
+                          <div className={`p-0.5 rounded transition-all duration-300 whitespace-nowrap ${
                             scene1Step >= 3 
                               ? 'bg-emerald-50 text-emerald-600 font-extrabold scale-105 border border-emerald-300' 
                               : 'text-zinc-800 font-bold'
                           }`}>
-                            <Globe className="w-3.5 h-3.5 mx-auto mb-0.5 text-emerald-600" />
-                            <span>해외주식</span>
+                            <Globe className="w-3 h-3 mx-auto mb-0.5 text-emerald-600" />
+                            <span className="tracking-tighter">해외주식</span>
                           </div>
 
                           {scene1Step === 3 && (
@@ -308,17 +308,17 @@ export default function OverseasBenefitMotionSimulator({
                           )}
                         </div>
 
-                        <div className="p-1 rounded-lg text-zinc-400">
-                          <CreditCard className="w-3.5 h-3.5 mx-auto mb-0.5 opacity-60" />
-                          <span>상품/연금</span>
+                        <div className="p-0.5 rounded text-zinc-400 whitespace-nowrap">
+                          <CreditCard className="w-3 h-3 mx-auto mb-0.5 opacity-60" />
+                          <span className="tracking-tighter">상품/연금</span>
                         </div>
-                        <div className="p-1 rounded-lg text-zinc-400">
-                          <Building2 className="w-3.5 h-3.5 mx-auto mb-0.5 opacity-60" />
-                          <span>뱅킹/대출</span>
+                        <div className="p-0.5 rounded text-zinc-400 whitespace-nowrap">
+                          <Building2 className="w-3 h-3 mx-auto mb-0.5 opacity-60" />
+                          <span className="tracking-tighter">뱅킹/대출</span>
                         </div>
-                        <div className="p-1 rounded-lg text-zinc-400">
-                          <Smartphone className="w-3.5 h-3.5 mx-auto mb-0.5 opacity-60" />
-                          <span>모바일지점</span>
+                        <div className="p-0.5 rounded text-zinc-400 whitespace-nowrap">
+                          <Smartphone className="w-3 h-3 mx-auto mb-0.5 opacity-60" />
+                          <span className="tracking-tighter">모바일지점</span>
                         </div>
                       </div>
 
@@ -335,15 +335,15 @@ export default function OverseasBenefitMotionSimulator({
 
                 {/* Bottom Navigation Bar (1.56.25) */}
                 {scene1Step < 2 && (
-                  <div className="relative border-t border-zinc-200 pt-1 -mx-3 px-2 bg-zinc-900 text-white flex items-center justify-between text-[8px]">
+                  <div className="relative border-t border-zinc-200 pt-1 -mx-3 px-1.5 bg-zinc-900 text-white flex items-center justify-between text-[7.5px] whitespace-nowrap">
                     <div className={`flex flex-col items-center p-1 rounded-lg transition-all ${
                       scene1Step === 1 ? 'bg-indigo-600 text-white scale-105' : 'text-zinc-400'
                     }`}>
-                      <Menu className="w-3.5 h-3.5" />
+                      <Menu className="w-3 h-3" />
                       <span className="font-bold text-[7px]">메뉴</span>
                     </div>
                     <span className="text-zinc-400">홈</span>
-                    <span className="text-zinc-400">관심종목</span>
+                    <span className="text-zinc-400">관심</span>
                     <span className="text-zinc-400">현재가</span>
                     <span className="text-zinc-400">주문</span>
                     <span className="text-zinc-400">잔고</span>
@@ -366,29 +366,29 @@ export default function OverseasBenefitMotionSimulator({
               <div className="flex flex-col h-full justify-between pt-1">
                 <div>
                   {/* Category Tabs */}
-                  <div className="grid grid-cols-5 gap-1 border-b border-zinc-200 pb-1.5 text-center text-[8px] font-bold">
+                  <div className="grid grid-cols-5 gap-0.5 border-b border-zinc-200 pb-1.5 text-center text-[7.5px] font-bold whitespace-nowrap">
                     <span className="text-zinc-400">국내주식</span>
                     <span className="text-emerald-600 font-black border-b-2 border-emerald-600 pb-0.5">해외주식</span>
                     <span className="text-zinc-400">상품/연금</span>
-                    <span className="text-zinc-400">뱅킹</span>
-                    <span className="text-zinc-400">모바일</span>
+                    <span className="text-zinc-400">뱅킹/대출</span>
+                    <span className="text-zinc-400">모바일지점</span>
                   </div>
 
                   <div className="grid grid-cols-12 gap-1.5 pt-2">
                     {/* Left Sidebar Menu */}
-                    <div className="col-span-4 space-y-1 border-r border-zinc-100 pr-1 text-[9px]">
+                    <div className="col-span-4 space-y-1 border-r border-zinc-100 pr-1 text-[8.5px] whitespace-nowrap">
                       <div className="p-1 rounded text-zinc-400 font-medium">주식모으기</div>
                       <div className="p-1 rounded bg-emerald-50 text-emerald-700 font-black border border-emerald-200">
                         서비스신청
                       </div>
                       <div className="p-1 rounded text-zinc-400 font-medium">투자정보</div>
-                      <div className="p-1 rounded text-zinc-400 font-medium">미국실적발표</div>
+                      <div className="p-1 rounded text-zinc-400 font-medium">실적발표</div>
                       <div className="p-1 rounded text-zinc-400 font-medium">배당주</div>
                     </div>
 
                     {/* Right Submenu List */}
                     <div className="col-span-8 space-y-1.5">
-                      <div className="text-[8px] font-black text-zinc-900 pb-0.5">해외서비스신청</div>
+                      <div className="text-[8px] font-black text-zinc-900 pb-0.5 whitespace-nowrap">해외서비스신청</div>
                       
                       {/* TARGET: 해외주식거래이용신청 */}
                       <div className="relative">
@@ -397,9 +397,9 @@ export default function OverseasBenefitMotionSimulator({
                             ? 'border-emerald-500 bg-emerald-50 shadow-xs' 
                             : 'border-zinc-200 bg-white'
                         }`}>
-                          <div className="font-extrabold text-[9px] text-zinc-900 flex items-center justify-between">
-                            <span>해외주식거래이용신청</span>
-                            <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+                          <div className="font-extrabold text-[8.5px] text-zinc-900 flex items-center justify-between whitespace-nowrap">
+                            <span className="truncate">해외주식거래이용신청</span>
+                            <ChevronRight className="w-3 h-3 text-zinc-400 shrink-0 ml-1" />
                           </div>
                         </div>
 
@@ -413,10 +413,10 @@ export default function OverseasBenefitMotionSimulator({
                         )}
                       </div>
 
-                      <div className="p-1.5 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400">
+                      <div className="p-1.5 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 whitespace-nowrap truncate">
                         해외주식실시간시세신청
                       </div>
-                      <div className="p-1.5 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400">
+                      <div className="p-1.5 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 whitespace-nowrap truncate">
                         해외주식공지사항
                       </div>
                     </div>
@@ -435,7 +435,7 @@ export default function OverseasBenefitMotionSimulator({
                 <div className="space-y-2">
                   {/* Top bar */}
                   <div className="flex items-center justify-between pb-1 border-b border-zinc-100">
-                    <div className="flex items-center gap-1 font-extrabold text-[10px] text-zinc-900">
+                    <div className="flex items-center gap-1 font-extrabold text-[10px] text-zinc-900 whitespace-nowrap">
                       <ChevronLeft className="w-3.5 h-3.5 text-zinc-600" />
                       <span>해외주식거래이용신청</span>
                     </div>
@@ -446,7 +446,7 @@ export default function OverseasBenefitMotionSimulator({
                   </div>
 
                   {/* Account Selector Dropdown */}
-                  <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-200 text-[9px] flex items-center justify-between">
+                  <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-200 text-[9px] flex items-center justify-between whitespace-nowrap">
                     <span className="font-mono font-bold text-zinc-800">100-12-3456-78 주식부엉</span>
                     <span className="text-[7px] text-zinc-400 font-mono">••••</span>
                   </div>
@@ -468,12 +468,12 @@ export default function OverseasBenefitMotionSimulator({
                           ? 'border-emerald-500 bg-emerald-50 shadow-xs' 
                           : 'border-zinc-200 bg-white'
                       }`}>
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-[9px] text-zinc-900">
+                        <div className="flex items-center justify-between whitespace-nowrap">
+                          <span className="font-extrabold text-[9px] text-zinc-900 truncate">
                             해외주식거래 이용신청 여부
                           </span>
 
-                          <div className={`text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                          <div className={`text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0 ml-1 ${
                             scene3Step >= 2 
                               ? 'bg-emerald-600 text-white' 
                               : 'text-zinc-400'
@@ -500,11 +500,11 @@ export default function OverseasBenefitMotionSimulator({
                       )}
                     </div>
 
-                    <div className="p-2 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 flex justify-between">
+                    <div className="p-2 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 flex justify-between whitespace-nowrap">
                       <span>해외주식 통합증거금 이용신청</span>
                       <span>미신청 &gt;</span>
                     </div>
-                    <div className="p-2 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 flex justify-between">
+                    <div className="p-2 rounded-lg border border-zinc-100 bg-zinc-50 text-[8px] text-zinc-400 flex justify-between whitespace-nowrap">
                       <span>해외ETP 위험고지</span>
                       <span>미신청 &gt;</span>
                     </div>
@@ -548,9 +548,9 @@ export default function OverseasBenefitMotionSimulator({
                         <div className="font-mono font-bold text-zinc-900 bg-white p-1 rounded border border-zinc-200">100-12-3456-78</div>
                       </div>
 
-                      <div className="p-1.5 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
-                        <span className="text-zinc-700 font-bold">개인정보 수집 및 이용 동의 <span className="text-rose-500">*</span></span>
-                        <div className="w-3.5 h-3.5 rounded bg-purple-600 text-white flex items-center justify-center">
+                      <div className="p-1.5 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between whitespace-nowrap">
+                        <span className="text-zinc-700 font-bold truncate">개인정보 수집 및 이용 동의 <span className="text-rose-500">*</span></span>
+                        <div className="w-3.5 h-3.5 rounded bg-purple-600 text-white flex items-center justify-center shrink-0 ml-1">
                           <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </div>
                       </div>

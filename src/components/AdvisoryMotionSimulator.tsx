@@ -178,17 +178,17 @@ export default function AdvisoryMotionSimulator({
   }, [activeScene]);
 
   const sceneTitles = [
-    { num: 1, label: '1. 앱 로그인' },
+    { num: 1, label: '1. 앱가입' },
     { num: 2, label: '2. 자문사' },
-    { num: 3, label: '3. 제휴계좌' },
-    { num: 4, label: '4. 계좌연결' }
+    { num: 3, label: '3. 제휴MP' },
+    { num: 4, label: '4. 연결완료' }
   ];
 
   return (
     <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] p-4 sm:p-6 space-y-5 shadow-sm backdrop-blur-xl transition-all">
       {/* Centered Glassmorphic 4-Scene Switcher */}
       <div className="flex justify-center">
-        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[440px] select-none">
+        <div className="relative grid grid-cols-4 p-1 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] shadow-2xs w-full max-w-[420px] select-none">
           {/* Animated Sliding Pill Surface */}
           <div 
             className="absolute top-1 bottom-1 rounded-xl bg-[var(--accent-orange)] text-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
@@ -203,7 +203,7 @@ export default function AdvisoryMotionSimulator({
               key={st.num}
               type="button"
               onClick={() => handleSceneSelect(st.num as 1 | 2 | 3 | 4)}
-              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 truncate px-1 ${
+              className={`relative z-10 py-2 text-center text-xs sm:text-sm font-extrabold transition-colors duration-200 whitespace-nowrap px-1 ${
                 activeScene === st.num ? 'text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -394,7 +394,7 @@ export default function AdvisoryMotionSimulator({
                                 <span>오로라투자자문</span>
                               </div>
                               {scene2Step >= 4 && (
-                                <span className="text-[8px] bg-indigo-600 text-white font-extrabold px-1.5 py-0.5 rounded">선택됨</span>
+                                <span className="text-[8px] bg-indigo-600 text-white font-extrabold px-1.5 py-0.5 rounded shrink-0">선택됨</span>
                               )}
                             </div>
                             <div className="text-[9px] text-zinc-500 mt-1">
@@ -449,20 +449,22 @@ export default function AdvisoryMotionSimulator({
                       <span className="text-[9px] text-rose-500 font-bold">1.55%</span>
                     </div>
 
-                    {/* TARGET MP: 오로라x주식부엉 자율형MP */}
+                    {/* TARGET MP: 오로라x주식부엉 자율형MP (줄바꿈 방지) */}
                     <div className="relative">
                       <div className={`p-2.5 rounded-xl border-2 transition-all duration-300 ${
                         scene3Step >= 2 
                           ? 'border-emerald-500 bg-emerald-50 shadow-xs' 
                           : 'border-zinc-200 bg-white'
                       }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="font-extrabold text-[11px] text-zinc-900 flex items-center gap-1">
-                            <span>⭐ 오로라x주식부엉 자율형MP</span>
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="font-extrabold text-[10px] text-zinc-900 truncate whitespace-nowrap">
+                            ⭐ 오로라x주식부엉 자율형MP
                           </div>
-                          <span className="text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded">수수료 우대</span>
+                          <span className="text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
+                            수수료 우대
+                          </span>
                         </div>
-                        <div className="text-[9px] text-zinc-500 mt-1">
+                        <div className="text-[8px] text-zinc-500 mt-1 whitespace-nowrap">
                           수수료 평생 우대 자율 매매 전용 포트폴리오
                         </div>
                       </div>
@@ -500,7 +502,7 @@ export default function AdvisoryMotionSimulator({
               </div>
             )}
 
-            {/* SCENE 4: 증권사 DB증권 선택 & 0원 연결 완료 */}
+            {/* SCENE 4: 증권사 DB증권 선택 & 0원 연결 완료 (줄바꿈 방지) */}
             {activeScene === 4 && (
               <div className="flex flex-col h-full justify-between">
                 {scene4Step < 2 ? (
@@ -520,10 +522,10 @@ export default function AdvisoryMotionSimulator({
                     </div>
 
                     <div className="space-y-1">
-                      <div className="text-[9px] text-zinc-500 font-bold">개설 계좌 등록 (입금 필요 없음)</div>
+                      <div className="text-[9px] text-zinc-500 font-bold">개설 계좌 등록</div>
                       <div className="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 space-y-0.5">
-                        <div className="font-bold text-[10px] text-zinc-900">종합매매 [FA자문사]</div>
-                        <div className="font-mono text-[9px] text-zinc-500">100-12-3456-78 (등록금액: 0원)</div>
+                        <div className="font-bold text-[10px] text-zinc-900 whitespace-nowrap">종합매매 [FA자문사]</div>
+                        <div className="font-mono text-[9px] text-zinc-500 whitespace-nowrap">100-12-3456-78 (등록: 0원)</div>
                       </div>
                     </div>
 
@@ -561,7 +563,7 @@ export default function AdvisoryMotionSimulator({
                           <Check className="w-3 h-3 stroke-[3]" /> 연동 완료
                         </span>
                       </div>
-                      <div className="font-extrabold text-[11px] text-zinc-900">
+                      <div className="font-extrabold text-[11px] text-zinc-900 whitespace-nowrap truncate">
                         오로라x주식부엉 자율형MP
                       </div>
                       <div className="text-[10px] text-zinc-600 font-bold">
@@ -570,7 +572,7 @@ export default function AdvisoryMotionSimulator({
                     </div>
 
                     <div className="pt-2 text-center">
-                      <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
+                      <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block whitespace-nowrap">
                         🎉 수수료 평생 우대 연동 성공!
                       </span>
                     </div>
