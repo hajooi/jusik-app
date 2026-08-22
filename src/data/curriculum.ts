@@ -482,7 +482,7 @@ export const CURRICULUM_DATA: Level[] = [
               },
               {
                 stepNumber: 3,
-                title: "2단계: 수수료 우대 연동 (자문사 등록)",
+                title: "3단계: 자문사 연계계좌 등록 (수수료 우대)",
                 icon: "Target",
                 bullets: [
                   "자문사 앱 실행 → 가입하기 → 간단한 투자성향 분석 진행",
@@ -493,7 +493,7 @@ export const CURRICULUM_DATA: Level[] = [
               },
               {
                 stepNumber: 4,
-                title: "3단계: 해외주식 신청 및 혜택 폼 작성",
+                title: "4단계: 수수료 평생 우대 혜택 신청 (해외주식 신청 & 폼 작성)",
                 icon: "CheckCircle2",
                 bullets: [
                   "다시 DB증권 앱 실행 → 메뉴 → 해외주식 → 서비스 신청 → [해외주식거래이용신청] 완료",

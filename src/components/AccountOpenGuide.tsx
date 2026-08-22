@@ -73,16 +73,16 @@ const STEPS: StepData[] = [
   {
     id: 3,
     stepNum: 3,
-    title: "3단계: 수수료 우대 연동",
-    shortTitle: "우대연동",
+    title: "3단계: 자문사 연계계좌 등록",
+    shortTitle: "자문사",
     icon: <Target className="w-5 h-5 text-[var(--accent-orange)]" />,
     details: []
   },
   {
     id: 4,
     stepNum: 4,
-    title: "4단계: 해외주식 거래 이용신청",
-    shortTitle: "해외신청",
+    title: "4단계: 수수료 평생 우대 혜택 신청",
+    shortTitle: "우대신청",
     icon: <CheckCircle2 className="w-5 h-5 text-[var(--accent-orange)]" />,
     details: []
   },
