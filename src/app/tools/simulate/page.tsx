@@ -1114,7 +1114,7 @@ function SimulatorContent() {
                     setPortfolioA(config.portfolioA);
                     setStrategyPeriodA(config.strategyPeriodA);
                   }}
-                  className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 active:scale-95 transition-all font-mono shadow-2xs"
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all font-mono shadow-2xs"
                 >
                   {userProfileCode ? `${userProfileCode} 맞춤` : '기본 맞춤'}
                 </button>
@@ -1128,7 +1128,7 @@ function SimulatorContent() {
                     ]);
                     setStrategyPeriodA(0);
                   }}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
                 >
                   균형 자산
                 </button>
@@ -1142,7 +1142,7 @@ function SimulatorContent() {
                     ]);
                     setStrategyPeriodA(200);
                   }}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
                 >
                   공격형
                 </button>
@@ -1157,104 +1157,108 @@ function SimulatorContent() {
                     ]);
                     setStrategyPeriodA(0);
                   }}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
                 >
                   방어형
                 </button>
               </div>
             </div>
 
-            <div className="space-y-2.5">
-              {portfolioA.map((item, index) => (
-                <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-mono font-bold text-[var(--accent-mid-green)]">종목 {index + 1}:</span>
-                    <select
-                      value={item.assetId}
-                      onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                      className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
-                    >
-                      {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
-                        <option key={asset.id} value={asset.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                          {asset.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="flex items-center gap-1 shrink-0">
+            <SmoothHeight>
+              <div className="space-y-2.5">
+                {portfolioA.map((item, index) => (
+                  <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 hover:border-[var(--accent-orange)]/30 transition-all">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-mono font-bold text-[var(--accent-mid-green)]">종목 {index + 1}:</span>
+                      <select
+                        value={item.assetId}
+                        onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                        className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
+                      >
+                        {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
+                          <option key={asset.id} value={asset.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
+                            {asset.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={item.weight}
+                          onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                          className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-mid-green)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-mid-green)] font-mono"
+                        />
+                        <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                      </div>
+                      {portfolioA.length > 1 && (
+                        <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 transition-all">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
                       <input
-                        type="number"
+                        type="range"
                         min={0}
                         max={100}
                         step={5}
                         value={item.weight}
-                        onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                        className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-mid-green)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-mid-green)] font-mono"
+                        onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
+                        className="flex-1 accent-[var(--accent-mid-green)] cursor-pointer"
                       />
-                      <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                      {strategyPeriodA > 0 && (
+                        <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                          <input
+                            type="checkbox"
+                            checked={item.enableDefense !== false}
+                            onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                            className="w-3.5 h-3.5 accent-[var(--accent-mid-green)] rounded cursor-pointer"
+                          />
+                          <span>방어 적용</span>
+                        </label>
+                      )}
                     </div>
-                    {portfolioA.length > 1 && (
-                      <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={item.weight}
-                      onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
-                      className="flex-1 accent-[var(--accent-mid-green)] cursor-pointer"
-                    />
-                    {strategyPeriodA > 0 && (
-                      <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                        <input
-                          type="checkbox"
-                          checked={item.enableDefense !== false}
-                          onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                          className="w-3.5 h-3.5 accent-[var(--accent-mid-green)] rounded cursor-pointer"
-                        />
-                        <span>방어 적용</span>
-                      </label>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
 
-              <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                <span className="text-[var(--text-primary)]">현금</span>
-                <span className="font-mono font-extrabold text-[var(--accent-mid-green)]">{autoCashA}%</span>
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                  <span className="text-[var(--text-primary)]">현금</span>
+                  <span className="font-mono font-extrabold text-[var(--accent-mid-green)]">{autoCashA}%</span>
+                </div>
               </div>
+            </SmoothHeight>
 
-              <div className="pt-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                    <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
-                    방어 옵션 (이동평균선)
-                  </label>
-                  <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                    <HelpCircle className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+            <div className="pt-2 space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
+                  방어 옵션 (이동평균선)
+                </label>
+                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <SmoothHeight>
                 {activeTooltip === 'defense_a' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                     시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                   </div>
                 )}
-                <select
-                  value={strategyPeriodA}
-                  onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
-                  className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
-                >
-                  <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                  <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                  <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                  <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                  <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-                </select>
-              </div>
+              </SmoothHeight>
+              <select
+                value={strategyPeriodA}
+                onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
+                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
+              >
+                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+              </select>
             </div>
           </div>
 
@@ -1323,7 +1327,11 @@ function SimulatorContent() {
                 커스텀 전략
               </h2>
               {availableForB.length > 0 && (
-                <button type="button" onClick={handleAddSlotB} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-orange)] text-white hover:bg-[var(--accent-orange)]/90 transition-all">
+                <button
+                  type="button"
+                  onClick={handleAddSlotB}
+                  className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-2xs hover:shadow-[0_0_12px_rgba(241,143,1,0.25)] transition-all cursor-pointer"
+                >
                   + 종목 추가
                 </button>
               )}
@@ -1363,97 +1371,101 @@ function SimulatorContent() {
               </p>
             </div>
 
-            <div className="space-y-2.5">
-              {portfolioB.map((item, index) => (
-                <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-mono font-bold text-[var(--accent-orange)]">종목 {index + 1}:</span>
-                    <select
-                      value={item.assetId}
-                      onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                      className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer"
-                    >
-                      {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
-                        <option key={asset.id} value={asset.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
-                          {asset.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="flex items-center gap-1 shrink-0">
+            <SmoothHeight>
+              <div className="space-y-2.5">
+                {portfolioB.map((item, index) => (
+                  <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 hover:border-[var(--accent-orange)]/30 transition-all">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-mono font-bold text-[var(--accent-orange)]">종목 {index + 1}:</span>
+                      <select
+                        value={item.assetId}
+                        onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                        className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1 px-2 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
+                      >
+                        {allAssets.filter((a) => a.id !== 'CASH').map((asset) => (
+                          <option key={asset.id} value={asset.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === asset.id)}>
+                            {asset.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={item.weight}
+                          onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                          className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
+                        />
+                        <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                      </div>
+                      {portfolioB.length > 1 && (
+                        <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 transition-all">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
                       <input
-                        type="number"
+                        type="range"
                         min={0}
                         max={100}
                         step={5}
                         value={item.weight}
-                        onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                        className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
+                        onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
+                        className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
                       />
-                      <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                      {strategyPeriodB > 0 && (
+                        <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                          <input
+                            type="checkbox"
+                            checked={item.enableDefense !== false}
+                            onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                            className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
+                          />
+                          <span>방어 적용</span>
+                        </label>
+                      )}
                     </div>
-                    {portfolioB.length > 1 && (
-                      <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={item.weight}
-                      onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
-                      className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
-                    />
-                    {strategyPeriodB > 0 && (
-                      <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                        <input
-                          type="checkbox"
-                          checked={item.enableDefense !== false}
-                          onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                          className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
-                        />
-                        <span>방어 적용</span>
-                      </label>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
 
-              <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                <span className="text-[var(--text-primary)]">현금</span>
-                <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashB}%</span>
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                  <span className="text-[var(--text-primary)]">현금</span>
+                  <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashB}%</span>
+                </div>
               </div>
+            </SmoothHeight>
 
-              <div className="pt-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                    <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                    방어 옵션 (이동평균선)
-                  </label>
-                  <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)]">
-                    <HelpCircle className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+            <div className="pt-2 space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                  방어 옵션 (이동평균선)
+                </label>
+                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <SmoothHeight>
                 {activeTooltip === 'defense_b' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed animate-popover-expand">
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                     시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                   </div>
                 )}
-                <select
-                  value={strategyPeriodB}
-                  onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
-                  className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer"
-                >
-                  <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                  <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                  <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                  <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                  <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-                </select>
-              </div>
+              </SmoothHeight>
+              <select
+                value={strategyPeriodB}
+                onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
+                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
+              >
+                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+              </select>
             </div>
           </div>
 
