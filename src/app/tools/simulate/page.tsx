@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, MouseEvent, TouchEvent, useEffect, Suspense 
 import { useSearchParams } from 'next/navigation';
 import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
-import { calculatePersonalitySimulatorConfig, getUserPersonalityCode } from '@/utils/personalitySimulatorMapping';
+import { calculatePersonalitySimulatorConfig, getUserPersonalityInfo } from '@/utils/personalitySimulatorMapping';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import CommentSection from '@/components/CommentSection';
@@ -82,23 +82,20 @@ function SimulatorContent() {
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
   const settingsRestoredRef = useRef(false);
 
-  // [본인 성향 맞춤 포트폴리오 적용 함수]
-  const applyPersonalityStrategy = (code: string | null) => {
+  // [본인 성향 & 4축 세부 점수 기반 맞춤 포트폴리오 적용 함수]
+  const applyPersonalityStrategy = (code: string | null, scores?: any) => {
     setUserProfileCode(code);
-    const config = calculatePersonalitySimulatorConfig(code);
+    const config = calculatePersonalitySimulatorConfig(code, scores);
     setPortfolioA(config.portfolioA);
     setStrategyPeriodA(config.strategyPeriodA);
     setTargetCAGR(config.recommendedTargetCAGR);
     setMaxTolerableMDD(config.recommendedMaxMDD);
   };
 
-  // 1. [실시간 성향 동기화] 로그인 유저 계정(user) 또는 URL 변경 시 본인 성향 즉시 세팅
+  // 1. [실시간 성향 및 점수 동기화] 로그인 유저 계정(user) 또는 URL 변경 시 본인 성향 및 1점 단위 점수까지 즉시 세팅
   useEffect(() => {
-    const code = getUserPersonalityCode({
-      user,
-      searchParamType: searchParams.get('type'),
-    });
-    applyPersonalityStrategy(code);
+    const info = getUserPersonalityInfo({ user, searchParams });
+    applyPersonalityStrategy(info.typeCode, info.scores);
   }, [user, searchParams]);
 
   // 2. [사용자 커스텀 설정(B) 1회 복원] 계정 서버 설정 또는 로컬스토리지 복원

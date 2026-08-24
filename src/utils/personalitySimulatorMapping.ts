@@ -103,45 +103,121 @@ export const DEFAULT_UNBIASED_SCORES: PersonalityScores = {
 };
 
 /**
- * 1. 로그인 유저 / URL 쿼리 / 로컬 저장소로부터 유효한 성향 코드(4글자)를 간결하게 반환
+ * 1. 로그인 유저 / URL 쿼리 / 로컬 저장소로부터 성향 코드 및 4축 세부 점수를 추출
  */
-export function getUserPersonalityCode(options: {
+export function getUserPersonalityInfo(options: {
   user?: UserAccount | null;
-  searchParamType?: string | null;
-}): string | null {
-  const query = options.searchParamType?.toUpperCase().trim();
-  if (query && PERSONALITY_PROFILES[query]) {
-    return query;
-  }
-  const userType = options.user?.investmentType?.toUpperCase().trim();
-  if (userType && PERSONALITY_PROFILES[userType]) {
-    return userType;
-  }
-  if (typeof window !== 'undefined') {
-    const local = localStorage.getItem('jusik_type_code')?.toUpperCase().trim();
-    if (local && PERSONALITY_PROFILES[local]) {
-      return local;
+  searchParams?: { get: (k: string) => string | null } | null;
+}): {
+  typeCode: string | null;
+  scores: PersonalityScores;
+} {
+  const { user, searchParams } = options;
+
+  // 1순위: URL Query Parameter
+  if (searchParams) {
+    const queryType = searchParams.get('type')?.toUpperCase().trim();
+    if (queryType && PERSONALITY_PROFILES[queryType]) {
+      const parseScore = (param: string | null, fallback: number) => {
+        if (!param) return fallback;
+        const num = Number(param);
+        return isNaN(num) ? fallback : Math.min(100, Math.max(0, num));
+      };
+      const defaultScores = createDefaultScoresForCode(queryType);
+      const g = parseScore(searchParams.get('g'), defaultScores.GS.G);
+      const a = parseScore(searchParams.get('a'), defaultScores.AP.A);
+      const l = parseScore(searchParams.get('l'), defaultScores.LT.L);
+      const r = parseScore(searchParams.get('r'), defaultScores.RI.R);
+      return {
+        typeCode: queryType,
+        scores: {
+          GS: { G: g, S: 100 - g },
+          AP: { A: a, P: 100 - a },
+          LT: { L: l, T: 100 - l },
+          RI: { R: r, I: 100 - r },
+        },
+      };
     }
-    const savedUserJson = localStorage.getItem('jusik_app_user_account');
-    if (savedUserJson) {
-      try {
+  }
+
+  // 2순위: 로그인 유저 계정 데이터 (40문항 답변 또는 성향 코드)
+  if (user) {
+    if (user.typeAnswers && typeof user.typeAnswers === 'object' && Object.keys(user.typeAnswers).length === 40) {
+      const calc = calculateScoresFromAnswers(user.typeAnswers);
+      return {
+        typeCode: calc.typeCode,
+        scores: calc.scores,
+      };
+    }
+    const userType = user.investmentType?.toUpperCase().trim();
+    if (userType && PERSONALITY_PROFILES[userType]) {
+      return {
+        typeCode: userType,
+        scores: createDefaultScoresForCode(userType),
+      };
+    }
+  }
+
+  // 3순위: 비로그인 브라우저 로컬 저장소
+  if (typeof window !== 'undefined') {
+    try {
+      const savedAnswers = localStorage.getItem('jusik_type_answers');
+      if (savedAnswers) {
+        const parsed = JSON.parse(savedAnswers);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 40) {
+          const calc = calculateScoresFromAnswers(parsed);
+          return {
+            typeCode: calc.typeCode,
+            scores: calc.scores,
+          };
+        }
+      }
+
+      const localCode = localStorage.getItem('jusik_type_code')?.toUpperCase().trim();
+      if (localCode && PERSONALITY_PROFILES[localCode]) {
+        return {
+          typeCode: localCode,
+          scores: createDefaultScoresForCode(localCode),
+        };
+      }
+
+      const savedUserJson = localStorage.getItem('jusik_app_user_account');
+      if (savedUserJson) {
         const u = JSON.parse(savedUserJson);
+        if (u?.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40) {
+          const calc = calculateScoresFromAnswers(u.typeAnswers);
+          return {
+            typeCode: calc.typeCode,
+            scores: calc.scores,
+          };
+        }
         const accountType = u?.investmentType?.toUpperCase().trim();
         if (accountType && PERSONALITY_PROFILES[accountType]) {
-          return accountType;
+          return {
+            typeCode: accountType,
+            scores: createDefaultScoresForCode(accountType),
+          };
         }
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
   }
-  return null;
+
+  // 4순위: 미진단 기본 상태
+  return {
+    typeCode: null,
+    scores: DEFAULT_UNBIASED_SCORES,
+  };
 }
 
 /**
- * 2. 성향 코드(typeCode)를 받아 해당 성향의 맞춤 포트폴리오 및 목표 가이드라인을 반환
+ * 2. 성향 코드(typeCode)와 4축 세부 점수(scores)를 받아 1점 단위로 미세 조절된 맞춤 포트폴리오를 반환
  */
 export function calculatePersonalitySimulatorConfig(
-  typeCode: string | null | undefined
+  typeCode: string | null | undefined,
+  scores?: PersonalityScores
 ): RecommendationResult {
+  const activeScores = scores || (typeCode ? createDefaultScoresForCode(typeCode) : DEFAULT_UNBIASED_SCORES);
+
   // 성향 미진단 기본 상태
   if (!typeCode || !PERSONALITY_PROFILES[typeCode]) {
     return {
@@ -161,7 +237,7 @@ export function calculatePersonalitySimulatorConfig(
           warning: '단기 시세에 흔들리지 않고 꾸준히 적립해 나가는 규율이 중요합니다.'
         }
       },
-      scores: DEFAULT_UNBIASED_SCORES,
+      scores: activeScores,
       recommendedTargetCAGR: 15,
       recommendedMaxMDD: 20,
       portfolioA: [
@@ -178,72 +254,120 @@ export function calculatePersonalitySimulatorConfig(
   }
 
   const profile = PERSONALITY_PROFILES[typeCode];
-  const isG = typeCode.includes('G');
-  const isA = typeCode.includes('A');
-  const isL = typeCode.includes('L');
-  const isR = typeCode.includes('R');
-  const isT = typeCode.includes('T');
-  const isP = typeCode.includes('P');
-  const isS = typeCode.includes('S');
+  const pctG = activeScores.GS.G;
+  const pctS = activeScores.GS.S;
+  const pctA = activeScores.AP.A;
+  const pctP = activeScores.AP.P;
+  const pctL = activeScores.LT.L;
+  const pctT = activeScores.LT.T;
+  const pctR = activeScores.RI.R;
+  const pctI = 100 - pctR;
 
-  const scores = createDefaultScoresForCode(typeCode);
-
-  // 방어 전략 주기 (Active / Tactical 성향)
+  // =========================================================================
+  // STEP 1: 방어선 (이동평균선) 결정 - A 및 T 점수 기준
+  // =========================================================================
   let strategyPeriodA = 0;
-  if (isA && isT) {
-    strategyPeriodA = 100; // 단기/중기 기동 방어
-  } else if (isA) {
-    strategyPeriodA = 200; // 200일선 장기 추세 방어
+  if (pctA >= 70 || pctT >= 70) {
+    if (pctT >= 70 && pctA >= 70) {
+      strategyPeriodA = 100; // 100일선
+    } else if (pctR >= 50) {
+      strategyPeriodA = 100; // 100일선
+    } else {
+      strategyPeriodA = 200; // 200일선
+    }
+  } else {
+    strategyPeriodA = 0; // Buy & Hold DCA
   }
 
-  // 16가지 성향별 대표 포트폴리오 조합
-  let rawPortfolio: SelectedAsset[] = [];
+  const isDefenseActive = strategyPeriodA > 0;
+  const isHighRiskAsset = (id: string) => ['QLD', 'TQQQ', 'SOXX', 'SOXL', 'SSO', 'UPRO', 'BTC', 'ETH', 'SPY'].includes(id);
 
-  if (isP) {
-    // 수동/패시브형 성향
-    if (isG) {
+  // =========================================================================
+  // STEP 2: 점수 비율(0~100)에 따른 자산 배분 미세 조절 (Dynamic Fine-Tuning)
+  // =========================================================================
+  const round5 = (val: number) => Math.min(100, Math.max(0, Math.round(val / 5) * 5));
+  let rawPortfolio: { assetId: string; weight: number }[] = [];
+
+  if (pctP >= 50) {
+    // 수동 / 패시브형
+    if (pctG >= 70) {
+      const qldW = round5(50 + ((pctG - 70) / 30) * 30); // 50% ~ 80% 미세 조절
       rawPortfolio = [
-        { assetId: 'QQQ', weight: 60, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SPY', weight: 40, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'QLD', weight: qldW },
+        { assetId: 'SCHD', weight: 100 - qldW },
+      ];
+    } else if (pctG >= 50) {
+      rawPortfolio = [
+        { assetId: 'QQQ', weight: 60 },
+        { assetId: 'SPY', weight: 40 },
+      ];
+    } else if (pctS >= 60) {
+      const schdW = round5(50 + ((pctS - 60) / 40) * 30); // 50% ~ 80% 미세 조절
+      rawPortfolio = [
+        { assetId: 'SCHD', weight: schdW },
+        { assetId: 'SPY', weight: 100 - schdW },
       ];
     } else {
       rawPortfolio = [
-        { assetId: 'SPY', weight: 50, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SCHD', weight: 30, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'QQQ', weight: 20, enableDefense: strategyPeriodA > 0 },
+        { assetId: 'SPY', weight: 50 },
+        { assetId: 'QQQ', weight: 30 },
+        { assetId: 'SCHD', weight: 20 },
       ];
     }
   } else {
-    // 능동/액티브형 성향 (GATR, GATI, GAHR, GAHI 등)
-    if (isG) {
+    // 능동 / 액티브형
+    if (pctG >= 75) {
       rawPortfolio = [
-        { assetId: 'QQQ', weight: 50, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SOXX', weight: 20, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'BTC', weight: 10, enableDefense: false },
-        { assetId: 'SCHD', weight: 10, enableDefense: false },
-        { assetId: 'GLD', weight: 10, enableDefense: false },
+        { assetId: 'QLD', weight: 50 },
+        { assetId: 'SOXX', weight: 30 },
+        { assetId: 'BTC', weight: 10 },
+        { assetId: 'SCHD', weight: 10 },
+      ];
+    } else if (pctG >= 55) {
+      rawPortfolio = [
+        { assetId: 'QQQ', weight: 50 },
+        { assetId: 'SOXX', weight: 20 },
+        { assetId: 'BTC', weight: 10 },
+        { assetId: 'SCHD', weight: 10 },
+        { assetId: 'GLD', weight: 10 },
+      ];
+    } else if (pctS >= 60) {
+      rawPortfolio = [
+        { assetId: 'SPY', weight: 40 },
+        { assetId: 'SCHD', weight: 30 },
+        { assetId: 'SHY', weight: 20 },
+        { assetId: 'GLD', weight: 10 },
       ];
     } else {
       rawPortfolio = [
-        { assetId: 'SPY', weight: 40, enableDefense: strategyPeriodA > 0 },
-        { assetId: 'SCHD', weight: 30, enableDefense: false },
-        { assetId: 'SHY', weight: 20, enableDefense: false },
-        { assetId: 'GLD', weight: 10, enableDefense: false },
+        { assetId: 'QQQ', weight: 40 },
+        { assetId: 'SPY', weight: 35 },
+        { assetId: 'SCHD', weight: 25 },
       ];
     }
   }
 
-  // 목표 연수익률(CAGR) & 감내 손실(MDD)
-  const targetCAGR = isG ? (isA ? 22 : 18) : (isA ? 14 : 10);
-  const maxMDD = isG ? (isA ? 25 : 20) : (isA ? 15 : 12);
+  const portfolioA: SelectedAsset[] = rawPortfolio.map((item) => ({
+    ...item,
+    enableDefense: isDefenseActive && isHighRiskAsset(item.assetId),
+  }));
+
+  // =========================================================================
+  // STEP 3: 4축 가중치 기반 목표 CAGR & MDD 정밀 수식 계산
+  // =========================================================================
+  const targetCAGRFloat = 6.0 + (pctG / 100.0) * 9.0 + (pctA / 100.0) * 1.5 + (pctT / 100.0) * 1.0 + (pctI / 100.0) * 0.5;
+  const recommendedTargetCAGR = Math.round(Math.max(5, Math.min(25, targetCAGRFloat)));
+
+  const targetMDDFloat = 12.0 + (pctG / 100.0) * 45.0 - (pctT / 100.0) * 6.0 - (pctR / 100.0) * 4.0 - (pctP / 100.0) * 3.0;
+  const recommendedMaxMDD = Math.round(Math.max(10, Math.min(65, targetMDDFloat)));
 
   return {
     typeCode,
     profile,
-    scores,
-    recommendedTargetCAGR: targetCAGR,
-    recommendedMaxMDD: maxMDD,
-    portfolioA: rawPortfolio,
+    scores: activeScores,
+    recommendedTargetCAGR,
+    recommendedMaxMDD,
+    portfolioA,
     strategyPeriodA,
     portfolioB: [
       { assetId: 'SPY', weight: 60, enableDefense: false },
