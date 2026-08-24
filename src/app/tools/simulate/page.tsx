@@ -92,18 +92,24 @@ function SimulatorContent() {
     setMaxTolerableMDD(config.recommendedMaxMDD);
   };
 
-  // 1. [실시간 성향 및 점수 동기화] 로그인 유저 계정(user) 또는 URL 변경 시 본인 성향 및 1점 단위 점수까지 즉시 세팅
-  useEffect(() => {
+  // [목표치 성향 맞춤 권장값으로 리셋]
+  const resetGoalSettingsToRecommendation = () => {
     const info = getUserPersonalityInfo({ user, searchParams });
-    applyPersonalityStrategy(info.typeCode, info.scores);
-  }, [user, searchParams]);
+    const config = calculatePersonalitySimulatorConfig(info.typeCode, info.scores);
+    setTargetCAGR(config.recommendedTargetCAGR);
+    setMaxTolerableMDD(config.recommendedMaxMDD);
+  };
 
-  // 2. [사용자 커스텀 설정(B) 1회 복원] 계정 서버 설정 또는 로컬스토리지 복원
+  // 1. [초기 마운트 및 복원] 서버 계정 설정 또는 로컬스토리지 복원 (없으면 성향 추천값 세팅)
   useEffect(() => {
     if (settingsRestoredRef.current) return;
 
     try {
-      let settingsSource = null;
+      const info = getUserPersonalityInfo({ user, searchParams });
+      setUserProfileCode(info.typeCode);
+      const config = calculatePersonalitySimulatorConfig(info.typeCode, info.scores);
+
+      let settingsSource: any = null;
       if (user && user.simulatorSettings) {
         settingsSource = user.simulatorSettings;
       } else if (typeof window !== 'undefined') {
@@ -116,6 +122,21 @@ function SimulatorContent() {
       }
 
       if (settingsSource) {
+        // 복원된 목표 설정이 있으면 복원, 없으면 성향 추천값
+        if (settingsSource.targetCAGR !== undefined) setTargetCAGR(settingsSource.targetCAGR);
+        else setTargetCAGR(config.recommendedTargetCAGR);
+
+        if (settingsSource.maxTolerableMDD !== undefined) setMaxTolerableMDD(settingsSource.maxTolerableMDD);
+        else setMaxTolerableMDD(config.recommendedMaxMDD);
+
+        // 복원된 전략 A가 있으면 복원, 없으면 성향 추천 포트폴리오
+        if (settingsSource.portfolioA && settingsSource.portfolioA.length > 0) setPortfolioA(settingsSource.portfolioA);
+        else setPortfolioA(config.portfolioA);
+
+        if (settingsSource.strategyPeriodA !== undefined) setStrategyPeriodA(settingsSource.strategyPeriodA);
+        else setStrategyPeriodA(config.strategyPeriodA);
+
+        // 전략 B 및 공통 조건 복원
         if (settingsSource.portfolioB && settingsSource.portfolioB.length > 0) setPortfolioB(settingsSource.portfolioB);
         if (settingsSource.strategyPeriodB !== undefined) setStrategyPeriodB(settingsSource.strategyPeriodB);
         if (settingsSource.initialCapital !== undefined) setInitialCapital(settingsSource.initialCapital);
@@ -123,16 +144,28 @@ function SimulatorContent() {
         if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
         settingsRestoredRef.current = true;
+      } else {
+        // 저장된 설정이 전혀 없는 신규 상태 ➔ 성향 추천값으로 초기화
+        setPortfolioA(config.portfolioA);
+        setStrategyPeriodA(config.strategyPeriodA);
+        setTargetCAGR(config.recommendedTargetCAGR);
+        setMaxTolerableMDD(config.recommendedMaxMDD);
+        settingsRestoredRef.current = true;
       }
     } catch (e) {
       console.error('Failed to restore custom simulator settings:', e);
     }
-  }, [user]);
+  }, [user, searchParams]);
 
-  // Save custom strategy settings to server & localStorage whenever modified
+  // 2. [수정값 실시간 영구 저장] 사용자가 수정한 모든 설정(목표치, 전략A, 전략B, 공통조건)을 자동 저장
   useEffect(() => {
+    if (!settingsRestoredRef.current) return;
     try {
       const customData = {
+        targetCAGR,
+        maxTolerableMDD,
+        portfolioA,
+        strategyPeriodA,
         portfolioB,
         strategyPeriodB,
         initialCapital,
@@ -144,7 +177,7 @@ function SimulatorContent() {
     } catch (e) {
       console.error(e);
     }
-  }, [portfolioB, strategyPeriodB, initialCapital, depositAmount, durationYears, depositFrequency]);
+  }, [targetCAGR, maxTolerableMDD, portfolioA, strategyPeriodA, portfolioB, strategyPeriodB, initialCapital, depositAmount, durationYears, depositFrequency]);
 
   // Interactive Canvas Hover & Drag States
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -638,18 +671,17 @@ function SimulatorContent() {
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-[var(--accent-orange)]" />
             <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-              {userProfileCode ? (
-                <span><strong className="text-[var(--accent-orange)] font-mono font-black">{userProfileCode}</strong> 맞춤 위험/수익 가이드라인</span>
-              ) : (
-                <span>내 목표 & 손실 감내 설정</span>
-              )}
+              목표 연수익률 & 감내 손실 설정
             </h2>
           </div>
-          {userProfileCode && (
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono border border-[var(--border-color)]">
-              진단 결과 연결됨
-            </span>
-          )}
+          <button
+            type="button"
+            onClick={resetGoalSettingsToRecommendation}
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:bg-[var(--accent-orange)]/10 active:scale-95 transition-all cursor-pointer shadow-2xs"
+          >
+            <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
+            <span>{userProfileCode ? `${userProfileCode} 맞춤값으로 초기화` : '기본 맞춤값으로 초기화'}</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1074,6 +1106,18 @@ function SimulatorContent() {
               {/* Quick Preset Selector Buttons */}
               <div style={{ borderTop: '1px solid var(--border-color)' }} className="pt-2 flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">추천 템플릿:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const info = getUserPersonalityInfo({ user, searchParams });
+                    const config = calculatePersonalitySimulatorConfig(info.typeCode, info.scores);
+                    setPortfolioA(config.portfolioA);
+                    setStrategyPeriodA(config.strategyPeriodA);
+                  }}
+                  className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 active:scale-95 transition-all font-mono shadow-2xs"
+                >
+                  {userProfileCode ? `${userProfileCode} 맞춤 전략` : '기본 맞춤 전략'}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
