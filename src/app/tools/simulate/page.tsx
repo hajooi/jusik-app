@@ -1116,7 +1116,7 @@ function SimulatorContent() {
                   }}
                   className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 hover:bg-[var(--accent-orange)]/25 active:scale-95 transition-all font-mono shadow-2xs"
                 >
-                  {userProfileCode ? `${userProfileCode} 맞춤 전략` : '기본 맞춤 전략'}
+                  {userProfileCode ? `${userProfileCode} 맞춤` : '기본 맞춤'}
                 </button>
                 <button
                   type="button"
@@ -1130,7 +1130,7 @@ function SimulatorContent() {
                   }}
                   className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
                 >
-                  균형 자산 배분
+                  균형 자산
                 </button>
                 <button
                   type="button"
@@ -1144,7 +1144,7 @@ function SimulatorContent() {
                   }}
                   className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
                 >
-                  공격형 성장
+                  공격형
                 </button>
                 <button
                   type="button"
@@ -1159,7 +1159,7 @@ function SimulatorContent() {
                   }}
                   className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] transition-all"
                 >
-                  보수형 배당/채권
+                  방어형
                 </button>
               </div>
             </div>
