@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, MouseEvent, TouchEvent, useEffect, Suspense 
 import { useSearchParams } from 'next/navigation';
 import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
-import { calculatePersonalitySimulatorConfig } from '@/utils/personalitySimulatorMapping';
+import { calculatePersonalitySimulatorConfig, resolveUserPersonality } from '@/utils/personalitySimulatorMapping';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import CommentSection from '@/components/CommentSection';
@@ -79,112 +79,33 @@ function SimulatorContent() {
     { assetId: 'QQQ', weight: 40, enableDefense: false },
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
-  const initialRestoredRef = useRef(false);
+  const settingsRestoredRef = useRef(false);
 
-  // Load URL query params, LocalStorage survey results, or saved custom simulator settings on mount ONCE
+  // 1. [SSOT 실시간 반응형 동기화] URL 파라미터 또는 로그인 유저 성향이 변경/로드될 때마다 즉시 반영
   useEffect(() => {
-    if (initialRestoredRef.current) return;
+    try {
+      const resolved = resolveUserPersonality({ searchParams, user });
+      
+      setUserProfileCode(resolved.typeCode);
+      const config = calculatePersonalitySimulatorConfig(resolved.typeCode, resolved.scores);
+      
+      setPortfolioA(config.portfolioA);
+      setStrategyPeriodA(config.strategyPeriodA);
+      setTargetCAGR(config.recommendedTargetCAGR);
+      setMaxTolerableMDD(config.recommendedMaxMDD);
+    } catch (e) {
+      console.error('Failed to resolve personality config:', e);
+    }
+  }, [searchParams, user]);
+
+  // 2. [사용자 커스텀 설정(B) 1회 복원] 계정 서버 설정 또는 로컬스토리지 복원
+  useEffect(() => {
+    if (settingsRestoredRef.current) return;
 
     try {
-      const typeParam = searchParams.get('type')?.toUpperCase();
-      const gParam = searchParams.get('g');
-      const aParam = searchParams.get('a');
-      const lParam = searchParams.get('l');
-      const rParam = searchParams.get('r');
-
-      const parseScore = (param: string | null) => {
-        if (param === null || param === undefined || param === '') return 50;
-        const num = Number(param);
-        return isNaN(num) ? 50 : Math.min(100, Math.max(0, num));
-      };
-
-      const gScore = parseScore(gParam);
-      const aScore = parseScore(aParam);
-      const lScore = parseScore(lParam);
-      const rScore = parseScore(rParam);
-
-      let typeCode = typeParam;
-      let scores = {
-        GS: { G: gScore, S: 100 - gScore },
-        AP: { A: aScore, P: 100 - aScore },
-        LT: { L: lScore, T: 100 - lScore },
-        RI: { R: rScore, I: 100 - rScore },
-      };
-
-      // 1순위: URL Query Parameter
-      // 2순위: User DB (로그인된 user.typeAnswers 또는 user.investmentType) [SSOT 최우선]
-      // 3순위: LocalStorage
-      if (!typeCode && user) {
-        if (user.typeAnswers && Object.keys(user.typeAnswers).length === 40) {
-          let g = 0, a = 0, l = 0, r = 0;
-          for (let i = 1; i <= 10; i++) g += user.typeAnswers[i] || 3;
-          for (let i = 11; i <= 20; i++) a += user.typeAnswers[i] || 3;
-          for (let i = 21; i <= 30; i++) l += user.typeAnswers[i] || 3;
-          for (let i = 31; i <= 40; i++) r += user.typeAnswers[i] || 3;
-          const pctG = Math.round((g - 10) * 2.5);
-          const pctA = Math.round((a - 10) * 2.5);
-          const pctL = Math.round((l - 10) * 2.5);
-          const pctR = Math.round((r - 10) * 2.5);
-          typeCode = `${pctG >= 50 ? 'G' : 'S'}${pctA >= 50 ? 'A' : 'P'}${pctL >= 50 ? 'L' : 'T'}${pctR >= 50 ? 'R' : 'I'}`;
-          scores = {
-            GS: { G: pctG, S: 100 - pctG },
-            AP: { A: pctA, P: 100 - pctA },
-            LT: { L: pctL, T: 100 - pctL },
-            RI: { R: pctR, I: 100 - pctR },
-          };
-        } else if (user.investmentType && user.investmentType !== '미진단') {
-          typeCode = user.investmentType;
-          const isG = typeCode.includes('G');
-          const isA = typeCode.includes('A');
-          const isL = typeCode.includes('L');
-          const isR = typeCode.includes('R');
-          scores = {
-            GS: { G: isG ? 65 : 35, S: isG ? 35 : 65 },
-            AP: { A: isA ? 65 : 35, P: isA ? 35 : 65 },
-            LT: { L: isL ? 65 : 35, T: isL ? 35 : 65 },
-            RI: { R: isR ? 65 : 35, I: isR ? 35 : 65 },
-          };
-        }
-      }
-
-      // Fallback to LocalStorage if query params & user data absent
-      if (!typeCode) {
-        const savedAnswers = localStorage.getItem('jusik_type_answers');
-        const savedCompleted = localStorage.getItem('jusik_type_completed');
-        if (savedAnswers && savedCompleted === 'true') {
-          const parsed = JSON.parse(savedAnswers);
-          let g = 0, a = 0, l = 0, r = 0;
-          for (let i = 1; i <= 10; i++) g += parsed[i] || 3;
-          for (let i = 11; i <= 20; i++) a += parsed[i] || 3;
-          for (let i = 21; i <= 30; i++) l += parsed[i] || 3;
-          for (let i = 31; i <= 40; i++) r += parsed[i] || 3;
-          const pctG = Math.round((g - 10) * 2.5);
-          const pctA = Math.round((a - 10) * 2.5);
-          const pctL = Math.round((l - 10) * 2.5);
-          const pctR = Math.round((r - 10) * 2.5);
-          typeCode = `${pctG >= 50 ? 'G' : 'S'}${pctA >= 50 ? 'A' : 'P'}${pctL >= 50 ? 'L' : 'T'}${pctR >= 50 ? 'R' : 'I'}`;
-          scores = {
-            GS: { G: pctG, S: 100 - pctG },
-            AP: { A: pctA, P: 100 - pctA },
-            LT: { L: pctL, T: 100 - pctL },
-            RI: { R: pctR, I: 100 - pctR },
-          };
-        }
-      }
-
-      if (typeCode) {
-        setUserProfileCode(typeCode);
-        const config = calculatePersonalitySimulatorConfig(typeCode, scores);
-        setPortfolioA(config.portfolioA);
-        setStrategyPeriodA(config.strategyPeriodA);
-        setTargetCAGR(config.recommendedTargetCAGR);
-        setMaxTolerableMDD(config.recommendedMaxMDD);
-      }
-
-      // Restore saved custom strategy settings from user server account or localStorage
       let settingsSource = null;
-      if (user) {
-        settingsSource = user.simulatorSettings || null;
+      if (user && user.simulatorSettings) {
+        settingsSource = user.simulatorSettings;
       } else if (typeof window !== 'undefined') {
         const localSettings = localStorage.getItem('jusik_custom_simulator_settings');
         if (localSettings) {
@@ -195,30 +116,18 @@ function SimulatorContent() {
       }
 
       if (settingsSource) {
-        if (settingsSource.portfolioB) setPortfolioB(settingsSource.portfolioB);
+        if (settingsSource.portfolioB && settingsSource.portfolioB.length > 0) setPortfolioB(settingsSource.portfolioB);
         if (settingsSource.strategyPeriodB !== undefined) setStrategyPeriodB(settingsSource.strategyPeriodB);
         if (settingsSource.initialCapital !== undefined) setInitialCapital(settingsSource.initialCapital);
         if (settingsSource.depositAmount !== undefined) setDepositAmount(settingsSource.depositAmount);
         if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
-      } else {
-        // Reset to default initial state for new user / unconfigured user
-        setPortfolioB([
-          { assetId: 'SPY', weight: 60, enableDefense: false },
-          { assetId: 'QQQ', weight: 40, enableDefense: false },
-        ]);
-        setStrategyPeriodB(0);
-        setInitialCapital(100);
-        setDepositAmount(50);
-        setDurationYears(20);
-        setDepositFrequency('monthly');
+        settingsRestoredRef.current = true;
       }
-
-      initialRestoredRef.current = true;
     } catch (e) {
-      console.error(e);
+      console.error('Failed to restore custom simulator settings:', e);
     }
-  }, [searchParams, user]);
+  }, [user]);
 
   // Save custom strategy settings to server & localStorage whenever modified
   useEffect(() => {

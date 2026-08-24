@@ -1,5 +1,20 @@
 import { PersonalityProfile, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import backtestDataRaw from '@/data/backtestData.json';
+import { UserAccount } from '@/context/AuthContext';
+
+export interface PersonalityScores {
+  GS: { G: number; S: number };
+  AP: { A: number; P: number };
+  LT: { L: number; T: number };
+  RI: { R: number; I: number };
+}
+
+export interface ResolvedPersonality {
+  typeCode: string | null;
+  scores: PersonalityScores;
+  isCustomized: boolean;
+  source: 'query' | 'user_answers' | 'user_type' | 'local_answers' | 'local_type' | 'default';
+}
 
 export interface SelectedAsset {
   assetId: string;
@@ -10,12 +25,7 @@ export interface SelectedAsset {
 export interface RecommendationResult {
   typeCode: string;
   profile: PersonalityProfile;
-  scores: {
-    GS: { G: number; S: number };
-    AP: { A: number; P: number };
-    LT: { L: number; T: number };
-    RI: { R: number; I: number };
-  };
+  scores: PersonalityScores;
   recommendedTargetCAGR: number; // Target CAGR (%)
   recommendedMaxMDD: number;    // Target Max MDD (%)
   portfolioA: SelectedAsset[];
@@ -39,11 +49,170 @@ const assetMap: Record<string, BacktestAssetInfo> = {};
 });
 
 /**
+ * 40문항 답변 객체로부터 4개 축 백분율(0~100) 및 4글자 성향 코드 계산
+ */
+export function calculateScoresFromAnswers(answers: Record<number | string, number>): {
+  typeCode: string;
+  scores: PersonalityScores;
+} {
+  let g = 0, a = 0, l = 0, r = 0;
+  for (let i = 1; i <= 10; i++) g += Number(answers[i] || answers[String(i)] || 3);
+  for (let i = 11; i <= 20; i++) a += Number(answers[i] || answers[String(i)] || 3);
+  for (let i = 21; i <= 30; i++) l += Number(answers[i] || answers[String(i)] || 3);
+  for (let i = 31; i <= 40; i++) r += Number(answers[i] || answers[String(i)] || 3);
+
+  const pctG = Math.round((g - 10) * 2.5);
+  const pctA = Math.round((a - 10) * 2.5);
+  const pctL = Math.round((l - 10) * 2.5);
+  const pctR = Math.round((r - 10) * 2.5);
+
+  const typeCode = `${pctG >= 50 ? 'G' : 'S'}${pctA >= 50 ? 'A' : 'P'}${pctL >= 50 ? 'L' : 'T'}${pctR >= 50 ? 'R' : 'I'}`;
+
+  return {
+    typeCode,
+    scores: {
+      GS: { G: pctG, S: 100 - pctG },
+      AP: { A: pctA, P: 100 - pctA },
+      LT: { L: pctL, T: 100 - pctL },
+      RI: { R: pctR, I: 100 - pctR },
+    },
+  };
+}
+
+/**
+ * 4글자 성향 코드로부터 대표 기본 점수 생성
+ */
+export function createDefaultScoresForCode(typeCode: string): PersonalityScores {
+  const isG = typeCode.includes('G');
+  const isA = typeCode.includes('A');
+  const isL = typeCode.includes('L');
+  const isR = typeCode.includes('R');
+  return {
+    GS: { G: isG ? 65 : 35, S: isG ? 35 : 65 },
+    AP: { A: isA ? 65 : 35, P: isA ? 35 : 65 },
+    LT: { L: isL ? 65 : 35, T: isL ? 35 : 65 },
+    RI: { R: isR ? 65 : 35, I: isR ? 35 : 65 },
+  };
+}
+
+export const DEFAULT_UNBIASED_SCORES: PersonalityScores = {
+  GS: { G: 50, S: 50 },
+  AP: { A: 50, P: 50 },
+  LT: { L: 50, T: 50 },
+  RI: { R: 50, I: 50 },
+};
+
+/**
+ * [SSOT] 모든 사용자 환경에서 투자 성향 및 점수를 판별하는 단일 진실 공급원 함수
+ */
+export function resolveUserPersonality(options: {
+  searchParams?: {
+    get: (key: string) => string | null;
+  } | null;
+  user?: UserAccount | null;
+  fallbackToLocal?: boolean;
+}): ResolvedPersonality {
+  const { searchParams, user, fallbackToLocal = true } = options;
+
+  // 1순위: URL Query Parameter
+  if (searchParams) {
+    const typeParam = searchParams.get('type')?.toUpperCase();
+    if (typeParam && /^[GS][AP][LT][RI]$/.test(typeParam)) {
+      const parseScore = (param: string | null, fallback: number) => {
+        if (!param) return fallback;
+        const num = Number(param);
+        return isNaN(num) ? fallback : Math.min(100, Math.max(0, num));
+      };
+
+      const defaultScores = createDefaultScoresForCode(typeParam);
+      const g = parseScore(searchParams.get('g'), defaultScores.GS.G);
+      const a = parseScore(searchParams.get('a'), defaultScores.AP.A);
+      const l = parseScore(searchParams.get('l'), defaultScores.LT.L);
+      const r = parseScore(searchParams.get('r'), defaultScores.RI.R);
+
+      return {
+        typeCode: typeParam,
+        scores: {
+          GS: { G: g, S: 100 - g },
+          AP: { A: a, P: 100 - a },
+          LT: { L: l, T: 100 - l },
+          RI: { R: r, I: 100 - r },
+        },
+        isCustomized: true,
+        source: 'query',
+      };
+    }
+  }
+
+  // 2순위: 로그인 유저 계정 데이터 (SSOT 최우선)
+  if (user) {
+    if (user.typeAnswers && typeof user.typeAnswers === 'object' && Object.keys(user.typeAnswers).length === 40) {
+      const calc = calculateScoresFromAnswers(user.typeAnswers);
+      return {
+        typeCode: calc.typeCode,
+        scores: calc.scores,
+        isCustomized: true,
+        source: 'user_answers',
+      };
+    }
+
+    if (user.investmentType && user.investmentType !== '미진단' && /^[GS][AP][LT][RI]$/.test(user.investmentType)) {
+      return {
+        typeCode: user.investmentType,
+        scores: createDefaultScoresForCode(user.investmentType),
+        isCustomized: true,
+        source: 'user_type',
+      };
+    }
+  }
+
+  // 3순위: 비로그인 게스트의 브라우저 로컬스토리지
+  if (fallbackToLocal && typeof window !== 'undefined') {
+    try {
+      const savedAnswers = localStorage.getItem('jusik_type_answers');
+      const savedCompleted = localStorage.getItem('jusik_type_completed');
+      if (savedAnswers && (savedCompleted === 'true' || savedCompleted === null)) {
+        const parsed = JSON.parse(savedAnswers);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 40) {
+          const calc = calculateScoresFromAnswers(parsed);
+          return {
+            typeCode: calc.typeCode,
+            scores: calc.scores,
+            isCustomized: true,
+            source: 'local_answers',
+          };
+        }
+      }
+
+      const savedCode = localStorage.getItem('jusik_type_code');
+      if (savedCode && /^[GS][AP][LT][RI]$/.test(savedCode)) {
+        return {
+          typeCode: savedCode,
+          scores: createDefaultScoresForCode(savedCode),
+          isCustomized: true,
+          source: 'local_type',
+        };
+      }
+    } catch (e) {
+      console.error('Error resolving personality from localStorage:', e);
+    }
+  }
+
+  // 4순위: 성향 미진단 기본 상태
+  return {
+    typeCode: null,
+    scores: DEFAULT_UNBIASED_SCORES,
+    isCustomized: false,
+    source: 'default',
+  };
+}
+
+/**
  * Unified Quant Dynamic Recommendation Engine
  * Calibrates portfolio allocation & target goals dynamically based on 0~100 personality scores.
  */
 export function calculatePersonalitySimulatorConfig(
-  typeCode: string,
+  typeCode: string | null | undefined,
   scores: {
     GS: { G: number; S: number };
     AP: { A: number; P: number };
@@ -51,7 +220,42 @@ export function calculatePersonalitySimulatorConfig(
     RI: { R: number; I: number };
   }
 ): RecommendationResult {
-  const profile = PERSONALITY_PROFILES[typeCode] || PERSONALITY_PROFILES['SPLI'];
+  // 성향 미진단 기본 상태
+  if (!typeCode || !PERSONALITY_PROFILES[typeCode]) {
+    return {
+      typeCode: '',
+      profile: {
+        code: 'DEFAULT',
+        name: '대표 균형 자산 배분',
+        tagline: '시장 대표 지수를 기반으로 안정적인 복리 성장을 추구합니다.',
+        description: 'S&P 500과 나스닥 100을 균형 있게 분산하여 장기 복리 수익을 극대화하는 표준 전략입니다.',
+        recommendedStrategy: '미국 시장 대표 지수(SPY, QQQ) 정기 적립식 분산 투자',
+        suitableAssets: ['SPY', 'QQQ'],
+        badges: ['글로벌 우량주', '분산 투자', '적립식 복리'],
+        strengths: ['검증된 장기 우상향 성과', '단순하고 지속 가능한 투자'],
+        weaknesses: ['단기 시장 조정 시 심리적 인내 필요'],
+        guidelines: {
+          recommendation: '투자 성향 진단을 완료하시면 나만의 4축 맞춤형 포트폴리오가 제공됩니다.',
+          warning: '단기 시세에 흔들리지 않고 꾸준히 적립해 나가는 규율이 중요합니다.'
+        }
+      },
+      scores,
+      recommendedTargetCAGR: 15,
+      recommendedMaxMDD: 20,
+      portfolioA: [
+        { assetId: 'SPY', weight: 50, enableDefense: true },
+        { assetId: 'QQQ', weight: 50, enableDefense: true },
+      ],
+      strategyPeriodA: 0,
+      portfolioB: [
+        { assetId: 'SPY', weight: 60, enableDefense: false },
+        { assetId: 'QQQ', weight: 40, enableDefense: false },
+      ],
+      strategyPeriodB: 0,
+    };
+  }
+
+  const profile = PERSONALITY_PROFILES[typeCode];
 
   const pctG = scores.GS.G;
   const pctS = scores.GS.S;
