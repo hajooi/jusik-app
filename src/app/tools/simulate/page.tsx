@@ -50,7 +50,7 @@ type Frequency = 'monthly' | 'weekly';
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
-  const { user, updateSimulatorSettings } = useAuth();
+  const { user, investmentType: authType, typeAnswers: authAnswers, updateSimulatorSettings } = useAuth();
 
   // Global Simulation Settings
   const [initialCapital, setInitialCapital] = useState<number>(100); // 100만 원
@@ -84,7 +84,7 @@ function SimulatorContent() {
   // 1. [SSOT 실시간 반응형 동기화] URL 파라미터 또는 로그인 유저 성향이 변경/로드될 때마다 즉시 반영
   useEffect(() => {
     try {
-      const resolved = resolveUserPersonality({ searchParams, user });
+      const resolved = resolveUserPersonality({ searchParams, user, authType, authAnswers });
       
       setUserProfileCode(resolved.typeCode);
       const config = calculatePersonalitySimulatorConfig(resolved.typeCode, resolved.scores);
@@ -96,7 +96,7 @@ function SimulatorContent() {
     } catch (e) {
       console.error('Failed to resolve personality config:', e);
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, authType, authAnswers]);
 
   // 2. [사용자 커스텀 설정(B) 1회 복원] 계정 서버 설정 또는 로컬스토리지 복원
   useEffect(() => {

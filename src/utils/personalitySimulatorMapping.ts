@@ -103,6 +103,19 @@ export const DEFAULT_UNBIASED_SCORES: PersonalityScores = {
 };
 
 /**
+ * 문자열에서 유효한 4글자 투자 성향 코드(예: GATR, SPLI 등)를 안전하게 추출
+ */
+export function extractValidTypeCode(code?: string | null): string | null {
+  if (!code || typeof code !== 'string') return null;
+  const upper = code.toUpperCase().trim();
+  const match = upper.match(/[GS][AP][LT][RI]/);
+  if (match && match[0] && PERSONALITY_PROFILES[match[0]]) {
+    return match[0];
+  }
+  return null;
+}
+
+/**
  * [SSOT] 모든 사용자 환경에서 투자 성향 및 점수를 판별하는 단일 진실 공급원 함수
  */
 export function resolveUserPersonality(options: {
@@ -110,28 +123,31 @@ export function resolveUserPersonality(options: {
     get: (key: string) => string | null;
   } | null;
   user?: UserAccount | null;
+  authType?: string | null;
+  authAnswers?: Record<number | string, number> | null;
   fallbackToLocal?: boolean;
 }): ResolvedPersonality {
-  const { searchParams, user, fallbackToLocal = true } = options;
+  const { searchParams, user, authType, authAnswers, fallbackToLocal = true } = options;
 
   // 1순위: URL Query Parameter
   if (searchParams) {
-    const typeParam = searchParams.get('type')?.toUpperCase();
-    if (typeParam && /^[GS][AP][LT][RI]$/.test(typeParam)) {
+    const rawParam = searchParams.get('type');
+    const validCode = extractValidTypeCode(rawParam);
+    if (validCode) {
       const parseScore = (param: string | null, fallback: number) => {
         if (!param) return fallback;
         const num = Number(param);
         return isNaN(num) ? fallback : Math.min(100, Math.max(0, num));
       };
 
-      const defaultScores = createDefaultScoresForCode(typeParam);
+      const defaultScores = createDefaultScoresForCode(validCode);
       const g = parseScore(searchParams.get('g'), defaultScores.GS.G);
       const a = parseScore(searchParams.get('a'), defaultScores.AP.A);
       const l = parseScore(searchParams.get('l'), defaultScores.LT.L);
       const r = parseScore(searchParams.get('r'), defaultScores.RI.R);
 
       return {
-        typeCode: typeParam,
+        typeCode: validCode,
         scores: {
           GS: { G: g, S: 100 - g },
           AP: { A: a, P: 100 - a },
@@ -144,7 +160,7 @@ export function resolveUserPersonality(options: {
     }
   }
 
-  // 2순위: 로그인 유저 계정 데이터 (SSOT 최우선)
+  // 2순위: 로그인 유저 계정 객체 (user.typeAnswers / user.investmentType)
   if (user) {
     if (user.typeAnswers && typeof user.typeAnswers === 'object' && Object.keys(user.typeAnswers).length === 40) {
       const calc = calculateScoresFromAnswers(user.typeAnswers);
@@ -156,22 +172,44 @@ export function resolveUserPersonality(options: {
       };
     }
 
-    if (user.investmentType && user.investmentType !== '미진단' && /^[GS][AP][LT][RI]$/.test(user.investmentType)) {
+    const validUserCode = extractValidTypeCode(user.investmentType);
+    if (validUserCode) {
       return {
-        typeCode: user.investmentType,
-        scores: createDefaultScoresForCode(user.investmentType),
+        typeCode: validUserCode,
+        scores: createDefaultScoresForCode(validUserCode),
         isCustomized: true,
         source: 'user_type',
       };
     }
   }
 
-  // 3순위: 비로그인 게스트의 브라우저 로컬스토리지
+  // 3순위: AuthContext 실시간 State (authAnswers / authType)
+  if (authAnswers && typeof authAnswers === 'object' && Object.keys(authAnswers).length === 40) {
+    const calc = calculateScoresFromAnswers(authAnswers);
+    return {
+      typeCode: calc.typeCode,
+      scores: calc.scores,
+      isCustomized: true,
+      source: 'user_answers',
+    };
+  }
+
+  const validAuthCode = extractValidTypeCode(authType);
+  if (validAuthCode) {
+    return {
+      typeCode: validAuthCode,
+      scores: createDefaultScoresForCode(validAuthCode),
+      isCustomized: true,
+      source: 'user_type',
+    };
+  }
+
+  // 4순위: 브라우저 로컬스토리지 (jusik_type_answers / jusik_type_code / jusik_app_user_account)
   if (fallbackToLocal && typeof window !== 'undefined') {
     try {
+      // 4-1) jusik_type_answers
       const savedAnswers = localStorage.getItem('jusik_type_answers');
-      const savedCompleted = localStorage.getItem('jusik_type_completed');
-      if (savedAnswers && (savedCompleted === 'true' || savedCompleted === null)) {
+      if (savedAnswers) {
         const parsed = JSON.parse(savedAnswers);
         if (parsed && typeof parsed === 'object' && Object.keys(parsed).length === 40) {
           const calc = calculateScoresFromAnswers(parsed);
@@ -184,11 +222,39 @@ export function resolveUserPersonality(options: {
         }
       }
 
+      // 4-2) jusik_app_user_account
+      const savedUserJson = localStorage.getItem('jusik_app_user_account');
+      if (savedUserJson) {
+        const parsedUser = JSON.parse(savedUserJson);
+        if (parsedUser && typeof parsedUser === 'object') {
+          if (parsedUser.typeAnswers && typeof parsedUser.typeAnswers === 'object' && Object.keys(parsedUser.typeAnswers).length === 40) {
+            const calc = calculateScoresFromAnswers(parsedUser.typeAnswers);
+            return {
+              typeCode: calc.typeCode,
+              scores: calc.scores,
+              isCustomized: true,
+              source: 'user_answers',
+            };
+          }
+          const validAccountCode = extractValidTypeCode(parsedUser.investmentType);
+          if (validAccountCode) {
+            return {
+              typeCode: validAccountCode,
+              scores: createDefaultScoresForCode(validAccountCode),
+              isCustomized: true,
+              source: 'user_type',
+            };
+          }
+        }
+      }
+
+      // 4-3) jusik_type_code
       const savedCode = localStorage.getItem('jusik_type_code');
-      if (savedCode && /^[GS][AP][LT][RI]$/.test(savedCode)) {
+      const validSavedCode = extractValidTypeCode(savedCode);
+      if (validSavedCode) {
         return {
-          typeCode: savedCode,
-          scores: createDefaultScoresForCode(savedCode),
+          typeCode: validSavedCode,
+          scores: createDefaultScoresForCode(validSavedCode),
           isCustomized: true,
           source: 'local_type',
         };
@@ -198,7 +264,7 @@ export function resolveUserPersonality(options: {
     }
   }
 
-  // 4순위: 성향 미진단 기본 상태
+  // 5순위: 성향 미진단 기본 상태
   return {
     typeCode: null,
     scores: DEFAULT_UNBIASED_SCORES,
