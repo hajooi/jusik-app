@@ -389,6 +389,11 @@ class SoundEngine {
     }
   }
 
+  public stopAll() {
+    this.stopBattleBgm();
+    this.stopEndingBgm();
+  }
+
   public playCrash() {
     if (this.isMuted) return;
     this.init();
@@ -1192,6 +1197,22 @@ export default function CiscoManiaGame() {
       sounds.startBattleBgm();
     }
   };
+
+  // Cleanup all audio and BGM upon component unmount or tab backgrounding
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        sounds.stopAll();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      sounds.stopAll();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Keyboard Handler
   useEffect(() => {

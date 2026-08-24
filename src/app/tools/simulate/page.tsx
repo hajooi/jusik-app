@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
+import SmoothHeight from '@/components/SmoothHeight';
 import { 
   LineChart, 
   TrendingUp, 
@@ -110,7 +111,43 @@ function SimulatorContent() {
         RI: { R: rScore, I: 100 - rScore },
       };
 
-      // Fallback to LocalStorage if query params absent
+      // 1순위: URL Query Parameter
+      // 2순위: User DB (로그인된 user.typeAnswers 또는 user.investmentType) [SSOT 최우선]
+      // 3순위: LocalStorage
+      if (!typeCode && user) {
+        if (user.typeAnswers && Object.keys(user.typeAnswers).length === 40) {
+          let g = 0, a = 0, l = 0, r = 0;
+          for (let i = 1; i <= 10; i++) g += user.typeAnswers[i] || 3;
+          for (let i = 11; i <= 20; i++) a += user.typeAnswers[i] || 3;
+          for (let i = 21; i <= 30; i++) l += user.typeAnswers[i] || 3;
+          for (let i = 31; i <= 40; i++) r += user.typeAnswers[i] || 3;
+          const pctG = Math.round((g - 10) * 2.5);
+          const pctA = Math.round((a - 10) * 2.5);
+          const pctL = Math.round((l - 10) * 2.5);
+          const pctR = Math.round((r - 10) * 2.5);
+          typeCode = `${pctG >= 50 ? 'G' : 'S'}${pctA >= 50 ? 'A' : 'P'}${pctL >= 50 ? 'L' : 'T'}${pctR >= 50 ? 'R' : 'I'}`;
+          scores = {
+            GS: { G: pctG, S: 100 - pctG },
+            AP: { A: pctA, P: 100 - pctA },
+            LT: { L: pctL, T: 100 - pctL },
+            RI: { R: pctR, I: 100 - pctR },
+          };
+        } else if (user.investmentType && user.investmentType !== '미진단') {
+          typeCode = user.investmentType;
+          const isG = typeCode.includes('G');
+          const isA = typeCode.includes('A');
+          const isL = typeCode.includes('L');
+          const isR = typeCode.includes('R');
+          scores = {
+            GS: { G: isG ? 65 : 35, S: isG ? 35 : 65 },
+            AP: { A: isA ? 65 : 35, P: isA ? 35 : 65 },
+            LT: { L: isL ? 65 : 35, T: isL ? 35 : 65 },
+            RI: { R: isR ? 65 : 35, I: isR ? 35 : 65 },
+          };
+        }
+      }
+
+      // Fallback to LocalStorage if query params & user data absent
       if (!typeCode) {
         const savedAnswers = localStorage.getItem('jusik_type_answers');
         const savedCompleted = localStorage.getItem('jusik_type_completed');
@@ -967,31 +1004,33 @@ function SimulatorContent() {
           const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
           return (
-            <div className="space-y-2">
-              {etfItems.length > 0 && (
-                <div
-                  style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
-                  className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                >
-                  <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
+            <SmoothHeight>
+              <div className="space-y-2 pb-1">
+                {etfItems.length > 0 && (
+                  <div
+                    style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+                    className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                  >
+                    <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-[var(--accent-orange)]">추론 데이터 안내:</strong> <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {cryptoItems.length > 0 && (
-                <div
-                  style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
-                  className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                >
-                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-rose-500">암호화폐 추론 데이터 안내:</strong> <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                {cryptoItems.length > 0 && (
+                  <div
+                    style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
+                    className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                  >
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-rose-500">암호화폐 추론 데이터 안내:</strong> <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </SmoothHeight>
           );
         }, [portfolioA, portfolioB, simulation.points])}
 

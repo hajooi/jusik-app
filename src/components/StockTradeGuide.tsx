@@ -15,6 +15,7 @@ import {
   Coins
 } from 'lucide-react';
 import StockTradeMotionSimulator from '@/components/StockTradeMotionSimulator';
+import SmoothHeight from '@/components/SmoothHeight';
 
 interface StepData {
   id: number;
@@ -210,8 +211,9 @@ export default function StockTradeGuide() {
         </div>
       </div>
 
-      {/* Main Active Step Card */}
-      <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
+      {/* Main Active Step Card with SmoothHeight */}
+      <SmoothHeight>
+        <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
         {/* Step Title Header */}
         <div className="flex items-center gap-2.5 border-b border-[var(--border-color)]/60 pb-3">
           <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
@@ -321,7 +323,8 @@ export default function StockTradeGuide() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </SmoothHeight>
 
       {/* Prev / Next Navigation Buttons (1-3 Style) */}
       <div className="flex items-center justify-between pt-2 gap-3">
@@ -329,13 +332,13 @@ export default function StockTradeGuide() {
           type="button"
           onClick={handlePrev}
           disabled={currentStep === 1 && currentScene === 1}
-          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all ${
             currentStep === 1 && currentScene === 1
               ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-secondary)]'
-              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
+              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 shadow-2xs'
           }`}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 stroke-[1.7]" />
           이전 단계
         </button>
 
@@ -343,16 +346,16 @@ export default function StockTradeGuide() {
           <button
             type="button"
             onClick={handleNext}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:bg-[#d97706] text-white transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs"
           >
             다음 단계
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 stroke-[1.7]" />
           </button>
         ) : (
           <button
             type="button"
             onClick={() => handleStepChange(1)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 transition-all"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 transition-all shadow-2xs"
           >
             처음부터 다시 보기
           </button>

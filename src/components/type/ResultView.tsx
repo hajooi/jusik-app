@@ -244,13 +244,19 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="space-y-3 flex-1">
             {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
             <div className="space-y-2">
-              {percentage !== undefined && percentage > 0 && (
-                <div>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)] animate-pulse">
-                    🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
-                  </span>
-                </div>
-              )}
+              <div className="min-h-[26px] flex items-center justify-center sm:justify-start">
+                {percentage !== undefined && percentage > 0 ? (
+                  <div className="animate-in fade-in duration-300">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
+                      🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+                    </span>
+                  </div>
+                ) : percentage === undefined ? (
+                  <div className="h-6 w-48 rounded-full bg-[var(--card-hover)]/80 border border-[var(--border-color)]/50 animate-pulse flex items-center px-3">
+                    <div className="h-2.5 w-full bg-[var(--text-secondary)]/15 rounded-full" />
+                  </div>
+                ) : null}
+              </div>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 {profile.badges.map((b, i) => (
                   <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">

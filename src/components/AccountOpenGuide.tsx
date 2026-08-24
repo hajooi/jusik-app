@@ -23,6 +23,7 @@ import {
 import AccountOpenMotionSimulator from '@/components/AccountOpenMotionSimulator';
 import AdvisoryMotionSimulator from '@/components/AdvisoryMotionSimulator';
 import OverseasBenefitMotionSimulator from '@/components/OverseasBenefitMotionSimulator';
+import SmoothHeight from '@/components/SmoothHeight';
 
 interface StepData {
   id: number;
@@ -229,7 +230,9 @@ export default function AccountOpenGuide() {
   };
 
   return (
-    <div className="glass-card rounded-3xl p-4 sm:p-7 border border-[var(--border-color)]/90 shadow-sm space-y-6">
+    <div className="space-y-6">
+      {/* 1. 실전 계좌 개설 가이드 카드 */}
+      <div className="glass-card rounded-3xl p-4 sm:p-7 border border-[var(--border-color)]/90 shadow-sm space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)]/60 pb-4">
         <div className="space-y-1">
@@ -296,8 +299,9 @@ export default function AccountOpenGuide() {
         </div>
       </div>
 
-      {/* Active Step Content Card */}
-      <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
+      {/* Active Step Content Card with SmoothHeight */}
+      <SmoothHeight>
+        <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
         {/* Step Title */}
         <div className="flex items-center gap-2.5">
           <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
@@ -327,9 +331,9 @@ export default function AccountOpenGuide() {
                 <button
                   type="button"
                   onClick={() => handleAppDownload(app)}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-lg bg-[var(--accent-orange)] hover:bg-[#d97706] text-white text-xs sm:text-sm font-bold transition-all shadow-xs active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white text-xs sm:text-sm font-bold transition-all shadow-2xs"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 stroke-[1.7]" />
                   <span>앱 다운로드</span>
                   <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                 </button>
@@ -510,10 +514,10 @@ export default function AccountOpenGuide() {
                   <span>한도제한계좌 자동 해제</span>
                 </div>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
-                  주식을 100만 원 이상 구매하시면 영업일 기준 3~4일 뒤 이체 한도 제한이 자동으로 완전히 해제됩니다.
+                  주식을 100만 원 이상 거래하시면 영업일 기준 3~4일 뒤 이체 한도 제한이 자동으로 완전히 해제됩니다.
                 </p>
                 <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-[var(--card-hover)] p-2 rounded-lg">
-                  첫 주식 구매 시 자동 처리
+                  첫 주식 거래 시 자동 처리
                 </div>
               </div>
             </div>
@@ -578,7 +582,8 @@ export default function AccountOpenGuide() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </SmoothHeight>
 
       {/* Prev / Next Navigation Buttons */}
       <div className="flex items-center justify-between pt-2 gap-3">
@@ -586,13 +591,13 @@ export default function AccountOpenGuide() {
           type="button"
           onClick={handlePrev}
           disabled={currentStep === 0}
-          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all ${
             currentStep === 0
               ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-secondary)]'
-              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
+              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 shadow-2xs'
           }`}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 stroke-[1.7]" />
           이전 단계
         </button>
 
@@ -600,35 +605,36 @@ export default function AccountOpenGuide() {
           <button
             type="button"
             onClick={handleNext}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:bg-[#d97706] text-white transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs"
           >
             다음 단계
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 stroke-[1.7]" />
           </button>
         ) : (
           <button
             type="button"
             onClick={() => handleMainTabClick(0)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 transition-all"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 transition-all shadow-2xs"
           >
             처음부터 다시 보기
           </button>
         )}
       </div>
+    </div>
 
-      {/* 🌟 독립된 상시 노출 혜택 신청 폼 박스 (언제든 한눈에 확인 가능) */}
-      <div className="relative p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/15 to-transparent border-2 border-[var(--accent-orange)]/50 shadow-[0_0_24px_rgba(241,143,1,0.15)] space-y-4 mt-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
+      {/* 2. 🌟 완전히 독립된 상시 노출 평생 우대 혜택 신청 카드 */}
+      <div className="glass-card rounded-3xl p-5 sm:p-7 border-2 border-[var(--accent-orange)]/50 shadow-[0_0_24px_rgba(241,143,1,0.15)] bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/10 to-transparent space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-lg bg-[var(--accent-orange)] text-white shadow-xs">
-                <FileCheck2 className="w-4 h-4" />
+                <FileCheck2 className="w-4 h-4 stroke-[1.7]" />
               </span>
-              <h4 className="text-sm sm:text-base font-black text-[var(--text-primary)]">
+              <h4 className="text-base sm:text-lg font-black text-[var(--text-primary)]">
                 주식부엉 X 오로라투자자문 평생 우대 혜택 신청
               </h4>
             </div>
-            <p className="text-xs text-[var(--text-secondary)] font-medium pl-8 sm:pl-0">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8 sm:pl-0 leading-relaxed">
               계좌 개설 및 자문사 앱 연동을 마치신 후, 아래 폼을 작성해 주시면 영업일 기준 1~2일 내에 우대 혜택이 세팅됩니다.
             </p>
           </div>
@@ -637,10 +643,10 @@ export default function AccountOpenGuide() {
             href={GOOGLE_FORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[var(--accent-orange)] hover:bg-[#d97706] text-white font-extrabold text-xs sm:text-sm transition-all shadow-md hover:shadow-lg scale-[1.00] hover:scale-[1.02] shrink-0 whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs shrink-0 whitespace-nowrap"
           >
             <span>혜택 신청 폼 작성하기</span>
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-4 h-4 stroke-[1.7]" />
           </a>
         </div>
       </div>

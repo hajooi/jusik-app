@@ -198,9 +198,11 @@ export default function ClassDetectorQuiz() {
         </div>
       )}
 
-      {/* POPUP RESULT MESSAGE CARD (Fixed height container / Absolute popover so main card size remains rock solid) */}
-      {selectedOption !== null && (
-        <div className="pt-2 animate-in fade-in slide-in-from-top-4 duration-300">
+      {/* POPUP RESULT MESSAGE CARD (Smooth Height Accordion Transition) */}
+      <div className={`grid transition-all duration-300 ease-out overflow-hidden ${
+        selectedOption !== null ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+      }`}>
+        <div className="min-h-0 pt-1">
           <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] shadow-inner space-y-3">
             {selectedOption === 'B' && (
               <>
@@ -220,7 +222,7 @@ export default function ClassDetectorQuiz() {
             {selectedOption === 'A' && (
               <>
                 <div className="flex items-center gap-2 text-emerald-500 dark:text-emerald-400 font-extrabold text-sm sm:text-base">
-                  <CheckCircle2 className="w-5 h-5 shrink-0 stroke-[2.2]" />
+                  <CheckCircle2 className="w-4 h-4 shrink-0 stroke-[2.2]" />
                   <span>현금 10억 선택 결과</span>
                 </div>
                 <h4 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
@@ -248,7 +250,7 @@ export default function ClassDetectorQuiz() {
             )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

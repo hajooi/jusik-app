@@ -414,9 +414,9 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
             <div className="pt-2">
               <button
                 onClick={handleStartNewTest}
-                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-black text-sm border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-full bg-[var(--accent-orange)] text-white font-bold text-xs sm:text-sm hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 stroke-[1.7]" />
                 나도 내 성향 진단하기 ➔
               </button>
             </div>
@@ -631,27 +631,27 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
         <button
           onClick={handlePrevPage}
           disabled={currentPage === 0}
-          className={`inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border ${
+          className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all border ${
             currentPage === 0
               ? 'opacity-30 cursor-not-allowed text-[var(--text-secondary)] border-transparent'
-              : 'glass-card hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.2)] text-[var(--text-primary)] border-[var(--border-color)] active:scale-95'
+              : 'glass-card hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.2)] text-[var(--text-primary)] border-[var(--border-color)] active:scale-95 shadow-2xs'
           }`}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 stroke-[1.7]" />
           이전 페이지
         </button>
 
         <button
           onClick={handleNextPage}
           disabled={!isCurrentPageComplete}
-          className={`inline-flex items-center gap-1.5 px-6 py-3 rounded-2xl text-xs font-extrabold transition-all active:scale-95 border ${
+          className={`inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 border ${
             isCurrentPageComplete
-              ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] hover:shadow-[0_0_20px_rgba(241,143,1,0.45)] hover:scale-[1.02]'
+              ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] shadow-2xs'
               : 'bg-[var(--bg-main)] text-[var(--text-secondary)]/50 border-[var(--border-color)] cursor-not-allowed'
           }`}
         >
           {currentPage === totalPages - 1 ? '결과 확인하기' : '다음 페이지'}
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4 stroke-[1.7]" />
         </button>
       </div>
     </div>
