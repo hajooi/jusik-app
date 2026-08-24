@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, MouseEvent, TouchEvent, useEffect, Suspense 
 import { useSearchParams } from 'next/navigation';
 import backtestJson from '@/data/backtestData.json';
 import historicalPrices from '@/data/historicalPrices.json';
-import { calculatePersonalitySimulatorConfig, resolveUserPersonality } from '@/utils/personalitySimulatorMapping';
+import { calculatePersonalitySimulatorConfig, getUserPersonalityCode } from '@/utils/personalitySimulatorMapping';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import CommentSection from '@/components/CommentSection';
@@ -26,7 +26,8 @@ import {
   Info,
   ShieldAlert,
   Target,
-  ArrowLeft
+  ArrowLeft,
+  RotateCcw
 } from 'lucide-react';
 
 interface SelectedAsset {
@@ -50,7 +51,7 @@ type Frequency = 'monthly' | 'weekly';
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
-  const { user, investmentType: authType, typeAnswers: authAnswers, updateSimulatorSettings } = useAuth();
+  const { user, updateSimulatorSettings } = useAuth();
 
   // Global Simulation Settings
   const [initialCapital, setInitialCapital] = useState<number>(100); // 100만 원
@@ -81,22 +82,24 @@ function SimulatorContent() {
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
   const settingsRestoredRef = useRef(false);
 
-  // 1. [SSOT 실시간 반응형 동기화] URL 파라미터 또는 로그인 유저 성향이 변경/로드될 때마다 즉시 반영
+  // [본인 성향 맞춤 포트폴리오 적용 함수]
+  const applyPersonalityStrategy = (code: string | null) => {
+    setUserProfileCode(code);
+    const config = calculatePersonalitySimulatorConfig(code);
+    setPortfolioA(config.portfolioA);
+    setStrategyPeriodA(config.strategyPeriodA);
+    setTargetCAGR(config.recommendedTargetCAGR);
+    setMaxTolerableMDD(config.recommendedMaxMDD);
+  };
+
+  // 1. [실시간 성향 동기화] 로그인 유저 계정(user) 또는 URL 변경 시 본인 성향 즉시 세팅
   useEffect(() => {
-    try {
-      const resolved = resolveUserPersonality({ searchParams, user, authType, authAnswers });
-      
-      setUserProfileCode(resolved.typeCode);
-      const config = calculatePersonalitySimulatorConfig(resolved.typeCode, resolved.scores);
-      
-      setPortfolioA(config.portfolioA);
-      setStrategyPeriodA(config.strategyPeriodA);
-      setTargetCAGR(config.recommendedTargetCAGR);
-      setMaxTolerableMDD(config.recommendedMaxMDD);
-    } catch (e) {
-      console.error('Failed to resolve personality config:', e);
-    }
-  }, [searchParams, user, authType, authAnswers]);
+    const code = getUserPersonalityCode({
+      user,
+      searchParamType: searchParams.get('type'),
+    });
+    applyPersonalityStrategy(code);
+  }, [user, searchParams]);
 
   // 2. [사용자 커스텀 설정(B) 1회 복원] 계정 서버 설정 또는 로컬스토리지 복원
   useEffect(() => {
