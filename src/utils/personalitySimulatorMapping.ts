@@ -1,5 +1,4 @@
-import { PersonalityProfile, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
-import backtestDataRaw from '@/data/backtestData.json';
+import { PersonalityProfile, PERSONALITY_PROFILES, calculateSurveyResult } from '@/data/investmentSurvey';
 import { UserAccount } from '@/context/AuthContext';
 
 export interface PersonalityScores {
@@ -7,13 +6,6 @@ export interface PersonalityScores {
   AP: { A: number; P: number };
   LT: { L: number; T: number };
   RI: { R: number; I: number };
-}
-
-export interface ResolvedPersonality {
-  typeCode: string | null;
-  scores: PersonalityScores;
-  isCustomized: boolean;
-  source: 'query' | 'user_answers' | 'user_type' | 'local_answers' | 'local_type' | 'default';
 }
 
 export interface SelectedAsset {
@@ -34,20 +26,6 @@ export interface RecommendationResult {
   strategyPeriodB: number;
 }
 
-interface BacktestAssetInfo {
-  id: string;
-  annualCAGR: number;
-  annualVol: number;
-  ma50Return?: number;
-  ma100Return?: number;
-  ma200Return?: number;
-}
-
-const assetMap: Record<string, BacktestAssetInfo> = {};
-((backtestDataRaw as unknown) as { assets: BacktestAssetInfo[] }).assets.forEach((a) => {
-  assetMap[a.id] = a;
-});
-
 /**
  * 40문항 답변 객체로부터 4개 축 백분율(0~100) 및 4글자 성향 코드 계산
  */
@@ -55,27 +33,14 @@ export function calculateScoresFromAnswers(answers: Record<number | string, numb
   typeCode: string;
   scores: PersonalityScores;
 } {
-  let g = 0, a = 0, l = 0, r = 0;
-  for (let i = 1; i <= 10; i++) g += Number(answers[i] || answers[String(i)] || 3);
-  for (let i = 11; i <= 20; i++) a += Number(answers[i] || answers[String(i)] || 3);
-  for (let i = 21; i <= 30; i++) l += Number(answers[i] || answers[String(i)] || 3);
-  for (let i = 31; i <= 40; i++) r += Number(answers[i] || answers[String(i)] || 3);
-
-  const pctG = Math.round((g - 10) * 2.5);
-  const pctA = Math.round((a - 10) * 2.5);
-  const pctL = Math.round((l - 10) * 2.5);
-  const pctR = Math.round((r - 10) * 2.5);
-
-  const typeCode = `${pctG >= 50 ? 'G' : 'S'}${pctA >= 50 ? 'A' : 'P'}${pctL >= 50 ? 'L' : 'T'}${pctR >= 50 ? 'R' : 'I'}`;
-
+  const normalizedAnswers: Record<number, number> = {};
+  for (let i = 1; i <= 40; i++) {
+    normalizedAnswers[i] = Number(answers[i] || answers[String(i)] || 3);
+  }
+  const result = calculateSurveyResult(normalizedAnswers);
   return {
-    typeCode,
-    scores: {
-      GS: { G: pctG, S: 100 - pctG },
-      AP: { A: pctA, P: 100 - pctA },
-      LT: { L: pctL, T: 100 - pctL },
-      RI: { R: pctR, I: 100 - pctR },
-    },
+    typeCode: result.typeCode,
+    scores: result.scores,
   };
 }
 
