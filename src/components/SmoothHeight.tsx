@@ -20,7 +20,7 @@ export default function SmoothHeight({
   animateInitial = false,
 }: SmoothHeightProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | 'auto'>('auto');
+  const [height, setHeight] = useState<number | undefined>(undefined);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -29,11 +29,11 @@ export default function SmoothHeight({
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const newHeight = Math.round(entry.contentRect.height);
+        const newHeight = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
         if (isFirstRender.current) {
           isFirstRender.current = false;
           if (!animateInitial) {
-            setHeight('auto');
+            setHeight(newHeight);
             return;
           }
         }
@@ -51,8 +51,8 @@ export default function SmoothHeight({
   return (
     <div
       style={{
-        height: height === 'auto' ? 'auto' : `${height}px`,
-        transition: height === 'auto' ? 'none' : `height ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+        height: height !== undefined ? `${height}px` : 'auto',
+        transition: `height ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
         overflow: 'hidden',
       }}
       className={`will-change-[height] ${className}`}
