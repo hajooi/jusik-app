@@ -353,10 +353,10 @@ export default function AccountOpenGuide() {
                     key={sub.num}
                     type="button"
                     onClick={() => setSimulatorScene(sub.num as 1 | 2 | 3 | 4)}
-                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 ${
+                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
                         ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/30'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -401,10 +401,10 @@ export default function AccountOpenGuide() {
                     key={sub.num}
                     type="button"
                     onClick={() => setAdvisoryScene(sub.num as 1 | 2 | 3 | 4)}
-                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 ${
+                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
                         ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/30'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -449,10 +449,10 @@ export default function AccountOpenGuide() {
                     key={sub.num}
                     type="button"
                     onClick={() => setOverseasScene(sub.num as 1 | 2 | 3 | 4)}
-                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 ${
+                    className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
                         ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/30'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${

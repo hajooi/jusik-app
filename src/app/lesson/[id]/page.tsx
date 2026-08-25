@@ -262,8 +262,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               const label = content.slice(0, colonIndex);
                               const desc = content.slice(colonIndex + 1);
                               return (
-                                <div key={pIdx} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-3 shadow-2xs">
-                                  <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] mt-2 shrink-0" />
+                                <div key={pIdx} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-3 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
                                   <div className="text-xs sm:text-base leading-relaxed">
                                     <strong className="text-[var(--text-primary)] font-extrabold">{label}:</strong>
                                     <span className="text-[var(--text-secondary)] ml-1.5 font-medium">{desc}</span>
@@ -272,8 +272,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               );
                             }
                             return (
-                              <div key={pIdx} className="p-3 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] mt-2 shrink-0" />
+                              <div key={pIdx} className="p-3 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
+                                <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
                                 <p className="text-xs sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">{content}</p>
                               </div>
                             );
@@ -305,13 +305,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     핵심 요약
                   </h3>
                 </div>
-                <ul className="space-y-2.5">
+                <ul className="space-y-3">
                   {lesson.summary.map((point, index) => (
-                    <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-                      <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] flex items-center justify-center text-xs font-bold shrink-0 font-mono mt-0.5">
+                    <li key={index} className="flex items-start gap-3 text-xs sm:text-sm font-medium leading-relaxed">
+                      <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 flex items-center justify-center text-[11px] font-extrabold shrink-0 font-mono mt-0.5 shadow-2xs">
                         {index + 1}
                       </span>
-                      <span className="flex-1 text-[var(--text-primary)]">
+                      <span className="flex-1 text-[var(--text-primary)] pt-0.5">
                         {point}
                       </span>
                     </li>
