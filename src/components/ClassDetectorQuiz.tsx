@@ -170,12 +170,12 @@ export default function ClassDetectorQuiz() {
             <button
               onClick={() => handleSelect('A')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer focus:outline-none focus-visible:outline-none focus:ring-0 ${
                 selectedOption === 'A'
-                  ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
+                  ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.8)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
                   : selectedOption !== null
                   ? 'opacity-50 border-[var(--border-color)] text-[var(--text-secondary)]'
-                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50'
+                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)]'
               }`}
             >
               <span>지금 당장 10억 받기</span>
@@ -184,12 +184,12 @@ export default function ClassDetectorQuiz() {
             <button
               onClick={() => handleSelect('B')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer focus:outline-none focus-visible:outline-none focus:ring-0 ${
                 selectedOption === 'B'
-                  ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
+                  ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.8)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
                   : selectedOption !== null
                   ? 'opacity-50 border-[var(--border-color)] text-[var(--text-secondary)]'
-                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50'
+                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)]'
               }`}
             >
               <span>평생 매달 500만 원 받기</span>

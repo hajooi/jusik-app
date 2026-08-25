@@ -10,6 +10,7 @@ import Link from 'next/link';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
+import AnimatedNumber from '@/components/AnimatedNumber';
 import { 
   LineChart, 
   TrendingUp, 
@@ -31,6 +32,8 @@ import {
   Lock,
   Crown,
   Zap,
+  Plus,
+  Minus,
   X
 } from 'lucide-react';
 
@@ -44,10 +47,12 @@ interface ChartPoint {
   index: number;
   date: string;
   valA: number;
-  valB: number;
+  valB?: number;
+  valC?: number;
   invested: number;
   retA: number;
-  retB: number;
+  retB?: number;
+  retC?: number;
 }
 
 type Frequency = 'monthly' | 'weekly';
@@ -168,19 +173,31 @@ function SimulatorContent() {
   const [targetCAGR, setTargetCAGR] = useState<number>(15); // 사용자 희망/추천 목표 연수익률 (%)
   const [maxTolerableMDD, setMaxTolerableMDD] = useState<number>(20); // 사용자 희망/추천 감내 MDD (%)
 
-  // Portfolio A Configuration (Default: Tailored Recommendation)
+  // Dynamic Strategy Count State (1 to 3 strategies, default 1: Tailored Recommendation only)
+  const [strategyCount, setStrategyCount] = useState<1 | 2 | 3>(1);
+
+  // Portfolio A Configuration (Strategy 1 - Default: Tailored Recommendation / Buong Orange)
   const [portfolioA, setPortfolioA] = useState<SelectedAsset[]>([
     { assetId: 'SPY', weight: 50, enableDefense: true },
     { assetId: 'QQQ', weight: 50, enableDefense: true },
   ]);
   const [strategyPeriodA, setStrategyPeriodA] = useState<number>(0);
 
-  // Portfolio B Configuration (Default: Custom User Strategy)
+  // Portfolio B Configuration (Strategy 2 - Custom Strategy 1 / Fintech Emerald)
   const [portfolioB, setPortfolioB] = useState<SelectedAsset[]>([
-    { assetId: 'SPY', weight: 60, enableDefense: false },
-    { assetId: 'QQQ', weight: 40, enableDefense: false },
+    { assetId: 'SPY', weight: 50, enableDefense: false },
+    { assetId: 'QQQ', weight: 50, enableDefense: false },
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
+
+  // Portfolio C Configuration (Strategy 3 - Custom Strategy 2 / Royal Indigo)
+  const [portfolioC, setPortfolioC] = useState<SelectedAsset[]>([
+    { assetId: 'SCHD', weight: 50, enableDefense: false },
+    { assetId: 'TLT', weight: 50, enableDefense: false },
+  ]);
+  const [strategyPeriodC, setStrategyPeriodC] = useState<number>(0);
+  const [activePresetA, setActivePresetA] = useState<'personality' | 'balanced' | 'growth' | 'defensive' | null>('personality');
+
   const settingsRestoredRef = useRef(false);
 
   // [본인 성향 & 4축 세부 점수 기반 맞춤 포트폴리오 적용 함수]
@@ -220,6 +237,7 @@ function SimulatorContent() {
       let settingsSource = user?.simulatorSettings || (savedRaw ? JSON.parse(savedRaw) : null);
 
       if (settingsSource) {
+        if (settingsSource.strategyCount !== undefined) setStrategyCount(settingsSource.strategyCount);
         if (settingsSource.targetCAGR !== undefined) setTargetCAGR(settingsSource.targetCAGR);
         else setTargetCAGR(config.recommendedTargetCAGR);
 
@@ -234,6 +252,8 @@ function SimulatorContent() {
 
         if (settingsSource.portfolioB && settingsSource.portfolioB.length > 0) setPortfolioB(settingsSource.portfolioB);
         if (settingsSource.strategyPeriodB !== undefined) setStrategyPeriodB(settingsSource.strategyPeriodB);
+        if (settingsSource.portfolioC && settingsSource.portfolioC.length > 0) setPortfolioC(settingsSource.portfolioC);
+        if (settingsSource.strategyPeriodC !== undefined) setStrategyPeriodC(settingsSource.strategyPeriodC);
         if (settingsSource.initialCapital !== undefined) setInitialCapital(settingsSource.initialCapital);
         if (settingsSource.depositAmount !== undefined) setDepositAmount(settingsSource.depositAmount);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
@@ -256,12 +276,15 @@ function SimulatorContent() {
     const timer = setTimeout(() => {
       try {
         const customData = {
+          strategyCount,
           targetCAGR,
           maxTolerableMDD,
           portfolioA,
           strategyPeriodA,
           portfolioB,
           strategyPeriodB,
+          portfolioC,
+          strategyPeriodC,
           initialCapital,
           depositAmount,
           durationYears,
@@ -274,7 +297,36 @@ function SimulatorContent() {
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [targetCAGR, maxTolerableMDD, portfolioA, strategyPeriodA, portfolioB, strategyPeriodB, initialCapital, depositAmount, durationYears, depositFrequency]);
+  }, [strategyCount, targetCAGR, maxTolerableMDD, portfolioA, strategyPeriodA, portfolioB, strategyPeriodB, portfolioC, strategyPeriodC, initialCapital, depositAmount, durationYears, depositFrequency]);
+
+  // Dynamic Strategy Add / Remove Handlers with Smooth Fade Transition
+  const [closingStrategy, setClosingStrategy] = useState<'B' | 'C' | null>(null);
+
+  const handleAddStrategy = () => {
+    if (strategyCount === 1) {
+      setChartBAnimKey((k) => k + 1);
+      setStrategyCount(2);
+    } else if (strategyCount === 2) {
+      setChartCAnimKey((k) => k + 1);
+      setStrategyCount(3);
+    }
+  };
+
+  const handleRemoveStrategy = (target: 'B' | 'C') => {
+    if (closingStrategy) return;
+    setClosingStrategy(target);
+    setTimeout(() => {
+      if (target === 'B') {
+        if (strategyCount === 3) {
+          // Shift C into B slot
+          setPortfolioB(portfolioC);
+          setStrategyPeriodB(strategyPeriodC);
+        }
+      }
+      setStrategyCount((prev) => Math.max(1, prev - 1) as 1 | 2 | 3);
+      setClosingStrategy(null);
+    }, 200);
+  };
 
   // Interactive Canvas Hover & Drag States
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -283,7 +335,17 @@ function SimulatorContent() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [customStartDate, setCustomStartDate] = useState<string | null>(null);
   const [customEndDate, setCustomEndDate] = useState<string | null>(null);
+  const [chartBaseAnimKey, setChartBaseAnimKey] = useState<number>(0);
+  const [chartBAnimKey, setChartBAnimKey] = useState<number>(0);
+  const [chartCAnimKey, setChartCAnimKey] = useState<number>(0);
   const svgRef = useRef<SVGSVGElement | null>(null);
+
+  // Global zoom / period changes sweep all active lines
+  useEffect(() => {
+    setChartBaseAnimKey((k) => k + 1);
+    setChartBAnimKey((k) => k + 1);
+    setChartCAnimKey((k) => k + 1);
+  }, [customStartDate, customEndDate, durationYears]);
 
   // Weight Calculation Helpers
   const totalWeightA = useMemo(() => portfolioA.reduce((sum, item) => sum + item.weight, 0), [portfolioA]);
@@ -292,9 +354,13 @@ function SimulatorContent() {
   const totalWeightB = useMemo(() => portfolioB.reduce((sum, item) => sum + item.weight, 0), [portfolioB]);
   const autoCashB = Math.max(0, 100 - totalWeightB);
 
-  // Available unused assets for portfolio A & B
+  const totalWeightC = useMemo(() => portfolioC.reduce((sum, item) => sum + item.weight, 0), [portfolioC]);
+  const autoCashC = Math.max(0, 100 - totalWeightC);
+
+  // Available unused assets for portfolio A, B, C
   const availableForA = useMemo(() => allAssets.filter((a) => a.id !== 'CASH' && !portfolioA.some((sa) => sa.assetId === a.id)), [allAssets, portfolioA]);
   const availableForB = useMemo(() => allAssets.filter((a) => a.id !== 'CASH' && !portfolioB.some((sa) => sa.assetId === a.id)), [allAssets, portfolioB]);
+  const availableForC = useMemo(() => allAssets.filter((a) => a.id !== 'CASH' && !portfolioC.some((sa) => sa.assetId === a.id)), [allAssets, portfolioC]);
 
   // Grouped assets for categorized dropdown
   const assetGroups = useMemo(() => {
@@ -330,9 +396,10 @@ function SimulatorContent() {
 
   // Slot Management for Portfolio A
   const handleAddSlotA = () => {
-    if (availableForA.length === 0) return;
+    if (availableForA.length === 0 || portfolioA.length >= 10) return;
     const rem = Math.max(0, 100 - totalWeightA);
-    setPortfolioA([...portfolioA, { assetId: availableForA[0].id, weight: rem > 0 ? rem : 10, enableDefense: true }]);
+    setPortfolioA([...portfolioA, { assetId: availableForA[0].id, weight: rem > 0 ? rem : 0, enableDefense: true }]);
+    setActivePresetA(null);
   };
 
   const handleUpdateWeightA = (index: number, requestedWeight: number) => {
@@ -340,13 +407,14 @@ function SimulatorContent() {
     const maxAllowed = Math.max(0, 100 - otherSum);
     const safe = Math.max(0, Math.min(maxAllowed, requestedWeight));
     setPortfolioA(portfolioA.map((item, idx) => (idx === index ? { ...item, weight: safe } : item)));
+    setActivePresetA(null);
   };
 
   // Slot Management for Portfolio B
   const handleAddSlotB = () => {
-    if (availableForB.length === 0) return;
+    if (availableForB.length === 0 || portfolioB.length >= 10) return;
     const rem = Math.max(0, 100 - totalWeightB);
-    setPortfolioB([...portfolioB, { assetId: availableForB[0].id, weight: rem > 0 ? rem : 10, enableDefense: true }]);
+    setPortfolioB([...portfolioB, { assetId: availableForB[0].id, weight: rem > 0 ? rem : 0, enableDefense: true }]);
   };
 
   const handleUpdateWeightB = (index: number, requestedWeight: number) => {
@@ -354,6 +422,20 @@ function SimulatorContent() {
     const maxAllowed = Math.max(0, 100 - otherSum);
     const safe = Math.max(0, Math.min(maxAllowed, requestedWeight));
     setPortfolioB(portfolioB.map((item, idx) => (idx === index ? { ...item, weight: safe } : item)));
+  };
+
+  // Slot Management for Portfolio C
+  const handleAddSlotC = () => {
+    if (availableForC.length === 0 || portfolioC.length >= 10) return;
+    const rem = Math.max(0, 100 - totalWeightC);
+    setPortfolioC([...portfolioC, { assetId: availableForC[0].id, weight: rem > 0 ? rem : 0, enableDefense: true }]);
+  };
+
+  const handleUpdateWeightC = (index: number, requestedWeight: number) => {
+    const otherSum = portfolioC.reduce((sum, item, idx) => (idx === index ? sum : sum + item.weight), 0);
+    const maxAllowed = Math.max(0, 100 - otherSum);
+    const safe = Math.max(0, Math.min(maxAllowed, requestedWeight));
+    setPortfolioC(portfolioC.map((item, idx) => (idx === index ? { ...item, weight: safe } : item)));
   };
 
   // ----------------------------------------------------------------------
@@ -465,6 +547,7 @@ function SimulatorContent() {
 
     const defenseCashA: Record<string, number> = {};
     const defenseCashB: Record<string, number> = {};
+    const defenseCashC: Record<string, number> = {};
 
     const sharesA: Record<string, number> = {};
     let cashA = initialCapital * (autoCashA / 100);
@@ -482,14 +565,26 @@ function SimulatorContent() {
       sharesB[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
     });
 
+    const sharesC: Record<string, number> = {};
+    let cashC = initialCapital * (autoCashC / 100);
+    portfolioC.forEach((item) => {
+      defenseCashC[item.assetId] = 0;
+      const firstPrice = getAssetPrice(item.assetId, startIndex);
+      sharesC[item.assetId] = (initialCapital * (item.weight / 100)) / firstPrice;
+    });
+
     let prevValA = initialCapital;
     let prevValB = initialCapital;
+    let prevValC = initialCapital;
     let peakA = initialCapital;
     let peakB = initialCapital;
+    let peakC = initialCapital;
     let maxDDA = 0;
     let maxDDB = 0;
+    let maxDDC = 0;
     const twrReturnsA: number[] = [];
     const twrReturnsB: number[] = [];
+    const twrReturnsC: number[] = [];
 
     for (let t = 0; t < targetLength; t++) {
       const dataIndex = startIndex + t;
@@ -508,10 +603,18 @@ function SimulatorContent() {
           preValB += (sharesB[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
         });
 
+        let preValC = cashC;
+        portfolioC.forEach((item) => {
+          preValC += (defenseCashC[item.assetId] || 0);
+          preValC += (sharesC[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
+        });
+
         const twrStepA = prevValA > 0 ? (preValA - prevValA) / prevValA : 0;
         const twrStepB = prevValB > 0 ? (preValB - prevValB) / prevValB : 0;
+        const twrStepC = prevValC > 0 ? (preValC - prevValC) / prevValC : 0;
         twrReturnsA.push(twrStepA);
         twrReturnsB.push(twrStepB);
+        twrReturnsC.push(twrStepC);
 
         const prevDateStr = allCanonicalDates[dataIndex - 1];
         const isNewMonth = dateStr.slice(0, 7) !== (prevDateStr ? prevDateStr.slice(0, 7) : '');
@@ -585,6 +688,39 @@ function SimulatorContent() {
             defenseCashB[item.assetId] = 0;
           }
         });
+
+        // Portfolio C Rebalance
+        cashC += stepDeposit * (autoCashC / 100);
+        portfolioC.forEach((item) => {
+          const benchSeries = getBenchmarkSeries(item.assetId);
+          const benchPrice = benchSeries?.[dataIndex]?.price || getAssetPrice(item.assetId, dataIndex);
+          const actualPrice = getAssetPrice(item.assetId, dataIndex);
+          if (!actualPrice || actualPrice <= 0) return;
+
+          const isDefenseEnabledForItem = item.enableDefense !== false && strategyPeriodC > 0;
+          let isItemDefending = false;
+
+          if (isDefenseEnabledForItem && benchPrice && benchPrice > 0 && dataIndex >= 2) {
+            const barCount = Math.max(2, Math.round(strategyPeriodC / 5));
+            const windowSize = Math.min(dataIndex, barCount);
+            const recentPrices = benchSeries.slice(dataIndex - windowSize, dataIndex).map((p) => p.price);
+            const ma = recentPrices.reduce((a, b) => a + b, 0) / (recentPrices.length || 1);
+            if (benchPrice < ma) isItemDefending = true;
+          }
+
+          const depositAlloc = stepDeposit * (item.weight / 100);
+          if (isItemDefending) {
+            if ((sharesC[item.assetId] || 0) > 0) {
+              defenseCashC[item.assetId] = (defenseCashC[item.assetId] || 0) + (sharesC[item.assetId] || 0) * actualPrice;
+              sharesC[item.assetId] = 0;
+            }
+            defenseCashC[item.assetId] = (defenseCashC[item.assetId] || 0) + depositAlloc;
+          } else {
+            const totalMoneyToBuy = depositAlloc + (defenseCashC[item.assetId] || 0);
+            sharesC[item.assetId] = (sharesC[item.assetId] || 0) + totalMoneyToBuy / actualPrice;
+            defenseCashC[item.assetId] = 0;
+          }
+        });
       }
 
       let valA = cashA;
@@ -599,11 +735,19 @@ function SimulatorContent() {
         valB += (sharesB[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
       });
 
+      let valC = cashC;
+      portfolioC.forEach((item) => {
+        valC += (defenseCashC[item.assetId] || 0);
+        valC += (sharesC[item.assetId] || 0) * getAssetPrice(item.assetId, dataIndex);
+      });
+
       const roundedValA = Math.round(valA);
       const roundedValB = Math.round(valB);
+      const roundedValC = Math.round(valC);
 
       prevValA = valA;
       prevValB = valB;
+      prevValC = valC;
 
       if (roundedValA > peakA) peakA = roundedValA;
       const ddA = (peakA - roundedValA) / peakA;
@@ -613,25 +757,33 @@ function SimulatorContent() {
       const ddB = (peakB - roundedValB) / peakB;
       if (ddB > maxDDB) maxDDB = ddB;
 
+      if (roundedValC > peakC) peakC = roundedValC;
+      const ddC = (peakC - roundedValC) / peakC;
+      if (ddC > maxDDC) maxDDC = ddC;
+
       const retA = cumulativeInvested > 0 ? ((roundedValA - cumulativeInvested) / cumulativeInvested) * 100 : 0;
       const retB = cumulativeInvested > 0 ? ((roundedValB - cumulativeInvested) / cumulativeInvested) * 100 : 0;
+      const retC = cumulativeInvested > 0 ? ((roundedValC - cumulativeInvested) / cumulativeInvested) * 100 : 0;
 
       points.push({
         index: t,
         date: dateStr,
         valA: roundedValA,
         valB: roundedValB,
+        valC: roundedValC,
         invested: Math.round(cumulativeInvested),
         retA: Number(retA.toFixed(1)),
         retB: Number(retB.toFixed(1)),
+        retC: Number(retC.toFixed(1)),
       });
     }
 
-    const finalPoint = points[points.length - 1] || { valA: initialCapital, valB: initialCapital, invested: initialCapital, retA: 0, retB: 0 };
+    const finalPoint = points[points.length - 1] || { valA: initialCapital, valB: initialCapital, valC: initialCapital, invested: initialCapital, retA: 0, retB: 0, retC: 0 };
     const years = Math.max(0.1, targetLength / 52.1428);
 
     const cagrA = (Math.pow(finalPoint.valA / finalPoint.invested, 1 / years) - 1) * 100;
-    const cagrB = (Math.pow(finalPoint.valB / finalPoint.invested, 1 / years) - 1) * 100;
+    const cagrB = (Math.pow((finalPoint.valB || finalPoint.invested) / finalPoint.invested, 1 / years) - 1) * 100;
+    const cagrC = (Math.pow((finalPoint.valC || finalPoint.invested) / finalPoint.invested, 1 / years) - 1) * 100;
 
     const computeTWRSharpe = (returns: number[]) => {
       if (returns.length < 2) return 0;
@@ -647,6 +799,7 @@ function SimulatorContent() {
 
     const sharpeA = computeTWRSharpe(twrReturnsA);
     const sharpeB = computeTWRSharpe(twrReturnsB);
+    const sharpeC = computeTWRSharpe(twrReturnsC);
 
     return {
       points,
@@ -660,22 +813,65 @@ function SimulatorContent() {
         sharpe: sharpeA.toFixed(2),
       },
       portB: {
-        val: finalPoint.valB,
-        totalRate: finalPoint.retB,
+        val: finalPoint.valB || 0,
+        totalRate: finalPoint.retB || 0,
         cagr: Number(cagrB.toFixed(1)),
         mdd: Number((maxDDB * 100).toFixed(1)),
         sharpe: sharpeB.toFixed(2),
       },
+      portC: {
+        val: finalPoint.valC || 0,
+        totalRate: finalPoint.retC || 0,
+        cagr: Number(cagrC.toFixed(1)),
+        mdd: Number((maxDDC * 100).toFixed(1)),
+        sharpe: sharpeC.toFixed(2),
+      },
     };
-  }, [portfolioA, autoCashA, strategyPeriodA, portfolioB, autoCashB, strategyPeriodB, initialCapital, depositAmount, depositFrequency, customStartDate, customEndDate, isPro]);
+  }, [portfolioA, autoCashA, strategyPeriodA, portfolioB, autoCashB, strategyPeriodB, portfolioC, autoCashC, strategyPeriodC, initialCapital, depositAmount, depositFrequency, customStartDate, customEndDate, isPro]);
 
-  // Real-time Warning & Feedback Evaluation for Strategy B (Custom Strategy)
+  // Real-time Warning & Feedback Evaluation for Strategy 1
+  const evalFeedbackA = useMemo(() => {
+    const actualMDD = simulation.portA.mdd;
+    const actualCAGR = simulation.portA.cagr;
+
+    const isRiskTooHigh = actualMDD > maxTolerableMDD + 3;
+    const isReturnTooLow = actualCAGR < targetCAGR - 3;
+
+    if (isRiskTooHigh && isReturnTooLow) {
+      return {
+        type: 'danger',
+        title: '⚠️ 목표 대비 위험이 크고 수익률이 미달됩니다',
+        desc: `최대 손실폭(-${actualMDD}%)이 감내 목표(-${maxTolerableMDD}%)를 넘어서며, 연수익률(+${actualCAGR}%)도 목표(+${targetCAGR}%)보다 낮습니다. 변동성이 큰 자산 비중을 줄이거나 200일선 방어 옵션을 활용해보세요.`,
+      };
+    }
+    if (isRiskTooHigh) {
+      return {
+        type: 'warning',
+        title: '⚠️ 감내 가능한 범위를 넘어서는 위험한 전략입니다',
+        desc: `과거 최대 손실폭(-${actualMDD}%)이 설정하신 감내 기준(-${maxTolerableMDD}%)을 초과합니다. 200일선 방어 옵션을 켜거나 안전 자산 비중을 높여 위험을 낮춰보세요.`,
+      };
+    }
+    if (isReturnTooLow) {
+      return {
+        type: 'info',
+        title: '💡 목표 수익률에 다소 미치지 못합니다',
+        desc: `연수익률(+${actualCAGR}%)이 목표(+${targetCAGR}%)보다 낮습니다. 장기 성장성이 높은 지수나 비중 조절을 고려해보세요.`,
+      };
+    }
+    return {
+      type: 'success',
+      title: '✨ 목표에 잘 부합하는 균형 잡힌 전략입니다',
+      desc: `목표 연수익률(+${targetCAGR}%)을 충족하면서 감내 손실폭(-${maxTolerableMDD}%) 내에서 안정적으로 운용되는 훌륭한 포트폴리오입니다.`,
+    };
+  }, [simulation.portA, targetCAGR, maxTolerableMDD]);
+
+  // Real-time Warning & Feedback Evaluation for Strategy 2
   const evalFeedbackB = useMemo(() => {
     const actualMDD = simulation.portB.mdd;
     const actualCAGR = simulation.portB.cagr;
 
-    const isRiskTooHigh = actualMDD > maxTolerableMDD + 3; // Risk exceeds limit by > 3%
-    const isReturnTooLow = actualCAGR < targetCAGR - 3; // Return falls short by > 3%
+    const isRiskTooHigh = actualMDD > maxTolerableMDD + 3;
+    const isReturnTooLow = actualCAGR < targetCAGR - 3;
 
     if (isRiskTooHigh && isReturnTooLow) {
       return {
@@ -705,16 +901,53 @@ function SimulatorContent() {
     };
   }, [simulation.portB, targetCAGR, maxTolerableMDD]);
 
+  // Real-time Warning & Feedback Evaluation for Strategy 3
+  const evalFeedbackC = useMemo(() => {
+    const actualMDD = simulation.portC.mdd;
+    const actualCAGR = simulation.portC.cagr;
+
+    const isRiskTooHigh = actualMDD > maxTolerableMDD + 3;
+    const isReturnTooLow = actualCAGR < targetCAGR - 3;
+
+    if (isRiskTooHigh && isReturnTooLow) {
+      return {
+        type: 'danger',
+        title: '⚠️ 목표 대비 위험이 크고 수익률이 미달됩니다',
+        desc: `최대 손실폭(-${actualMDD}%)이 감내 목표(-${maxTolerableMDD}%)를 넘어서며, 연수익률(+${actualCAGR}%)도 목표(+${targetCAGR}%)보다 낮습니다. 변동성이 큰 자산 비중을 줄이거나 200일선 방어 옵션을 활용해보세요.`,
+      };
+    }
+    if (isRiskTooHigh) {
+      return {
+        type: 'warning',
+        title: '⚠️ 감내 가능한 범위를 넘어서는 위험한 전략입니다',
+        desc: `과거 최대 손실폭(-${actualMDD}%)이 설정하신 감내 기준(-${maxTolerableMDD}%)을 초과합니다. 200일선 방어 옵션을 켜거나 안전 자산 비중을 높여 위험을 낮춰보세요.`,
+      };
+    }
+    if (isReturnTooLow) {
+      return {
+        type: 'info',
+        title: '💡 목표 수익률에 다소 미치지 못합니다',
+        desc: `연수익률(+${actualCAGR}%)이 목표(+${targetCAGR}%)보다 낮습니다. 장기 성장성이 높은 지수나 비중 조절을 고려해보세요.`,
+      };
+    }
+    return {
+      type: 'success',
+      title: '✨ 목표에 잘 부합하는 균형 잡힌 전략입니다',
+      desc: `목표 연수익률(+${targetCAGR}%)을 충족하면서 감내 손실폭(-${maxTolerableMDD}%) 내에서 안정적으로 운용되는 훌륭한 포트폴리오입니다.`,
+    };
+  }, [simulation.portC, targetCAGR, maxTolerableMDD]);
+
   // Chart Canvas Dimensions
   const chartHeight = 320;
   const chartWidth = 800;
   const proLeftOffset = !isPro && !customStartDate ? 36 : 0;
 
   const valsA = simulation.points.map((p) => p.valA);
-  const valsB = simulation.points.map((p) => p.valB);
+  const valsB = strategyCount >= 2 ? simulation.points.map((p) => p.valB || 0) : [];
+  const valsC = strategyCount >= 3 ? simulation.points.map((p) => p.valC || 0) : [];
   const investedVals = simulation.points.map((p) => p.invested);
 
-  const maxVal = Math.max(...valsA, ...valsB, ...investedVals, 10);
+  const maxVal = Math.max(...valsA, ...valsB, ...valsC, ...investedVals, 10);
   const minVal = Math.min(...valsA, ...valsB, ...investedVals, 0) * 0.9;
 
   const getX = (index: number) => {
@@ -813,13 +1046,19 @@ function SimulatorContent() {
     if (!pStart || !pEnd) return null;
 
     const diffA = (((pEnd.valA - pStart.valA) / pStart.valA) * 100).toFixed(1);
-    const diffB = (((pEnd.valB - pStart.valB) / pStart.valB) * 100).toFixed(1);
+    const diffB = pStart.valB !== undefined && pEnd.valB !== undefined && pStart.valB > 0
+      ? (((pEnd.valB - pStart.valB) / pStart.valB) * 100).toFixed(1)
+      : '0.0';
+    const diffC = pStart.valC !== undefined && pEnd.valC !== undefined && pStart.valC > 0
+      ? (((pEnd.valC - pStart.valC) / pStart.valC) * 100).toFixed(1)
+      : '0.0';
 
     return {
       startDate: pStart.date,
       endDate: pEnd.date,
       diffA,
       diffB,
+      diffC,
     };
   }, [dragStart, dragEnd, simulation.points]);
 
@@ -864,16 +1103,16 @@ function SimulatorContent() {
           <button
             type="button"
             onClick={resetGoalSettingsToRecommendation}
-            className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:bg-[var(--accent-orange)]/10 active:scale-95 transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] border border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:bg-[var(--accent-orange)]/10 active:scale-95 transition-all cursor-pointer shadow-2xs"
           >
             <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
-            <span>{userProfileCode ? `${userProfileCode} 맞춤값으로 초기화` : '기본 맞춤값으로 초기화'}</span>
+            <span>{userProfileCode ? '맞춤값으로 초기화' : '기본값으로 초기화'}</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Target CAGR Control */}
-          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-xl border border-[var(--border-color)]">
+          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-2xl border border-[var(--border-color)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
@@ -900,7 +1139,7 @@ function SimulatorContent() {
           </div>
 
           {/* Max Tolerable MDD Control */}
-          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-xl border border-[var(--border-color)]">
+          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-2xl border border-[var(--border-color)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1">
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
@@ -940,16 +1179,13 @@ function SimulatorContent() {
               투자 조건 설정
             </h2>
           </div>
-          <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:inline">
-            💡 차트를 직접 드래그하여 원하는 구간을 자유롭게 확대할 수 있습니다
-          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Deposit Frequency */}
-          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-xl border border-[var(--border-color)]">
+          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">저금 주기</label>
-            <div className="grid grid-cols-2 gap-1 pt-0.5">
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -957,10 +1193,10 @@ function SimulatorContent() {
                   setDragStart(null);
                   setDragEnd(null);
                 }}
-                className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all ${
+                className={`py-1.5 px-2 rounded-full border text-[11px] font-bold cursor-pointer active:scale-95 transition-all ${
                   depositFrequency === 'monthly'
-                    ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)]'
-                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)]'
+                    ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.65)] shadow-[0_0_12px_rgba(241,143,1,0.25)] hover:brightness-110'
+                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)]'
                 }`}
               >
                 매월 투자
@@ -972,10 +1208,10 @@ function SimulatorContent() {
                   setDragStart(null);
                   setDragEnd(null);
                 }}
-                className={`py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all ${
+                className={`py-1.5 px-2 rounded-full border text-[11px] font-bold cursor-pointer active:scale-95 transition-all ${
                   depositFrequency === 'weekly'
-                    ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)]'
-                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)]'
+                    ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.65)] shadow-[0_0_12px_rgba(241,143,1,0.25)] hover:brightness-110'
+                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)]'
                 }`}
               >
                 매주 투자
@@ -984,7 +1220,7 @@ function SimulatorContent() {
           </div>
 
           {/* Initial Capital */}
-          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-xl border border-[var(--border-color)]">
+          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">시작 자본금</label>
             <div className="flex items-center justify-between gap-1">
               <div className="flex items-center gap-1 min-w-0">
@@ -996,27 +1232,29 @@ function SimulatorContent() {
                 />
                 <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">만원</span>
               </div>
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => setInitialCapital(Math.max(0, initialCapital - 50))}
-                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                  className="w-6 h-6 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] text-xs font-black flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_10px_rgba(241,143,1,0.2)] hover:bg-[var(--accent-orange)]/10 active:scale-90 transition-all cursor-pointer shadow-2xs"
+                  title="50만원 감소"
                 >
-                  -
+                  <Minus className="w-3 h-3 stroke-[2.5]" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setInitialCapital(initialCapital + 50)}
-                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                  className="w-6 h-6 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] text-xs font-black flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_10px_rgba(241,143,1,0.2)] hover:bg-[var(--accent-orange)]/10 active:scale-90 transition-all cursor-pointer shadow-2xs"
+                  title="50만원 추가"
                 >
-                  +
+                  <Plus className="w-3 h-3 stroke-[2.5]" />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Deposit Amount */}
-          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-xl border border-[var(--border-color)]">
+          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">
               {depositFrequency === 'weekly' ? '매주' : '매달'} 적립 금액
             </label>
@@ -1030,20 +1268,22 @@ function SimulatorContent() {
                 />
                 <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">만원</span>
               </div>
-              <div className="flex items-center gap-0.5 shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => setDepositAmount(Math.max(0, depositAmount - 10))}
-                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                  className="w-6 h-6 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] text-xs font-black flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_10px_rgba(241,143,1,0.2)] hover:bg-[var(--accent-orange)]/10 active:scale-90 transition-all cursor-pointer shadow-2xs"
+                  title="10만원 감소"
                 >
-                  -
+                  <Minus className="w-3 h-3 stroke-[2.5]" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setDepositAmount(depositAmount + 10)}
-                  className="w-5 h-5 rounded-md bg-[var(--card-surface)] border border-[var(--border-color)] text-[10px] font-bold flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-95"
+                  className="w-6 h-6 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] text-xs font-black flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_10px_rgba(241,143,1,0.2)] hover:bg-[var(--accent-orange)]/10 active:scale-90 transition-all cursor-pointer shadow-2xs"
+                  title="10만원 추가"
                 >
-                  +
+                  <Plus className="w-3 h-3 stroke-[2.5]" />
                 </button>
               </div>
             </div>
@@ -1055,7 +1295,7 @@ function SimulatorContent() {
       {/* REAL DATA INTERACTIVE MAIN CHART (수익률 차트)        */}
       {/* ---------------------------------------------------- */}
       <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center flex-wrap gap-2">
             <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
               <BarChart3 className="w-5.5 h-5.5 text-[var(--accent-orange)]" />
@@ -1066,83 +1306,85 @@ function SimulatorContent() {
             </span>
           </div>
 
-          {/* Right Header: Always Visible Timeline / Zoom Status with Pro Option */}
-          {customStartDate || customEndDate ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-2.5 py-1 rounded-xl border border-[var(--accent-orange)]/30 font-mono">
-                {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomStartDate(null);
-                  setCustomEndDate(null);
-                }}
-                className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-3 py-1 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 transition-all active:scale-95 shadow-2xs cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                <span>전체 기간 복귀</span>
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 relative">
-              <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs text-xs font-bold font-mono">
-                <span className="px-2 sm:px-2.5 py-1 rounded-lg bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-extrabold border border-[var(--accent-orange)]/30 text-[11px] sm:text-xs">
-                  {isPro ? '30년 (1996~현재)' : '15년 (2011~현재)'}
+          {/* Right Header: Always Visible Timeline / Zoom Status with Pro Option (Mobile-Safe Right Aligned) */}
+          <div className="w-full sm:w-auto flex justify-end items-center">
+            {customStartDate || customEndDate ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-2.5 py-1 rounded-full border border-[var(--accent-orange)]/30 font-mono">
+                  {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}
                 </span>
-
-                {!isPro && (
-                  <button
-                    type="button"
-                    onClick={() => setProPopoverOpen(!proPopoverOpen)}
-                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all cursor-pointer font-sans text-[11px] font-extrabold"
-                  >
-                    <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
-                    <span>30년 PRO</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomStartDate(null);
+                    setCustomEndDate(null);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] px-3.5 py-1 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:bg-[var(--accent-orange)]/10 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                  <span>전체 기간 복귀</span>
+                </button>
               </div>
+            ) : (
+              <div className="flex items-center gap-1.5 relative">
+                <div className="flex items-center p-0.5 sm:p-1 rounded-full bg-[var(--card-surface)] shadow-2xs text-xs font-bold font-mono">
+                  <span className="px-2.5 sm:px-3 py-1 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-extrabold border border-[var(--accent-orange)]/30 text-[11px] sm:text-xs">
+                    {isPro ? '30년 (1996~현재)' : '15년 (2011~현재)'}
+                  </span>
 
-              {/* Floating Pro Popover anchored to Top Right Button */}
-              {proPopoverOpen && !isPro && (
-                <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 p-4 rounded-2xl bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
-                      <Crown className="w-4 h-4" />
-                      <span>PRO 전용 (과거 30년 전체 데이터)</span>
-                    </div>
+                  {!isPro && (
                     <button
                       type="button"
-                      onClick={() => setProPopoverOpen(false)}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
+                      onClick={() => setProPopoverOpen(!proPopoverOpen)}
+                      className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all cursor-pointer font-sans text-[11px] font-extrabold"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
+                      <span>30년 PRO</span>
                     </button>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
-                    2000년 닷컴 버블(-80%), 2008년 리먼 사태(-55%) 등 <strong>과거 30년 역사적 위기 구간</strong>을 통과 검증하는 프리미엄 기능입니다.
-                  </p>
-                  {!user ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProPopoverOpen(false);
-                        openAuthPopover();
-                      }}
-                      className="w-full py-2.5 rounded-xl bg-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/90 text-white font-bold text-xs transition-all shadow-md active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      <Crown className="w-3.5 h-3.5" />
-                      로그인 / 가입하고 둘러보기
-                    </button>
-                  ) : (
-                    <div className="text-center py-2 px-3 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[11px] font-bold text-[var(--accent-orange)]">
-                      멤버십 및 프로모션 코드 연동 준비 중입니다
-                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          )}
+
+                {/* Floating Pro Popover anchored to Top Right Button */}
+                {proPopoverOpen && !isPro && (
+                  <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 p-4 rounded-2xl bg-white/90 dark:bg-[#18181b]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
+                        <Crown className="w-4 h-4" />
+                        <span>PRO 전용 (과거 30년 전체 데이터)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setProPopoverOpen(false)}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
+                      2000년 닷컴 버블(-80%), 2008년 리먼 사태(-55%) 등 <strong>과거 30년 역사적 위기 구간</strong>을 통과 검증하는 프리미엄 기능입니다.
+                    </p>
+                    {!user ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProPopoverOpen(false);
+                          openAuthPopover();
+                        }}
+                        className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <Crown className="w-3.5 h-3.5" />
+                        로그인 / 가입하고 둘러보기
+                      </button>
+                    ) : (
+                      <div className="text-center py-2 px-3 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[11px] font-bold text-[var(--accent-orange)]">
+                        멤버십 및 프로모션 코드 연동 준비 중입니다
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* SYNTHETIC ASSET INFERENCE NOTICE (Wrapped in permanent SmoothHeight for zero-jump animated expansion) */}
@@ -1168,10 +1410,12 @@ function SimulatorContent() {
               ETH: { label: '이더리움', dateStr: '2017년 11월 이전', cutoffDate: '2017-11-01', isCrypto: true },
             };
 
-            const selectedIds = Array.from(new Set([
+            const allSelectedAssets = [
               ...portfolioA.map(p => p.assetId),
-              ...portfolioB.map(p => p.assetId)
-            ])).filter(id => synthAssetMeta[id] && simStartDate < synthAssetMeta[id].cutoffDate);
+              ...(strategyCount >= 2 ? portfolioB.map(p => p.assetId) : []),
+              ...(strategyCount >= 3 ? portfolioC.map(p => p.assetId) : [])
+            ];
+            const selectedIds = Array.from(new Set(allSelectedAssets)).filter(id => synthAssetMeta[id] && simStartDate < synthAssetMeta[id].cutoffDate);
 
             if (selectedIds.length === 0) return null;
 
@@ -1205,7 +1449,7 @@ function SimulatorContent() {
                 )}
               </div>
             );
-          }, [portfolioA, portfolioB, simulation.points])}
+          }, [portfolioA, portfolioB, portfolioC, strategyCount, simulation.points])}
         </SmoothHeight>
 
         {/* SVG Canvas Container */}
@@ -1219,23 +1463,32 @@ function SimulatorContent() {
                   <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate} (놓으면 확대)</span>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
-                  <span>추천: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-mid-green)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{dragRangeInfo.diffA}%</strong></span>
-                  <span>커스텀: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{dragRangeInfo.diffB}%</strong></span>
+                  <span>추천 전략: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{Number(dragRangeInfo.diffA).toLocaleString()}%</strong></span>
+                  {strategyCount >= 2 && (
+                    <span>전략 1: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-emerald-500 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{Number(dragRangeInfo.diffB).toLocaleString()}%</strong></span>
+                  )}
+                  {strategyCount >= 3 && (
+                    <span>전략 2: <strong className={Number(dragRangeInfo.diffC) >= 0 ? 'text-indigo-400 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffC) > 0 ? '+' : ''}{Number(dragRangeInfo.diffC).toLocaleString()}%</strong></span>
+                  )}
                 </div>
               </div>
             ) : activeHoverPoint ? (
               <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px]">
                 <div className="flex items-center justify-between sm:justify-start gap-2 text-[var(--text-secondary)]">
                   <span>{activeHoverPoint.date}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--card-surface)] border border-[var(--border-color)]">원금 {activeHoverPoint.invested.toLocaleString()}만</span>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
-                  <span>추천: <strong className="text-[var(--accent-mid-green)]">{activeHoverPoint.valA.toLocaleString()}만 ({activeHoverPoint.retA > 0 ? '+' : ''}{activeHoverPoint.retA}%)</strong></span>
-                  <span>커스텀: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.valB.toLocaleString()}만 ({activeHoverPoint.retB > 0 ? '+' : ''}{activeHoverPoint.retB}%)</strong></span>
+                  <span>추천 전략: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.retA > 0 ? '+' : ''}{Number(activeHoverPoint.retA).toLocaleString()}%</strong></span>
+                  {strategyCount >= 2 && activeHoverPoint.valB !== undefined && (
+                    <span>전략 1: <strong className="text-emerald-500">{(activeHoverPoint.retB || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retB || 0).toLocaleString()}%</strong></span>
+                  )}
+                  {strategyCount >= 3 && activeHoverPoint.valC !== undefined && (
+                    <span>전략 2: <strong className="text-indigo-400">{(activeHoverPoint.retC || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retC || 0).toLocaleString()}%</strong></span>
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="w-full flex items-center justify-between text-[11px] font-medium text-[var(--text-secondary)] py-0.5">
+              <div className="w-full items-center justify-between text-[11px] font-medium text-[var(--text-secondary)] py-0.5 flex">
                 <span>차트를 드래그하여 원하는 구간을 자유롭게 확대할 수 있습니다</span>
               </div>
             )}
@@ -1257,6 +1510,48 @@ function SimulatorContent() {
             onTouchEnd={handleTouchEnd}
           >
             <defs>
+              <style>{`
+                @keyframes chartSweepAnim {
+                  0% { width: 0px; }
+                  100% { width: ${chartWidth}px; }
+                }
+              `}</style>
+              <clipPath id={`chartRevealClip-base-${chartBaseAnimKey}`}>
+                <rect
+                  key={chartBaseAnimKey}
+                  x="0"
+                  y="0"
+                  width="0"
+                  height={chartHeight}
+                  style={{
+                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                  }}
+                />
+              </clipPath>
+              <clipPath id={`chartRevealClip-B-${chartBAnimKey}`}>
+                <rect
+                  key={chartBAnimKey}
+                  x="0"
+                  y="0"
+                  width="0"
+                  height={chartHeight}
+                  style={{
+                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                  }}
+                />
+              </clipPath>
+              <clipPath id={`chartRevealClip-C-${chartCAnimKey}`}>
+                <rect
+                  key={chartCAnimKey}
+                  x="0"
+                  y="0"
+                  width="0"
+                  height={chartHeight}
+                  style={{
+                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                  }}
+                />
+              </clipPath>
               <linearGradient id="proLeftShadeGrad" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="var(--border-color)" stopOpacity="0.40" />
                 <stop offset="70%" stopColor="var(--border-color)" stopOpacity="0.15" />
@@ -1329,31 +1624,57 @@ function SimulatorContent() {
               </g>
             )}
 
-            <path
-              d={getSvgPath(investedVals)}
-              fill="none"
-              stroke="#888888"
-              strokeWidth="1.5"
-              strokeDasharray="3 3"
-              className="transition-all duration-500 ease-out"
-              style={{ transition: 'd 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
-            />
-            <path
-              d={getSvgPath(valsA)}
-              fill="none"
-              stroke="#68A67D"
-              strokeWidth="3"
-              className="transition-all duration-500 ease-out"
-              style={{ transition: 'd 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
-            />
-            <path
-              d={getSvgPath(valsB)}
-              fill="none"
-              stroke="#F18F01"
-              strokeWidth="3.5"
-              className="transition-all duration-500 ease-out"
-              style={{ transition: 'd 0.45s cubic-bezier(0.16, 1, 0.3, 1)' }}
-            />
+            {/* Base Line & Strategy A Curves (Buong Orange) */}
+            <g clipPath={`url(#chartRevealClip-base-${chartBaseAnimKey})`}>
+              {/* Invested Principal Base Dashed Line */}
+              <path
+                d={getSvgPath(investedVals)}
+                fill="none"
+                stroke="#888888"
+                strokeWidth="1.5"
+                strokeDasharray="3 3"
+                className="transition-all duration-500 ease-out"
+                style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
+              />
+
+              {/* Strategy 1 Curve: Buong Orange */}
+              <path
+                d={getSvgPath(valsA)}
+                fill="none"
+                stroke="#F18F01"
+                strokeWidth="3.5"
+                className="transition-all duration-500 ease-out"
+                style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
+              />
+            </g>
+
+            {/* Strategy 2 Curve: Fintech Emerald (Independent Sweep on Add) */}
+            {strategyCount >= 2 && (
+              <g clipPath={`url(#chartRevealClip-B-${chartBAnimKey})`}>
+                <path
+                  d={getSvgPath(valsB)}
+                  fill="none"
+                  stroke="#10B981"
+                  strokeWidth="3"
+                  className="transition-all duration-500 ease-out"
+                  style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
+                />
+              </g>
+            )}
+
+            {/* Strategy 3 Curve: Royal Indigo (Independent Sweep on Add) */}
+            {strategyCount >= 3 && (
+              <g clipPath={`url(#chartRevealClip-C-${chartCAnimKey})`}>
+                <path
+                  d={getSvgPath(valsC)}
+                  fill="none"
+                  stroke="#6366F1"
+                  strokeWidth="3"
+                  className="transition-all duration-500 ease-out"
+                  style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
+                />
+              </g>
+            )}
 
             {dragStart !== null && dragEnd !== null && dragStart !== dragEnd && (
               <rect
@@ -1372,18 +1693,32 @@ function SimulatorContent() {
             )}
           </svg>
 
+          {/* Dynamic Legend Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold pt-2 border-t border-[var(--border-color)]">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Recommended Strategy Legend */}
               <div className="flex items-center gap-2">
-                <span className="w-3.5 h-1.5 bg-[var(--accent-mid-green)] rounded-full" />
-                <span className="text-[var(--accent-mid-green)] font-extrabold">
-                  {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
+                <span className="w-3.5 h-1.5 bg-[var(--accent-orange)] rounded-full shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                <span className="text-[var(--accent-orange)] font-extrabold">
+                  추천 전략
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-1.5 bg-[var(--accent-orange)] rounded-full" />
-                <span className="text-[var(--accent-orange)] font-extrabold">커스텀 전략</span>
-              </div>
+
+              {/* Strategy 1 Legend (Fintech Emerald) */}
+              {strategyCount >= 2 && (
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <span className="text-emerald-500 font-extrabold">전략 1</span>
+                </div>
+              )}
+
+              {/* Strategy 2 Legend (Royal Indigo) */}
+              {strategyCount >= 3 && (
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                  <span className="text-indigo-400 font-extrabold">전략 2</span>
+                </div>
+              )}
             </div>
             <div className="text-[11px] text-[var(--text-secondary)] font-mono">
               총 투입 원금: {simulation.finalInvested.toLocaleString()}만원
@@ -1393,493 +1728,795 @@ function SimulatorContent() {
       </div>
 
       {/* ---------------------------------------------------- */}
-      {/* SIDE-BY-SIDE STRATEGY & PERFORMANCE PAIR CONTAINERS  */}
-      {/* Desktop (md): Side-by-side 2 Columns                  */}
-      {/* Mobile (sm): Strategy A + Result A -> Strategy B + Result B */}
+      {/* DYNAMIC MULTI-STRATEGY BUILDER & PERFORMANCE BLOCK   */}
       {/* ---------------------------------------------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
-        {/* ==================================================== */}
-        {/* STRATEGY A (RECOMMENDED STRATEGY + PERFORMANCE PAIR) */}
-        {/* ==================================================== */}
-        <div className="space-y-4 flex flex-col justify-between">
-          {/* RECOMMENDED PORTFOLIO BUILDER */}
-          <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-black text-[var(--accent-mid-green)] flex items-center gap-2">
-                <Layers className="w-4 h-4" />
-                {userProfileCode ? `${userProfileCode} 추천 전략` : '추천 전략'}
-              </h2>
-              {availableForA.length > 0 && (
-                <button type="button" onClick={handleAddSlotA} className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[var(--accent-mid-green)] text-white hover:opacity-90 transition-all">
-                  + 종목 추가
-                </button>
-              )}
-            </div>
-
-            {/* Recommended Strategy Disclaimer Notice & Preset Quick Picker */}
-            <div className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium space-y-2">
-              <div>
-                💡 <strong>추천 안내:</strong> {userProfileCode ? (
-                  <span>성향 진단(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 결과를 바탕으로 구성된 제안 조합입니다. 단순 참고용으로 활용해 보세요.</span>
-                ) : (
-                  <span>대표 자산 배분 템플릿 기반의 제안 조합입니다. 투자 성향 진단을 받으시면 나만의 맞춤 전략이 자동 세팅됩니다.</span>
-                )}
-              </div>
-              
-              {/* Quick Preset Selector Buttons */}
-              <div style={{ borderTop: '1px solid var(--border-color)' }} className="pt-2 flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">추천 템플릿:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const info = getUserPersonalityInfo({ user, searchParams });
-                    const config = calculatePersonalitySimulatorConfig(info.typeCode, info.scores);
-                    setPortfolioA(config.portfolioA);
-                    setStrategyPeriodA(config.strategyPeriodA);
-                  }}
-                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all font-mono shadow-2xs"
-                >
-                  {userProfileCode ? `${userProfileCode} 맞춤` : '기본 맞춤'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPortfolioA([
-                      { assetId: 'SPY', weight: 50, enableDefense: false },
-                      { assetId: 'QQQ', weight: 30, enableDefense: false },
-                      { assetId: 'SCHD', weight: 20, enableDefense: false },
-                    ]);
-                    setStrategyPeriodA(0);
-                  }}
-                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
-                >
-                  균형 자산
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPortfolioA([
-                      { assetId: 'TQQQ', weight: 45, enableDefense: true },
-                      { assetId: 'SOXX', weight: 35, enableDefense: true },
-                      { assetId: 'SPY', weight: 20, enableDefense: true },
-                    ]);
-                    setStrategyPeriodA(200);
-                  }}
-                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
-                >
-                  공격형
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPortfolioA([
-                      { assetId: 'SCHD', weight: 45, enableDefense: false },
-                      { assetId: 'SPY', weight: 30, enableDefense: false },
-                      { assetId: 'GLD', weight: 15, enableDefense: false },
-                      { assetId: 'SHY', weight: 10, enableDefense: false },
-                    ]);
-                    setStrategyPeriodA(0);
-                  }}
-                  className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] active:scale-95 transition-all shadow-2xs"
-                >
-                  방어형
-                </button>
-              </div>
-            </div>
-
-            <SmoothHeight>
-              <div className="space-y-2.5">
-                {portfolioA.map((item, index) => {
-                  const otherSumA = portfolioA.reduce((sum, itm, idx) => (idx === index ? sum : sum + itm.weight), 0);
-                  const maxAllowedA = Math.max(0, 100 - otherSumA);
-
-                  return (
-                    <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 hover:border-[var(--accent-mid-green)]/40 transition-all shadow-2xs">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-mono font-bold whitespace-nowrap shrink-0 text-[var(--accent-mid-green)]">
-                          종목 {index + 1}:
-                        </span>
-
-                        {/* 계층형 인덴트 종목 셀렉터 */}
-                        <select
-                          value={item.assetId}
-                          onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                          className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:border-[var(--accent-mid-green)]/50 transition-all min-w-0"
-                        >
-                          {SELECT_ASSET_GROUPS.map((grp) => (
-                            <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
-                              {grp.options.map((opt) => (
-                                <option key={opt.id} value={opt.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === opt.id)}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
-                        </select>
-
-                        {/* 비중 입력 및 삭제 버튼 */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step={5}
-                            value={item.weight}
-                            onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                            className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-mid-green)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-mid-green)] font-mono"
-                          />
-                          <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
-                          {portfolioA.length > 1 && (
-                            <button type="button" onClick={() => setPortfolioA(portfolioA.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2">
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          step={5}
-                          value={item.weight}
-                          onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
-                          className="flex-1 accent-[var(--accent-mid-green)] cursor-pointer"
-                        />
-                        {strategyPeriodA > 0 && (
-                          <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                            <input
-                              type="checkbox"
-                              checked={item.enableDefense !== false}
-                              onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                              className="w-3.5 h-3.5 accent-[var(--accent-mid-green)] rounded cursor-pointer"
-                            />
-                            <span>방어 적용</span>
-                          </label>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                  <span className="text-[var(--text-primary)]">현금</span>
-                  <span className="font-mono font-extrabold text-[var(--accent-mid-green)]">{autoCashA}%</span>
-                </div>
-              </div>
-            </SmoothHeight>
-
-            <div className="pt-2 space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
-                  방어 옵션 (이동평균선)
-                </label>
-                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <SmoothHeight>
-                {activeTooltip === 'defense_a' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                    시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
-                  </div>
-                )}
-              </SmoothHeight>
-              <select
-                value={strategyPeriodA}
-                onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
-                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
-              >
-                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-              </select>
-            </div>
+      <div className="space-y-4 pt-2">
+        {/* Strategy Control Header */}
+        <div className="flex items-center justify-between gap-2 px-1">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
+              <Layers className="w-4.5 h-4.5 text-[var(--accent-orange)]" />
+              전략 구성 및 성과 비교
+            </h2>
           </div>
 
-          {/* Portfolio A Results Card (Bound to Strategy A) */}
-          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-              <span className="text-xs font-black text-[var(--accent-mid-green)] flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-mid-green)]" />
-                {userProfileCode ? `${userProfileCode} 추천 전략 성과` : '추천 전략 성과'}
-              </span>
-              <span className="text-lg font-black text-[var(--accent-mid-green)] font-mono">
-                +{simulation.portA.totalRate}%
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-[var(--accent-mid-green)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-              <span className="text-xs font-black text-[var(--accent-mid-green)]">
-                ✨ 원금이 약 {(simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-              </span>
-              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portA.val.toLocaleString()}만원)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-                <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                  {simulation.portA.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-                </span>
-              </div>
-
-              <div className="pt-1.5 border-t border-[var(--border-color)]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                  <span className="font-mono font-bold text-[var(--accent-mid-green)]">+{simulation.portA.cagr}% /년</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                  <span className="font-mono font-bold text-red-500">-{simulation.portA.mdd}%</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                  <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ==================================================== */}
-        {/* STRATEGY B (CUSTOM STRATEGY + PERFORMANCE PAIR)     */}
-        {/* ==================================================== */}
-        <div className="space-y-4 flex flex-col justify-between">
-          {/* CUSTOM PORTFOLIO BUILDER */}
-          <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-black text-[var(--accent-orange)] flex items-center gap-2">
-                <Layers className="w-4 h-4" />
-                커스텀 전략
-              </h2>
-              {availableForB.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleAddSlotB}
-                  className="text-xs font-bold px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-2xs hover:shadow-[0_0_12px_rgba(241,143,1,0.25)] transition-all cursor-pointer"
-                >
-                  + 종목 추가
-                </button>
-              )}
-            </div>
-
-            {/* REAL-TIME DYNAMIC WARNING TOAST INSIDE CUSTOM STRATEGY CARD */}
-            <div
-              style={{
-                borderColor:
-                  evalFeedbackB.type === 'danger'
-                    ? 'rgba(244, 63, 94, 0.3)'
-                    : evalFeedbackB.type === 'warning'
-                    ? 'rgba(241, 143, 1, 0.35)'
-                    : evalFeedbackB.type === 'info'
-                    ? 'rgba(14, 165, 233, 0.3)'
-                    : 'rgba(104, 166, 125, 0.35)',
-              }}
-              className={`p-3.5 rounded-xl border transition-all duration-300 shadow-2xs space-y-1 ${
-                evalFeedbackB.type === 'danger'
-                  ? 'bg-rose-500/10 text-rose-500'
-                  : evalFeedbackB.type === 'warning'
-                  ? 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
-                  : evalFeedbackB.type === 'info'
-                  ? 'bg-sky-500/10 text-sky-500'
-                  : 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]'
-              }`}
+          {strategyCount < 3 && (
+            <button
+              type="button"
+              onClick={handleAddStrategy}
+              className="flex items-center gap-1.5 text-xs font-extrabold px-4 py-2 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] transition-all cursor-pointer shrink-0"
             >
-              <div className="flex items-center gap-1.5 font-extrabold text-xs">
-                {evalFeedbackB.type === 'danger' && <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />}
-                {evalFeedbackB.type === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0 text-[var(--accent-orange)]" />}
-                {evalFeedbackB.type === 'info' && <Info className="w-4 h-4 shrink-0 text-sky-500" />}
-                {evalFeedbackB.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[var(--accent-green)]" />}
-                <span>{evalFeedbackB.title}</span>
-              </div>
-              <p className="text-[11px] text-[var(--text-primary)] font-medium leading-relaxed">
-                {evalFeedbackB.desc}
-              </p>
-            </div>
-
-            <SmoothHeight>
-              <div className="space-y-2.5">
-                {portfolioB.map((item, index) => {
-                  const otherSumB = portfolioB.reduce((sum, itm, idx) => (idx === index ? sum : sum + itm.weight), 0);
-                  const maxAllowedB = Math.max(0, 100 - otherSumB);
-
-                  return (
-                    <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 hover:border-[var(--accent-orange)]/40 transition-all shadow-2xs">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-mono font-bold whitespace-nowrap shrink-0 text-[var(--accent-orange)]">
-                          종목 {index + 1}:
-                        </span>
-
-                        {/* 계층형 인덴트 종목 셀렉터 */}
-                        <select
-                          value={item.assetId}
-                          onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
-                          className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:border-[var(--accent-orange)]/50 transition-all min-w-0"
-                        >
-                          {SELECT_ASSET_GROUPS.map((grp) => (
-                            <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
-                              {grp.options.map((opt) => (
-                                <option key={opt.id} value={opt.id} disabled={portfolioB.some((sa, idx) => idx !== index && sa.assetId === opt.id)}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
-                        </select>
-
-                        {/* 비중 입력 및 삭제 버튼 */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step={5}
-                            value={item.weight}
-                            onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                            className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
-                          />
-                          <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
-                          {portfolioB.length > 1 && (
-                            <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2">
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          step={5}
-                          value={item.weight}
-                          onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
-                          className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
-                        />
-                        {strategyPeriodB > 0 && (
-                          <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                            <input
-                              type="checkbox"
-                              checked={item.enableDefense !== false}
-                              onChange={(e) => setPortfolioB(portfolioB.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
-                              className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
-                            />
-                            <span>방어 적용</span>
-                          </label>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                <div className="p-3 rounded-xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                  <span className="text-[var(--text-primary)]">현금</span>
-                  <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashB}%</span>
-                </div>
-              </div>
-            </SmoothHeight>
-
-            <div className="pt-2 space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                  방어 옵션 (이동평균선)
-                </label>
-                <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <SmoothHeight>
-                {activeTooltip === 'defense_b' && (
-                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                    시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
-                  </div>
-                )}
-              </SmoothHeight>
-              <select
-                value={strategyPeriodB}
-                onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
-                className="w-full bg-[var(--bg-main)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer hover:border-[var(--accent-orange)]/40 transition-all"
-              >
-                <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
-                <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
-                <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Portfolio B Results Card (Bound to Strategy B) */}
-          <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-              <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)]" />
-                커스텀 전략 성과
+              <span>+ 비교 전략 추가</span>
+              <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full">
+                {strategyCount}/3
               </span>
-              <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
-                +{simulation.portB.totalRate}%
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
-              <span className="text-xs font-black text-[var(--accent-orange)]">
-                🚀 원금이 약 {(simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1)}배가 되었어요!
-              </span>
-              <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-                ({simulation.finalInvested.toLocaleString()}만원 ➔ {simulation.portB.val.toLocaleString()}만원)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
-                <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
-                  {simulation.portB.val.toLocaleString()} <span className="text-xs font-sans">만원</span>
-                </span>
-              </div>
-
-              <div className="pt-1.5 border-t border-[var(--border-color)]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
-                  <span className="font-mono font-bold text-[var(--accent-orange)]">+{simulation.portB.cagr}% /년</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
-                  <span className="font-mono font-bold text-red-500">-{simulation.portB.mdd}%</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
-                  <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            </button>
+          )}
         </div>
 
-      </div>
+        {/* Dynamic Multi-Strategy Container (Pure CSS Flex 500ms Apple HIG Silky Spring Layout) */}
+        <div className="flex flex-col lg:flex-row items-stretch w-full">
+            
+            {/* ==================================================== */}
+            {/* RECOMMENDED STRATEGY (BUONG ORANGE)                  */}
+            {/* ==================================================== */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-black text-[var(--accent-orange)] flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                      기본 전략
+                    </h3>
+                  </div>
 
+                  {/* Recommended Strategy Disclaimer Notice & Preset Quick Picker */}
+                  <div className="mt-4 p-3.5 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium space-y-2.5">
+                    <div>
+                      💡 <strong>전략 안내:</strong> {userProfileCode ? (
+                        <span>성향 진단(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 맞춤형 제안 조합입니다.</span>
+                      ) : (
+                        <span>대표 자산 배분 템플릿 기반의 기본 조합입니다.</span>
+                      )}
+                    </div>
+                    
+                    {/* Quick Preset Selector Buttons (4-Column Segmented Bar with True Sliding Pill Motion) */}
+                    <div style={{ borderTop: '1px solid var(--border-color)' }} className="pt-2">
+                      <div className="relative grid grid-cols-4 p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs">
+                        {/* Physical Sliding Pill Indicator */}
+                        <div
+                          className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                          style={{
+                            width: 'calc(25% - 2px)',
+                            left:
+                              activePresetA === 'personality'
+                                ? '2px'
+                                : activePresetA === 'balanced'
+                                ? 'calc(25% + 1px)'
+                                : activePresetA === 'growth'
+                                ? 'calc(50% + 1px)'
+                                : activePresetA === 'defensive'
+                                ? 'calc(75% + 0px)'
+                                : '2px',
+                            opacity: activePresetA ? 1 : 0,
+                            transform: activePresetA ? 'scale(1)' : 'scale(0.95)',
+                          }}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const info = getUserPersonalityInfo({ user, searchParams });
+                            const config = calculatePersonalitySimulatorConfig(info.typeCode, info.scores);
+                            setPortfolioA(config.portfolioA);
+                            setStrategyPeriodA(config.strategyPeriodA);
+                            setActivePresetA('personality');
+                          }}
+                          className={`relative z-10 py-1 px-1 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                            activePresetA === 'personality'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
+                          }`}
+                        >
+                          {userProfileCode ? userProfileCode : '기본'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPortfolioA([
+                              { assetId: 'SPY', weight: 50, enableDefense: false },
+                              { assetId: 'QQQ', weight: 30, enableDefense: false },
+                              { assetId: 'SCHD', weight: 20, enableDefense: false },
+                            ]);
+                            setStrategyPeriodA(0);
+                            setActivePresetA('balanced');
+                          }}
+                          className={`relative z-10 py-1 px-1 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                            activePresetA === 'balanced'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
+                          }`}
+                        >
+                          균형
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPortfolioA([
+                              { assetId: 'TQQQ', weight: 45, enableDefense: true },
+                              { assetId: 'SOXX', weight: 35, enableDefense: true },
+                              { assetId: 'SPY', weight: 20, enableDefense: true },
+                            ]);
+                            setStrategyPeriodA(200);
+                            setActivePresetA('growth');
+                          }}
+                          className={`relative z-10 py-1 px-1 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                            activePresetA === 'growth'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
+                          }`}
+                        >
+                          공격
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPortfolioA([
+                              { assetId: 'SCHD', weight: 45, enableDefense: false },
+                              { assetId: 'SPY', weight: 30, enableDefense: false },
+                              { assetId: 'GLD', weight: 15, enableDefense: false },
+                              { assetId: 'SHY', weight: 10, enableDefense: false },
+                            ]);
+                            setStrategyPeriodA(0);
+                            setActivePresetA('defensive');
+                          }}
+                          className={`relative z-10 py-1 px-1 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                            activePresetA === 'defensive'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
+                          }`}
+                        >
+                          방어
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <SmoothHeight>
+                      <div className="space-y-2.5">
+                        {portfolioA.map((item, index) => (
+                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-bold whitespace-nowrap shrink-0 text-[var(--accent-orange)]">
+                                종목 {index + 1}:
+                              </span>
+
+                              <select
+                                value={item.assetId}
+                                onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                              >
+                                {SELECT_ASSET_GROUPS.map((grp) => (
+                                  <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
+                                    {grp.options.map((opt) => (
+                                      <option key={opt.id} value={opt.id} disabled={portfolioA.some((sa, idx) => idx !== index && sa.assetId === opt.id)}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                ))}
+                              </select>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step={5}
+                                  value={item.weight}
+                                  onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
+                                />
+                                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                                {portfolioA.length > 1 && (
+                                  <button type="button" onClick={() => { setPortfolioA(portfolioA.filter((_, idx) => idx !== index)); setActivePresetA(null); }} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2">
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={item.weight}
+                                onChange={(e) => handleUpdateWeightA(index, Number(e.target.value))}
+                                className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
+                              />
+                              {strategyPeriodA > 0 && (
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.enableDefense !== false}
+                                    onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                                    className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
+                                  />
+                                  <span>방어</span>
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Add Stock Button with Neutral Monochrome Styling (Max 10 Slots) */}
+                        {availableForA.length > 0 && portfolioA.length < 10 && (
+                          <button
+                            type="button"
+                            onClick={handleAddSlotA}
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                            <span>종목 추가</span>
+                          </button>
+                        )}
+
+                        <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                          <span className="text-[var(--text-primary)]">현금</span>
+                          <span className="font-mono font-extrabold text-[var(--accent-orange)]">{autoCashA}%</span>
+                        </div>
+                      </div>
+                    </SmoothHeight>
+                  </div>
+
+                  <div className="pt-3 space-y-1 mt-auto">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                        방어 옵션 (이동평균선)
+                      </label>
+                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <SmoothHeight>
+                      {activeTooltip === 'defense_a' && (
+                        <div className="p-2.5 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                        </div>
+                      )}
+                    </SmoothHeight>
+                    <select
+                      value={strategyPeriodA}
+                      onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
+                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                      <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                      <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                      <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                      <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Portfolio A Results Card (Clean Surface with Animated Count-Up Numbers) */}
+                <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                    <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                      기본 전략 성과
+                    </span>
+                    <span className="text-lg font-black text-[var(--accent-orange)] font-mono">
+                      <AnimatedNumber value={Number(simulation.portA.totalRate)} prefix="+" suffix="%" />
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+                    <span className="text-xs font-black text-[var(--text-primary)]">
+                      ✨ 원금이 <AnimatedNumber value={Number((simulation.portA.val / Math.max(1, simulation.finalInvested)).toFixed(1))} decimals={1} prefix="약 " suffix="배" />가 되었어요!
+                    </span>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                      ({simulation.finalInvested.toLocaleString()}만원 ➔ <AnimatedNumber value={simulation.portA.val} suffix="만원" />)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+                      <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                        <AnimatedNumber value={simulation.portA.val} suffix=" 만원" />
+                      </span>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-[var(--border-color)]">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                        <span className="font-mono font-bold text-[var(--accent-orange)]">
+                          <AnimatedNumber value={Number(simulation.portA.cagr)} prefix="+" suffix="% /년" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                        <span className="font-mono font-bold text-red-500">
+                          <AnimatedNumber value={simulation.portA.mdd} prefix="-" suffix="%" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                        <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portA.sharpe}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ==================================================== */}
+            {/* STRATEGY 1 (FINTECH EMERALD)                         */}
+            {/* ==================================================== */}
+            <div
+              className={`min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.4,1)] flex flex-col justify-between ${
+                strategyCount >= 2
+                  ? 'w-full lg:w-auto lg:flex-1 opacity-100 max-h-[3000px] lg:max-h-none max-w-full lg:max-w-[1000px] mt-5 lg:mt-0 lg:ml-5 scale-100'
+                  : 'w-full lg:w-0 lg:flex-none opacity-0 max-h-0 lg:max-w-0 pointer-events-none p-0 m-0 border-0 scale-95'
+              }`}
+              style={{
+                transformOrigin: 'top left',
+              }}
+            >
+              <div className="w-full min-w-[280px] lg:min-w-[260px] glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-black text-emerald-500 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      전략 1
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStrategy('B')}
+                      className="text-[var(--text-secondary)] hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Warning & Return feedback banner (Static calm UI, no animate-pulse) */}
+                  {evalFeedbackB.type !== 'success' && (
+                    <div className={`mt-4 p-3.5 rounded-2xl border text-[11px] leading-relaxed font-medium space-y-1 ${
+                      evalFeedbackB.type === 'danger'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
+                        : evalFeedbackB.type === 'warning'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+                        : 'bg-blue-500/10 border-blue-500/30 text-blue-500'
+                    }`}>
+                      <div className="flex items-center gap-1.5 font-extrabold text-xs">
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                        <span>{evalFeedbackB.title}</span>
+                      </div>
+                      <p className="text-[11px] text-[var(--text-secondary)] pl-5">
+                        {evalFeedbackB.desc}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="mt-4">
+                    <SmoothHeight>
+                      <div className="space-y-2.5">
+                        {portfolioB.map((item, index) => (
+                          <div key={index} className="p-3 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-bold whitespace-nowrap shrink-0 text-emerald-500">
+                                종목 {index + 1}:
+                              </span>
+
+                              <select
+                                value={item.assetId}
+                                onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, assetId: e.target.value } : sb)))}
+                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                              >
+                                {SELECT_ASSET_GROUPS.map((grp) => (
+                                  <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
+                                    {grp.options.map((opt) => (
+                                      <option key={opt.id} value={opt.id} disabled={portfolioB.some((sb, idx) => idx !== index && sb.assetId === opt.id)}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                ))}
+                              </select>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step={5}
+                                  value={item.weight}
+                                  onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-emerald-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-emerald-500 font-mono"
+                                />
+                                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                                {portfolioB.length > 1 && (
+                                  <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2">
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={item.weight}
+                                onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
+                                className="flex-1 accent-emerald-500 cursor-pointer"
+                              />
+                              {strategyPeriodB > 0 && (
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.enableDefense !== false}
+                                    onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, enableDefense: e.target.checked } : sb)))}
+                                    className="w-3.5 h-3.5 accent-emerald-500 rounded cursor-pointer"
+                                  />
+                                  <span>방어</span>
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Add Stock Button (Max 10 Slots) */}
+                        {availableForB.length > 0 && portfolioB.length < 10 && (
+                          <button
+                            type="button"
+                            onClick={handleAddSlotB}
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                            <span>종목 추가</span>
+                          </button>
+                        )}
+
+                        <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                          <span className="text-[var(--text-primary)]">현금</span>
+                          <span className="font-mono font-extrabold text-emerald-500">{autoCashB}%</span>
+                        </div>
+                      </div>
+                    </SmoothHeight>
+                  </div>
+
+                  <div className="pt-3 space-y-1 mt-auto">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
+                        방어 옵션 (이동평균선)
+                      </label>
+                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <SmoothHeight>
+                      {activeTooltip === 'defense_b' && (
+                        <div className="p-2.5 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                        </div>
+                      )}
+                    </SmoothHeight>
+                    <select
+                      value={strategyPeriodB}
+                      onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
+                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                      <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                      <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                      <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                      <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Portfolio B Results Card (Clean Surface with Animated Count-Up Numbers) */}
+                <div key={`strategy-b-perf-${strategyCount}`} className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                    <span className="text-xs font-black text-emerald-500 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      전략 1 성과
+                    </span>
+                    <span className="text-lg font-black text-emerald-500 font-mono">
+                      <AnimatedNumber value={Number(simulation.portB.totalRate)} prefix="+" suffix="%" />
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+                    <span className="text-xs font-black text-[var(--text-primary)]">
+                      🔥 원금이 <AnimatedNumber value={Number((simulation.portB.val / Math.max(1, simulation.finalInvested)).toFixed(1))} decimals={1} prefix="약 " suffix="배" />가 되었어요!
+                    </span>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                      ({simulation.finalInvested.toLocaleString()}만원 ➔ <AnimatedNumber value={simulation.portB.val} suffix="만원" />)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+                      <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                        <AnimatedNumber value={simulation.portB.val} suffix=" 만원" />
+                      </span>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-[var(--border-color)]">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                        <span className="font-mono font-bold text-emerald-500">
+                          <AnimatedNumber value={Number(simulation.portB.cagr)} prefix="+" suffix="% /년" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                        <span className="font-mono font-bold text-red-500">
+                          <AnimatedNumber value={simulation.portB.mdd} prefix="-" suffix="%" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                        <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portB.sharpe}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ==================================================== */}
+            {/* STRATEGY 2 (ROYAL INDIGO)                            */}
+            {/* ==================================================== */}
+            <div
+              className={`min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.4,1)] flex flex-col justify-between ${
+                strategyCount >= 3
+                  ? 'w-full lg:w-auto lg:flex-1 opacity-100 max-h-[3000px] lg:max-h-none max-w-full lg:max-w-[1000px] mt-5 lg:mt-0 lg:ml-5 scale-100'
+                  : 'w-full lg:w-0 lg:flex-none opacity-0 max-h-0 lg:max-w-0 pointer-events-none p-0 m-0 border-0 scale-95'
+              }`}
+              style={{
+                transformOrigin: 'top left',
+              }}
+            >
+              <div className="w-full min-w-[280px] lg:min-w-[260px] glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-black text-indigo-500 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      전략 2
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStrategy('C')}
+                      className="text-[var(--text-secondary)] hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Warning & Return feedback banner (Static calm UI, no animate-pulse) */}
+                  {evalFeedbackC.type !== 'success' && (
+                    <div className={`mt-4 p-3.5 rounded-2xl border text-[11px] leading-relaxed font-medium space-y-1 ${
+                      evalFeedbackC.type === 'danger'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
+                        : evalFeedbackC.type === 'warning'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+                        : 'bg-blue-500/10 border-blue-500/30 text-blue-500'
+                    }`}>
+                      <div className="flex items-center gap-1.5 font-extrabold text-xs">
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                        <span>{evalFeedbackC.title}</span>
+                      </div>
+                      <p className="text-[11px] text-[var(--text-secondary)] pl-5">
+                        {evalFeedbackC.desc}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="mt-4">
+                    <SmoothHeight>
+                      <div className="space-y-2.5">
+                        {portfolioC.map((item, index) => (
+                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-bold whitespace-nowrap shrink-0 text-indigo-500">
+                                종목 {index + 1}:
+                              </span>
+
+                              <select
+                                value={item.assetId}
+                                onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, assetId: e.target.value } : sc)))}
+                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                              >
+                                {SELECT_ASSET_GROUPS.map((grp) => (
+                                  <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
+                                    {grp.options.map((opt) => (
+                                      <option key={opt.id} value={opt.id} disabled={portfolioC.some((sc, idx) => idx !== index && sc.assetId === opt.id)}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                ))}
+                              </select>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step={5}
+                                  value={item.weight}
+                                  onChange={(e) => handleUpdateWeightC(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-indigo-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-indigo-500 font-mono"
+                                />
+                                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                                {portfolioC.length > 1 && (
+                                  <button type="button" onClick={() => setPortfolioC(portfolioC.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2">
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={item.weight}
+                                onChange={(e) => handleUpdateWeightC(index, Number(e.target.value))}
+                                className="flex-1 accent-indigo-500 cursor-pointer"
+                              />
+                              {strategyPeriodC > 0 && (
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.enableDefense !== false}
+                                    onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, enableDefense: e.target.checked } : sc)))}
+                                    className="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"
+                                  />
+                                  <span>방어</span>
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Add Stock Button (Max 10 Slots) */}
+                        {availableForC.length > 0 && portfolioC.length < 10 && (
+                          <button
+                            type="button"
+                            onClick={handleAddSlotC}
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                            <span>종목 추가</span>
+                          </button>
+                        )}
+
+                        <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                          <span className="text-[var(--text-primary)]">현금</span>
+                          <span className="font-mono font-extrabold text-indigo-500">{autoCashC}%</span>
+                        </div>
+                      </div>
+                    </SmoothHeight>
+                  </div>
+
+                  <div className="pt-3 space-y-1 mt-auto">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <Lightbulb className="w-3.5 h-3.5 text-indigo-500" />
+                        방어 옵션 (이동평균선)
+                      </label>
+                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_c' ? null : 'defense_c')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <SmoothHeight>
+                      {activeTooltip === 'defense_c' && (
+                        <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                        </div>
+                      )}
+                    </SmoothHeight>
+                    <select
+                      value={strategyPeriodC}
+                      onChange={(e) => setStrategyPeriodC(Number(e.target.value))}
+                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
+                      <option value={50}>50일 평균 가격 기준 (단기 빠르게 피하기)</option>
+                      <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                      <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                      <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Portfolio C Results Card (Clean Surface with Animated Count-Up Numbers) */}
+                <div key={`strategy-c-perf-${strategyCount}`} className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                    <span className="text-xs font-black text-indigo-500 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      전략 2 성과
+                    </span>
+                    <span className="text-lg font-black text-indigo-500 font-mono">
+                      <AnimatedNumber value={Number(simulation.portC.totalRate)} prefix="+" suffix="%" />
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-center space-y-0.5 shadow-2xs">
+                    <span className="text-xs font-black text-[var(--text-primary)]">
+                      🔥 원금이 <AnimatedNumber value={Number((simulation.portC.val / Math.max(1, simulation.finalInvested)).toFixed(1))} decimals={1} prefix="약 " suffix="배" />가 되었어요!
+                    </span>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                      ({simulation.finalInvested.toLocaleString()}만원 ➔ <AnimatedNumber value={simulation.portC.val} suffix="만원" />)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[var(--text-secondary)] font-medium">최종 자산</span>
+                      <span className="font-mono font-extrabold text-sm text-[var(--text-primary)]">
+                        <AnimatedNumber value={simulation.portC.val} suffix=" 만원" />
+                      </span>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-[var(--border-color)]">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">연수익률 (CAGR)</span>
+                        <span className="font-mono font-bold text-indigo-500">
+                          <AnimatedNumber value={Number(simulation.portC.cagr)} prefix="+" suffix="% /년" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
+                        <span className="font-mono font-bold text-red-500">
+                          <AnimatedNumber value={simulation.portC.mdd} prefix="-" suffix="%" />
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[var(--text-secondary)] font-medium">위험 대비 수익성 (샤프지수)</span>
+                        <span className="font-mono font-bold text-[var(--text-primary)]">{simulation.portC.sharpe}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+      </div>
 
       {/* Dynamic Data Synthesis Notice & Disclaimer */}
       <div className="p-4 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-1.5 text-xs">

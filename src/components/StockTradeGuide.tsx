@@ -242,8 +242,8 @@ export default function StockTradeGuide() {
                   onClick={() => setCurrentScene(sceneNum)}
                   className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                     isActive
-                      ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                      : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
+                      ? 'bg-[var(--accent-orange)]/10 border-[rgba(241,143,1,0.65)] shadow-xs scale-[1.01]'
+                      : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                   }`}
                 >
                   <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -335,7 +335,7 @@ export default function StockTradeGuide() {
           className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all ${
             currentStep === 1 && currentScene === 1
               ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-secondary)]'
-              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 shadow-2xs'
+              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 active:scale-95 shadow-2xs cursor-pointer'
           }`}
         >
           <ChevronLeft className="w-4 h-4 stroke-[1.7]" />
@@ -346,7 +346,7 @@ export default function StockTradeGuide() {
           <button
             type="button"
             onClick={handleNext}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs cursor-pointer"
           >
             다음 단계
             <ChevronRight className="w-4 h-4 stroke-[1.7]" />
@@ -355,7 +355,7 @@ export default function StockTradeGuide() {
           <button
             type="button"
             onClick={() => handleStepChange(1)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 active:scale-95 transition-all shadow-2xs cursor-pointer"
           >
             처음부터 다시 보기
           </button>

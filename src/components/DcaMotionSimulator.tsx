@@ -368,8 +368,9 @@ export default function DcaMotionSimulator() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {/* 1. All-in Account */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md border border-[var(--border-color)]/80 space-y-2.5 shadow-2xs hover:border-[var(--accent-orange)]/40 transition-all">
-          <div className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
-            🔴 한 번에 다 산 계좌
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--signal-crimson)] shadow-[0_0_8px_rgba(244,63,94,0.6)] shrink-0" />
+            <span>한 번에 다 산 계좌</span>
           </div>
 
           <div className="space-y-1.5 pt-1 text-xs sm:text-sm">
@@ -401,22 +402,9 @@ export default function DcaMotionSimulator() {
         {/* 2. DCA Account */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[var(--card-surface)]/90 backdrop-blur-md border border-[var(--border-color)]/80 space-y-2.5 shadow-2xs hover:border-[var(--accent-orange)]/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
-              🟢 조금씩 나눠서 산 계좌
-            </span>
-
-            {/* 10-Segment Mini Capsule Progress Indicator */}
-            <div className="flex items-center gap-1" title={`${activeBuyCount}/10회 분할 매수 진행`}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span
-                  key={i}
-                  className={`w-2 h-1.5 rounded-full transition-all duration-200 ${
-                    i < activeBuyCount
-                      ? 'bg-[var(--fintech-emerald)]'
-                      : 'bg-[var(--border-color)]/60'
-                  }`}
-                />
-              ))}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--fintech-emerald)] shadow-[0_0_8px_rgba(16,185,129,0.6)] shrink-0" />
+              <span>조금씩 나눠서 산 계좌</span>
             </div>
           </div>
 

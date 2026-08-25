@@ -6,6 +6,7 @@ interface SmoothHeightProps {
   children: React.ReactNode;
   className?: string;
   duration?: number; // milliseconds (default 320ms)
+  easing?: string; // CSS transition timing function (default Apple HIG smooth curve)
   animateInitial?: boolean;
 }
 
@@ -17,6 +18,7 @@ export default function SmoothHeight({
   children,
   className = '',
   duration = 320,
+  easing = 'cubic-bezier(0.32, 0.72, 0, 1)',
   animateInitial = false,
 }: SmoothHeightProps) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -52,7 +54,7 @@ export default function SmoothHeight({
     <div
       style={{
         height: height !== undefined ? `${height}px` : 'auto',
-        transition: `height ${duration}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+        transition: `height ${duration}ms ${easing}`,
         overflow: 'hidden',
       }}
       className={`will-change-[height] ${className}`}

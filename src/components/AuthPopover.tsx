@@ -319,13 +319,13 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                   setPinChangeError(null);
                   setPinChangeSuccess(null);
                 }}
-                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all border border-[var(--border-color)] flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 px-3 rounded-full text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] active:scale-95 transition-all border border-[var(--border-color)] flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
                 <span>핀번호 변경</span>
               </button>
             ) : (
-              <div className="p-3.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
+              <div className="p-3.5 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                     <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
@@ -399,7 +399,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                   type="button"
                   disabled={isPinChanging || newPin.length !== 6 || newPinConfirm.length !== 6}
                   onClick={handlePinChangeSubmit}
-                  className="w-full py-2 px-3 rounded-xl text-xs font-bold bg-[var(--accent-orange)] text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                  className="w-full py-2.5 px-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   {isPinChanging ? (
                     <>
@@ -419,7 +419,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
               logout();
               onClose();
             }}
-            className="w-full py-2.5 px-3 rounded-xl font-bold text-xs text-red-500 hover:bg-red-500/10 transition-all border border-red-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-full font-bold text-xs text-red-500 hover:bg-red-500/10 hover:border-red-500/40 active:scale-95 transition-all border border-red-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>로그아웃</span>
@@ -501,7 +501,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-1 py-2.5 px-3 rounded-xl bg-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/90 text-white font-bold text-xs sm:text-sm transition-all duration-200 active:scale-98 shadow-sm hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] cursor-pointer disabled:opacity-50"
+            className="w-full mt-1 py-2.5 px-3 rounded-full bg-[var(--accent-orange)] hover:brightness-110 text-white font-bold text-xs sm:text-sm transition-all duration-200 active:scale-98 shadow-sm hover:shadow-[0_0_16px_rgba(241,143,1,0.28)] cursor-pointer disabled:opacity-50"
           >
             {isLoading ? '서버 동기화 중...' : '로그인 / 계정 만들기'}
           </button>

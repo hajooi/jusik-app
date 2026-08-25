@@ -355,8 +355,8 @@ export default function AccountOpenGuide() {
                     onClick={() => setSimulatorScene(sub.num as 1 | 2 | 3 | 4)}
                     className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
-                        ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
+                        ? 'bg-[var(--accent-orange)]/10 border-[rgba(241,143,1,0.65)] shadow-xs scale-[1.01]'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -403,8 +403,8 @@ export default function AccountOpenGuide() {
                     onClick={() => setAdvisoryScene(sub.num as 1 | 2 | 3 | 4)}
                     className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
-                        ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
+                        ? 'bg-[var(--accent-orange)]/10 border-[rgba(241,143,1,0.65)] shadow-xs scale-[1.01]'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -451,8 +451,8 @@ export default function AccountOpenGuide() {
                     onClick={() => setOverseasScene(sub.num as 1 | 2 | 3 | 4)}
                     className={`p-3 rounded-2xl text-left border transition-all duration-200 flex items-start gap-2.5 cursor-pointer ${
                       isActive
-                        ? 'bg-[var(--accent-orange)]/10 border-[var(--accent-orange)]/60 shadow-sm scale-[1.01]'
-                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
+                        ? 'bg-[var(--accent-orange)]/10 border-[rgba(241,143,1,0.65)] shadow-xs scale-[1.01]'
+                        : 'bg-white/80 dark:bg-zinc-800/60 border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:scale-[1.01] active:scale-[0.99]'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
@@ -594,7 +594,7 @@ export default function AccountOpenGuide() {
           className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold border transition-all ${
             currentStep === 0
               ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-secondary)]'
-              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 shadow-2xs'
+              : 'bg-white dark:bg-zinc-800 border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 active:scale-95 shadow-2xs cursor-pointer'
           }`}
         >
           <ChevronLeft className="w-4 h-4 stroke-[1.7]" />
@@ -605,7 +605,7 @@ export default function AccountOpenGuide() {
           <button
             type="button"
             onClick={handleNext}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white transition-all shadow-2xs cursor-pointer"
           >
             다음 단계
             <ChevronRight className="w-4 h-4 stroke-[1.7]" />
@@ -614,7 +614,7 @@ export default function AccountOpenGuide() {
           <button
             type="button"
             onClick={() => handleMainTabClick(0)}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 active:scale-95 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 active:scale-95 transition-all shadow-2xs cursor-pointer"
           >
             처음부터 다시 보기
           </button>
@@ -626,15 +626,10 @@ export default function AccountOpenGuide() {
       <div className="glass-card rounded-3xl p-5 sm:p-7 border-2 border-[var(--accent-orange)]/50 shadow-[0_0_24px_rgba(241,143,1,0.15)] bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/10 to-transparent space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[var(--accent-orange)] text-white shadow-xs">
-                <FileCheck2 className="w-4 h-4 stroke-[1.7]" />
-              </span>
-              <h4 className="text-base sm:text-lg font-black text-[var(--text-primary)]">
-                주식부엉 X 오로라투자자문 평생 우대 혜택 신청
-              </h4>
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium pl-8 sm:pl-0 leading-relaxed">
+            <h4 className="text-base sm:text-lg font-black text-[var(--text-primary)]">
+              주식부엉 X 오로라투자자문 평생 우대 혜택 신청
+            </h4>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
               계좌 개설 및 자문사 앱 연동을 마치신 후, 아래 폼을 작성해 주시면 영업일 기준 1~2일 내에 우대 혜택이 세팅됩니다.
             </p>
           </div>

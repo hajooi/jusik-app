@@ -352,7 +352,7 @@ export default function CommentSection({
             <button
               type="submit"
               disabled={!content.trim() || submitting}
-              className="absolute right-2.5 bottom-3.5 px-3 py-1.5 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
+              className="absolute right-2.5 bottom-3.5 px-3.5 py-1.5 rounded-full bg-[var(--accent-orange)] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{submitting ? '등록 중...' : '등록'}</span>
@@ -361,21 +361,16 @@ export default function CommentSection({
         </form>
       ) : (
         <div className="p-4 rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="space-y-0.5">
-            <div className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-              로그인 후 댓글과 질문을 남겨보세요!
-            </div>
-            <div className="text-[11px] text-[var(--text-secondary)]">
-              닉네임과 6자리 핀번호만으로 3초 만에 간편 로그인할 수 있습니다.
-            </div>
+          <div className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+            로그인 후 댓글과 질문을 남겨보세요!
           </div>
           <button
             type="button"
             onClick={openAuthPopover}
-            className="px-4 py-2 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs hover:opacity-90 transition-all cursor-pointer shrink-0"
+            className="px-4 py-2 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] active:scale-95 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>간편 로그인 / 생성</span>
+            <span>로그인 / 계정 만들기</span>
           </button>
         </div>
       )}
@@ -565,7 +560,7 @@ export default function CommentSection({
                           type="submit"
                           onClick={() => handleReplySubmit(root.id)}
                           disabled={submitting || !replyContent.trim()}
-                          className="self-end px-3 py-2 rounded-xl bg-[var(--accent-orange)] text-white text-xs font-bold hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0 cursor-pointer"
+                          className="self-end px-3.5 py-2 rounded-full bg-[var(--accent-orange)] text-white text-xs font-bold hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all shrink-0 cursor-pointer"
                         >
                           {submitting ? '등록 중...' : '등록'}
                         </button>

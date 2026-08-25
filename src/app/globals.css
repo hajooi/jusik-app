@@ -12,10 +12,13 @@
     --text-primary: #0F172A;   /* Deep Slate/Graphite Text */
     --text-secondary: #64748B; /* Muted Steel Gray Text */
     --accent-green: #10B981;   /* Fintech Emerald Green */
+    --fintech-emerald: #10B981; /* Fintech Emerald Primary Token */
     --accent-mid-green: #059669; /* Emerald Mid Tone */
     --accent-orange: #F18F01;  /* Buong Signature Orange */
     --accent-deep-amber: #D97706; /* Deep Amber / Gold */
     --accent-crimson: #F43F5E; /* Signal Crimson (Loss/Error) */
+    --signal-crimson: #F43F5E; /* Signal Crimson Primary Token */
+    --royal-indigo: #6366F1;   /* Royal Indigo Token */
     --glow-color: rgba(241, 143, 1, 0.18); /* Subtle Ambient Orange Glow */
     --glow-color-secondary: rgba(16, 185, 129, 0.14); /* Subtle Emerald Secondary Glow */
   }
@@ -30,10 +33,13 @@
       --text-primary: #F8FAFC;   /* Snow Slate Crisp White Text */
       --text-secondary: #A1A1AA; /* Muted Zinc Secondary Text */
       --accent-green: #10B981;   /* Fintech Emerald Green */
+      --fintech-emerald: #10B981; /* Fintech Emerald Primary Token */
       --accent-mid-green: #34D399; /* Light Emerald */
       --accent-orange: #F18F01;  /* Buong Signature Orange */
       --accent-deep-amber: #D97706; /* Deep Amber / Gold */
       --accent-crimson: #F43F5E; /* Signal Crimson */
+      --signal-crimson: #F43F5E; /* Signal Crimson Primary Token */
+      --royal-indigo: #6366F1;   /* Royal Indigo Token */
       --glow-color: rgba(241, 143, 1, 0.16); /* Smooth Orange Radial Glow */
       --glow-color-secondary: rgba(16, 185, 129, 0.10); /* Gentle Emerald Glow */
     }
@@ -48,10 +54,13 @@
     --text-primary: #F8FAFC;
     --text-secondary: #A1A1AA;
     --accent-green: #10B981;
+    --fintech-emerald: #10B981;
     --accent-mid-green: #34D399;
     --accent-orange: #F18F01;
     --accent-deep-amber: #D97706;
     --accent-crimson: #F43F5E;
+    --signal-crimson: #F43F5E;
+    --royal-indigo: #6366F1;
     --glow-color: rgba(241, 143, 1, 0.16);
     --glow-color-secondary: rgba(16, 185, 129, 0.10);
   }
@@ -263,6 +272,22 @@ html {
 .animate-border-rotate {
   animation: border-rotate 6s linear infinite;
   will-change: transform;
+}
+
+@keyframes cardGlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-glide {
+  animation: cardGlideIn 0.38s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  will-change: opacity, transform;
 }
 
 @keyframes slideInLeft {
