@@ -248,15 +248,18 @@ export default function DcaMotionSimulator() {
   const dcaAvgY = getY(smoothDcaAvg);
   const dcaAvgPct = (dcaAvgY / svgH) * 100;
 
-  // Calculate Breakthrough Profit Zone (Points where current price rises ABOVE average price line)
+  // Calculate Breakthrough Profit Zone: Strictly for the right-side rebound surge (t >= 0.62)
   const profitPoints = useMemo(() => {
     const activePts = TIMELINE.slice(0, currentIndex + 1);
     const pts: { x: number; y: number }[] = [];
     for (const pt of activePts) {
-      const px = getX(pt.t);
-      const py = getY(pt.price);
-      if (py < dcaAvgY) {
-        pts.push({ x: px, y: py });
+      // Only show profit green during the true final rebound phase after DCA completes
+      if (pt.t >= 0.62) {
+        const px = getX(pt.t);
+        const py = getY(pt.price);
+        if (py < dcaAvgY) {
+          pts.push({ x: px, y: py });
+        }
       }
     }
     return pts;
