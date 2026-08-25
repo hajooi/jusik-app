@@ -6,6 +6,8 @@ import WealthComparisonChart from '@/components/WealthComparisonChart';
 import CiscoManiaGame from '@/components/CiscoManiaGame';
 import BasicTermsQuiz from '@/components/BasicTermsQuiz';
 import FeeComparisonBox from '@/components/FeeComparisonBox';
+import DcaMotionSimulator from '@/components/DcaMotionSimulator';
+import JpMorganTimingBarChart from '@/components/JpMorganTimingBarChart';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
 import CommentSection from '@/components/CommentSection';
@@ -229,6 +231,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'cisco_mania' && <CiscoManiaGame />}
                     {section.interactiveTool === 'basic_terms_quiz' && <BasicTermsQuiz />}
                     {section.interactiveTool === 'fee_comparison' && <FeeComparisonBox />}
+                    {section.interactiveTool === 'jpmorgan_chart' && <JpMorganTimingBarChart />}
+                    {section.interactiveTool === 'dca_simulator' && <DcaMotionSimulator />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -249,6 +253,32 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               </blockquote>
                             );
                           }
+
+                          const isBullet = para.startsWith('• ');
+                          if (isBullet) {
+                            const content = para.slice(2);
+                            const colonIndex = content.indexOf(':');
+                            if (colonIndex !== -1) {
+                              const label = content.slice(0, colonIndex);
+                              const desc = content.slice(colonIndex + 1);
+                              return (
+                                <div key={pIdx} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-3 shadow-2xs">
+                                  <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] mt-2 shrink-0" />
+                                  <div className="text-xs sm:text-base leading-relaxed">
+                                    <strong className="text-[var(--text-primary)] font-extrabold">{label}:</strong>
+                                    <span className="text-[var(--text-secondary)] ml-1.5 font-medium">{desc}</span>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div key={pIdx} className="p-3 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] mt-2 shrink-0" />
+                                <p className="text-xs sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">{content}</p>
+                              </div>
+                            );
+                          }
+
                           return (
                             <p key={pIdx} className="font-medium text-justify">
                               {para}
