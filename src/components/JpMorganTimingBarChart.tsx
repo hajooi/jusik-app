@@ -56,14 +56,12 @@ export default function JpMorganTimingBarChart() {
 
   const rawData = [
     {
-      title: '20년 동안 가만히 보유',
+      title: '20년 동안 보유',
       targetValue: 71750,
       targetReturn: 617.5,
       showReturn: true,
       widthPct: 100,
       colorHex: '#10B981', // Fintech Emerald
-      badgeBgClass: 'bg-[var(--fintech-emerald)]/15 text-[var(--fintech-emerald)] border border-[var(--fintech-emerald)]/30',
-      badgeLabel: '최고 성적',
       isChampion: true
     },
     {
@@ -73,8 +71,6 @@ export default function JpMorganTimingBarChart() {
       showReturn: true,
       widthPct: 45.8,
       colorHex: '#F18F01', // Buong Orange
-      badgeBgClass: 'bg-[var(--border-color)] text-[var(--text-secondary)]',
-      badgeLabel: '10일 누락',
       isChampion: false
     },
     {
@@ -84,8 +80,6 @@ export default function JpMorganTimingBarChart() {
       showReturn: true,
       widthPct: 6.6,
       colorHex: '#F43F5E', // Signal Crimson
-      badgeBgClass: 'bg-[var(--border-color)] text-[var(--text-secondary)]',
-      badgeLabel: '60일 누락',
       isChampion: false
     },
     {
@@ -95,8 +89,6 @@ export default function JpMorganTimingBarChart() {
       showReturn: false, // Do not show (0.0%)
       widthPct: 13.9,
       colorHex: '#64748B', // Muted Steel
-      badgeBgClass: 'bg-[var(--border-color)] text-[var(--text-secondary)]',
-      badgeLabel: '원금',
       isChampion: false
     }
   ];
@@ -116,7 +108,7 @@ export default function JpMorganTimingBarChart() {
         </h4>
       </div>
 
-      {/* 4 Comparison Bars with Viewport In-View and Count-Up Animation */}
+      {/* 4 Comparison Bars (No Badges, Clean Typography) */}
       <div className="space-y-3 pt-1">
         {rawData.map((item, idx) => {
           const currentVal = Math.round(item.targetValue * animProgress);
@@ -129,21 +121,16 @@ export default function JpMorganTimingBarChart() {
                 item.isChampion ? 'bg-[var(--fintech-emerald)]/5 border border-[var(--fintech-emerald)]/20' : ''
               }`}
             >
-              <div className="flex justify-between items-center text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.badgeBgClass}`}>
-                    {item.badgeLabel}
-                  </span>
-                  <span className={`font-extrabold ${item.isChampion ? 'text-[var(--fintech-emerald)] text-sm' : 'text-[var(--text-primary)]'}`}>
-                    {item.title}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center text-xs sm:text-sm">
+                <span className={`font-extrabold ${item.isChampion ? 'text-[var(--fintech-emerald)]' : 'text-[var(--text-primary)]'}`}>
+                  {item.title}
+                </span>
                 <div className="flex items-center gap-1.5 font-mono">
-                  <span className="font-extrabold text-sm text-[var(--text-primary)]">
+                  <span className="font-extrabold text-sm sm:text-base text-[var(--text-primary)]">
                     ${currentVal.toLocaleString()}
                   </span>
                   {item.showReturn && (
-                    <span className={`text-[11px] font-bold ${
+                    <span className={`text-[11px] sm:text-xs font-bold ${
                       item.isChampion 
                         ? 'text-[var(--fintech-emerald)]' 
                         : item.targetReturn < 0
