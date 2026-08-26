@@ -404,7 +404,7 @@ export default function BottomNavigation() {
       >
         {/* Pure Vertical Slide-Up Sheet Drawer (Inverted U-Shape Docked Tab ∩) */}
         <div
-          className="pointer-events-auto border-t border-x border-[var(--border-color)]/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col will-change-[height,width,border-radius,background-color] touch-none origin-bottom"
+          className="pointer-events-auto border-t border-x border-[var(--border-color)]/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col will-change-[height,width,border-radius] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl transition-[background-color]"
           style={{
             height: `${currentHeight}px`,
             width: `${currentWidth}px`,
@@ -412,11 +412,6 @@ export default function BottomNavigation() {
             borderRadius: progress > 0.05
               ? '32px 32px 0px 0px'
               : '24px 24px 0px 0px',
-            backgroundColor: typeof window !== 'undefined' && document.documentElement.classList.contains('dark')
-              ? `rgba(24, 24, 27, ${0.82 + progress * 0.12})`
-              : `rgba(255, 255, 255, ${0.88 + progress * 0.10})`,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
             transition: isDragging ? 'none' : 'height 0.38s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
           }}
         >
