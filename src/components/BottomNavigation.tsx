@@ -412,7 +412,9 @@ export default function BottomNavigation() {
             borderRadius: progress > 0.05
               ? '32px 32px 0px 0px'
               : '24px 24px 0px 0px',
-            transition: isDragging ? 'none' : 'height 0.38s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            transition: isDragging ? 'none' : 'height 0.28s cubic-bezier(0.2, 0.9, 0.35, 1), width 0.26s cubic-bezier(0.2, 0.9, 0.35, 1), border-radius 0.24s ease-out',
           }}
         >
           {/* ==================================================== */}
@@ -540,22 +542,24 @@ export default function BottomNavigation() {
                           <button
                             type="button"
                             onClick={() => toggleLevel(level.id, level.isComingSoon)}
-                            className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
+                            className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
                           >
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${containsCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
                                 <IconComponent className="w-4 h-4 stroke-[2]" />
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-mono font-extrabold text-[var(--accent-orange)]">LEVEL {level.levelNumber}</span>
-                                  {isLevelFullyCompleted && !level.isComingSoon && (
-                                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[var(--accent-green)] text-white shrink-0">
-                                      <CheckCircle2 className="w-2.5 h-2.5" /> 완료
-                                    </span>
-                                  )}
-                                </div>
-                                <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] truncate">{level.title}</h3>
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] truncate">
+                                  {level.title}
+                                </h3>
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+                                  Lv.{level.levelNumber}
+                                </span>
+                                {isLevelFullyCompleted && !level.isComingSoon && (
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[var(--accent-green)] text-white shrink-0">
+                                    <CheckCircle2 className="w-2.5 h-2.5" /> 완료
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0 ml-2">
@@ -632,16 +636,13 @@ export default function BottomNavigation() {
                       return (
                         <div
                           key={idx}
-                          className="p-3.5 sm:p-4 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
+                          className="p-3 sm:p-3.5 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
+                            <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
                               <ToolIcon className="w-4 h-4 stroke-[1.8]" />
                             </div>
-                            <div className="min-w-0">
-                              <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate">{tool.title}</h3>
-                              <p className="text-[11px] text-[var(--text-secondary)] truncate">{tool.description}</p>
-                            </div>
+                            <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate">{tool.title}</h3>
                           </div>
                           <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] shrink-0">
                             오픈 예정
@@ -658,28 +659,25 @@ export default function BottomNavigation() {
                           setIsExpanded(false);
                           setDragY(null);
                         }}
-                        className={`p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                        className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
                           isCurrent 
                             ? 'bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
                             : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                             isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'
                           }`}>
                             <ToolIcon className="w-4 h-4 stroke-[2]" />
                           </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
-                                {tool.title}
-                              </h3>
-                              <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
-                                {tool.tag}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-[var(--text-secondary)] truncate mt-0.5">{tool.description}</p>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
+                              {tool.title}
+                            </h3>
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+                              {tool.tag}
+                            </span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
