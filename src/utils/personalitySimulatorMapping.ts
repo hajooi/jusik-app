@@ -203,8 +203,8 @@ export function calculatePersonalitySimulatorConfig(
         }
       },
       scores: activeScores,
-      recommendedTargetCAGR: 15,
-      recommendedMaxMDD: 20,
+      recommendedTargetCAGR: 10,
+      recommendedMaxMDD: 30,
       portfolioA: [
         { assetId: 'SPY', weight: 50, enableDefense: true },
         { assetId: 'QQQ', weight: 50, enableDefense: true },
@@ -212,7 +212,7 @@ export function calculatePersonalitySimulatorConfig(
       strategyPeriodA: 0,
       portfolioB: [
         { assetId: 'SPY', weight: 60, enableDefense: false },
-        { assetId: 'QQQ', weight: 40, enableDefense: false },
+        { assetId: 'TLT', weight: 40, enableDefense: false },
       ],
       strategyPeriodB: 0,
     };

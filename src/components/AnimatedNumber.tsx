@@ -19,11 +19,12 @@ export default function AnimatedNumber({
   suffix = '',
   className = '',
 }: AnimatedNumberProps) {
-  const [displayVal, setDisplayVal] = useState<number>(0);
+  const [displayVal, setDisplayVal] = useState<number>(value);
   const [hasStarted, setHasStarted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
-  const prevValRef = useRef<number>(0);
-  const isInitialRef = useRef<boolean>(true);
+  const currentValRef = useRef<number>(value);
+  const targetValRef = useRef<number>(value);
+  const isInitialMountedRef = useRef<boolean>(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,8 +42,14 @@ export default function AnimatedNumber({
   useEffect(() => {
     if (!hasStarted) return;
 
-    if (isInitialRef.current) {
-      isInitialRef.current = false;
+    // 타겟 값이 이전과 동일하면 렌더링 및 애니메이션 원천 차단
+    if (isInitialMountedRef.current && Math.abs(value - targetValRef.current) < 0.001) {
+      return;
+    }
+
+    if (!isInitialMountedRef.current) {
+      isInitialMountedRef.current = true;
+      targetValRef.current = value;
       const start = 0;
       const startTime = performance.now();
 
@@ -52,24 +59,22 @@ export default function AnimatedNumber({
         const easeProgress = 1 - Math.pow(1 - progress, 3);
         const current = start + (value - start) * easeProgress;
         setDisplayVal(current);
+        currentValRef.current = current;
 
         if (progress < 1) {
           requestAnimationFrame(update);
         } else {
           setDisplayVal(value);
-          prevValRef.current = value;
+          currentValRef.current = value;
         }
       };
 
       const handle = requestAnimationFrame(update);
       return () => cancelAnimationFrame(handle);
     } else {
-      const start = prevValRef.current;
+      const start = currentValRef.current;
+      targetValRef.current = value;
       const diff = value - start;
-      if (Math.abs(diff) < 0.001) {
-        setDisplayVal(value);
-        return;
-      }
       const transitionDuration = 220;
       const startTime = performance.now();
 
@@ -79,12 +84,13 @@ export default function AnimatedNumber({
         const easeProgress = 1 - Math.pow(1 - progress, 3);
         const current = start + diff * easeProgress;
         setDisplayVal(current);
+        currentValRef.current = current;
 
         if (progress < 1) {
           requestAnimationFrame(update);
         } else {
           setDisplayVal(value);
-          prevValRef.current = value;
+          currentValRef.current = value;
         }
       };
 

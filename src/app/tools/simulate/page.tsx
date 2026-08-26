@@ -170,8 +170,8 @@ function SimulatorContent() {
 
   // Personality Profile State
   const [userProfileCode, setUserProfileCode] = useState<string | null>(null);
-  const [targetCAGR, setTargetCAGR] = useState<number>(15); // 사용자 희망/추천 목표 연수익률 (%)
-  const [maxTolerableMDD, setMaxTolerableMDD] = useState<number>(20); // 사용자 희망/추천 감내 MDD (%)
+  const [targetCAGR, setTargetCAGR] = useState<number>(10); // 사용자 희망/추천 목표 연수익률 (%)
+  const [maxTolerableMDD, setMaxTolerableMDD] = useState<number>(30); // 사용자 희망/추천 감내 MDD (%)
 
   // Dynamic Strategy Count State (1 to 3 strategies, default 1: Tailored Recommendation only)
   const [strategyCount, setStrategyCount] = useState<1 | 2 | 3>(1);
@@ -185,18 +185,19 @@ function SimulatorContent() {
 
   // Portfolio B Configuration (Strategy 2 - Custom Strategy 1 / Fintech Emerald)
   const [portfolioB, setPortfolioB] = useState<SelectedAsset[]>([
-    { assetId: 'SPY', weight: 50, enableDefense: false },
-    { assetId: 'QQQ', weight: 50, enableDefense: false },
+    { assetId: 'SPY', weight: 60, enableDefense: false },
+    { assetId: 'TLT', weight: 40, enableDefense: false },
   ]);
   const [strategyPeriodB, setStrategyPeriodB] = useState<number>(0);
 
   // Portfolio C Configuration (Strategy 3 - Custom Strategy 2 / Royal Indigo)
   const [portfolioC, setPortfolioC] = useState<SelectedAsset[]>([
-    { assetId: 'SCHD', weight: 50, enableDefense: false },
-    { assetId: 'TLT', weight: 50, enableDefense: false },
+    { assetId: 'QQQ', weight: 60, enableDefense: false },
+    { assetId: 'GLD', weight: 40, enableDefense: false },
   ]);
   const [strategyPeriodC, setStrategyPeriodC] = useState<number>(0);
   const [activePresetA, setActivePresetA] = useState<'personality' | 'balanced' | 'growth' | 'defensive' | null>('personality');
+  const [chartScale, setChartScale] = useState<'linear' | 'log'>('linear');
 
   const settingsRestoredRef = useRef(false);
 
@@ -208,6 +209,7 @@ function SimulatorContent() {
     setStrategyPeriodA(config.strategyPeriodA);
     setTargetCAGR(config.recommendedTargetCAGR);
     setMaxTolerableMDD(config.recommendedMaxMDD);
+    setActivePresetA('personality');
   };
 
   // [목표치 성향 맞춤 권장값으로 리셋]
@@ -257,12 +259,20 @@ function SimulatorContent() {
         if (settingsSource.initialCapital !== undefined) setInitialCapital(settingsSource.initialCapital);
         if (settingsSource.depositAmount !== undefined) setDepositAmount(settingsSource.depositAmount);
         if (settingsSource.depositFrequency) setDepositFrequency(settingsSource.depositFrequency);
+        if (settingsSource.durationYears !== undefined) setDurationYears(settingsSource.durationYears);
+        if (settingsSource.chartScale) setChartScale(settingsSource.chartScale);
+        if (settingsSource.activePresetA !== undefined) {
+          setActivePresetA(settingsSource.activePresetA);
+        } else if (settingsSource.portfolioA) {
+          setActivePresetA(null);
+        }
         settingsRestoredRef.current = true;
       } else {
         setPortfolioA(config.portfolioA);
         setStrategyPeriodA(config.strategyPeriodA);
         setTargetCAGR(config.recommendedTargetCAGR);
         setMaxTolerableMDD(config.recommendedMaxMDD);
+        setActivePresetA('personality');
         settingsRestoredRef.current = true;
       }
     } catch (e) {
@@ -288,7 +298,9 @@ function SimulatorContent() {
           initialCapital,
           depositAmount,
           durationYears,
-          depositFrequency
+          depositFrequency,
+          chartScale,
+          activePresetA
         };
         localStorage.setItem(SIMULATOR_SETTINGS_KEY, JSON.stringify(customData));
         updateSimulatorSettings(customData);
@@ -297,7 +309,7 @@ function SimulatorContent() {
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [strategyCount, targetCAGR, maxTolerableMDD, portfolioA, strategyPeriodA, portfolioB, strategyPeriodB, portfolioC, strategyPeriodC, initialCapital, depositAmount, durationYears, depositFrequency]);
+  }, [strategyCount, targetCAGR, maxTolerableMDD, portfolioA, strategyPeriodA, portfolioB, strategyPeriodB, portfolioC, strategyPeriodC, initialCapital, depositAmount, durationYears, depositFrequency, chartScale, activePresetA]);
 
   // Dynamic Strategy Add / Remove Handlers with Smooth Fade Transition
   const [closingStrategy, setClosingStrategy] = useState<'B' | 'C' | null>(null);
@@ -305,9 +317,19 @@ function SimulatorContent() {
   const handleAddStrategy = () => {
     if (strategyCount === 1) {
       setChartBAnimKey((k) => k + 1);
+      setPortfolioB([
+        { assetId: 'SPY', weight: 60, enableDefense: false },
+        { assetId: 'TLT', weight: 40, enableDefense: false },
+      ]);
+      setStrategyPeriodB(0);
       setStrategyCount(2);
     } else if (strategyCount === 2) {
       setChartCAnimKey((k) => k + 1);
+      setPortfolioC([
+        { assetId: 'QQQ', weight: 60, enableDefense: false },
+        { assetId: 'GLD', weight: 40, enableDefense: false },
+      ]);
+      setStrategyPeriodC(0);
       setStrategyCount(3);
     }
   };
@@ -328,6 +350,14 @@ function SimulatorContent() {
     }, 200);
   };
 
+  const handleToggleScale = (scale: 'linear' | 'log') => {
+    if (scale === chartScale) return;
+    setChartBaseAnimKey((k) => k + 1);
+    setChartBAnimKey((k) => k + 1);
+    setChartCAnimKey((k) => k + 1);
+    setChartScale(scale);
+  };
+
   // Interactive Canvas Hover & Drag States
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [dragStart, setDragStart] = useState<number | null>(null);
@@ -340,12 +370,12 @@ function SimulatorContent() {
   const [chartCAnimKey, setChartCAnimKey] = useState<number>(0);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  // Global zoom / period changes sweep all active lines
+  // Global zoom / period / scale changes sweep all active lines
   useEffect(() => {
     setChartBaseAnimKey((k) => k + 1);
     setChartBAnimKey((k) => k + 1);
     setChartCAnimKey((k) => k + 1);
-  }, [customStartDate, customEndDate, durationYears]);
+  }, [customStartDate, customEndDate, durationYears, chartScale]);
 
   // Weight Calculation Helpers
   const totalWeightA = useMemo(() => portfolioA.reduce((sum, item) => sum + item.weight, 0), [portfolioA]);
@@ -465,8 +495,8 @@ function SimulatorContent() {
         if (eIdx !== -1 && eIdx >= startIndex) endIndex = eIdx;
       }
     } else {
-      // Free users start at 15 years ago (2011-08-01), Pro users start at full 30 years (1996-08-02)
-      if (!isPro) {
+      // Free users locked to 15 years (2011-08-01). Pro users can choose 15 years or full 30 years (1996-08-02)
+      if (!isPro || durationYears === 15) {
         const s15Idx = allCanonicalDates.findIndex((d) => d >= '2011-08-01');
         if (s15Idx !== -1) startIndex = s15Idx;
       } else {
@@ -827,7 +857,7 @@ function SimulatorContent() {
         sharpe: sharpeC.toFixed(2),
       },
     };
-  }, [portfolioA, autoCashA, strategyPeriodA, portfolioB, autoCashB, strategyPeriodB, portfolioC, autoCashC, strategyPeriodC, initialCapital, depositAmount, depositFrequency, customStartDate, customEndDate, isPro]);
+  }, [portfolioA, autoCashA, strategyPeriodA, portfolioB, autoCashB, strategyPeriodB, portfolioC, autoCashC, strategyPeriodC, initialCapital, depositAmount, durationYears, depositFrequency, customStartDate, customEndDate, isPro]);
 
   // Real-time Warning & Feedback Evaluation for Strategy 1
   const evalFeedbackA = useMemo(() => {
@@ -940,7 +970,7 @@ function SimulatorContent() {
   // Chart Canvas Dimensions
   const chartHeight = 320;
   const chartWidth = 800;
-  const proLeftOffset = !isPro && !customStartDate ? 36 : 0;
+  const proLeftOffset = !isPro && !customStartDate ? 44 : 0;
 
   const valsA = simulation.points.map((p) => p.valA);
   const valsB = strategyCount >= 2 ? simulation.points.map((p) => p.valB || 0) : [];
@@ -948,7 +978,13 @@ function SimulatorContent() {
   const investedVals = simulation.points.map((p) => p.invested);
 
   const maxVal = Math.max(...valsA, ...valsB, ...valsC, ...investedVals, 10);
-  const minVal = Math.min(...valsA, ...valsB, ...investedVals, 0) * 0.9;
+  const minVal = Math.min(...valsA, ...valsB, ...investedVals, initialCapital);
+
+  // Precompute Log Bounds once in O(1): Bottom is 15% below actual minimum so the graph starts near the bottom
+  const safeLogMin = Math.max(1, minVal * 0.85);
+  const safeLogMax = Math.max(maxVal * 1.05, safeLogMin * 1.15);
+  const logMin = Math.log10(safeLogMin);
+  const logMax = Math.log10(safeLogMax);
 
   const getX = (index: number) => {
     const total = simulation.points.length;
@@ -957,6 +993,11 @@ function SimulatorContent() {
   };
 
   const getY = (val: number) => {
+    if (chartScale === 'log') {
+      const safeVal = Math.max(safeLogMin, val);
+      const ratio = (Math.log10(safeVal) - logMin) / (logMax - logMin || 1);
+      return chartHeight - ratio * (chartHeight - 40) - 20;
+    }
     return chartHeight - ((val - minVal) / (maxVal - minVal || 1)) * (chartHeight - 40) - 20;
   };
 
@@ -965,6 +1006,39 @@ function SimulatorContent() {
     const points = values.map((val, idx) => `${getX(idx)},${getY(val)}`);
     return `M ${points.join(' L ')}`;
   };
+
+  // Dynamic X-Axis Year Ticks for SVG Canvas
+  const yearTicks = useMemo(() => {
+    const pts = simulation.points;
+    if (!pts || pts.length < 2) return [];
+
+    const firstYear = parseInt(pts[0].date.slice(0, 4), 10);
+    const lastYear = parseInt(pts[pts.length - 1].date.slice(0, 4), 10);
+    const spanYears = Math.max(1, lastYear - firstYear);
+
+    let step = 1;
+    if (spanYears >= 20) step = 5;
+    else if (spanYears >= 10) step = 3;
+    else if (spanYears >= 4) step = 2;
+    else step = 1;
+
+    const ticks: Array<{ index: number; label: string; x: number }> = [];
+    let lastPushedYear = -1;
+
+    for (let i = 0; i < pts.length; i++) {
+      const year = parseInt(pts[i].date.slice(0, 4), 10);
+      if (year !== lastPushedYear && year % step === 0) {
+        ticks.push({
+          index: i,
+          label: `${year}`,
+          x: getX(i),
+        });
+        lastPushedYear = year;
+      }
+    }
+
+    return ticks;
+  }, [simulation.points, proLeftOffset, chartWidth]);
 
   const getIndexFromX = (clientX: number) => {
     if (!svgRef.current) return null;
@@ -1182,10 +1256,18 @@ function SimulatorContent() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Deposit Frequency */}
-          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
+          {/* Deposit Frequency Toggle with Physical Sliding Pill */}
+          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)] flex flex-col justify-between">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">저금 주기</label>
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+            <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans">
+              {/* Physical Sliding Pill Indicator */}
+              <div
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                style={{
+                  width: 'calc(50% - 2px)',
+                  left: depositFrequency === 'monthly' ? '2px' : 'calc(50% + 0px)',
+                }}
+              />
               <button
                 type="button"
                 onClick={() => {
@@ -1193,10 +1275,10 @@ function SimulatorContent() {
                   setDragStart(null);
                   setDragEnd(null);
                 }}
-                className={`py-1.5 px-2 rounded-full border text-[11px] font-bold cursor-pointer active:scale-95 transition-all ${
+                className={`relative z-10 w-1/2 py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer ${
                   depositFrequency === 'monthly'
-                    ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.65)] shadow-[0_0_12px_rgba(241,143,1,0.25)] hover:brightness-110'
-                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)]'
+                    ? 'text-[var(--accent-orange)] font-extrabold'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
                 }`}
               >
                 매월 투자
@@ -1208,10 +1290,10 @@ function SimulatorContent() {
                   setDragStart(null);
                   setDragEnd(null);
                 }}
-                className={`py-1.5 px-2 rounded-full border text-[11px] font-bold cursor-pointer active:scale-95 transition-all ${
+                className={`relative z-10 w-1/2 py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer ${
                   depositFrequency === 'weekly'
-                    ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.65)] shadow-[0_0_12px_rgba(241,143,1,0.25)] hover:brightness-110'
-                    : 'bg-[var(--card-surface)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)]'
+                    ? 'text-[var(--accent-orange)] font-extrabold'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
                 }`}
               >
                 매주 투자
@@ -1294,7 +1376,7 @@ function SimulatorContent() {
       {/* ---------------------------------------------------- */}
       {/* REAL DATA INTERACTIVE MAIN CHART (수익률 차트)        */}
       {/* ---------------------------------------------------- */}
-      <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
+      <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)]">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center flex-wrap gap-2">
             <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
@@ -1306,47 +1388,124 @@ function SimulatorContent() {
             </span>
           </div>
 
-          {/* Right Header: Always Visible Timeline / Zoom Status with Pro Option (Mobile-Safe Right Aligned) */}
-          <div className="w-full sm:w-auto flex justify-end items-center">
+          {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+            {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] (Always together) */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTooltip(activeTooltip === 'chart_scale' ? null : 'chart_scale')}
+                className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
+                  activeTooltip === 'chart_scale' ? 'text-[var(--accent-orange)] bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                }`}
+                title="차트 보기 방식 설명"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Scale Toggle: [ 선형 | 로그 ] */}
+              <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans shrink-0">
+                <div
+                  className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  style={{
+                    width: 'calc(50% - 2px)',
+                    left: chartScale === 'linear' ? '2px' : 'calc(50% + 0px)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleToggleScale('linear')}
+                  className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                    chartScale === 'linear'
+                      ? 'text-[var(--accent-orange)] font-extrabold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                  }`}
+                >
+                  선형
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggleScale('log')}
+                  className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                    chartScale === 'log'
+                      ? 'text-[var(--accent-orange)] font-extrabold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                  }`}
+                >
+                  로그
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Duration / Reset Controls with Smooth Blossom Fade */}
             {customStartDate || customEndDate ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-2.5 py-1 rounded-full border border-[var(--accent-orange)]/30 font-mono">
-                  {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}
-                </span>
+              <div key="reset-btn-wrapper" className="flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans shrink-0 animate-fade-in">
                 <button
                   type="button"
                   onClick={() => {
                     setCustomStartDate(null);
                     setCustomEndDate(null);
                   }}
-                  className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] px-3.5 py-1 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] hover:bg-[var(--accent-orange)]/10 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.4)] transition-all cursor-pointer font-sans whitespace-nowrap active:scale-95 shrink-0"
                 >
-                  <RotateCcw className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                  <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
                   <span>전체 기간 복귀</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 relative">
-                <div className="flex items-center p-0.5 sm:p-1 rounded-full bg-[var(--card-surface)] shadow-2xs text-xs font-bold font-mono">
-                  <span className="px-2.5 sm:px-3 py-1 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-extrabold border border-[var(--accent-orange)]/30 text-[11px] sm:text-xs">
-                    {isPro ? '30년 (1996~현재)' : '15년 (2011~현재)'}
-                  </span>
-
-                  {!isPro && (
+              <div key="duration-pill-wrapper" className="relative shrink-0 animate-fade-in">
+                {/* Unified Segmented Pill Design matching Scale Switch */}
+                {isPro ? (
+                  <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                    <div
+                      className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                      style={{
+                        width: 'calc(50% - 2px)',
+                        left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setDurationYears(15)}
+                      className={`relative z-10 px-2.5 py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                        durationYears === 15
+                          ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                      }`}
+                    >
+                      15년
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDurationYears(30)}
+                      className={`relative z-10 px-2.5 py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                        durationYears === 30
+                          ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                      }`}
+                    >
+                      30년
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] font-mono whitespace-nowrap">
+                      15년
+                    </span>
                     <button
                       type="button"
                       onClick={() => setProPopoverOpen(!proPopoverOpen)}
-                      className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] transition-all cursor-pointer font-sans text-[11px] font-extrabold"
+                      className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
                     >
                       <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
-                      <span>30년 PRO</span>
+                      <span>30년</span>
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Floating Pro Popover anchored to Top Right Button */}
                 {proPopoverOpen && !isPro && (
-                  <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 p-4 rounded-2xl bg-white/90 dark:bg-[#18181b]/90 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left">
+                  <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 max-w-[calc(100vw-36px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left font-sans">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
                         <Crown className="w-4 h-4" />
@@ -1387,9 +1546,28 @@ function SimulatorContent() {
           </div>
         </div>
 
-        {/* SYNTHETIC ASSET INFERENCE NOTICE (Wrapped in permanent SmoothHeight for zero-jump animated expansion) */}
-        <SmoothHeight duration={350}>
-          {useMemo(() => {
+        {/* 1. Inline SmoothHeight Chart Scale Explanation Box */}
+        <SmoothHeight duration={320}>
+          {activeTooltip === 'chart_scale' && (
+            <div className="pt-3">
+              <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1.5 font-sans">
+                <div>
+                  <strong className="text-[var(--text-primary)]">📊 선형:</strong> 실제 내 자산이 불어나는 최종 금액 크기를 있는 그대로 정직하게 보여줍니다.
+                </div>
+                <div>
+                  <strong className="text-[var(--text-primary)]">📈 로그:</strong> 과거의 폭락과 상승 굴곡을 한눈에 자세히 비교할 수 있도록 성장 비율에 맞춰 보여줍니다.
+                </div>
+                <div className="text-[10.5px] pt-1 text-[var(--text-secondary)]">
+                  💡 <strong>추천 팁:</strong> 로그 차트는 매달 적립 금액을 0원으로 두고 <strong>'시작 자본금'</strong>만으로 시뮬레이션할 때 가장 왜곡 없이 과거 성과를 분석할 수 있습니다.
+                </div>
+              </div>
+            </div>
+          )}
+        </SmoothHeight>
+
+        {/* 2. Inline SmoothHeight Synthetic Asset Inference Notice */}
+        <SmoothHeight duration={320}>
+          {(() => {
             const simStartDate = simulation.points[0]?.date || '2006-01-01';
 
             const synthAssetMeta: Record<string, { label: string; dateStr: string; cutoffDate: string; isCrypto?: boolean }> = {
@@ -1423,7 +1601,7 @@ function SimulatorContent() {
             const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
             return (
-              <div className="space-y-2 pb-2">
+              <div className="pt-3 space-y-2">
                 {etfItems.length > 0 && (
                   <div
                     style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
@@ -1449,20 +1627,20 @@ function SimulatorContent() {
                 )}
               </div>
             );
-          }, [portfolioA, portfolioB, portfolioC, strategyCount, simulation.points])}
+          })()}
         </SmoothHeight>
 
         {/* SVG Canvas Container */}
-        <div className="bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative overflow-hidden transition-all duration-300">
+        <div className="mt-3.5 sm:mt-4 bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative overflow-hidden transition-all duration-300">
           {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER */}
-          <div className="min-h-[42px] flex items-center px-3 py-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
+          <div className="min-h-[42px] flex items-center px-3.5 py-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
             {dragRangeInfo ? (
-              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px]">
+              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px] break-keep">
                 <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold">
                   <span>선택 구간:</span>
-                  <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate} (놓으면 확대)</span>
+                  <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate}</span>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-x-3 gap-y-1 text-[11px]">
                   <span>추천 전략: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{Number(dragRangeInfo.diffA).toLocaleString()}%</strong></span>
                   {strategyCount >= 2 && (
                     <span>전략 1: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-emerald-500 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{Number(dragRangeInfo.diffB).toLocaleString()}%</strong></span>
@@ -1473,11 +1651,11 @@ function SimulatorContent() {
                 </div>
               </div>
             ) : activeHoverPoint ? (
-              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px]">
+              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px] break-keep">
                 <div className="flex items-center justify-between sm:justify-start gap-2 text-[var(--text-secondary)]">
                   <span>{activeHoverPoint.date}</span>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-x-3 gap-y-1 text-[11px]">
                   <span>추천 전략: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.retA > 0 ? '+' : ''}{Number(activeHoverPoint.retA).toLocaleString()}%</strong></span>
                   {strategyCount >= 2 && activeHoverPoint.valB !== undefined && (
                     <span>전략 1: <strong className="text-emerald-500">{(activeHoverPoint.retB || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retB || 0).toLocaleString()}%</strong></span>
@@ -1487,8 +1665,12 @@ function SimulatorContent() {
                   )}
                 </div>
               </div>
+            ) : customStartDate || customEndDate ? (
+              <div className="w-full text-[11px] font-bold text-[var(--accent-orange)] py-0.5 break-keep">
+                <span>선택된 구간: {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}</span>
+              </div>
             ) : (
-              <div className="w-full items-center justify-between text-[11px] font-medium text-[var(--text-secondary)] py-0.5 flex">
+              <div className="w-full text-[11px] font-medium text-[var(--text-secondary)] py-0.5 break-keep">
                 <span>차트를 드래그하여 원하는 구간을 자유롭게 확대할 수 있습니다</span>
               </div>
             )}
@@ -1564,9 +1746,25 @@ function SimulatorContent() {
               </linearGradient>
             </defs>
 
-            <line x1="0" y1={chartHeight - 20} x2={chartWidth} y2={chartHeight - 20} stroke="var(--border-color)" strokeDasharray="4 4" />
-            <line x1="0" y1={chartHeight * 0.66} x2={chartWidth} y2={chartHeight * 0.66} stroke="var(--border-color)" strokeDasharray="4 4" />
-            <line x1="0" y1={chartHeight * 0.33} x2={chartWidth} y2={chartHeight * 0.33} stroke="var(--border-color)" strokeDasharray="4 4" />
+            {/* Horizontal Grid lines */}
+            <line x1="0" y1={chartHeight - 24} x2={chartWidth} y2={chartHeight - 24} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.6" />
+            <line x1="0" y1={chartHeight * 0.66} x2={chartWidth} y2={chartHeight * 0.66} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.4" />
+            <line x1="0" y1={chartHeight * 0.33} x2={chartWidth} y2={chartHeight * 0.33} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.4" />
+
+            {/* Dynamic Vertical Year Grid Lines */}
+            {yearTicks.map((tick, i) => (
+              <line
+                key={`year-grid-${tick.label}-${i}`}
+                x1={tick.x}
+                y1={0}
+                x2={tick.x}
+                y2={chartHeight}
+                stroke="var(--border-color)"
+                strokeDasharray="3 3"
+                opacity="0.30"
+                className="pointer-events-none"
+              />
+            ))}
 
             {/* Subtle Minimalist Frosted Slit with Hover Ambient Orange Glow */}
             {!isPro && !customStartDate && (
@@ -1603,22 +1801,41 @@ function SimulatorContent() {
                   className="transition-colors duration-300 group-hover:stroke-[var(--accent-orange)]/60"
                   opacity="0.8"
                 />
-                {/* Vertical Minimalist Lock Pill */}
-                <g transform={`translate(${proLeftOffset / 2 - 10}, ${chartHeight / 2 - 12})`}>
+                {/* Mobile: 2x Large Lock Pill (sm:hidden) */}
+                <g className="sm:hidden" transform={`translate(${proLeftOffset / 2 - 14}, ${chartHeight / 2 - 18})`}>
                   <rect
                     x="0"
                     y="0"
-                    width="20"
+                    width="28"
+                    height="36"
+                    rx="14"
+                    fill="var(--card-surface)"
+                    stroke="var(--border-color)"
+                    strokeWidth="1.4"
+                    className="transition-all duration-300 group-hover:border-[var(--accent-orange)] group-hover:shadow-[0_0_16px_rgba(241,143,1,0.45)] shadow-xs"
+                  />
+                  <g transform="translate(6.5, 8)">
+                    <rect x="0.5" y="6" width="14" height="11" rx="2.5" fill="none" stroke="var(--accent-orange)" strokeWidth="1.8" />
+                    <path d="M3.5 6V3.5a3.5 3.5 0 0 1 7 0V6" fill="none" stroke="var(--accent-orange)" strokeWidth="1.8" />
+                  </g>
+                </g>
+
+                {/* Desktop: 0.8x Compact Minimal Lock Pill (hidden sm:block) */}
+                <g className="hidden sm:block" transform={`translate(${proLeftOffset / 2 - 9}, ${chartHeight / 2 - 12})`}>
+                  <rect
+                    x="0"
+                    y="0"
+                    width="18"
                     height="24"
-                    rx="10"
+                    rx="9"
                     fill="var(--card-surface)"
                     stroke="var(--border-color)"
                     strokeWidth="1.2"
-                    className="transition-all duration-300 group-hover:border-[var(--accent-orange)] group-hover:shadow-[0_0_12px_rgba(241,143,1,0.35)] shadow-2xs"
+                    className="transition-all duration-300 group-hover:border-[var(--accent-orange)] group-hover:shadow-[0_0_12px_rgba(241,143,1,0.4)] shadow-2xs"
                   />
-                  <g transform="translate(4.5, 5)">
-                    <rect x="0.5" y="4" width="10" height="8" rx="1.5" fill="none" stroke="var(--accent-orange)" strokeWidth="1.4" />
-                    <path d="M3 4V2.5a2 2 0 0 1 4 0V4" fill="none" stroke="var(--accent-orange)" strokeWidth="1.4" />
+                  <g transform="translate(4, 5)">
+                    <rect x="0.5" y="4.5" width="9" height="7.5" rx="1.5" fill="none" stroke="var(--accent-orange)" strokeWidth="1.4" />
+                    <path d="M2.5 4.5V2.5a2 2 0 0 1 4 0V4.5" fill="none" stroke="var(--accent-orange)" strokeWidth="1.4" />
                   </g>
                 </g>
               </g>
@@ -1693,6 +1910,23 @@ function SimulatorContent() {
             )}
           </svg>
 
+          {/* Responsive Native HTML X-Axis Year Timeline Bar (Crisp on Mobile & Desktop) */}
+          <div className="relative w-full h-4 select-none pointer-events-none -mt-1 mb-1 px-1">
+            {yearTicks.map((tick, i) => (
+              <span
+                key={`html-year-tick-${tick.label}-${i}`}
+                className="absolute text-[11px] sm:text-xs font-mono font-bold text-[var(--text-secondary)] -translate-x-1/2"
+                style={{
+                  left: `${(tick.x / chartWidth) * 100}%`,
+                  ...(i === 0 ? { transform: 'translateX(0%)' } : {}),
+                  ...(i === yearTicks.length - 1 ? { transform: 'translateX(-100%)' } : {}),
+                }}
+              >
+                {tick.label}
+              </span>
+            ))}
+          </div>
+
           {/* Dynamic Legend Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold pt-2 border-t border-[var(--border-color)]">
             <div className="flex flex-wrap items-center gap-4">
@@ -1730,30 +1964,7 @@ function SimulatorContent() {
       {/* ---------------------------------------------------- */}
       {/* DYNAMIC MULTI-STRATEGY BUILDER & PERFORMANCE BLOCK   */}
       {/* ---------------------------------------------------- */}
-      <div className="space-y-4 pt-2">
-        {/* Strategy Control Header */}
-        <div className="flex items-center justify-between gap-2 px-1">
-          <div>
-            <h2 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
-              <Layers className="w-4.5 h-4.5 text-[var(--accent-orange)]" />
-              전략 구성 및 성과 비교
-            </h2>
-          </div>
-
-          {strategyCount < 3 && (
-            <button
-              type="button"
-              onClick={handleAddStrategy}
-              className="flex items-center gap-1.5 text-xs font-extrabold px-4 py-2 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] transition-all cursor-pointer shrink-0"
-            >
-              <span>+ 비교 전략 추가</span>
-              <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full">
-                {strategyCount}/3
-              </span>
-            </button>
-          )}
-        </div>
-
+      <div className="pt-2">
         {/* Dynamic Multi-Strategy Container (Pure CSS Flex 500ms Apple HIG Silky Spring Layout) */}
         <div className="flex flex-col lg:flex-row items-stretch w-full">
             
@@ -1768,6 +1979,18 @@ function SimulatorContent() {
                       <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                       기본 전략
                     </h3>
+                    {strategyCount < 3 && (
+                      <button
+                        type="button"
+                        onClick={handleAddStrategy}
+                        className="flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-sm hover:shadow-[0_0_15px_rgba(241,143,1,0.25)] transition-all cursor-pointer shrink-0"
+                      >
+                        <span>+ 전략 추가</span>
+                        <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full">
+                          {strategyCount}/3
+                        </span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Recommended Strategy Disclaimer Notice & Preset Quick Picker */}
@@ -1894,7 +2117,10 @@ function SimulatorContent() {
 
                               <select
                                 value={item.assetId}
-                                onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)))}
+                                onChange={(e) => {
+                                  setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)));
+                                  setActivePresetA(null);
+                                }}
                                 className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
                               >
                                 {SELECT_ASSET_GROUPS.map((grp) => (
@@ -1942,7 +2168,10 @@ function SimulatorContent() {
                                   <input
                                     type="checkbox"
                                     checked={item.enableDefense !== false}
-                                    onChange={(e) => setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)))}
+                                    onChange={(e) => {
+                                      setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, enableDefense: e.target.checked } : sa)));
+                                      setActivePresetA(null);
+                                    }}
                                     className="w-3.5 h-3.5 accent-[var(--accent-orange)] rounded cursor-pointer"
                                   />
                                   <span>방어</span>
@@ -1991,7 +2220,10 @@ function SimulatorContent() {
                     </SmoothHeight>
                     <select
                       value={strategyPeriodA}
-                      onChange={(e) => setStrategyPeriodA(Number(e.target.value))}
+                      onChange={(e) => {
+                        setStrategyPeriodA(Number(e.target.value));
+                        setActivePresetA(null);
+                      }}
                       className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
                     >
                       <option value={0}>기본 없음 (하락장 상관없이 주식 계속 보유)</option>
@@ -2045,7 +2277,7 @@ function SimulatorContent() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
                         <span className="font-mono font-bold text-red-500">
-                          <AnimatedNumber value={simulation.portA.mdd} prefix="-" suffix="%" />
+                          <AnimatedNumber value={Number(simulation.portA.mdd)} prefix="-" suffix="%" />
                         </span>
                       </div>
                     </div>
@@ -2231,7 +2463,7 @@ function SimulatorContent() {
                 </div>
 
                 {/* Portfolio B Results Card (Clean Surface with Animated Count-Up Numbers) */}
-                <div key={`strategy-b-perf-${strategyCount}`} className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
+                <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
                   <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
                     <span className="text-xs font-black text-emerald-500 flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
@@ -2272,7 +2504,7 @@ function SimulatorContent() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
                         <span className="font-mono font-bold text-red-500">
-                          <AnimatedNumber value={simulation.portB.mdd} prefix="-" suffix="%" />
+                          <AnimatedNumber value={Number(simulation.portB.mdd)} prefix="-" suffix="%" />
                         </span>
                       </div>
                     </div>
@@ -2458,7 +2690,7 @@ function SimulatorContent() {
                 </div>
 
                 {/* Portfolio C Results Card (Clean Surface with Animated Count-Up Numbers) */}
-                <div key={`strategy-c-perf-${strategyCount}`} className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
+                <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
                   <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
                     <span className="text-xs font-black text-indigo-500 flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
@@ -2499,7 +2731,7 @@ function SimulatorContent() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--text-secondary)] font-medium">최대 손실폭 (MDD)</span>
                         <span className="font-mono font-bold text-red-500">
-                          <AnimatedNumber value={simulation.portC.mdd} prefix="-" suffix="%" />
+                          <AnimatedNumber value={Number(simulation.portC.mdd)} prefix="-" suffix="%" />
                         </span>
                       </div>
                     </div>
