@@ -1376,8 +1376,8 @@ function SimulatorContent() {
       {/* ---------------------------------------------------- */}
       {/* REAL DATA INTERACTIVE MAIN CHART (수익률 차트)        */}
       {/* ---------------------------------------------------- */}
-      <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)]">
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
+      <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] relative">
+        <div className="relative z-30 flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center flex-wrap gap-2">
             <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
               <BarChart3 className="w-5.5 h-5.5 text-[var(--accent-orange)]" />
@@ -1390,8 +1390,8 @@ function SimulatorContent() {
 
           {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] */}
           <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-            {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] (Always together) */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] (Always together, smooth gliding transition) */}
+            <div className="flex items-center gap-1.5 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
               <button
                 type="button"
                 onClick={() => setActiveTooltip(activeTooltip === 'chart_scale' ? null : 'chart_scale')}
@@ -1437,71 +1437,72 @@ function SimulatorContent() {
               </div>
             </div>
 
-            {/* 3. Duration / Reset Controls with Smooth Blossom Fade */}
-            {customStartDate || customEndDate ? (
-              <div key="reset-btn-wrapper" className="flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans shrink-0 animate-fade-in">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomStartDate(null);
-                    setCustomEndDate(null);
-                  }}
-                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.4)] transition-all cursor-pointer font-sans whitespace-nowrap active:scale-95 shrink-0"
-                >
-                  <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
-                  <span>전체 기간 복귀</span>
-                </button>
-              </div>
-            ) : (
-              <div key="duration-pill-wrapper" className="relative shrink-0 animate-fade-in">
-                {/* Unified Segmented Pill Design matching Scale Switch */}
-                {isPro ? (
-                  <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
-                    <div
-                      className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
-                      style={{
-                        width: 'calc(50% - 2px)',
-                        left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setDurationYears(15)}
-                      className={`relative z-10 px-2.5 py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                        durationYears === 15
-                          ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
-                      }`}
-                    >
-                      15년
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDurationYears(30)}
-                      className={`relative z-10 px-2.5 py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                        durationYears === 30
-                          ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
-                      }`}
-                    >
-                      30년
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] font-mono whitespace-nowrap">
-                      15년
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setProPopoverOpen(!proPopoverOpen)}
-                      className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
-                    >
-                      <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
-                      <span>30년</span>
-                    </button>
-                  </div>
-                )}
+            {/* 3. Duration / Reset Controls (Unified 108px Capsule Container) */}
+            <div className="relative z-30 flex items-center justify-end shrink-0 w-[108px] h-[28px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+              {customStartDate || customEndDate ? (
+                <div key="reset-btn-wrapper" className="w-full h-full flex items-center justify-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans shrink-0 animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomStartDate(null);
+                      setCustomEndDate(null);
+                    }}
+                    className="w-full h-full flex items-center justify-center gap-1.5 px-2 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.4)] transition-all cursor-pointer font-sans whitespace-nowrap active:scale-95 shrink-0"
+                  >
+                    <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
+                    <span>전체 보기</span>
+                  </button>
+                </div>
+              ) : (
+                <div key="duration-pill-wrapper" className="w-full h-full relative shrink-0 animate-fade-in">
+                  {/* Unified Segmented Pill Design matching Scale Switch */}
+                  {isPro ? (
+                    <div className="w-full h-full relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                      <div
+                        className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                        style={{
+                          width: 'calc(50% - 2px)',
+                          left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setDurationYears(15)}
+                        className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                          durationYears === 15
+                            ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                        }`}
+                      >
+                        15년
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDurationYears(30)}
+                        className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                          durationYears === 30
+                            ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                        }`}
+                      >
+                        30년
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-between p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                      <span className="w-1/2 flex items-center justify-center py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] font-mono whitespace-nowrap">
+                        15년
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setProPopoverOpen(!proPopoverOpen)}
+                        className="w-1/2 flex items-center justify-center gap-1 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
+                      >
+                        <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
+                        <span>30년</span>
+                      </button>
+                    </div>
+                  )}
 
                 {/* Floating Pro Popover anchored to Top Right Button */}
                 {proPopoverOpen && !isPro && (
@@ -1545,6 +1546,7 @@ function SimulatorContent() {
             )}
           </div>
         </div>
+      </div>
 
         {/* 1. Inline SmoothHeight Chart Scale Explanation Box */}
         <SmoothHeight duration={320}>
@@ -1631,7 +1633,7 @@ function SimulatorContent() {
         </SmoothHeight>
 
         {/* SVG Canvas Container */}
-        <div className="mt-3.5 sm:mt-4 bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative overflow-hidden transition-all duration-300">
+        <div className="mt-3.5 sm:mt-4 bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative z-10 overflow-hidden transition-all duration-300">
           {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER */}
           <div className="min-h-[42px] flex items-center px-3.5 py-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
             {dragRangeInfo ? (
