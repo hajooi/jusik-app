@@ -476,28 +476,19 @@ function TermsQuizContent() {
   }, [finalResult, challengerScore, challengerTime]);
 
   return (
-    <RevealOnScroll>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 select-none">
-        {/* Top Header Navigation (Unified with site design) */}
-        <div className="flex items-center justify-end">
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
-          </Link>
-        </div>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 select-none">
+      {/* De-boxed Clean Minimal Hero Banner */}
+      <div className="py-2 px-1 space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
+          주식 용어 퀴즈
+        </h1>
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+          점수와 스피드로 겨루는 실전 금융 용어 랭킹전! 내 진짜 실력을 측정해 보세요.
+        </p>
+      </div>
 
-        {/* Left Aligned Minimal Hero Banner */}
-        <div className="space-y-1 py-1 text-left">
-          <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
-            주식 용어 퀴즈
-          </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-            점수와 스피드로 겨루는 실전 금융 용어 랭킹전! 내 진짜 실력을 측정해 보세요.
-          </p>
-        </div>
+      <RevealOnScroll>
+        <div className="space-y-6">
 
         {/* 1:1 Challenge Challenger Banner (If arrived via challenge link) */}
         {challengerNick && challengerScore !== null && challengerTime !== null && quizState === 'intro' && (
@@ -1150,8 +1141,9 @@ function TermsQuizContent() {
             onClose={() => setQuizPopoverTarget(null)}
           />
         )}
-      </div>
-    </RevealOnScroll>
+        </div>
+      </RevealOnScroll>
+    </div>
   );
 }
 

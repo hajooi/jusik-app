@@ -1139,29 +1139,19 @@ function SimulatorContent() {
   const activeHoverPoint = hoverIndex !== null ? simulation.points[hoverIndex] : null;
 
   return (
-    <RevealOnScroll>
-      <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 select-none">
-      
-      {/* Top Header Navigation */}
-      <div className="flex items-center justify-end">
-        <Link
-          href="/tools"
-          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          투자도구 목록으로
-        </Link>
-      </div>
-
-      {/* Header Banner */}
-      <div className="space-y-1 py-1">
-        <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 select-none">
+      {/* De-boxed Clean Minimal Hero Banner */}
+      <div className="py-2 px-1 space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
           투자 전략 시뮬레이터
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
           내 투자 성향 및 목표에 적합한 전략을 검증하고, 나만의 성과를 데이터로 비교해보세요.
         </p>
       </div>
+
+      <RevealOnScroll>
+        <div className="space-y-4 sm:space-y-6">
 
       {/* ---------------------------------------------------- */}
       {/* PERSONALIZED TARGET & RISK CONTROLS (성향 연동 가이드) */}
@@ -2762,8 +2752,9 @@ function SimulatorContent() {
           본 도구는 Yahoo Finance의 30년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기(매달/매주)마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
         </p>
       </div>
-      </div>
-    </RevealOnScroll>
+        </div>
+      </RevealOnScroll>
+    </div>
   );
 }
 

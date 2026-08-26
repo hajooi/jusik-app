@@ -250,23 +250,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleRestart}
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <RefreshCw className="w-4 h-4" />
-            다시 진단하기
-          </button>
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
-          </Link>
-        </div>
-
         {/* (1) 나의 투자 성향 상세 리포트, 시뮬레이터 CTA, 공유 버튼 일체화 */}
         <ResultView
           profile={myResultData.profile}
@@ -289,7 +272,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     if (viewMyComparison && myResultData) {
       return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-start">
             <button
               onClick={() => setViewMyComparison(false)}
               className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)] cursor-pointer"
@@ -297,13 +280,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
               <ArrowLeft className="w-4 h-4" />
               공유받은 1:1 성향 비교 다시보기
             </button>
-            <Link
-              href="/tools"
-              className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              투자도구 목록으로
-            </Link>
           </div>
 
           {/* 내가 기준(Left/Top)인 1:1 성향 비교 리포트 단독 렌더링 */}
@@ -432,23 +408,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleRestart}
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <RefreshCw className="w-4 h-4" />
-            다시 진단하기
-          </button>
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
-          </Link>
-        </div>
-
         {/* 내 단독 결과, 시뮬레이터 CTA, 공유 버튼 일체화 */}
         <ResultView
           profile={myResultData.profile}
@@ -463,27 +422,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     );
   }
 
-
-
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
-      {/* Top Header Navigation */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={handleRestart}
-          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-        >
-          <RefreshCw className="w-4 h-4" />
-          처음부터 다시
-        </button>
-        <Link
-          href="/tools"
-          className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          투자도구 목록으로
-        </Link>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
       {/* Shared Result Invite Card (Shown when arriving via shared link ?result=CODE) */}
       {sharedProfile && !isCompleted && answeredCount === 0 && (

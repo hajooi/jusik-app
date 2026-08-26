@@ -1,5 +1,4 @@
 import { getLessonById, getAllLessons } from '@/data/curriculum';
-import SidebarDrawer from '@/components/SidebarDrawer';
 import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
 import WealthComparisonChart from '@/components/WealthComparisonChart';
@@ -143,7 +142,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <>
       {/* JSON-LD Educational & Breadcrumb Structured Data for Search Bots */}
       <script
         type="application/ld+json"
@@ -154,41 +153,21 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       
-      {/* Top Navigation Bar: [Left] Entire Menu Drawer Trigger | [Right] Return to Home */}
-      <div className="flex items-center justify-between gap-3 text-xs sm:text-sm">
-        <SidebarDrawer currentLessonId={lesson.id} />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        {/* Unified Clean Minimal Hero Header */}
+        <div className="py-2 px-1 space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+            {lesson.title}
+          </h1>
+          {lesson.subtitle && (
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+              {lesson.subtitle}
+            </p>
+          )}
+        </div>
 
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-1.5 font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          커리큘럼 목록으로
-        </Link>
-      </div>
-
-      <div className="space-y-6">
-        {/* Main Content Column */}
-        <div className="space-y-6 min-w-0">
-          
-          {/* Modern Minimal Header Info */}
-          <div className="space-y-1.5 pb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono">
-                Lv. {level.levelNumber}
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
-              {lesson.title}
-            </h1>
-            {lesson.subtitle && (
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-                {lesson.subtitle}
-              </p>
-            )}
-          </div>
-
-          {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Completion Bar */}
+        {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Completion Bar */}
+        <RevealOnScroll>
           <LessonVideoSection
             lessonId={lesson.id}
             youtubeId={lesson.youtubeId}
@@ -196,10 +175,9 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             duration={lesson.duration}
             iconName={level.iconName}
           />
+        </RevealOnScroll>
 
-
-
-          {/* BOOK MANUSCRIPT SECTIONS */}
+        {/* BOOK MANUSCRIPT SECTIONS */}
           {lesson.bookSections && lesson.bookSections.length > 0 && (
             <div className="space-y-6">
               {lesson.bookSections.map((section, sIdx) => (
@@ -602,10 +580,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
               </div>
             </div>
           </RevealOnScroll>
-
-        </div>
       </div>
-    </div>
+    </>
   );
 }
 
