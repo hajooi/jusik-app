@@ -146,7 +146,7 @@ export default function StockTradeGuide() {
   return (
     <div className="glass-card rounded-3xl p-4 sm:p-7 border border-[var(--border-color)]/90 shadow-sm space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)]/60 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
@@ -215,7 +215,7 @@ export default function StockTradeGuide() {
       <SmoothHeight>
         <div className="p-4 sm:p-6 rounded-2xl bg-white/60 dark:bg-zinc-900/40 border border-[var(--border-color)] space-y-5">
         {/* Step Title Header */}
-        <div className="flex items-center gap-2.5 border-b border-[var(--border-color)]/60 pb-3">
+        <div className="flex items-center gap-2.5 pb-1">
           <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
             {STEPS[currentStep - 1].icon}
           </span>

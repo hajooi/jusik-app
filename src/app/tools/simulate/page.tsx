@@ -1157,7 +1157,7 @@ function SimulatorContent() {
       {/* PERSONALIZED TARGET & RISK CONTROLS (성향 연동 가이드) */}
       {/* ---------------------------------------------------- */}
       <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] relative overflow-hidden shadow-2xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-[var(--accent-orange)]" />
             <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
@@ -1236,7 +1236,7 @@ function SimulatorContent() {
       {/* GLOBAL SIMULATION SETTINGS (초기자본 & 적립액 & 주기)    */}
       {/* ---------------------------------------------------- */}
       <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
-        <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+        <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2">
             <Sliders className="w-5 h-5 text-[var(--accent-orange)]" />
             <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
@@ -2229,7 +2229,7 @@ function SimulatorContent() {
 
                 {/* Portfolio A Results Card (Clean Surface with Animated Count-Up Numbers) */}
                 <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
-                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                  <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                       기본 전략 성과
@@ -2456,7 +2456,7 @@ function SimulatorContent() {
 
                 {/* Portfolio B Results Card (Clean Surface with Animated Count-Up Numbers) */}
                 <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
-                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                  <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-black text-emerald-500 flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                       전략 1 성과
@@ -2683,7 +2683,7 @@ function SimulatorContent() {
 
                 {/* Portfolio C Results Card (Clean Surface with Animated Count-Up Numbers) */}
                 <div className="p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-3 mt-4">
-                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                  <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-black text-indigo-500 flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
                       전략 2 성과

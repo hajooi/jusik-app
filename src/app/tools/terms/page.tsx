@@ -1017,7 +1017,7 @@ function TermsQuizContent() {
             {/* COMPREHENSIVE REVIEW & ANSWER NOTES ACCORDION           */}
             {/* ======================================================== */}
             <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-4 shadow-sm border border-[var(--border-color)] text-left">
-              <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+              <div className="flex items-center justify-between pb-1">
                 <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                   <CheckCircle2 className="w-4.5 h-4.5 text-[var(--accent-orange)]" />
                   전체 15문항 오답노트 & 정답 해설

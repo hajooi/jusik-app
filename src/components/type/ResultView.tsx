@@ -350,7 +350,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           {/* 5 Strengths */}
           {profile.strengths && (
             <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-1">
-              <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
+              <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
                   {profile.name}의 핵심 강점
@@ -370,7 +370,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           {/* Weaknesses / Caution */}
           {profile.weaknesses && (
             <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-2">
-              <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-color)]">
+              <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
                 <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
                   투자 시 주의할 점

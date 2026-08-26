@@ -110,6 +110,7 @@ export default function BottomNavigation() {
   const didMoveRef = useRef(false);
   const sheetHeightRef = useRef(560);
   const maxSheetWidthRef = useRef(576);
+  const rafRef = useRef<number | null>(null);
 
   const isHomePage = pathname === '/';
   const isLessonPage = pathname.startsWith('/lesson/');
@@ -226,7 +227,7 @@ export default function BottomNavigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, isExpanded, isDragging]);
 
-  // Touch Gesture Physics Drag (Touch devices only; bypassed on Desktop mouse & Home page)
+  // Touch Gesture Physics Drag (Hardware accelerated with rAF 120fps)
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') return; // Desktop mouse clicks natively without drag friction
     if (isHomePage && !isExpanded) return; // Home page doesn't need drawer drag
@@ -247,20 +248,22 @@ export default function BottomNavigation() {
       didMoveRef.current = true;
     }
 
-    const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
-    if (isExpanded) {
-      // Dragging down from expanded (deltaY <= 0)
-      const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
-      setDragY(clamped);
-    } else {
-      // Dragging up from collapsed (deltaY >= 0)
-      const clamped = Math.max(0, Math.min(maxDelta, deltaY));
-      setDragY(clamped);
-    }
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
+      if (isExpanded) {
+        const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
+        setDragY(clamped);
+      } else {
+        const clamped = Math.max(0, Math.min(maxDelta, deltaY));
+        setDragY(clamped);
+      }
+    });
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!isDraggingRef.current) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     isDraggingRef.current = false;
     setIsDragging(false);
 
@@ -577,7 +580,7 @@ export default function BottomNavigation() {
                           {/* Smooth CSS Grid Accordion Transition */}
                           <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
-                              <div className="p-2 pt-0 space-y-1.5 border-t border-[var(--border-color)]/50">
+                              <div className="p-2 pt-1 space-y-1.5">
                                 {level.lessons.map((lesson, lessonIdx) => {
                                   const isActive = lesson.id === currentLessonId;
                                   const completed = Boolean(user && isLessonCompleted(lesson.id));
