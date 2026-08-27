@@ -380,18 +380,7 @@ export default function BottomNavigation() {
   const currentNavBottom = Math.round(2 + progress * (14 - 2));
   const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
 
-  // Animated progress bar fill state
-  const [animatedPercent, setAnimatedPercent] = useState(0);
-  useEffect(() => {
-    if (isExpanded) {
-      const timer = setTimeout(() => {
-        setAnimatedPercent(progressPercent);
-      }, 120);
-      return () => clearTimeout(timer);
-    } else {
-      setAnimatedPercent(0);
-    }
-  }, [isExpanded, progressPercent]);
+
 
   return (
     <>
@@ -533,11 +522,11 @@ export default function BottomNavigation() {
                         {completedCount} / {totalLessonCount}강 ({progressPercent}%)
                       </span>
                     </div>
-                    {/* Animated Progress Fill Bar */}
+                    {/* Static Progress Fill Bar (0ms Layout Thrashing) */}
                     <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
                       <div 
-                        className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-700 ease-out rounded-full"
-                        style={{ width: `${animatedPercent}%` }}
+                        className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] rounded-full"
+                        style={{ width: `${progressPercent}%` }}
                       />
                     </div>
                   </div>
