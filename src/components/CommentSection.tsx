@@ -324,8 +324,22 @@ export default function CommentSection({
               <span>{user.nickname}</span>
 
               {/* Dynamic Active Badge on Comment Form Header */}
-              {user.activeBadge === 'none' ? null : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+              {user.activeBadge === 'none' ? null : user.activeBadge === 'pro' ? (
+                <span 
+                  className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
+                  title="내 PRO 회원 뱃지"
+                >
+                  <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                  <span className="tracking-wide">PRO</span>
+                </span>
+              ) : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
+                <span 
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono leading-none select-none ${
+                    (user.termsQuizBest.percentile && user.termsQuizBest.percentile <= 10) || user.termsQuizBest.badgeName?.includes('마스터')
+                      ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
+                      : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'
+                  }`}
+                >
                   {user.termsQuizBest.badgeName}
                 </span>
               ) : (user.activeBadge === 'investmentType' || !user.activeBadge) && user.investmentType && user.investmentType !== '미진단' ? (
@@ -416,7 +430,7 @@ export default function CommentSection({
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
 
                     {/* User Active Badge Selection (One of: PRO / Terms Quiz / Investment Type) */}
-                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' && root.nickname !== '주식부엉' ? (
+                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' ? (
                       <span 
                         className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                         title={`${root.nickname}님의 PRO 회원 뱃지`}
@@ -508,10 +522,10 @@ export default function CommentSection({
                       </div>
                     ) : null}
 
-                    {/* Master Admin Indicator */}
+                    {/* Master Admin Verified Check Indicator */}
                     {root.nickname === '주식부엉' && (
-                      <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-sans font-bold">
-                        관리자
+                      <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                        <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                       </span>
                     )}
 
@@ -627,7 +641,7 @@ export default function CommentSection({
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
 
                               {/* User Active Badge Selection on Reply (One of: PRO / Terms Quiz / Investment Type) */}
-                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' && reply.nickname !== '주식부엉' ? (
+                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' ? (
                                 <span 
                                   className="animate-pro-badge inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                                   title={`${reply.nickname}님의 PRO 회원 뱃지`}
@@ -719,10 +733,10 @@ export default function CommentSection({
                                 </div>
                               ) : null}
 
-                              {/* Master Admin Indicator */}
+                              {/* Master Admin Verified Check Indicator */}
                               {reply.nickname === '주식부엉' && (
-                                <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[8.5px] font-sans font-bold">
-                                  관리자
+                                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
                                 </span>
                               )}
                             </div>

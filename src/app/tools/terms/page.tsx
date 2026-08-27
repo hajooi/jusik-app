@@ -19,6 +19,7 @@ import {
   ChevronUp,
   LogIn,
   Award,
+  Crown,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { TERMS_QUIZ_DATA, QUIZ_LEVELS, QuizQuestion } from '@/data/termsQuizData';
@@ -646,9 +647,22 @@ function TermsQuizContent() {
                         </span>
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold text-[var(--text-primary)]">{item.nickname}</span>
+                          {item.nickname === '주식부엉' && (
+                            <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                              <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
+                            </span>
+                          )}
 
-                          {/* Dynamic Active Badge: termsQuizBest OR investmentType */}
-                          {item.activeBadge === 'none' ? null : item.activeBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
+                          {/* Dynamic Active Badge: PRO / termsQuizBest / investmentType */}
+                          {item.activeBadge === 'none' ? null : item.activeBadge === 'pro' ? (
+                            <span 
+                              className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
+                              title={`${item.nickname}님의 PRO 회원 뱃지`}
+                            >
+                              <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                              <span className="tracking-wide">PRO</span>
+                            </span>
+                          ) : item.activeBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -680,7 +694,11 @@ function TermsQuizContent() {
                                       }
                                 );
                               }}
-                              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                                ((item.termsQuizBest?.percentile ?? item.percentile) && (item.termsQuizBest?.percentile ?? item.percentile ?? 100) <= 10) || (item.termsQuizBest?.badgeName || '').includes('마스터')
+                                  ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
+                                  : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs'
+                              }`}
                               title={`${item.nickname}님의 실전 용어 퀴즈 랭킹 보기`}
                             >
                               {item.termsQuizBest?.badgeName || `상위 ${item.percentile}%`}

@@ -62,7 +62,7 @@ export default function WealthComparisonChart() {
   return (
     <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-5 shadow-2xs my-6">
       {/* Header */}
-      <div className="pb-3 border-b border-[var(--border-color)] flex items-start sm:items-center justify-between gap-2">
+      <div className="flex items-start sm:items-center justify-between gap-2">
         <div className="flex items-start sm:items-center gap-2.5 min-w-0">
           <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 mt-0.5 sm:mt-0">
             <TrendingUp className="w-5 h-5 stroke-[2.2]" />

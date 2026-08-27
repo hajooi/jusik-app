@@ -255,13 +255,8 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             {/* Centered Nickname & Status */}
             <div className="space-y-0.5">
               <div className="text-[10px] text-[var(--text-secondary)] font-medium">내 계정</div>
-              <div className="text-base font-bold text-[var(--text-primary)] flex items-center justify-center gap-1.5 font-mono">
+              <div className="text-base font-bold text-[var(--text-primary)] flex items-center justify-center font-mono">
                 <span>{user.nickname}</span>
-                {user.nickname === '주식부엉' && (
-                  <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[9px] font-sans font-bold">
-                    관리자
-                  </span>
-                )}
               </div>
             </div>
 
@@ -287,7 +282,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
           {(() => {
             const hasInvestmentType = !!(user.investmentType && user.investmentType !== '미진단');
             const hasTermsQuizBest = !!user.termsQuizBest;
-            const hasProBadge = isPro && user.nickname !== '주식부엉';
+            const hasProBadge = isPro;
 
             if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge) return null;
 
@@ -307,7 +302,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     <button
                       type="button"
                       onClick={() => updateActiveBadge?.(isProActive ? 'none' : 'pro')}
-                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
                         isProActive
                           ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
@@ -319,10 +314,12 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
-                      <span className="text-[11px] font-extrabold font-mono text-[var(--accent-orange)] flex items-center gap-0.5 truncate">
-                        <Crown className="w-3 h-3 stroke-[2.4]" />
-                        <span>PRO</span>
-                      </span>
+                      <div className="flex items-center justify-center pt-0.5">
+                        <span className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none">
+                          <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                          <span className="tracking-wide">PRO</span>
+                        </span>
+                      </div>
                     </button>
                   )}
 
@@ -331,7 +328,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     <button
                       type="button"
                       onClick={() => updateActiveBadge?.(isTypeActive ? 'none' : 'investmentType')}
-                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
                         isTypeActive
                           ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
@@ -343,9 +340,11 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
-                      <span className="text-[11px] font-extrabold font-mono text-[var(--text-primary)] truncate">
-                        {user.investmentType}
-                      </span>
+                      <div className="flex items-center justify-center pt-0.5">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                          {user.investmentType}
+                        </span>
+                      </div>
                     </button>
                   )}
 
@@ -354,7 +353,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     <button
                       type="button"
                       onClick={() => updateActiveBadge?.(isQuizActive ? 'none' : 'terms_percentile')}
-                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
                         isQuizActive
                           ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
@@ -366,21 +365,23 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
-                      <span className="text-[11px] font-extrabold font-mono text-[var(--text-primary)] truncate">
-                        {user.termsQuizBest?.badgeName || `상위 ${user.termsQuizBest?.percentile}%`}
-                      </span>
+                      <div className="flex items-center justify-center pt-0.5">
+                        <span 
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold font-mono transition-all leading-none select-none ${
+                            (user.termsQuizBest?.percentile && user.termsQuizBest?.percentile <= 10) || user.termsQuizBest?.badgeName?.includes('마스터')
+                              ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
+                              : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'
+                          }`}
+                        >
+                          {user.termsQuizBest?.badgeName || `상위 ${user.termsQuizBest?.percentile}%`}
+                        </span>
+                      </div>
                     </button>
                   )}
                 </div>
               </div>
             );
           })()}
-
-          {/* Server Sync Badge */}
-          <div className="p-2.5 rounded-xl bg-[var(--accent-green)]/10 text-[var(--accent-green)] text-xs flex items-center justify-center gap-1.5 font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span>서버 동기화 상태 유지 중</span>
-          </div>
 
           {/* PRO Code Redeem Accordion (Only visible if not PRO) */}
           {!isPro && (

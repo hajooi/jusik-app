@@ -401,7 +401,7 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
         }}
         onClick={() => {
           setIsExpanded(false);
@@ -426,7 +426,7 @@ export default function BottomNavigation() {
             WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
             transition: isDragging 
               ? 'none' 
-              : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1), width 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
+              : 'height 0.32s cubic-bezier(0.32, 0.72, 0, 1), width 0.32s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.32s cubic-bezier(0.32, 0.72, 0, 1), margin-bottom 0.32s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease',
           }}
         >
           {/* Top Header Area */}
@@ -437,7 +437,7 @@ export default function BottomNavigation() {
               minWidth: '240px',
               transform: 'translateZ(0)',
               WebkitTransform: 'translateZ(0)',
-              transition: isDragging ? 'none' : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: isDragging ? 'none' : 'height 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -452,7 +452,7 @@ export default function BottomNavigation() {
               }`} 
               style={{
                 opacity: currentNotchOpacity,
-                transition: isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
               }}
             />
 
@@ -462,7 +462,7 @@ export default function BottomNavigation() {
               className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
               style={{
                 bottom: `${currentNavBottom}px`,
-                transition: isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: isDragging ? 'none' : 'bottom 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
               }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
