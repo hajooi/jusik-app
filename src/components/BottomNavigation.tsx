@@ -412,11 +412,7 @@ export default function BottomNavigation() {
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
       <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className={`pointer-events-auto overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom,opacity,transform] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl border border-[var(--border-color)]/80 ${
-            progress > 0.05
-              ? 'shadow-[0_-6px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_40px_rgba(0,0,0,0.6)]'
-              : 'shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_28px_rgba(0,0,0,0.45)]'
-          }`}
+          className={`pointer-events-auto overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl border border-[var(--border-color)]/80 shadow-[0_-6px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_40px_rgba(0,0,0,0.6)]`}
           style={{
             height: `${currentHeight}px`,
             width: `${currentWidth}px`,
@@ -430,7 +426,7 @@ export default function BottomNavigation() {
             WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
             transition: isDragging 
               ? 'none' 
-              : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1), width 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.38s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1), width 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
           }}
         >
           {/* Top Header Area */}
@@ -438,6 +434,9 @@ export default function BottomNavigation() {
             className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default"
             style={{
               height: `${currentHeaderHeight}px`,
+              minWidth: '240px',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
               transition: isDragging ? 'none' : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onPointerDown={handlePointerDown}
@@ -511,10 +510,15 @@ export default function BottomNavigation() {
           <div 
             className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{
-              contain: 'paint',
-              pointerEvents: isExpanded ? 'auto' : 'none',
-              transform: 'translate3d(0, 0, 0)',
-              WebkitTransform: 'translate3d(0, 0, 0)',
+              contain: 'paint layout',
+              opacity: progress >= 0.4 ? Math.min(1, (progress - 0.4) / 0.55) : 0,
+              pointerEvents: progress > 0.6 ? 'auto' : 'none',
+              visibility: progress >= 0.35 ? 'visible' : 'hidden',
+              minWidth: '320px',
+              maxWidth: '100%',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
+              transition: isDragging ? 'none' : 'opacity 0.22s ease',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}

@@ -173,7 +173,7 @@ export default function TermsQuizPreviewPopover({
                 : '/tools/terms'
             }
             onClick={handleClose}
-            className="w-full py-2.5 px-3.5 rounded-xl bg-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/90 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] active:scale-95 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
           >
             <span>이 기록 깨러 가기</span>
             <ArrowRight className="w-3.5 h-3.5" />
