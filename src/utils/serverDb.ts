@@ -110,9 +110,9 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
     activeBadge: 'terms_percentile',
     termsQuizBest: {
       level: 1,
-      score: 5000,
-      correctCount: 5,
-      timeSpentSec: 12.47,
+      score: 15000,
+      correctCount: 15,
+      timeSpentSec: 90.0,
       percentile: 1,
       badgeName: '상위 1%'
     },
@@ -121,18 +121,18 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
         id: 'quiz_user_주식부엉_1',
         nickname: '주식부엉',
         level: 1,
-        score: 5000,
-        correctCount: 5,
+        score: 15000,
+        correctCount: 15,
         totalQuestions: 15,
-        timeSpentSec: 12.47,
+        timeSpentSec: 90.0,
         createdAt: '2026-08-21T10:56:55.318Z',
         investmentType: 'GATR',
         percentile: 1,
         termsQuizBest: {
           level: 1,
-          score: 5000,
-          correctCount: 5,
-          timeSpentSec: 12.47,
+          score: 15000,
+          correctCount: 15,
+          timeSpentSec: 90.0,
           percentile: 1,
           badgeName: '상위 1%'
         }
@@ -263,7 +263,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             typeAnswers: validatedTypeAnswers,
             simulatorSettings: cleanSimulatorSettings,
             avatarUrl: row.avatar_url || undefined,
-            activeBadge: row.active_badge || master?.activeBadge || undefined,
+            activeBadge: (row.active_badge !== undefined && row.active_badge !== null) ? row.active_badge : (master?.activeBadge || undefined),
             termsQuizBest: row.terms_quiz_best || master?.termsQuizBest || undefined,
             termsQuizEntries: master?.termsQuizEntries || undefined,
           };

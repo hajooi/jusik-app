@@ -191,7 +191,7 @@ export async function POST(request: Request) {
         if (!existing.avatarUrl && avatarUrl) {
           existing.avatarUrl = avatarUrl;
         }
-        if (activeBadge) {
+        if (activeBadge !== undefined) {
           existing.activeBadge = activeBadge;
         }
 
@@ -301,7 +301,7 @@ export async function POST(request: Request) {
         existing.avatarUrl = avatarUrl;
         await updateCommentsForUserAsync(trimmedNickname, avatarUrl);
       }
-      if (activeBadge !== undefined && activeBadge) {
+      if (activeBadge !== undefined) {
         existing.activeBadge = activeBadge;
       }
 
