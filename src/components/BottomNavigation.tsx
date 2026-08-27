@@ -793,7 +793,7 @@ export default function BottomNavigation() {
                       }}
                       className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
                         isCurrent 
-                          ? 'bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
+                          ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.22)]' 
                           : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
                       }`}
                     >

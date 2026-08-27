@@ -301,7 +301,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* DYNAMIC CONTENT MODULES BLOCK (Resources, CTA) */}
           {lesson.modules && lesson.modules.length > 0 && (
-            <div className="space-y-6 -mt-3 sm:-mt-4">
+            <div className="space-y-6">
               {lesson.modules.map((module, index) => {
                 if (module.type === 'guide_steps') {
                   if (lesson.id === 'lv1-3') {
@@ -526,18 +526,15 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
           {/* Lesson Specific Comments */}
           <RevealOnScroll>
-            <div className="pt-4">
-              <CommentSection
-                targetKey={`lesson-${lesson.id}`}
-                title="댓글"
-              />
-            </div>
+            <CommentSection
+              targetKey={`lesson-${lesson.id}`}
+              title="댓글"
+            />
           </RevealOnScroll>
 
           {/* Navigation Buttons - Clean Modern Floating Cards */}
           <RevealOnScroll>
-            <div className="pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {prevLesson ? (
                   <Link
                     href={`/lesson/${prevLesson.id}`}
@@ -578,7 +575,6 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                   </div>
                 )}
               </div>
-            </div>
           </RevealOnScroll>
       </div>
     </>
