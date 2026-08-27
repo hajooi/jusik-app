@@ -205,9 +205,8 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
   };
 
   return (
-    <RevealOnScroll>
-      <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header Title (Left-aligned brand standard) */}
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Header Title (Left-aligned brand standard, static without animation) */}
       <div className="space-y-1 py-1 text-left">
         <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
           {isReadOnly && ownerName
@@ -225,14 +224,16 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </p>
       </div>
 
-      {/* Main Personality Card */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
+      <RevealOnScroll>
+        <div className="space-y-6">
+          {/* Main Personality Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Floating Large Emoji Avatar & Title Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
-          {/* Borderless Pure Floating Large Emoji */}
-          <div className="relative shrink-0 group py-2 flex items-center justify-center">
+            {/* Floating Large Emoji Avatar & Title Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
+              {/* Borderless Pure Floating Large Emoji */}
+              <div className="relative shrink-0 group py-2 flex items-center justify-center">
             <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none" />
             <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative z-10 animate-float-y group-hover:scale-110 transition-transform duration-300">
               <span className="text-7xl sm:text-8xl select-none filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.22)] leading-none">
@@ -466,9 +467,10 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />
             <span>다시 진단하기</span>
           </button>
+          </div>
+        )}
         </div>
-      )}
-      </div>
-    </RevealOnScroll>
+      </RevealOnScroll>
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CURRICULUM_DATA } from '@/data/curriculum';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -86,11 +86,12 @@ const TOOLS_DIRECTORY = [
   },
 ];
 
-const COLLAPSED_HEIGHT = 56;
-const COLLAPSED_WIDTH = 276;
+const COLLAPSED_HEIGHT = 54;
+const COLLAPSED_WIDTH = 268;
 
 export default function BottomNavigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isLessonCompleted, completedLessons } = useAuth();
 
   // Expanded State of the Drawer
@@ -193,15 +194,36 @@ export default function BottomNavigation() {
     }));
   };
 
-  // Touch Gesture Physics Drag (120fps hardware accelerated via rAF)
+  // Window-level safety cleanup to prevent stuck mouse drag
+  useEffect(() => {
+    const handleWindowPointerUp = () => {
+      if (isDraggingRef.current) {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        isDraggingRef.current = false;
+        setIsDragging(false);
+        setDragY(null);
+      }
+    };
+    window.addEventListener('pointerup', handleWindowPointerUp);
+    window.addEventListener('pointercancel', handleWindowPointerUp);
+    return () => {
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+      window.removeEventListener('pointercancel', handleWindowPointerUp);
+    };
+  }, []);
+
+  // Pointer drag gestures for sheet pulling
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse') return; // Desktop mouse clicks natively without drag friction
-    if (isHomePage && !isExpanded) return; // Home page doesn't need drawer drag
+    if (!isDrawerMode) return;
+
+    // On desktop mouse, don't capture drag pointer when clicking nav/buttons so clicks fire instantly
+    if (e.pointerType === 'mouse' && (e.target as HTMLElement).closest('button, nav, a')) {
+      return;
+    }
 
     startYRef.current = e.clientY;
     isDraggingRef.current = true;
     didMoveRef.current = false;
-    setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
@@ -210,23 +232,24 @@ export default function BottomNavigation() {
     const currentY = e.clientY;
     const deltaY = startYRef.current - currentY; // positive when dragging UP
 
-    if (Math.abs(deltaY) > 6) {
+    if (Math.abs(deltaY) > 8) {
       didMoveRef.current = true;
-    }
+      setIsDragging(true);
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
-      if (isExpanded) {
-        // Dragging down from expanded (deltaY <= 0)
-        const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
-        setDragY(clamped);
-      } else {
-        // Dragging up from collapsed (deltaY >= 0)
-        const clamped = Math.max(0, Math.min(maxDelta, deltaY));
-        setDragY(clamped);
-      }
-    });
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
+        if (isExpanded) {
+          // Dragging down from expanded (deltaY <= 0)
+          const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
+          setDragY(clamped);
+        } else {
+          // Dragging up from collapsed (deltaY >= 0)
+          const clamped = Math.max(0, Math.min(maxDelta, deltaY));
+          setDragY(clamped);
+        }
+      });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -240,13 +263,13 @@ export default function BottomNavigation() {
 
     if (didMoveRef.current) {
       if (isExpanded) {
-        if (deltaY < -70) {
+        if (deltaY < -60) {
           setIsExpanded(false);
         } else {
           setIsExpanded(true);
         }
       } else {
-        if (deltaY > 50) {
+        if (deltaY > 40) {
           if (isLessonPage) {
             setActiveTab('curriculum');
             setIsExpanded(true);
@@ -263,19 +286,14 @@ export default function BottomNavigation() {
     setDragY(null);
   };
 
-  // Smart Tab click handler
+  // Smart Tab click handler (Clean & instant navigation)
   const handleTabClick = (targetTab: 'curriculum' | 'tools', href: string, e: React.MouseEvent) => {
-    if (didMoveRef.current) {
-      e.preventDefault();
-      return;
-    }
+    e.stopPropagation();
 
     if (isExpanded) {
       if (activeTab === targetTab) {
-        e.preventDefault();
         setIsExpanded(false);
       } else {
-        e.preventDefault();
         setActiveTab(targetTab);
       }
       return;
@@ -283,26 +301,22 @@ export default function BottomNavigation() {
 
     // When collapsed:
     if (targetTab === 'curriculum') {
-      if (isLessonPage) {
-        // On lesson page ➔ Expand curriculum TOC drawer
-        e.preventDefault();
+      if (isHomePage) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (isLessonPage) {
         setActiveTab('curriculum');
         setIsExpanded(true);
-      } else if (isHomePage) {
-        // On home page ➔ Simply smooth scroll to top
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        router.push('/');
       }
     } else if (targetTab === 'tools') {
-      if (isToolsSubPage) {
-        // On tools sub-tool page ➔ Expand tools directory drawer
-        e.preventDefault();
+      if (pathname === '/tools') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (isToolsSubPage) {
         setActiveTab('tools');
         setIsExpanded(true);
-      } else if (pathname === '/tools') {
-        // On tools main page ➔ Simply smooth scroll to top
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        router.push('/tools');
       }
     }
   };
@@ -320,25 +334,32 @@ export default function BottomNavigation() {
     progress = isExpanded ? 1 : 0;
   }
 
-  // Active tab indicator key
+  // Active indicator state for smooth animated pill position
   const activeIndicatorTab = isExpanded ? activeTab : (isOnTools ? 'tools' : 'curriculum');
 
   // Stats calculation
-  const allLessons = CURRICULUM_DATA.flatMap((l) => l.lessons);
-  const totalLessonCount = allLessons.length;
-  const completedCount = completedLessons.filter((id) => allLessons.some((l) => l.id === id)).length;
+  const completedCount = completedLessons?.length || 0;
+  const totalLessonCount = CURRICULUM_DATA.reduce((acc, lvl) => acc + lvl.lessons.length, 0);
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
-  // Real-time height and width continuous calculations
-  const currentHeight = COLLAPSED_HEIGHT + progress * (sheetHeightRef.current - COLLAPSED_HEIGHT);
+  // Determine if on main page (pure floating capsule) vs subpage with drawer (docked U-shape)
+  const isMainPage = isHomePage || pathname === '/tools';
+  const isDrawerMode = !isMainPage || isExpanded;
+
+  const baseCollapsedHeight = isDrawerMode ? 72 : 44;
+  const baseCollapsedWidth = isDrawerMode ? 268 : 244;
+  const baseBottomMargin = isDrawerMode ? 0 : 12;
+
+  // Real-time height, width and margin continuous calculations
+  const currentHeight = baseCollapsedHeight + progress * (sheetHeightRef.current - baseCollapsedHeight);
   const maxTargetWidth = maxSheetWidthRef.current;
-  const currentWidth = COLLAPSED_WIDTH + progress * (maxTargetWidth - COLLAPSED_WIDTH);
-  const isSheetVisible = progress > 0.001 || isExpanded;
+  const currentWidth = baseCollapsedWidth + progress * (maxTargetWidth - baseCollapsedWidth);
+  const currentBottomMargin = baseBottomMargin * (1 - progress);
 
   // Animated progress bar fill state
   const [animatedPercent, setAnimatedPercent] = useState(0);
   useEffect(() => {
-    if (isSheetVisible && progress > 0.2) {
+    if (isExpanded) {
       const timer = setTimeout(() => {
         setAnimatedPercent(progressPercent);
       }, 120);
@@ -346,7 +367,7 @@ export default function BottomNavigation() {
     } else {
       setAnimatedPercent(0);
     }
-  }, [isSheetVisible, progress, progressPercent]);
+  }, [isExpanded, progressPercent]);
 
   return (
     <>
@@ -356,7 +377,7 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: isDragging ? 'none' : 'opacity 0.28s cubic-bezier(0.2, 0.9, 0.35, 1)',
+          transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         onClick={() => {
           setIsExpanded(false);
@@ -364,40 +385,64 @@ export default function BottomNavigation() {
         }}
       />
 
-      {/* 2. THE SINGLE UNIFIED PHYSICAL BOTTOM DRAWER (Always-On at Bottom, z-[100]) */}
-      <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0">
+      {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
+      <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className="pointer-events-auto border-t border-x border-[var(--border-color)]/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col will-change-[height,width,border-radius] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl"
+          className={`pointer-events-auto border-[var(--border-color)]/80 overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl ${
+            isDrawerMode 
+              ? 'border-t border-x shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)]' 
+              : 'border shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+          }`}
           style={{
             height: `${currentHeight}px`,
             width: `${currentWidth}px`,
             maxWidth: '100%',
-            borderRadius: progress > 0.05
+            marginBottom: `${currentBottomMargin}px`,
+            borderRadius: isExpanded || progress > 0.05
               ? '32px 32px 0px 0px'
-              : '24px 24px 0px 0px',
+              : isDrawerMode
+              ? '24px 24px 0px 0px'
+              : '22px 22px 22px 22px',
+            borderBottomWidth: isDrawerMode ? '0px' : '1px',
             transform: 'translateZ(0)',
             WebkitTransform: 'translateZ(0)',
-            transition: isDragging ? 'none' : 'height 0.28s cubic-bezier(0.2, 0.9, 0.35, 1), width 0.26s cubic-bezier(0.2, 0.9, 0.35, 1), border-radius 0.24s ease-out',
+            transition: isDragging 
+              ? 'none' 
+              : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-bottom-width 0.32s ease, box-shadow 0.35s ease',
           }}
         >
-          {/* ==================================================== */}
-          {/* TOP HEADER PILL: CONSTANT 276px ZERO-SHIFT GEOMETRY  */}
-          {/* ==================================================== */}
+          {/* Top Header Area (Draggable on whole header, handles taps cleanly) */}
           <div 
-            className="w-full h-[56px] flex items-center justify-center shrink-0 select-none px-2 cursor-grab active:cursor-grabbing touch-none"
+            className="w-full relative shrink-0 select-none flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
+            style={{
+              height: isDrawerMode ? '72px' : '44px',
+              transition: isDragging ? 'none' : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-            {/* The Physical Capsule Pill Header (Always exactly 276px, never shifts) */}
+            {/* Dedicated Notch Grab Handle Bar */}
+            <div 
+              aria-hidden="true"
+              className={`absolute top-[7px] left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full bg-slate-400/85 dark:bg-zinc-500/85 shadow-2xs pointer-events-none transition-opacity duration-300 ${
+                isDrawerMode ? 'opacity-100' : 'opacity-0'
+              }`} 
+            />
+
+            {/* The 240px Navigation Tab Bar (Synchronized 14.0px Zero-Jolt Bottom Transition) */}
             <nav 
               aria-label="하단 내비게이션"
-              className="w-[276px] relative flex items-center justify-around overflow-hidden rounded-full p-0.5"
+              className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto"
+              style={{
+                bottom: isDrawerMode ? '14px' : '2px',
+                transition: isDragging ? 'none' : 'bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 shadow-[0_0_16px_rgba(241,143,1,0.25)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 shadow-[0_0_14px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
@@ -405,10 +450,10 @@ export default function BottomNavigation() {
               />
 
               {/* Tab 1: 커리큘럼 */}
-              <Link
-                href="/"
+              <button
+                type="button"
                 onClick={(e) => handleTabClick('curriculum', '/', e)}
-                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'curriculum'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
@@ -416,13 +461,13 @@ export default function BottomNavigation() {
               >
                 <BookOpen className="w-4 h-4 stroke-[2.2] shrink-0" />
                 <span className="text-xs tracking-tight whitespace-nowrap">커리큘럼</span>
-              </Link>
+              </button>
 
               {/* Tab 2: 투자도구 */}
-              <Link
-                href="/tools"
+              <button
+                type="button"
                 onClick={(e) => handleTabClick('tools', '/tools', e)}
-                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'tools'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
@@ -430,220 +475,221 @@ export default function BottomNavigation() {
               >
                 <Wrench className="w-4 h-4 stroke-[2.2] shrink-0" />
                 <span className="text-xs tracking-tight whitespace-nowrap">투자도구</span>
-              </Link>
+              </button>
             </nav>
           </div>
 
           {/* ==================================================== */}
-          {/* REVEALED DRAWER CONTENT AREA (Vertical Reveal)       */}
+          {/* REVEALED DRAWER CONTENT AREA (Physical Shutter Clip)  */}
           {/* ==================================================== */}
-          {isSheetVisible && (
-            <div 
-              className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-              style={{
-                opacity: Math.max(0, (progress - 0.08) / 0.92),
-                transition: isDragging ? 'none' : 'opacity 0.2s ease',
-              }}
-            >
-              {/* A. CURRICULUM TOC VIEW */}
-              {activeTab === 'curriculum' && (
-                <div className="space-y-4">
-                  {/* Progress Header Card */}
-                  {user && (
-                    <div className="p-4 rounded-2xl bg-[var(--card-hover)]/40 border border-[var(--border-color)] space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-[var(--accent-green)]" />
-                          학습 진도
-                        </span>
-                        <span className="font-mono text-[var(--accent-orange)] font-extrabold">
-                          {completedCount} / {totalLessonCount}강 ({progressPercent}%)
-                        </span>
-                      </div>
-                      {/* Animated Progress Fill Bar */}
-                      <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-700 ease-out rounded-full"
-                          style={{ width: `${animatedPercent}%` }}
-                        />
-                      </div>
+          <div 
+            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            style={{
+              contain: 'paint',
+              opacity: progress > 0.05 ? Math.max(0, (progress - 0.05) / 0.95) : 0,
+              pointerEvents: isExpanded ? 'auto' : 'none',
+              visibility: progress > 0.01 ? 'visible' : 'hidden',
+              transition: isDragging ? 'none' : 'opacity 0.22s ease, visibility 0.22s ease',
+            }}
+          >
+            {/* A. CURRICULUM TOC VIEW */}
+            {activeTab === 'curriculum' && (
+              <div className="space-y-4">
+                {/* Progress Header Card */}
+                {user && (
+                  <div className="p-4 rounded-2xl bg-[var(--card-hover)]/40 border border-[var(--border-color)] space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-[var(--accent-green)]" />
+                        학습 진도
+                      </span>
+                      <span className="font-mono text-[var(--accent-orange)] font-extrabold">
+                        {completedCount} / {totalLessonCount}강 ({progressPercent}%)
+                      </span>
                     </div>
-                  )}
-
-                  <div className="space-y-2.5">
-                    {CURRICULUM_DATA.map((level) => {
-                      const isOpen = !!openLevels[level.id];
-                      const containsCurrent = isLessonPage && level.lessons.some((l) => l.id === currentLessonId);
-                      const IconComponent = LEVEL_ICON_MAP[level.iconName] || Brain;
-                      const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
-                      const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
-
-                      return (
-                        <div
-                          key={level.id}
-                          className={`rounded-2xl transition-all duration-300 overflow-hidden ${
-                            containsCurrent
-                              ? 'glass-card border-[var(--accent-orange)]/70 ring-1 ring-[var(--accent-orange)]/40 shadow-[0_0_18px_rgba(241,143,1,0.14)]'
-                              : level.isComingSoon
-                              ? 'glass-card border-[var(--border-color)] opacity-60'
-                              : 'glass-card border-[var(--border-color)]'
-                          }`}
-                        >
-                          {/* Clickable Level Header Button */}
-                          <button
-                            type="button"
-                            onClick={() => toggleLevel(level.id, level.isComingSoon)}
-                            className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
-                          >
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${containsCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
-                                <IconComponent className="w-4 h-4 stroke-[2]" />
-                              </div>
-                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] truncate">
-                                  {level.title}
-                                </h3>
-                                <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
-                                  Lv.{level.levelNumber}
-                                </span>
-                                {isLevelFullyCompleted && !level.isComingSoon && (
-                                  <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[var(--accent-green)] text-white shrink-0">
-                                    <CheckCircle2 className="w-2.5 h-2.5" /> 완료
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                              {level.isComingSoon ? (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--text-secondary)] font-mono">
-                                  준비 중
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-[var(--text-secondary)] font-mono font-bold">
-                                  {user ? `${levelCompletedCount}/${level.lessons.length}강` : `${level.lessons.length}강`}
-                                </span>
-                              )}
-                              <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />
-                            </div>
-                          </button>
-
-                          {/* Smooth CSS Grid Accordion Transition */}
-                          <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                            <div className="overflow-hidden">
-                              <div className="p-2 pt-1 space-y-1.5">
-                                {level.lessons.map((lesson) => {
-                                  const isActive = lesson.id === currentLessonId;
-                                  const completed = Boolean(user && isLessonCompleted(lesson.id));
-                                  return (
-                                    <Link
-                                      key={lesson.id}
-                                      href={`/lesson/${lesson.id}`}
-                                      onClick={() => {
-                                        setIsExpanded(false);
-                                        setDragY(null);
-                                      }}
-                                      className={`group/item flex items-center justify-between gap-2.5 p-2.5 rounded-xl text-xs transition-all ${
-                                        isActive 
-                                          ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] text-[var(--accent-orange)] font-black shadow-[0_0_12px_rgba(241,143,1,0.2)]' 
-                                          : 'border border-[var(--border-color)]/70 bg-[var(--card-hover)]/40 hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)]'
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? 'bg-[var(--accent-orange)] text-white' : completed ? 'bg-[var(--accent-green)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
-                                          {completed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                          <span className="truncate font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent-orange)] transition-colors">
-                                            {lesson.title}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div className="shrink-0 text-[10px] text-[var(--text-secondary)] font-mono flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {lesson.duration}
-                                      </div>
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {/* Animated Progress Fill Bar */}
+                    <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
+                      <div 
+                        className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-700 ease-out rounded-full"
+                        style={{ width: `${animatedPercent}%` }}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* B. TOOLS DIRECTORY VIEW */}
-              {activeTab === 'tools' && (
                 <div className="space-y-2.5">
-                  {TOOLS_DIRECTORY.map((tool, idx) => {
-                    const ToolIcon = tool.icon;
-                    const isCurrent = !tool.isComingSoon && pathname.startsWith(tool.href);
-                    
-                    if (tool.isComingSoon) {
-                      return (
-                        <div
-                          key={idx}
-                          className="p-3 sm:p-3.5 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
-                              <ToolIcon className="w-4 h-4 stroke-[1.8]" />
-                            </div>
-                            <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate">{tool.title}</h3>
-                          </div>
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] shrink-0">
-                            오픈 예정
-                          </span>
-                        </div>
-                      );
-                    }
+                  {CURRICULUM_DATA.map((level) => {
+                    const isOpen = !!openLevels[level.id];
+                    const containsCurrent = isLessonPage && level.lessons.some((l) => l.id === currentLessonId);
+                    const IconComponent = LEVEL_ICON_MAP[level.iconName] || Brain;
+                    const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
+                    const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
 
                     return (
-                      <Link
-                        key={idx}
-                        href={tool.href}
-                        onClick={() => {
-                          setIsExpanded(false);
-                          setDragY(null);
-                        }}
-                        className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
-                          isCurrent 
-                            ? 'bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
-                            : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
+                      <div
+                        key={level.id}
+                        className={`rounded-2xl transition-all duration-300 overflow-hidden ${
+                          containsCurrent
+                            ? 'glass-card border-[var(--accent-orange)]/70 ring-1 ring-[var(--accent-orange)]/40 shadow-[0_0_18px_rgba(241,143,1,0.14)]'
+                            : level.isComingSoon
+                            ? 'glass-card border-[var(--border-color)] opacity-60'
+                            : 'glass-card border-[var(--border-color)]'
                         }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                            isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'
-                          }`}>
-                            <ToolIcon className="w-4 h-4 stroke-[2]" />
+                        {/* Clickable Level Header Button */}
+                        <button
+                          type="button"
+                          onClick={() => toggleLevel(level.id, level.isComingSoon)}
+                          className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${containsCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
+                              <IconComponent className="w-4 h-4 stroke-[2]" />
+                            </div>
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                              <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] truncate">
+                                {level.title}
+                              </h3>
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+                                Lv.{level.levelNumber}
+                              </span>
+                              {isLevelFullyCompleted && !level.isComingSoon && (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[var(--accent-green)] text-white shrink-0">
+                                  <CheckCircle2 className="w-2.5 h-2.5" /> 완료
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
-                              {tool.title}
-                            </h3>
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
-                              {tool.tag}
-                            </span>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {level.isComingSoon ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--text-secondary)] font-mono">
+                                준비 중
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-[var(--text-secondary)] font-mono font-bold">
+                                {user ? `${levelCompletedCount}/${level.lessons.length}강` : `${level.lessons.length}강`}
+                              </span>
+                            )}
+                            <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />
+                          </div>
+                        </button>
+
+                        {/* Smooth CSS Grid Accordion Transition */}
+                        <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                          <div className="overflow-hidden">
+                            <div className="p-2 pt-1 space-y-1.5">
+                              {level.lessons.map((lesson) => {
+                                const isActive = lesson.id === currentLessonId;
+                                const completed = Boolean(user && isLessonCompleted(lesson.id));
+                                return (
+                                  <Link
+                                    key={lesson.id}
+                                    href={`/lesson/${lesson.id}`}
+                                    onClick={() => {
+                                      setIsExpanded(false);
+                                      setDragY(null);
+                                    }}
+                                    className={`group/item flex items-center justify-between gap-2.5 p-2.5 rounded-xl text-xs transition-all ${
+                                      isActive 
+                                        ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] text-[var(--accent-orange)] font-black shadow-[0_0_12px_rgba(241,143,1,0.2)]' 
+                                        : 'border border-[var(--border-color)]/70 bg-[var(--card-hover)]/40 hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)]'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? 'bg-[var(--accent-orange)] text-white' : completed ? 'bg-[var(--accent-green)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
+                                        {completed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <span className="truncate font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent-orange)] transition-colors">
+                                          {lesson.title}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="shrink-0 text-[10px] text-[var(--text-secondary)] font-mono flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {lesson.duration}
+                                    </div>
+                                  </Link>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {isCurrent ? (
-                            <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white">이용 중</span>
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
-                          )}
-                        </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+
+            {/* B. TOOLS DIRECTORY VIEW */}
+            {activeTab === 'tools' && (
+              <div className="space-y-2.5">
+                {TOOLS_DIRECTORY.map((tool, idx) => {
+                  const ToolIcon = tool.icon;
+                  const isCurrent = !tool.isComingSoon && pathname.startsWith(tool.href);
+                  
+                  if (tool.isComingSoon) {
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 sm:p-3.5 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
+                            <ToolIcon className="w-4 h-4 stroke-[1.8]" />
+                          </div>
+                          <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate">{tool.title}</h3>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] shrink-0">
+                          오픈 예정
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={idx}
+                      href={tool.href}
+                      onClick={() => {
+                        setIsExpanded(false);
+                        setDragY(null);
+                      }}
+                      className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                        isCurrent 
+                          ? 'bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
+                          : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                          isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'
+                        }`}>
+                          <ToolIcon className="w-4 h-4 stroke-[2]" />
+                        </div>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
+                            {tool.title}
+                          </h3>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+                            {tool.tag}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {isCurrent ? (
+                          <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white">이용 중</span>
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

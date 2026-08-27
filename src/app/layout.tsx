@@ -1,10 +1,18 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import BottomNavigation from '@/components/BottomNavigation';
 import ScrollToTop from '@/components/ScrollToTop';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jusik.app'),
@@ -145,8 +153,8 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
-            <BottomNavigation />
           </div>
+          <BottomNavigation />
         </AuthProvider>
       </body>
     </html>
