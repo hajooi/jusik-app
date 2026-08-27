@@ -454,7 +454,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <button
             onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-sm border border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/90 shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-sm border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_18px_rgba(241,143,1,0.28)] active:scale-[0.98] transition-all cursor-pointer"
           >
             <Share2 className="w-4 h-4 text-white" />
             <span>{copied ? '궁합 링크 복사 완료! 친구에게 보내보세요' : '친구에게 공유하고 투자 궁합 확인하기'}</span>
@@ -462,7 +462,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
           <button
             onClick={onRestart}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] active:scale-[0.98] transition-all cursor-pointer"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer"
           >
             <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />
             <span>다시 진단하기</span>
