@@ -130,7 +130,7 @@ function SpectrumGaugeItem({
   }, [leftPct, rightPct]);
 
   return (
-    <div className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] transition-all duration-200 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.12)]">
+    <div className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] transition-all duration-200">
       {/* Header Labels: Only the dominant/winner trait gets the percentage */}
       <div className="flex items-center justify-between text-xs sm:text-sm font-extrabold">
         <div className="flex items-center gap-1.5">
@@ -449,26 +449,26 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </div>
       )}
 
-      {/* Action Buttons: 💖 공유하기 (주황색 강조 메인 버튼) & 다시 진단하기 (보조 버튼) */}
+      {/* Action Buttons: 공유하기 & 다시 진단하기 */}
       {!isReadOnly && (
         <div className="flex flex-col sm:flex-row gap-3 pt-1">
           <button
             onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-black text-sm border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-sm border border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/90 shadow-sm hover:shadow-md active:scale-[0.98] transition-all cursor-pointer"
           >
             <Share2 className="w-4 h-4 text-white" />
-            <span>{copied ? '궁합 링크 복사 완료! 친구에게 보내보세요 🎉' : '친구에게 공유하고 투자 궁합 확인하기 💖'}</span>
+            <span>{copied ? '궁합 링크 복사 완료! 친구에게 보내보세요' : '친구에게 공유하고 투자 궁합 확인하기'}</span>
           </button>
 
           <button
             onClick={onRestart}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] active:scale-[0.98] transition-all cursor-pointer"
           >
             <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />
             <span>다시 진단하기</span>
           </button>
-          </div>
-        )}
+        </div>
+      )}
         </div>
       </RevealOnScroll>
     </div>
