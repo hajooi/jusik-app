@@ -328,22 +328,23 @@ export default function BottomNavigation() {
       return;
     }
 
-    // When collapsed:
+    // When collapsed on subpages (lessons or tools), tapping either tab opens the drawer directly!
+    if (isLessonPage || isToolsSubPage) {
+      setActiveTab(targetTab);
+      setIsExpanded(true);
+      return;
+    }
+
+    // When collapsed on main hubs (Home / and Tools /tools):
     if (targetTab === 'curriculum') {
       if (isHomePage) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (isLessonPage) {
-        setActiveTab('curriculum');
-        setIsExpanded(true);
       } else {
         router.push('/');
       }
     } else if (targetTab === 'tools') {
       if (pathname === '/tools') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (isToolsSubPage) {
-        setActiveTab('tools');
-        setIsExpanded(true);
       } else {
         router.push('/tools');
       }
@@ -408,11 +409,11 @@ export default function BottomNavigation() {
     <>
       {/* 1. Backdrop Dimming (z-[99] covers top sticky Navbar and Account profile) */}
       <div
-        className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-xs transition-opacity duration-300 pointer-events-none will-change-opacity"
+        className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-xs transition-opacity pointer-events-none will-change-opacity"
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         onClick={() => {
           setIsExpanded(false);
@@ -437,11 +438,11 @@ export default function BottomNavigation() {
             pointerEvents: isScrolling ? 'none' : 'auto',
             borderRadius: `${currentTopRadius}px ${currentTopRadius}px ${currentBottomRadius}px ${currentBottomRadius}px`,
             borderBottomWidth: currentBottomRadius === 0 ? '0px' : '1px',
-            transform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translateZ(0)',
-            WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translateZ(0)',
+            transform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
+            WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
             transition: isDragging 
               ? 'none' 
-              : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-bottom-width 0.32s ease, box-shadow 0.35s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1), width 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.38s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           {/* Top Header Area */}
@@ -449,7 +450,7 @@ export default function BottomNavigation() {
             className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default"
             style={{
               height: `${currentHeaderHeight}px`,
-              transition: isDragging ? 'none' : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: isDragging ? 'none' : 'height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -464,7 +465,7 @@ export default function BottomNavigation() {
               }`} 
               style={{
                 opacity: currentNotchOpacity,
-                transition: isDragging ? 'none' : 'opacity 0.3s ease',
+                transition: isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
 
@@ -474,7 +475,7 @@ export default function BottomNavigation() {
               className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
               style={{
                 bottom: `${currentNavBottom}px`,
-                transition: isDragging ? 'none' : 'bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
@@ -520,13 +521,17 @@ export default function BottomNavigation() {
           {/* REVEALED DRAWER CONTENT AREA (Physical Shutter Clip)  */}
           {/* ==================================================== */}
           <div 
-            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden will-change-[transform,opacity]"
             style={{
               contain: 'paint',
               opacity: progress > 0.05 ? Math.max(0, (progress - 0.05) / 0.95) : 0,
               pointerEvents: isExpanded ? 'auto' : 'none',
               visibility: progress > 0.01 ? 'visible' : 'hidden',
-              transition: isDragging ? 'none' : 'opacity 0.22s ease, visibility 0.22s ease',
+              transform: isExpanded ? 'translate3d(0, 0, 0)' : 'translate3d(0, 16px, 0)',
+              WebkitTransform: isExpanded ? 'translate3d(0, 0, 0)' : 'translate3d(0, 16px, 0)',
+              transition: isDragging 
+                ? 'none' 
+                : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
