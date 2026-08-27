@@ -117,11 +117,38 @@ export default function BottomNavigation() {
   const isToolsSubPage = pathname.startsWith('/tools/') && pathname !== '/tools';
   const currentLessonId = isLessonPage ? pathname.split('/lesson/')[1] : '';
 
-  // Viewport-based max sheet height & width
+  // Scroll active state for translucent auto-fade while scrolling
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
+  // Screen width & viewport-based max sheet dimensions
+  const [screenWidth, setScreenWidth] = useState(400);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+
   useEffect(() => {
     const updateDimensions = () => {
+      const w = window.innerWidth;
+      const isMob = w < 640;
+      setScreenWidth(w);
+      setIsMobileScreen(isMob);
       sheetHeightRef.current = Math.min(window.innerHeight * 0.78, 600);
-      maxSheetWidthRef.current = Math.min(window.innerWidth < 640 ? window.innerWidth : 576, 576);
+      maxSheetWidthRef.current = Math.min(isMob ? w : 576, 576);
     };
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
@@ -212,9 +239,11 @@ export default function BottomNavigation() {
     };
   }, []);
 
+  const canPullDrawer = isLessonPage || isToolsSubPage || isExpanded;
+
   // Pointer drag gestures for sheet pulling
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (!isDrawerMode) return;
+    if (!canPullDrawer) return;
 
     // On desktop mouse, don't capture drag pointer when clicking nav/buttons so clicks fire instantly
     if (e.pointerType === 'mouse' && (e.target as HTMLElement).closest('button, nav, a')) {
@@ -342,19 +371,25 @@ export default function BottomNavigation() {
   const totalLessonCount = CURRICULUM_DATA.reduce((acc, lvl) => acc + lvl.lessons.length, 0);
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
-  // Determine if on main page (pure floating capsule) vs subpage with drawer (docked U-shape)
-  const isMainPage = isHomePage || pathname === '/tools';
-  const isDrawerMode = !isMainPage || isExpanded;
+  // Apple Music Style: Always a sleek 44px floating pill when collapsed across ALL pages
+  const baseCollapsedHeight = 44;
+  const baseCollapsedWidth = 244;
+  const baseBottomMargin = 12;
 
-  const baseCollapsedHeight = isDrawerMode ? 72 : 44;
-  const baseCollapsedWidth = isDrawerMode ? 268 : 244;
-  const baseBottomMargin = isDrawerMode ? 0 : 12;
-
-  // Real-time height, width and margin continuous calculations
+  // Real-time height, width, margin and continuous corner radius calculations
   const currentHeight = baseCollapsedHeight + progress * (sheetHeightRef.current - baseCollapsedHeight);
   const maxTargetWidth = maxSheetWidthRef.current;
   const currentWidth = baseCollapsedWidth + progress * (maxTargetWidth - baseCollapsedWidth);
   const currentBottomMargin = baseBottomMargin * (1 - progress);
+
+  // Smooth continuous corner radius interpolation (22px pill -> 32px sheet top, 22px pill -> 0px sheet bottom)
+  const currentTopRadius = Math.round(22 + progress * (32 - 22));
+  const currentBottomRadius = Math.round(22 * (1 - progress));
+
+  // Continuous Header & Nav geometry interpolation (Zero abrupt jumps)
+  const currentHeaderHeight = Math.round(44 + progress * (72 - 44));
+  const currentNavBottom = Math.round(2 + progress * (14 - 2));
+  const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
 
   // Animated progress bar fill state
   const [animatedPercent, setAnimatedPercent] = useState(0);
@@ -388,34 +423,32 @@ export default function BottomNavigation() {
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
       <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className={`pointer-events-auto border-[var(--border-color)]/80 overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl ${
-            isDrawerMode 
-              ? 'border-t border-x shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)]' 
-              : 'border shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+          className={`pointer-events-auto overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom,opacity,transform] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl border border-[var(--border-color)]/80 ${
+            progress > 0.05
+              ? 'shadow-[0_-6px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_40px_rgba(0,0,0,0.6)]'
+              : 'shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_28px_rgba(0,0,0,0.45)]'
           }`}
           style={{
             height: `${currentHeight}px`,
             width: `${currentWidth}px`,
             maxWidth: '100%',
             marginBottom: `${currentBottomMargin}px`,
-            borderRadius: isExpanded || progress > 0.05
-              ? '32px 32px 0px 0px'
-              : isDrawerMode
-              ? '24px 24px 0px 0px'
-              : '22px 22px 22px 22px',
-            borderBottomWidth: isDrawerMode ? '0px' : '1px',
-            transform: 'translateZ(0)',
-            WebkitTransform: 'translateZ(0)',
+            opacity: isScrolling ? 0.75 : 1,
+            pointerEvents: isScrolling ? 'none' : 'auto',
+            borderRadius: `${currentTopRadius}px ${currentTopRadius}px ${currentBottomRadius}px ${currentBottomRadius}px`,
+            borderBottomWidth: currentBottomRadius === 0 ? '0px' : '1px',
+            transform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translateZ(0)',
+            WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translateZ(0)',
             transition: isDragging 
               ? 'none' 
-              : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-bottom-width 0.32s ease, box-shadow 0.35s ease',
+              : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-bottom-width 0.32s ease, box-shadow 0.35s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {/* Top Header Area (Draggable on whole header, handles taps cleanly) */}
+          {/* Top Header Area */}
           <div 
-            className="w-full relative shrink-0 select-none flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
+            className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default"
             style={{
-              height: isDrawerMode ? '72px' : '44px',
+              height: `${currentHeaderHeight}px`,
               transition: isDragging ? 'none' : 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onPointerDown={handlePointerDown}
@@ -423,20 +456,24 @@ export default function BottomNavigation() {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-            {/* Dedicated Notch Grab Handle Bar */}
+            {/* Dedicated Notch Grab Handle Bar (Continuous smooth fade in) */}
             <div 
               aria-hidden="true"
-              className={`absolute top-[7px] left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full bg-slate-400/85 dark:bg-zinc-500/85 shadow-2xs pointer-events-none transition-opacity duration-300 ${
-                isDrawerMode ? 'opacity-100' : 'opacity-0'
+              className={`absolute top-[7px] left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full bg-slate-400/85 dark:bg-zinc-500/85 shadow-2xs ${
+                progress > 0.05 ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'
               }`} 
+              style={{
+                opacity: currentNotchOpacity,
+                transition: isDragging ? 'none' : 'opacity 0.3s ease',
+              }}
             />
 
-            {/* The 240px Navigation Tab Bar (Synchronized 14.0px Zero-Jolt Bottom Transition) */}
+            {/* The 240px Navigation Tab Bar (Centered & Smoothly positioned) */}
             <nav 
               aria-label="하단 내비게이션"
-              className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto"
+              className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
               style={{
-                bottom: isDrawerMode ? '14px' : '2px',
+                bottom: `${currentNavBottom}px`,
                 transition: isDragging ? 'none' : 'bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >

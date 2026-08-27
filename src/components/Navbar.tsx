@@ -31,10 +31,10 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 transition-all duration-200">
+      <header className="fixed top-0 inset-x-0 z-50 transition-all duration-200">
         {/* iOS Progressive Glass Blur Layer */}
         <div 
-          className="absolute inset-x-0 top-0 -bottom-3 bg-[var(--bg-main)]/65 backdrop-blur-md pointer-events-none transition-all"
+          className="absolute inset-x-0 top-0 -bottom-3 bg-[var(--bg-main)]/75 backdrop-blur-md pointer-events-none transition-all"
           style={{
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)'
