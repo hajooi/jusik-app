@@ -155,55 +155,72 @@ export default function BottomNavigation() {
     };
   }, [isExpanded]);
 
-  // Drawer inner content scroll vs drawer pull-down detection (2-Step Gesture Protection)
+  // Drawer inner content scroll vs drawer pull-down detection (2-Step Gesture Protection & Bounce Cancellation)
   const contentRef = useRef<HTMLDivElement>(null);
   const contentTouchStartYRef = useRef(0);
   const isContentDraggingRef = useRef(false);
   const startedAtTopRef = useRef(false);
 
-  const handleContentTouchStart = (e: React.TouchEvent) => {
-    if (!isExpanded) return;
-    contentTouchStartYRef.current = e.touches[0].clientY;
-    isContentDraggingRef.current = false;
-    const scrollTop = contentRef.current ? contentRef.current.scrollTop : 0;
-    // CRITICAL: ONLY allow drawer pull-down if the gesture STARTED when already at the top (scrollTop <= 0)
-    startedAtTopRef.current = scrollTop <= 0;
-  };
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
 
-  const handleContentTouchMove = (e: React.TouchEvent) => {
-    if (!isExpanded || !startedAtTopRef.current) return;
-    const currentY = e.touches[0].clientY;
-    const deltaY = contentTouchStartYRef.current - currentY; // negative when dragging down
-    const scrollTop = contentRef.current ? contentRef.current.scrollTop : 0;
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isExpanded) return;
+      contentTouchStartYRef.current = e.touches[0].clientY;
+      isContentDraggingRef.current = false;
+      const scrollTop = el.scrollTop;
+      startedAtTopRef.current = scrollTop <= 0;
+    };
 
-    // Only initiate drawer drag when started at top, still at top, and pulling downwards
-    if (scrollTop <= 0 && deltaY < -12) {
-      isContentDraggingRef.current = true;
-      setIsDragging(true);
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isExpanded || !startedAtTopRef.current) return;
+      const currentY = e.touches[0].clientY;
+      const deltaY = contentTouchStartYRef.current - currentY; // negative when dragging down
+      const scrollTop = el.scrollTop;
+
+      // When dragging downwards from the top:
+      if (scrollTop <= 0 && deltaY < -8) {
+        if (e.cancelable) e.preventDefault(); // Stop native overscroll bounce completely to prevent 2x fast movement!
+        isContentDraggingRef.current = true;
+        setIsDragging(true);
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
+          const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
+          setDragY(clamped);
+        });
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isContentDraggingRef.current) return;
+      isContentDraggingRef.current = false;
+      setIsDragging(false);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
-        const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
-        setDragY(clamped);
-      });
-    }
-  };
 
-  const handleContentTouchEnd = (e: React.TouchEvent) => {
-    if (!isContentDraggingRef.current) return;
-    isContentDraggingRef.current = false;
-    setIsDragging(false);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      const currentY = e.changedTouches[0].clientY;
+      const deltaY = contentTouchStartYRef.current - currentY;
+      const threshold = (sheetHeightRef.current - COLLAPSED_HEIGHT) * 0.25;
 
-    const currentY = e.changedTouches[0].clientY;
-    const deltaY = contentTouchStartYRef.current - currentY;
-    const threshold = (sheetHeightRef.current - COLLAPSED_HEIGHT) * 0.25;
+      if (deltaY < -threshold) {
+        setIsExpanded(false);
+      }
+      setDragY(null);
+    };
 
-    if (deltaY < -threshold) {
-      setIsExpanded(false);
-    }
-    setDragY(null);
-  };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [isExpanded]);
 
   // Screen width & viewport-based max sheet dimensions
   const [screenWidth, setScreenWidth] = useState(400);
@@ -597,10 +614,7 @@ export default function BottomNavigation() {
           {/* ==================================================== */}
           <div 
             ref={contentRef}
-            onTouchStart={handleContentTouchStart}
-            onTouchMove={handleContentTouchMove}
-            onTouchEnd={handleContentTouchEnd}
-            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10"
+            className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10"
             style={{
               contain: 'paint layout',
               opacity: progress > 0.12 ? Math.min(1, (progress - 0.12) / 0.75) : 0,
