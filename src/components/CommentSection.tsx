@@ -321,9 +321,16 @@ export default function CommentSection({
                 alt={user.nickname}
                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)]"
               />
-              <span>{user.nickname}</span>
+              <span className="flex items-center gap-1">
+                <span>{user.nickname}</span>
+                {isMasterAdmin && (
+                  <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
+                  </span>
+                )}
+              </span>
 
-              {/* Dynamic Active Badge on Comment Form Header */}
+              {/* Dynamic Active Badge on Comment Form Header (All rounded-full) */}
               {user.activeBadge === 'none' ? null : user.activeBadge === 'pro' ? (
                 <span 
                   className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
@@ -334,7 +341,7 @@ export default function CommentSection({
                 </span>
               ) : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
                 <span 
-                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono leading-none select-none ${
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono leading-none select-none ${
                     (user.termsQuizBest.percentile && user.termsQuizBest.percentile <= 10) || user.termsQuizBest.badgeName?.includes('마스터')
                       ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
                       : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'
@@ -343,16 +350,10 @@ export default function CommentSection({
                   {user.termsQuizBest.badgeName}
                 </span>
               ) : (user.activeBadge === 'investmentType' || !user.activeBadge) && user.investmentType && user.investmentType !== '미진단' ? (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                   {user.investmentType}
                 </span>
               ) : null}
-
-              {isMasterAdmin && (
-                <span className="inline-flex items-center text-[var(--accent-orange)]" title="관리자">
-                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
-                </span>
-              )}
             </div>
             <span className="text-[11px] text-[var(--text-secondary)] font-mono">{content.length}/500</span>
           </div>
@@ -427,9 +428,16 @@ export default function CommentSection({
                       alt={root.nickname}
                       className="w-6 h-6 rounded-full object-cover border border-[var(--border-color)] bg-[var(--card-surface)] shrink-0 shadow-2xs"
                     />
-                    <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
+                    <span className="flex items-center gap-1">
+                      <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
+                      {root.nickname === '주식부엉' && (
+                        <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                          <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
+                        </span>
+                      )}
+                    </span>
 
-                    {/* User Active Badge Selection (One of: PRO / Terms Quiz / Investment Type) */}
+                    {/* User Active Badge Selection (One of: PRO / Terms Quiz / Investment Type) - ALL rounded-full */}
                     {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' ? (
                       <span 
                         className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
@@ -462,7 +470,7 @@ export default function CommentSection({
                                   }
                             );
                           }}
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
                             (rootTermsQuiz.percentile && rootTermsQuiz.percentile <= 10) || rootTermsQuiz.badgeName?.includes('마스터')
                               ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
                               : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs'
@@ -505,7 +513,7 @@ export default function CommentSection({
                                   }
                             );
                           }}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
                           title={`${root.nickname}님의 ${rootInvestmentType} 성향 미리보기`}
                         >
                           {rootInvestmentType}
@@ -521,13 +529,6 @@ export default function CommentSection({
                         )}
                       </div>
                     ) : null}
-
-                    {/* Master Admin Verified Check Indicator */}
-                    {root.nickname === '주식부엉' && (
-                      <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
-                        <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
-                      </span>
-                    )}
 
                     <span className="text-[10px] text-[var(--text-secondary)]">
                       {formatRelativeTime(root.createdAt)}
@@ -638,12 +639,19 @@ export default function CommentSection({
                                 alt={reply.nickname}
                                 className="w-5 h-5 rounded-full object-cover border border-[var(--border-color)] bg-[var(--bg-main)] shrink-0"
                               />
-                              <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
+                              <span className="flex items-center gap-1">
+                                <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
+                                {reply.nickname === '주식부엉' && (
+                                  <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
+                                    <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
+                                  </span>
+                                )}
+                              </span>
 
-                              {/* User Active Badge Selection on Reply (One of: PRO / Terms Quiz / Investment Type) */}
+                              {/* User Active Badge Selection on Reply (One of: PRO / Terms Quiz / Investment Type) - ALL rounded-full */}
                               {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' ? (
                                 <span 
-                                  className="animate-pro-badge inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
+                                  className="animate-pro-badge inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                                   title={`${reply.nickname}님의 PRO 회원 뱃지`}
                                 >
                                   <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
@@ -673,7 +681,7 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className={`inline-flex items-center px-1 py-0.2 rounded text-[9.5px] sm:text-[10px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
                                       (replyTermsQuiz.percentile && replyTermsQuiz.percentile <= 10) || replyTermsQuiz.badgeName?.includes('마스터')
                                         ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
                                         : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]'
@@ -716,7 +724,7 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className="inline-flex items-center px-1 py-0.2 rounded text-[9.5px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] transition-all leading-none select-none cursor-pointer"
+                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] transition-all leading-none select-none cursor-pointer"
                                     title={`${reply.nickname}님의 ${replyInvestmentType} 성향 미리보기`}
                                   >
                                     {replyInvestmentType}
@@ -732,13 +740,6 @@ export default function CommentSection({
                                   )}
                                 </div>
                               ) : null}
-
-                              {/* Master Admin Verified Check Indicator */}
-                              {reply.nickname === '주식부엉' && (
-                                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증 관리자">
-                                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
-                                </span>
-                              )}
                             </div>
                             <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)] shrink-0">
                               <span>{formatRelativeTime(reply.createdAt)}</span>

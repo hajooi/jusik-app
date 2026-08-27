@@ -293,7 +293,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             return (
               <div className="space-y-1.5">
                 <div className="text-[11px] text-[var(--text-secondary)] font-bold px-0.5">
-                  댓글 노출 뱃지 선택
+                  노출 뱃지 선택
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5">
@@ -341,7 +341,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                         )}
                       </div>
                       <div className="flex items-center justify-center pt-0.5">
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                           {user.investmentType}
                         </span>
                       </div>
@@ -367,7 +367,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                       </div>
                       <div className="flex items-center justify-center pt-0.5">
                         <span 
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold font-mono transition-all leading-none select-none ${
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono transition-all leading-none select-none ${
                             (user.termsQuizBest?.percentile && user.termsQuizBest?.percentile <= 10) || user.termsQuizBest?.badgeName?.includes('마스터')
                               ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
                               : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'

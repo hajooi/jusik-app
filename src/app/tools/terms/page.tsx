@@ -694,7 +694,7 @@ function TermsQuizContent() {
                                       }
                                 );
                               }}
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
                                 ((item.termsQuizBest?.percentile ?? item.percentile) && (item.termsQuizBest?.percentile ?? item.percentile ?? 100) <= 10) || (item.termsQuizBest?.badgeName || '').includes('마스터')
                                   ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
                                   : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs'
@@ -734,7 +734,7 @@ function TermsQuizContent() {
                                       }
                                 );
                               }}
-                              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
                               title={`${item.nickname}님의 ${item.investmentType} 성향 보기`}
                             >
                               {item.investmentType}
