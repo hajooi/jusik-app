@@ -93,22 +93,19 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const { user, isLessonCompleted, completedLessons } = useAuth();
 
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
   // Expanded State of the Drawer
   const [isExpanded, setIsExpanded] = useState(false);
   // Active Tab View: 'curriculum' | 'tools'
   const [activeTab, setActiveTab] = useState<'curriculum' | 'tools'>('curriculum');
 
-  // Real-time Dragging State (Mobile touch only)
+  // Real-time Dragging State (Mobile touch physics)
   const [isDragging, setIsDragging] = useState(false);
   const [dragY, setDragY] = useState<number | null>(null);
 
   const startYRef = useRef(0);
   const isDraggingRef = useRef(false);
   const didMoveRef = useRef(false);
-  const sheetHeightRef = useRef(560);
+  const sheetHeightRef = useRef(580);
   const maxSheetWidthRef = useRef(576);
   const rafRef = useRef<number | null>(null);
 
@@ -122,7 +119,7 @@ export default function BottomNavigation() {
   // Viewport-based max sheet height & width
   useEffect(() => {
     const updateDimensions = () => {
-      sheetHeightRef.current = Math.min(window.innerHeight * 0.78, 620);
+      sheetHeightRef.current = Math.min(window.innerHeight * 0.78, 600);
       maxSheetWidthRef.current = Math.min(window.innerWidth < 640 ? window.innerWidth : 576, 576);
     };
     updateDimensions();
@@ -196,38 +193,7 @@ export default function BottomNavigation() {
     }));
   };
 
-  // Scroll to hide only when collapsed and idle
-  useEffect(() => {
-    if (isExpanded || isDragging) return;
-
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          const scrollHeight = document.documentElement.scrollHeight;
-          const clientHeight = document.documentElement.clientHeight;
-
-          if (currentScrollY < 60 || currentScrollY + clientHeight >= scrollHeight - 40) {
-            setIsVisible(true);
-          } else if (currentScrollY > lastScrollY + 12) {
-            setIsVisible(false);
-          } else if (currentScrollY < lastScrollY - 12) {
-            setIsVisible(true);
-          }
-
-          setLastScrollY(currentScrollY);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, isExpanded, isDragging]);
-
-  // Touch Gesture Physics Drag (Hardware accelerated with rAF 120fps)
+  // Touch Gesture Physics Drag (120fps hardware accelerated via rAF)
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') return; // Desktop mouse clicks natively without drag friction
     if (isHomePage && !isExpanded) return; // Home page doesn't need drawer drag
@@ -252,9 +218,11 @@ export default function BottomNavigation() {
     rafRef.current = requestAnimationFrame(() => {
       const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
       if (isExpanded) {
+        // Dragging down from expanded (deltaY <= 0)
         const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
         setDragY(clamped);
       } else {
+        // Dragging up from collapsed (deltaY >= 0)
         const clamped = Math.max(0, Math.min(maxDelta, deltaY));
         setDragY(clamped);
       }
@@ -278,7 +246,7 @@ export default function BottomNavigation() {
           setIsExpanded(true);
         }
       } else {
-        if (deltaY > 60) {
+        if (deltaY > 50) {
           if (isLessonPage) {
             setActiveTab('curriculum');
             setIsExpanded(true);
@@ -388,7 +356,7 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: isDragging ? 'none' : 'opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1)',
+          transition: isDragging ? 'none' : 'opacity 0.28s cubic-bezier(0.2, 0.9, 0.35, 1)',
         }}
         onClick={() => {
           setIsExpanded(false);
@@ -396,15 +364,10 @@ export default function BottomNavigation() {
         }}
       />
 
-      {/* 2. Fixed Bottom Anchor (z-[100]) - Docked firmly to the bottom */}
-      <div 
-        className={`fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-transform ${
-          !isSheetVisible && !isVisible ? 'translate-y-[180%]' : 'translate-y-0'
-        } p-0`}
-      >
-        {/* Pure Vertical Slide-Up Sheet Drawer (Inverted U-Shape Docked Tab ∩) */}
+      {/* 2. THE SINGLE UNIFIED PHYSICAL BOTTOM DRAWER (Always-On at Bottom, z-[100]) */}
+      <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0">
         <div
-          className="pointer-events-auto border-t border-x border-[var(--border-color)]/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col will-change-[height,width,border-radius] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl transition-[background-color]"
+          className="pointer-events-auto border-t border-x border-[var(--border-color)]/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_-3px_16px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col will-change-[height,width,border-radius] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215]/95 backdrop-blur-xl"
           style={{
             height: `${currentHeight}px`,
             width: `${currentWidth}px`,
@@ -421,15 +384,15 @@ export default function BottomNavigation() {
           {/* TOP HEADER PILL: CONSTANT 276px ZERO-SHIFT GEOMETRY  */}
           {/* ==================================================== */}
           <div 
-            className="w-full h-[56px] flex items-center justify-center shrink-0 select-none px-2"
+            className="w-full h-[56px] flex items-center justify-center shrink-0 select-none px-2 cursor-grab active:cursor-grabbing touch-none"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-            {/* The Floating Capsule Pill (Always exactly 276px, never shifts) */}
+            {/* The Physical Capsule Pill Header (Always exactly 276px, never shifts) */}
             <nav 
-              aria-label="내비게이션"
+              aria-label="하단 내비게이션"
               className="w-[276px] relative flex items-center justify-around overflow-hidden rounded-full p-0.5"
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
@@ -448,17 +411,11 @@ export default function BottomNavigation() {
                 className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'curriculum'
                     ? 'text-[var(--accent-orange)] font-black'
-                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
                 }`}
               >
-                <BookOpen 
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    activeIndicatorTab === 'curriculum' 
-                      ? 'stroke-[2.5px] text-[var(--accent-orange)] scale-105' 
-                      : 'stroke-[1.7px]'
-                  }`} 
-                />
-                <span className="text-xs sm:text-sm tracking-tight font-sans select-none">커리큘럼</span>
+                <BookOpen className="w-4 h-4 stroke-[2.2] shrink-0" />
+                <span className="text-xs tracking-tight whitespace-nowrap">커리큘럼</span>
               </Link>
 
               {/* Tab 2: 투자도구 */}
@@ -468,17 +425,11 @@ export default function BottomNavigation() {
                 className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-2 px-4 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'tools'
                     ? 'text-[var(--accent-orange)] font-black'
-                    : 'text-[var(--text-secondary)] font-semibold hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
                 }`}
               >
-                <Wrench 
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    activeIndicatorTab === 'tools' 
-                      ? 'stroke-[2.5px] text-[var(--accent-orange)] scale-105' 
-                      : 'stroke-[1.7px]'
-                  }`} 
-                />
-                <span className="text-xs sm:text-sm tracking-tight font-sans select-none">투자도구</span>
+                <Wrench className="w-4 h-4 stroke-[2.2] shrink-0" />
+                <span className="text-xs tracking-tight whitespace-nowrap">투자도구</span>
               </Link>
             </nav>
           </div>
@@ -488,24 +439,25 @@ export default function BottomNavigation() {
           {/* ==================================================== */}
           {isSheetVisible && (
             <div 
-              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 overscroll-contain touch-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               style={{
-                opacity: Math.max(0, (progress - 0.1) / 0.9),
-                transition: isDragging ? 'none' : 'opacity 0.25s ease',
+                opacity: Math.max(0, (progress - 0.08) / 0.92),
+                transition: isDragging ? 'none' : 'opacity 0.2s ease',
               }}
             >
               {/* A. CURRICULUM TOC VIEW */}
               {activeTab === 'curriculum' && (
-                <div className="space-y-3.5">
+                <div className="space-y-4">
+                  {/* Progress Header Card */}
                   {user && (
-                    <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-[var(--border-color)] space-y-2 shadow-2xs">
+                    <div className="p-4 rounded-2xl bg-[var(--card-hover)]/40 border border-[var(--border-color)] space-y-2">
                       <div className="flex items-center justify-between text-xs font-bold">
-                        <div className="flex items-center gap-1.5 text-[var(--text-primary)] min-w-0">
-                          <Sparkles className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0" />
-                          <span className="truncate">{user.nickname}님의 수강 진도</span>
-                        </div>
-                        <span className="font-mono text-[11px] text-[var(--accent-orange)] font-extrabold shrink-0">
-                          {completedCount}/{totalLessonCount}강 완료 ({progressPercent}%)
+                        <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-[var(--accent-green)]" />
+                          학습 진도
+                        </span>
+                        <span className="font-mono text-[var(--accent-orange)] font-extrabold">
+                          {completedCount} / {totalLessonCount}강 ({progressPercent}%)
                         </span>
                       </div>
                       {/* Animated Progress Fill Bar */}
@@ -521,7 +473,6 @@ export default function BottomNavigation() {
                   <div className="space-y-2.5">
                     {CURRICULUM_DATA.map((level) => {
                       const isOpen = !!openLevels[level.id];
-                      const hasLessons = level.lessons.length > 0;
                       const containsCurrent = isLessonPage && level.lessons.some((l) => l.id === currentLessonId);
                       const IconComponent = LEVEL_ICON_MAP[level.iconName] || Brain;
                       const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
@@ -538,7 +489,7 @@ export default function BottomNavigation() {
                               : 'glass-card border-[var(--border-color)]'
                           }`}
                         >
-                          {/* Clickable Level Header Button with Focused Brand Hover Glow */}
+                          {/* Clickable Level Header Button */}
                           <button
                             type="button"
                             onClick={() => toggleLevel(level.id, level.isComingSoon)}
@@ -580,7 +531,7 @@ export default function BottomNavigation() {
                           <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
                               <div className="p-2 pt-1 space-y-1.5">
-                                {level.lessons.map((lesson, lessonIdx) => {
+                                {level.lessons.map((lesson) => {
                                   const isActive = lesson.id === currentLessonId;
                                   const completed = Boolean(user && isLessonCompleted(lesson.id));
                                   return (
@@ -602,10 +553,9 @@ export default function BottomNavigation() {
                                           {completed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-[10px] font-mono text-[var(--text-secondary)]">{lessonIdx + 1}강</span>
-                                            <span className="truncate font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent-orange)] transition-colors">{lesson.title}</span>
-                                          </div>
+                                          <span className="truncate font-bold text-[var(--text-primary)] group-hover/item:text-[var(--accent-orange)] transition-colors">
+                                            {lesson.title}
+                                          </span>
                                         </div>
                                       </div>
                                       <div className="shrink-0 text-[10px] text-[var(--text-secondary)] font-mono flex items-center gap-1">
