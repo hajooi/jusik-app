@@ -128,10 +128,8 @@ export async function POST(request: Request) {
 
       // Calculate end of current month (e.g. 2026-08-31 23:59:59 KST / UTC)
       const now = new Date();
-      // Year and month (0-indexed)
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth();
-      // Last day of current month: Day 0 of next month
       const lastDayDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
       const endOfMonthIso = lastDayDate.toISOString();
 
@@ -170,10 +168,11 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 200 });
         }
 
+        // 1. 수강 완료 목록: 절대 줄어들지 않도록 Union 병합
         const mergedCompleted = Array.from(new Set([...(existing.completedLessons || []), ...(completedLessons || [])]));
         existing.completedLessons = mergedCompleted;
 
-        // Protect existing server user data from being overwritten by client defaults during login
+        // 2. 투자 성향 및 40문항 답변 보호: 완전한 데이터가 이미 있으면 미진단/불완전 데이터로 덮어쓰지 않음
         if (!existing.investmentType && investmentType && investmentType !== '미진단') {
           existing.investmentType = investmentType;
         }
@@ -182,17 +181,29 @@ export async function POST(request: Request) {
             existing.typeAnswers = typeAnswers;
           }
         }
-        if (!existing.simulatorSettings && simulatorSettings) {
+
+        // 3. 순수 시뮬레이터 설정 보존
+        if (simulatorSettings) {
           existing.simulatorSettings = simulatorSettings;
         }
+
+        // 4. 아바타 및 뱃지 보호
         if (!existing.avatarUrl && avatarUrl) {
           existing.avatarUrl = avatarUrl;
         }
         if (activeBadge) {
           existing.activeBadge = activeBadge;
         }
+
+        // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존
         if (termsQuizBest) {
-          existing.termsQuizBest = termsQuizBest;
+          const prevScore = existing.termsQuizBest?.score || 0;
+          const prevTime = existing.termsQuizBest?.timeSpentSec || 999;
+          const newScore = termsQuizBest.score || 0;
+          const newTime = termsQuizBest.timeSpentSec || 999;
+          if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
+            existing.termsQuizBest = termsQuizBest;
+          }
         }
 
         existing.lastActiveAt = new Date().toISOString();
@@ -228,9 +239,9 @@ export async function POST(request: Request) {
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
           completedLessons: completedLessons || [],
-          investmentType,
+          investmentType: investmentType && investmentType !== '미진단' ? investmentType : undefined,
           typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
-          simulatorSettings,
+          simulatorSettings: simulatorSettings || undefined,
           activeBadge,
           termsQuizBest
         };
@@ -265,23 +276,45 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
-      if (completedLessons !== undefined) existing.completedLessons = completedLessons;
+      // 1. 수강 완료 목록: Union 병합
+      if (completedLessons !== undefined && Array.isArray(completedLessons)) {
+        existing.completedLessons = Array.from(new Set([...(existing.completedLessons || []), ...completedLessons]));
+      }
+
+      // 2. 투자 성향 40문항 답변 보호
       if (typeAnswers !== undefined && isFullSurveyAnswers(typeAnswers)) {
         existing.typeAnswers = typeAnswers;
       }
       if (investmentType !== undefined) {
-        // 불완전한 typeAnswers와 함께 investmentType이 들어올 경우 덮어쓰기 방어
-        if (investmentType === '미진단' || !typeAnswers || isFullSurveyAnswers(typeAnswers)) {
+        if (investmentType !== '미진단' && (!typeAnswers || isFullSurveyAnswers(typeAnswers))) {
           existing.investmentType = investmentType;
         }
       }
-      if (simulatorSettings !== undefined) existing.simulatorSettings = simulatorSettings;
+
+      // 3. 순수 시뮬레이터 설정 갱신
+      if (simulatorSettings !== undefined) {
+        existing.simulatorSettings = simulatorSettings;
+      }
+
+      // 4. 아바타 및 뱃지 갱신
       if (avatarUrl !== undefined) {
         existing.avatarUrl = avatarUrl;
         await updateCommentsForUserAsync(trimmedNickname, avatarUrl);
       }
-      if (activeBadge !== undefined) existing.activeBadge = activeBadge;
-      if (termsQuizBest !== undefined) existing.termsQuizBest = termsQuizBest;
+      if (activeBadge !== undefined && activeBadge) {
+        existing.activeBadge = activeBadge;
+      }
+
+      // 5. 퀴즈 최고 기록 보존 및 최고점 갱신
+      if (termsQuizBest !== undefined && termsQuizBest) {
+        const prevScore = existing.termsQuizBest?.score || 0;
+        const prevTime = existing.termsQuizBest?.timeSpentSec || 999;
+        const newScore = termsQuizBest.score || 0;
+        const newTime = termsQuizBest.timeSpentSec || 999;
+        if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
+          existing.termsQuizBest = termsQuizBest;
+        }
+      }
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;

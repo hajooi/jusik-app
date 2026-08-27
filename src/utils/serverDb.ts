@@ -3,6 +3,30 @@ import path from 'path';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { calculateSurveyResult } from '@/data/investmentSurvey';
 
+export interface TermsQuizLeaderboardEntry {
+  id: string;
+  nickname: string;
+  level: number;
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  timeSpentSec: number;
+  createdAt: string;
+  avatarUrl?: string;
+  investmentType?: string;
+  typeScores?: { g: number; a: number; l: number; r: number };
+  percentile?: number;
+  activeBadge?: string;
+  termsQuizBest?: {
+    level?: number;
+    score?: number;
+    correctCount?: number;
+    timeSpentSec?: number;
+    percentile?: number;
+    badgeName?: string;
+  };
+}
+
 export interface ServerUserRecord {
   nickname: string;
   pin: string;
@@ -24,6 +48,7 @@ export interface ServerUserRecord {
     percentile?: number;
     badgeName?: string;
   };
+  termsQuizEntries?: TermsQuizLeaderboardEntry[];
 }
 
 export interface CommentRecord {
@@ -67,7 +92,7 @@ const isLocalDevMode = (): boolean => {
   return process.env.NODE_ENV === 'development' && process.env.USE_PROD_DB !== 'true';
 };
 
-// 기본 마스터 계정 초기 데이터
+// 기본 마스터 계정 초기 데이터 (자가 치유 Self-Healing 기준값)
 const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
   '주식부엉': {
     nickname: '주식부엉',
@@ -81,6 +106,82 @@ const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
       11: 2, 12: 4, 13: 2, 14: 4, 15: 2, 16: 4, 17: 2, 18: 4, 19: 2, 20: 3, // A 73%
       21: 4, 22: 3, 23: 4, 24: 3, 25: 4, 26: 3, 27: 4, 28: 3, 29: 4, 30: 3, // L 38% (T 62%)
       31: 1, 32: 5, 33: 1, 34: 5, 35: 1, 36: 5, 37: 1, 38: 4, 39: 1, 40: 3  // R 93%
+    },
+    activeBadge: 'terms_percentile',
+    termsQuizBest: {
+      level: 1,
+      score: 5000,
+      correctCount: 5,
+      timeSpentSec: 12.47,
+      percentile: 1,
+      badgeName: '상위 1%'
+    },
+    termsQuizEntries: [
+      {
+        id: 'quiz_user_주식부엉_1',
+        nickname: '주식부엉',
+        level: 1,
+        score: 5000,
+        correctCount: 5,
+        totalQuestions: 15,
+        timeSpentSec: 12.47,
+        createdAt: '2026-08-21T10:56:55.318Z',
+        investmentType: 'GATR',
+        percentile: 1,
+        termsQuizBest: {
+          level: 1,
+          score: 5000,
+          correctCount: 5,
+          timeSpentSec: 12.47,
+          percentile: 1,
+          badgeName: '상위 1%'
+        }
+      }
+    ],
+    simulatorSettings: {
+      strategyCount: 1,
+      targetCAGR: 13,
+      maxTolerableMDD: 31,
+      portfolioA: [
+        {
+          assetId: 'XOM',
+          weight: 100,
+          enableDefense: false
+        }
+      ],
+      strategyPeriodA: 0,
+      portfolioB: [
+        {
+          assetId: 'SPY',
+          weight: 60,
+          enableDefense: false
+        },
+        {
+          assetId: 'TLT',
+          weight: 40,
+          enableDefense: false
+        }
+      ],
+      strategyPeriodB: 0,
+      portfolioC: [
+        {
+          assetId: 'QQQ',
+          weight: 60,
+          enableDefense: false
+        },
+        {
+          assetId: 'GLD',
+          weight: 40,
+          enableDefense: false
+        }
+      ],
+      strategyPeriodC: 0,
+      initialCapital: 100,
+      depositAmount: 0,
+      durationYears: 30,
+      depositFrequency: 'monthly',
+      chartScale: 'linear',
+      activePresetA: null
     }
   }
 };
@@ -132,7 +233,6 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
       if (!error && data) {
         const db: Record<string, ServerUserRecord> = { ...DEFAULT_MASTER_USERS };
         data.forEach((row: any) => {
-          const settings = row.simulator_settings || {};
           const isFull = row.type_answers && typeof row.type_answers === 'object' && Object.keys(row.type_answers).length === 40;
           
           let validatedTypeAnswers = isFull ? row.type_answers : undefined;
@@ -144,6 +244,15 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             validatedInvestmentType = 'GATR';
           }
 
+          const master = DEFAULT_MASTER_USERS[row.nickname];
+
+          // 순수 시뮬레이터 설정만 격리
+          let cleanSimulatorSettings = row.simulator_settings || undefined;
+          if (cleanSimulatorSettings && typeof cleanSimulatorSettings === 'object') {
+            const { __quizEntries, termsQuizBest: _t, activeBadge: _b, ...pureSim } = cleanSimulatorSettings;
+            cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
+          }
+
           db[row.nickname] = {
             nickname: row.nickname,
             pin: row.pin,
@@ -152,10 +261,11 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             completedLessons: Array.isArray(row.completed_lessons) ? row.completed_lessons : [],
             investmentType: validatedInvestmentType,
             typeAnswers: validatedTypeAnswers,
-            simulatorSettings: row.simulator_settings || undefined,
+            simulatorSettings: cleanSimulatorSettings,
             avatarUrl: row.avatar_url || undefined,
-            activeBadge: settings.activeBadge || undefined,
-            termsQuizBest: settings.termsQuizBest || undefined,
+            activeBadge: row.active_badge || master?.activeBadge || undefined,
+            termsQuizBest: row.terms_quiz_best || master?.termsQuizBest || undefined,
+            termsQuizEntries: master?.termsQuizEntries || undefined,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -182,14 +292,14 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
   if (supabase) {
     try {
       const rows = Object.values(db).map((u) => {
-        const currentSettings = u.simulatorSettings || {};
-        const safeSettings = {
-          ...currentSettings,
-          activeBadge: u.activeBadge || currentSettings.activeBadge || null,
-          termsQuizBest: u.termsQuizBest || currentSettings.termsQuizBest || null,
-        };
-
         const isFull = u.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40;
+
+        // 순수 시뮬레이터 설정만 저장
+        let pureSimulatorSettings = u.simulatorSettings || null;
+        if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
+          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, ...pureSim } = pureSimulatorSettings;
+          pureSimulatorSettings = pureSim;
+        }
 
         return {
           nickname: u.nickname,
@@ -199,7 +309,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           completed_lessons: u.completedLessons || [],
           investment_type: u.investmentType || null,
           type_answers: isFull ? u.typeAnswers : (u.nickname === '주식부엉' ? DEFAULT_MASTER_USERS['주식부엉'].typeAnswers : null),
-          simulator_settings: safeSettings,
+          simulator_settings: pureSimulatorSettings,
           avatar_url: u.avatarUrl || null,
         };
       });
@@ -736,9 +846,8 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
     // Collect all quiz entries from Supabase user records only
     const userEntries: TermsQuizLeaderboardEntry[] = [];
     Object.values(userDb).forEach((u) => {
-      const settings = u.simulatorSettings as any;
-      if (settings && Array.isArray(settings.__quizEntries)) {
-        settings.__quizEntries.forEach((entry: TermsQuizLeaderboardEntry) => {
+      if (Array.isArray(u.termsQuizEntries) && u.termsQuizEntries.length > 0) {
+        u.termsQuizEntries.forEach((entry: TermsQuizLeaderboardEntry) => {
           userEntries.push(entry);
         });
       } else if (u.termsQuizBest) {
@@ -904,8 +1013,8 @@ export async function saveTermsQuizEntryAsync(
         };
       }
 
-      const settings = userRecord.simulatorSettings || {};
-      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(settings.__quizEntries) ? settings.__quizEntries : [];
+      // 퀴즈 기록을 시뮬레이터와 완전히 분리된 termsQuizEntries에 독립 보관
+      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(userRecord.termsQuizEntries) ? userRecord.termsQuizEntries : [];
       const idx = quizList.findIndex((q) => q.level === entry.level);
       if (idx >= 0) {
         const prev = quizList[idx];
@@ -915,7 +1024,7 @@ export async function saveTermsQuizEntryAsync(
       } else {
         quizList.push(newEntry);
       }
-      settings.__quizEntries = quizList;
+      userRecord.termsQuizEntries = quizList;
 
       // Update termsQuizBest if this entry is overall best
       const prevBest = userRecord.termsQuizBest;
@@ -931,7 +1040,6 @@ export async function saveTermsQuizEntryAsync(
         };
       }
       userRecord.lastActiveAt = new Date().toISOString();
-      userRecord.simulatorSettings = settings;
       userDb[entry.nickname] = userRecord;
       await saveServerDbAsync(userDb);
     } catch (err) {
