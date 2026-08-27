@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { getServerDbAsync, saveServerDbAsync, updateCommentsForUserAsync, ServerUserRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const ZERO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+};
+
 function computeRankPercentile(db: Record<string, any>, completedLessons?: string[]) {
   const allUsers = Object.values(db);
   const targetCompletedCount = completedLessons ? completedLessons.length : 0;
@@ -23,18 +30,18 @@ export async function GET(request: Request) {
     const pin = searchParams.get('pin')?.trim();
 
     if (!nickname || !pin) {
-      return NextResponse.json({ success: false, error: '닉네임과 핀번호가 필요합니다.' }, { status: 200 });
+      return NextResponse.json({ success: false, error: '닉네임과 핀번호가 필요합니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
     }
 
     const db = await getServerDbAsync();
     const userRecord = db[nickname] || db[nickname.toLowerCase()];
 
     if (!userRecord) {
-      return NextResponse.json({ success: false, notFound: true, error: '계정을 찾을 수 없습니다.' }, { status: 200 });
+      return NextResponse.json({ success: false, notFound: true, error: '계정을 찾을 수 없습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
     }
 
     if (userRecord.pin !== pin) {
-      return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 200 });
+      return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
     }
 
     userRecord.lastActiveAt = new Date().toISOString();
@@ -43,27 +50,30 @@ export async function GET(request: Request) {
 
     const rankPercentile = computeRankPercentile(db, userRecord.completedLessons);
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        nickname: userRecord.nickname,
-        avatarUrl: userRecord.avatarUrl,
-        createdAt: userRecord.createdAt,
-        lastLoginAt: userRecord.lastActiveAt,
-        completedLessons: userRecord.completedLessons || [],
-        investmentType: userRecord.investmentType,
-        typeAnswers: userRecord.typeAnswers,
-        simulatorSettings: userRecord.simulatorSettings,
-        activeBadge: userRecord.activeBadge,
-        termsQuizBest: userRecord.termsQuizBest,
-        isPro: userRecord.isPro,
-        proExpiresAt: userRecord.proExpiresAt,
-        rankPercentile
-      }
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        user: {
+          nickname: userRecord.nickname,
+          avatarUrl: userRecord.avatarUrl,
+          createdAt: userRecord.createdAt,
+          lastLoginAt: userRecord.lastActiveAt,
+          completedLessons: userRecord.completedLessons || [],
+          investmentType: userRecord.investmentType,
+          typeAnswers: userRecord.typeAnswers,
+          simulatorSettings: userRecord.simulatorSettings,
+          activeBadge: userRecord.activeBadge,
+          termsQuizBest: userRecord.termsQuizBest,
+          isPro: userRecord.isPro,
+          proExpiresAt: userRecord.proExpiresAt,
+          rankPercentile
+        }
+      },
+      { status: 200, headers: ZERO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error('API GET sync error:', error);
-    return NextResponse.json({ success: false, error: '서버 연동 오류가 발생했습니다.' }, { status: 200 });
+    return NextResponse.json({ success: false, error: '서버 연동 오류가 발생했습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
   }
 }
 

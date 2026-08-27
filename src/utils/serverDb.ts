@@ -246,12 +246,19 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
 
           const master = DEFAULT_MASTER_USERS[row.nickname];
 
-          // 순수 시뮬레이터 설정만 격리
-          let cleanSimulatorSettings = row.simulator_settings || undefined;
-          if (cleanSimulatorSettings && typeof cleanSimulatorSettings === 'object') {
-            const { __quizEntries, termsQuizBest: _t, activeBadge: _b, ...pureSim } = cleanSimulatorSettings;
-            cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
-          }
+          // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록)를 안전하게 분리 Unpack
+          const rowSettings = (row.simulator_settings && typeof row.simulator_settings === 'object') ? row.simulator_settings : {};
+          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, ...pureSim } = rowSettings;
+          const cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
+
+          const effectiveActiveBadge = (rowSettings.activeBadge !== undefined && rowSettings.activeBadge !== null)
+            ? rowSettings.activeBadge
+            : (row.active_badge !== undefined && row.active_badge !== null)
+            ? row.active_badge
+            : (master?.activeBadge || undefined);
+
+          const effectiveTermsQuizBest = rowSettings.termsQuizBest || row.terms_quiz_best || master?.termsQuizBest || undefined;
+          const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || master?.termsQuizEntries || undefined;
 
           db[row.nickname] = {
             nickname: row.nickname,
@@ -263,9 +270,9 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             typeAnswers: validatedTypeAnswers,
             simulatorSettings: cleanSimulatorSettings,
             avatarUrl: row.avatar_url || undefined,
-            activeBadge: (row.active_badge !== undefined && row.active_badge !== null) ? row.active_badge : (master?.activeBadge || undefined),
-            termsQuizBest: row.terms_quiz_best || master?.termsQuizBest || undefined,
-            termsQuizEntries: master?.termsQuizEntries || undefined,
+            activeBadge: effectiveActiveBadge,
+            termsQuizBest: effectiveTermsQuizBest,
+            termsQuizEntries: effectiveTermsQuizEntries,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -294,12 +301,20 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
       const rows = Object.values(db).map((u) => {
         const isFull = u.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40;
 
-        // 순수 시뮬레이터 설정만 저장
-        let pureSimulatorSettings = u.simulatorSettings || null;
+        // 순수 시뮬레이터 설정 추출
+        let pureSimulatorSettings = u.simulatorSettings || {};
         if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
-          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, ...pureSim } = pureSimulatorSettings;
+          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, ...pureSim } = pureSimulatorSettings;
           pureSimulatorSettings = pureSim;
         }
+
+        // Supabase JSONB 컬럼에 뱃지 및 퀴즈 데이터를 함께 안전하게 Pack
+        const packedSettings = {
+          ...pureSimulatorSettings,
+          activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
+          termsQuizBest: u.termsQuizBest || null,
+          termsQuizEntries: u.termsQuizEntries || null,
+        };
 
         return {
           nickname: u.nickname,
@@ -309,7 +324,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           completed_lessons: u.completedLessons || [],
           investment_type: u.investmentType || null,
           type_answers: isFull ? u.typeAnswers : (u.nickname === '주식부엉' ? DEFAULT_MASTER_USERS['주식부엉'].typeAnswers : null),
-          simulator_settings: pureSimulatorSettings,
+          simulator_settings: packedSettings,
           avatar_url: u.avatarUrl || null,
         };
       });
@@ -915,7 +930,7 @@ function attachUserMetadata(entry: TermsQuizLeaderboardEntry, userDb: Record<str
   if (u) {
     avatarUrl = u.avatarUrl || entry.avatarUrl;
     effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
-    activeBadge = u.activeBadge || 'investmentType';
+    activeBadge = (u.activeBadge !== undefined && u.activeBadge !== null) ? u.activeBadge : (entry.activeBadge || 'investmentType');
     termsQuizBest = u.termsQuizBest || entry.termsQuizBest;
 
     if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {

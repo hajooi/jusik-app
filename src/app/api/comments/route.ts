@@ -3,6 +3,13 @@ import { getCommentsAsync, addCommentAsync, deleteCommentAsync, CommentRecord } 
 import { validateNickname } from '@/utils/badWordsFilter';
 import { sendCommentNotification } from '@/utils/notifier';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const ZERO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+};
+
 // GET /api/comments?targetKey=...
 export async function GET(request: Request) {
   try {
@@ -17,10 +24,16 @@ export async function GET(request: Request) {
     // Return sanitized comments (remove pin before sending to client)
     const sanitized = comments.map(({ pin, ...rest }) => rest);
 
-    return NextResponse.json({ success: true, comments: sanitized });
+    return NextResponse.json(
+      { success: true, comments: sanitized },
+      { status: 200, headers: ZERO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error('API GET comments error:', error);
-    return NextResponse.json({ success: false, error: '댓글 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: '댓글 조회 중 오류가 발생했습니다.' },
+      { status: 500, headers: ZERO_CACHE_HEADERS }
+    );
   }
 }
 

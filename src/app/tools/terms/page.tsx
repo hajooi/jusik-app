@@ -145,7 +145,7 @@ function TermsQuizContent() {
   const fetchLeaderboard = useCallback(async (level: number) => {
     try {
       setLeaderboardLoading(true);
-      const res = await fetch(`/api/terms-leaderboard?level=${level}`);
+      const res = await fetch(`/api/terms-leaderboard?level=${level}&_t=${Date.now()}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.leaderboard)) {
         setLeaderboard(data.leaderboard);
@@ -159,7 +159,7 @@ function TermsQuizContent() {
 
   useEffect(() => {
     fetchLeaderboard(activeLeaderboardTab);
-  }, [activeLeaderboardTab, fetchLeaderboard]);
+  }, [activeLeaderboardTab, fetchLeaderboard, user?.activeBadge, user?.avatarUrl]);
 
   // Timer Tick (0.01s continuous precision during sprint)
   useEffect(() => {
@@ -626,7 +626,11 @@ function TermsQuizContent() {
                 </div>
               ) : (
                 <div className="space-y-1.5 divide-y divide-[var(--border-color)]">
-                  {leaderboard.map((item, idx) => (
+                  {leaderboard.map((item, idx) => {
+                    const isCurrentUser = !!user && (user.nickname === item.nickname || user.nickname.toLowerCase() === item.nickname.toLowerCase());
+                    const effectiveActiveBadge = isCurrentUser ? (user.activeBadge !== undefined ? user.activeBadge : item.activeBadge) : item.activeBadge;
+
+                    return (
                     <div
                       key={item.id || idx}
                       className="pt-2 first:pt-0 flex items-center justify-between text-xs sm:text-sm py-1.5"
@@ -654,7 +658,7 @@ function TermsQuizContent() {
                           )}
 
                           {/* Dynamic Active Badge: PRO / termsQuizBest / investmentType */}
-                          {item.activeBadge === 'none' ? null : item.activeBadge === 'pro' ? (
+                          {effectiveActiveBadge === 'none' ? null : effectiveActiveBadge === 'pro' ? (
                             <span 
                               className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                               title={`${item.nickname}님의 PRO 회원 뱃지`}
@@ -662,7 +666,7 @@ function TermsQuizContent() {
                               <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
                               <span className="tracking-wide">PRO</span>
                             </span>
-                          ) : item.activeBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
+                          ) : effectiveActiveBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -703,7 +707,7 @@ function TermsQuizContent() {
                             >
                               {item.termsQuizBest?.badgeName || `상위 ${item.percentile}%`}
                             </button>
-                          ) : (item.activeBadge === 'investmentType' || !item.activeBadge) && item.investmentType && item.investmentType !== '미진단' ? (
+                          ) : (effectiveActiveBadge === 'investmentType' || !effectiveActiveBadge) && item.investmentType && item.investmentType !== '미진단' ? (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -786,7 +790,8 @@ function TermsQuizContent() {
                         </span>
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

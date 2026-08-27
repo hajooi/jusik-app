@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { getTermsQuizEntriesAsync, saveTermsQuizEntryAsync, calculateTermsQuizPercentileAsync } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const ZERO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+};
+
 // GET /api/terms-leaderboard?level=1
 export async function GET(request: Request) {
   try {
@@ -17,14 +24,23 @@ export async function GET(request: Request) {
       rank: idx + 1,
     }));
 
-    return NextResponse.json({
-      success: true,
-      totalCount: entries.length,
-      leaderboard: topEntries,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        totalCount: entries.length,
+        leaderboard: topEntries,
+      },
+      {
+        status: 200,
+        headers: ZERO_CACHE_HEADERS,
+      }
+    );
   } catch (error) {
     console.error('API GET terms-leaderboard error:', error);
-    return NextResponse.json({ success: false, error: '리더보드 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: '리더보드 조회 중 오류가 발생했습니다.' },
+      { status: 500, headers: ZERO_CACHE_HEADERS }
+    );
   }
 }
 
