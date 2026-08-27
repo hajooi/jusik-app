@@ -351,6 +351,25 @@ export default function BottomNavigation() {
   } else {
     progress = isExpanded ? 1 : 0;
   }
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
+  // Apple Music Style: Always a sleek 44px floating pill when collapsed across ALL pages
+  const baseCollapsedHeight = 44;
+  const baseCollapsedWidth = 244;
+
+  // Real-time GPU clip-path calculation (Fixed size container, 100% GPU hardware clipping)
+  const maxTargetWidth = maxSheetWidthRef.current;
+  const targetSheetHeight = sheetHeightRef.current;
+  const topInset = Math.round((1 - progress) * (targetSheetHeight - baseCollapsedHeight));
+  const horizontalInset = Math.max(0, Math.round((1 - progress) * ((maxTargetWidth - baseCollapsedWidth) / 2)));
+  const currentRadius = Math.round(22 + progress * (28 - 22));
+  const currentClipPath = `inset(${topInset}px ${horizontalInset}px 0px ${horizontalInset}px round ${currentRadius}px)`;
+
+  // Continuous Header & Nav geometry interpolation (Zero abrupt jumps)
+  const currentHeaderHeight = Math.round(44 + progress * (72 - 44));
+  const currentNavBottom = Math.round(2 + progress * (14 - 2));
+  const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
 
   // Active indicator state for smooth animated pill position
   const activeIndicatorTab = isExpanded ? activeTab : (isOnTools ? 'tools' : 'curriculum');
@@ -360,38 +379,18 @@ export default function BottomNavigation() {
   const totalLessonCount = CURRICULUM_DATA.reduce((acc, lvl) => acc + lvl.lessons.length, 0);
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
-  // Apple Music Style: Always a sleek 44px floating pill when collapsed across ALL pages
-  const baseCollapsedHeight = 44;
-  const baseCollapsedWidth = 244;
-  const baseBottomMargin = 12;
-
-  // Real-time height, width, margin and continuous corner radius calculations
-  const currentHeight = baseCollapsedHeight + progress * (sheetHeightRef.current - baseCollapsedHeight);
-  const maxTargetWidth = maxSheetWidthRef.current;
-  const currentWidth = baseCollapsedWidth + progress * (maxTargetWidth - baseCollapsedWidth);
-  const currentBottomMargin = baseBottomMargin * (1 - progress);
-
-  // Smooth continuous corner radius interpolation (22px pill -> 32px sheet top, 22px pill -> 0px sheet bottom)
-  const currentTopRadius = Math.round(22 + progress * (32 - 22));
-  const currentBottomRadius = Math.round(22 * (1 - progress));
-
-  // Continuous Header & Nav geometry interpolation (Zero abrupt jumps)
-  const currentHeaderHeight = Math.round(44 + progress * (72 - 44));
-  const currentNavBottom = Math.round(2 + progress * (14 - 2));
-  const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
-
-  // Apple Staggered Content Lifecycle: Contents fade in after expansion, disappear instantly on close
-  const [contentReady, setContentReady] = useState(false);
+  // Animated progress bar fill state (triggers smooth 0.7s fill upon expand)
+  const [animatedPercent, setAnimatedPercent] = useState(0);
   useEffect(() => {
     if (isExpanded) {
       const timer = setTimeout(() => {
-        setContentReady(true);
-      }, 140);
+        setAnimatedPercent(progressPercent);
+      }, 150);
       return () => clearTimeout(timer);
     } else {
-      setContentReady(false);
+      setAnimatedPercent(0);
     }
-  }, [isExpanded]);
+  }, [isExpanded, progressPercent]);
 
   return (
     <>
@@ -401,7 +400,7 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         onClick={() => {
           setIsExpanded(false);
@@ -410,34 +409,49 @@ export default function BottomNavigation() {
       />
 
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
-      <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
+      <div className="fixed inset-x-0 bottom-3 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className={`pointer-events-auto overflow-hidden flex flex-col will-change-[height,width,border-radius,margin-bottom] touch-none origin-bottom bg-[var(--card-surface)] dark:bg-[#121215] border border-[var(--border-color)]/80 shadow-[0_-6px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-6px_40px_rgba(0,0,0,0.6)]`}
+          className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-[var(--card-surface)]/95 dark:bg-[#121215]/95 backdrop-blur-xl relative"
           style={{
-            height: `${currentHeight}px`,
-            width: `${currentWidth}px`,
+            height: `${targetSheetHeight}px`,
+            width: `${maxTargetWidth}px`,
             maxWidth: '100%',
-            marginBottom: `${currentBottomMargin}px`,
-            opacity: isScrolling ? 0.75 : 1,
-            pointerEvents: isScrolling ? 'none' : 'auto',
-            borderRadius: `${currentTopRadius}px ${currentTopRadius}px ${currentBottomRadius}px ${currentBottomRadius}px`,
-            borderBottomWidth: currentBottomRadius === 0 ? '0px' : '1px',
-            transform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
-            WebkitTransform: isScrolling ? 'scale(0.96) translateY(3px)' : 'translate3d(0, 0, 0)',
-            transition: isDragging 
+            opacity: 1,
+            pointerEvents: 'auto',
+            clipPath: currentClipPath,
+            WebkitClipPath: currentClipPath,
+            transform: 'translate3d(0, 0, 0)',
+            WebkitTransform: 'translate3d(0, 0, 0)',
+            transition: !isMounted || isDragging 
               ? 'none' 
-              : 'height 0.32s cubic-bezier(0.32, 0.72, 0, 1), width 0.32s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.32s cubic-bezier(0.32, 0.72, 0, 1), margin-bottom 0.32s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease',
+              : 'clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
+          {/* 1:1 Pixel-Perfect Dynamic Glass Border (360-degree perfect rounded curvature & full bottom border) */}
+          <div
+            aria-hidden="true"
+            className="absolute pointer-events-none z-50 border border-[var(--border-color)]/90 shadow-[0_4px_24px_rgba(0,0,0,0.18)]"
+            style={{
+              top: `${topInset}px`,
+              left: `${horizontalInset}px`,
+              right: `${horizontalInset}px`,
+              bottom: '0px',
+              borderRadius: `${currentRadius}px`,
+              transition: !isMounted || isDragging 
+                ? 'none' 
+                : 'top 0.38s cubic-bezier(0.16, 1, 0.3, 1), left 0.38s cubic-bezier(0.16, 1, 0.3, 1), right 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          />
+
           {/* Top Header Area */}
           <div 
-            className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default"
+            className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default z-10"
             style={{
               height: `${currentHeaderHeight}px`,
               minWidth: '240px',
-              transform: 'translateZ(0)',
-              WebkitTransform: 'translateZ(0)',
-              transition: isDragging ? 'none' : 'height 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
+              transform: `translate3d(0, ${topInset}px, 0)`,
+              WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
+              transition: !isMounted || isDragging ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -452,7 +466,7 @@ export default function BottomNavigation() {
               }`} 
               style={{
                 opacity: currentNotchOpacity,
-                transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
+                transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
 
@@ -462,7 +476,7 @@ export default function BottomNavigation() {
               className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
               style={{
                 bottom: `${currentNavBottom}px`,
-                transition: isDragging ? 'none' : 'bottom 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
+                transition: !isMounted || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
@@ -505,26 +519,24 @@ export default function BottomNavigation() {
           </div>
 
           {/* ==================================================== */}
-          {/* REVEALED DRAWER CONTENT AREA (Apple Staggered Lifecycle) */}
+          {/* REVEALED DRAWER CONTENT AREA (Synchronized Slide)    */}
           {/* ==================================================== */}
           <div 
-            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10"
             style={{
               contain: 'paint layout',
-              opacity: (!isDragging && isExpanded && contentReady) ? 1 : 0,
-              pointerEvents: (!isDragging && isExpanded && contentReady) ? 'auto' : 'none',
-              transform: (!isDragging && isExpanded && contentReady) ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
-              WebkitTransform: (!isDragging && isExpanded && contentReady) ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
+              opacity: progress > 0.12 ? Math.min(1, (progress - 0.12) / 0.75) : 0,
+              pointerEvents: progress > 0.6 ? 'auto' : 'none',
               minWidth: '320px',
               maxWidth: '100%',
-              transition: (!isDragging && isExpanded && contentReady) 
-                ? 'opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1)' 
-                : 'opacity 0.08s ease-out, transform 0.08s ease-out',
+              transform: `translate3d(0, ${topInset}px, 0)`,
+              WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
+              transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
             {activeTab === 'curriculum' && (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 {/* Progress Header Card */}
                 {user && (
                   <div className="p-4 rounded-2xl bg-[var(--card-hover)]/40 border border-[var(--border-color)] space-y-2">
@@ -537,11 +549,11 @@ export default function BottomNavigation() {
                         {completedCount} / {totalLessonCount}강 ({progressPercent}%)
                       </span>
                     </div>
-                    {/* Static Progress Fill Bar (0ms Layout Thrashing) */}
+                    {/* Animated Progress Fill Bar */}
                     <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
                       <div 
-                        className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] rounded-full"
-                        style={{ width: `${progressPercent}%` }}
+                        className="h-full rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.3)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                        style={{ width: `${animatedPercent}%` }}
                       />
                     </div>
                   </div>
