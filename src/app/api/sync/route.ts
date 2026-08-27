@@ -56,6 +56,8 @@ export async function GET(request: Request) {
         simulatorSettings: userRecord.simulatorSettings,
         activeBadge: userRecord.activeBadge,
         termsQuizBest: userRecord.termsQuizBest,
+        isPro: userRecord.isPro,
+        proExpiresAt: userRecord.proExpiresAt,
         rankPercentile
       }
     });
@@ -113,6 +115,55 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
     }
 
+    if (action === 'redeemPromoCode') {
+      const { code } = body;
+      const cleanCode = code?.trim().toUpperCase();
+      if (!cleanCode) {
+        return NextResponse.json({ success: false, error: '코드를 입력해 주세요.' }, { status: 200 });
+      }
+
+      if (!existing || existing.pin !== pin) {
+        return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
+      }
+
+      // Calculate end of current month (e.g. 2026-08-31 23:59:59 KST / UTC)
+      const now = new Date();
+      // Year and month (0-indexed)
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      // Last day of current month: Day 0 of next month
+      const lastDayDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+      const endOfMonthIso = lastDayDate.toISOString();
+
+      existing.isPro = true;
+      existing.proExpiresAt = endOfMonthIso;
+      existing.lastActiveAt = new Date().toISOString();
+
+      db[trimmedNickname] = existing;
+      await saveServerDbAsync(db);
+
+      const monthName = `${currentMonth + 1}월`;
+
+      return NextResponse.json({
+        success: true,
+        message: `Pro 코드가 인증되어 ${monthName} 말일까지 Pro 권한이 활성화되었습니다!`,
+        user: {
+          nickname: existing.nickname,
+          avatarUrl: existing.avatarUrl,
+          createdAt: existing.createdAt,
+          lastLoginAt: existing.lastActiveAt,
+          completedLessons: existing.completedLessons,
+          investmentType: existing.investmentType,
+          typeAnswers: existing.typeAnswers,
+          simulatorSettings: existing.simulatorSettings,
+          activeBadge: existing.activeBadge,
+          termsQuizBest: existing.termsQuizBest,
+          isPro: existing.isPro,
+          proExpiresAt: existing.proExpiresAt
+        }
+      });
+    }
+
     if (action === 'login') {
       if (existing) {
         if (existing.pin !== pin) {
@@ -164,6 +215,8 @@ export async function POST(request: Request) {
             simulatorSettings: existing.simulatorSettings,
             activeBadge: existing.activeBadge,
             termsQuizBest: existing.termsQuizBest,
+            isPro: existing.isPro,
+            proExpiresAt: existing.proExpiresAt,
             rankPercentile
           }
         });
@@ -199,6 +252,8 @@ export async function POST(request: Request) {
             simulatorSettings: newRecord.simulatorSettings,
             activeBadge: newRecord.activeBadge,
             termsQuizBest: newRecord.termsQuizBest,
+            isPro: newRecord.isPro,
+            proExpiresAt: newRecord.proExpiresAt,
             rankPercentile
           }
         });
@@ -247,6 +302,8 @@ export async function POST(request: Request) {
           simulatorSettings: existing.simulatorSettings,
           activeBadge: existing.activeBadge,
           termsQuizBest: existing.termsQuizBest,
+          isPro: existing.isPro,
+          proExpiresAt: existing.proExpiresAt,
           rankPercentile
         }
       });

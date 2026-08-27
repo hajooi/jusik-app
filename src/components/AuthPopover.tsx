@@ -3,7 +3,8 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw, KeyRound } from 'lucide-react';
+import SmoothHeight from '@/components/SmoothHeight';
+import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw, KeyRound, Crown, Gift, Sparkles } from 'lucide-react';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 
 interface AuthPopoverProps {
@@ -12,7 +13,7 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
-  const { login, user, logout, changePin, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
+  const { login, user, logout, changePin, redeemPromoCode, isPro, proExpiresAt, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [nickname, setNickname] = useState('');
@@ -31,6 +32,13 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
   const [isPinChanging, setIsPinChanging] = useState(false);
   const [pinChangeError, setPinChangeError] = useState<string | null>(null);
   const [pinChangeSuccess, setPinChangeSuccess] = useState<string | null>(null);
+
+  // Pro Code Redeem State
+  const [isRedeemingCode, setIsRedeemingCode] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [isCodeSubmitting, setIsCodeSubmitting] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
 
   const handlePinChangeSubmit = async () => {
     if (!newPin || newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
@@ -59,6 +67,31 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
       }, 1200);
     } else {
       setPinChangeError(res.error || '핀번호 변경에 실패했습니다.');
+    }
+  };
+
+  const handlePromoCodeSubmit = async () => {
+    if (!promoCode || promoCode.trim().length < 3) {
+      setPromoError('유효한 4자리 코드를 입력해 주세요.');
+      return;
+    }
+
+    setIsCodeSubmitting(true);
+    setPromoError(null);
+    setPromoSuccess(null);
+
+    const res = await redeemPromoCode(promoCode);
+    setIsCodeSubmitting(false);
+
+    if (res.success) {
+      setPromoSuccess(res.message || 'Pro 코드가 성공적으로 등록되었습니다!');
+      setTimeout(() => {
+        setPromoCode('');
+        setPromoSuccess(null);
+        setIsRedeemingCode(false);
+      }, 1500);
+    } else {
+      setPromoError(res.error || '코드 등록에 실패했습니다.');
     }
   };
 
@@ -231,18 +264,36 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                 )}
               </div>
             </div>
+
+            {/* Pro Status Banner */}
+            {isPro && (
+              <div className="w-full pt-1">
+                <div className="w-full py-1.5 px-2.5 rounded-lg bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 flex items-center justify-between text-[11px] font-bold">
+                  <span className="flex items-center gap-1 text-[var(--accent-orange)]">
+                    <Crown className="w-3.5 h-3.5 stroke-[2.4]" />
+                    <span className="font-mono text-[10.5px]">PRO 회원</span>
+                  </span>
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)]">
+                    {user.proExpiresAt 
+                      ? `~${new Date(user.proExpiresAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\s/g, '')}까지` 
+                      : '무료 체험 중'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Badge Selection Cards (Visible ONLY if at least one badge is earned) */}
+          {/* Badge Selection Cards (Visible if at least one badge is earned or user is PRO) */}
           {(() => {
             const hasInvestmentType = !!(user.investmentType && user.investmentType !== '미진단');
             const hasTermsQuizBest = !!user.termsQuizBest;
+            const hasProBadge = isPro && user.nickname !== '주식부엉';
 
-            if (!hasInvestmentType && !hasTermsQuizBest) return null;
+            if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge) return null;
 
             const isTypeActive = user.activeBadge === 'investmentType' || (!user.activeBadge && hasInvestmentType);
             const isQuizActive = user.activeBadge === 'terms_percentile';
-            const cardCount = (hasInvestmentType ? 1 : 0) + (hasTermsQuizBest ? 1 : 0);
+            const isProActive = user.activeBadge === 'pro';
 
             return (
               <div className="space-y-1.5">
@@ -250,48 +301,72 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                   댓글 노출 뱃지 선택
                 </div>
 
-                <div className={`grid gap-2 ${cardCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {/* Option 1: Investment Type Badge */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {/* Option 1: PRO Badge (First) */}
+                  {hasProBadge && (
+                    <button
+                      type="button"
+                      onClick={() => updateActiveBadge?.(isProActive ? 'none' : 'pro')}
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                        isProActive
+                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
+                          : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">멤버십</span>
+                        {isProActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
+                        )}
+                      </div>
+                      <span className="text-[11px] font-extrabold font-mono text-[var(--accent-orange)] flex items-center gap-0.5 truncate">
+                        <Crown className="w-3 h-3 stroke-[2.4]" />
+                        <span>PRO</span>
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Option 2: Investment Type Badge (Second) */}
                   {hasInvestmentType && (
                     <button
                       type="button"
                       onClick={() => updateActiveBadge?.(isTypeActive ? 'none' : 'investmentType')}
-                      className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
                         isTypeActive
                           ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-[var(--text-secondary)]">투자 성향</span>
+                        <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">성향</span>
                         {isTypeActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
-                      <span className="text-xs font-extrabold font-mono text-[var(--text-primary)]">
+                      <span className="text-[11px] font-extrabold font-mono text-[var(--text-primary)] truncate">
                         {user.investmentType}
                       </span>
                     </button>
                   )}
 
-                  {/* Option 2: Terms Quiz Rank Badge */}
+                  {/* Option 3: Terms Quiz Rank Badge (Third) */}
                   {hasTermsQuizBest && (
                     <button
                       type="button"
                       onClick={() => updateActiveBadge?.(isQuizActive ? 'none' : 'terms_percentile')}
-                      className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
+                      className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1 ${
                         isQuizActive
                           ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-[var(--text-secondary)]">용어 퀴즈</span>
+                        <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">퀴즈</span>
                         {isQuizActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
-                      <span className="text-xs font-extrabold font-mono text-[var(--text-primary)]">
+                      <span className="text-[11px] font-extrabold font-mono text-[var(--text-primary)] truncate">
                         {user.termsQuizBest?.badgeName || `상위 ${user.termsQuizBest?.percentile}%`}
                       </span>
                     </button>
@@ -307,24 +382,113 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             <span>서버 동기화 상태 유지 중</span>
           </div>
 
-          {/* PIN Change Section */}
-          <div className="pt-0.5">
-            {!isChangingPin ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsChangingPin(true);
-                  setNewPin('');
-                  setNewPinConfirm('');
-                  setPinChangeError(null);
-                  setPinChangeSuccess(null);
-                }}
-                className="w-full py-2.5 px-3 rounded-full text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] active:scale-95 transition-all border border-[var(--border-color)] flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                <span>핀번호 변경</span>
-              </button>
-            ) : (
+          {/* PRO Code Redeem Accordion (Only visible if not PRO) */}
+          {!isPro && (
+            <SmoothHeight duration={250}>
+              <div className="space-y-1.5">
+                {!isRedeemingCode ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRedeemingCode(true);
+                      setIsChangingPin(false);
+                      setPromoError(null);
+                      setPromoSuccess(null);
+                    }}
+                    className="w-full py-2 px-3 rounded-full text-xs font-bold text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 hover:border-[rgba(241,143,1,0.5)] active:scale-95 transition-all border border-[var(--accent-orange)]/30 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <Crown className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <span>PRO 코드 등록</span>
+                  </button>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                        <Crown className="w-3.5 h-3.5 text-[var(--accent-orange)] stroke-[2.2]" />
+                        <span>PRO 코드 등록</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsRedeemingCode(false)}
+                        className="text-[11px] text-[var(--text-secondary)] hover:text-red-500 font-medium cursor-pointer"
+                      >
+                        취소
+                      </button>
+                    </div>
+
+                    <p className="text-[10.5px] text-[var(--text-secondary)] leading-relaxed">
+                      4자리 코드를 입력하세요.
+                    </p>
+
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        maxLength={10}
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value);
+                          setPromoError(null);
+                        }}
+                        placeholder="4자리 코드 입력 (예: 2608)"
+                        className="w-full px-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-mono tracking-wider uppercase text-center font-bold"
+                      />
+                    </div>
+
+                    {promoError && (
+                      <div className="text-[11px] text-red-500 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        <span>{promoError}</span>
+                      </div>
+                    )}
+
+                    {promoSuccess && (
+                      <div className="text-[11px] text-[var(--accent-green)] font-medium flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 shrink-0" />
+                        <span>{promoSuccess}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      disabled={isCodeSubmitting || !promoCode.trim()}
+                      onClick={handlePromoCodeSubmit}
+                      className="w-full py-2.5 px-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      {isCodeSubmitting ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>확인 중...</span>
+                        </>
+                      ) : (
+                        <span>코드 인증 및 활성화</span>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </SmoothHeight>
+          )}
+
+          {/* PIN Change Accordion */}
+          <SmoothHeight duration={250}>
+            <div className="space-y-1.5">
+              {!isChangingPin ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsChangingPin(true);
+                    setIsRedeemingCode(false);
+                    setNewPin('');
+                    setNewPinConfirm('');
+                    setPinChangeError(null);
+                    setPinChangeSuccess(null);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-full text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] active:scale-95 transition-all border border-[var(--border-color)] flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                  <span>핀번호 변경</span>
+                </button>
+              ) : (
               <div className="p-3.5 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
@@ -413,6 +577,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
               </div>
             )}
           </div>
+        </SmoothHeight>
 
           <button
             onClick={() => {

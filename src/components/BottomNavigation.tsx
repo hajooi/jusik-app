@@ -512,13 +512,9 @@ export default function BottomNavigation() {
             className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{
               contain: 'paint',
-              opacity: progress > 0.05 ? 1 : 0,
               pointerEvents: isExpanded ? 'auto' : 'none',
-              transform: isExpanded ? 'translate3d(0, 0, 0)' : 'translate3d(0, 16px, 0)',
-              WebkitTransform: isExpanded ? 'translate3d(0, 0, 0)' : 'translate3d(0, 16px, 0)',
-              transition: isDragging 
-                ? 'none' 
-                : 'opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: 'translate3d(0, 0, 0)',
+              WebkitTransform: 'translate3d(0, 0, 0)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
@@ -526,7 +522,7 @@ export default function BottomNavigation() {
               <div className="space-y-4">
                 {/* Progress Header Card */}
                 {user && (
-                  <div className="p-4 rounded-2xl bg-slate-100/90 dark:bg-zinc-850 border border-slate-200/80 dark:border-zinc-700/60 shadow-xs space-y-2">
+                  <div className="p-4 rounded-2xl bg-[var(--card-hover)]/40 border border-[var(--border-color)] space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-[var(--text-secondary)] flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-[var(--accent-green)]" />
@@ -537,7 +533,7 @@ export default function BottomNavigation() {
                       </span>
                     </div>
                     {/* Animated Progress Fill Bar */}
-                    <div className="relative w-full h-2 rounded-full bg-slate-200 dark:bg-zinc-700 overflow-hidden border border-slate-300/40 dark:border-zinc-600/50">
+                    <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
                       <div 
                         className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-700 ease-out rounded-full"
                         style={{ width: `${animatedPercent}%` }}
@@ -559,20 +555,20 @@ export default function BottomNavigation() {
                         key={level.id}
                         className={`rounded-2xl transition-all duration-300 overflow-hidden ${
                           containsCurrent
-                            ? 'bg-slate-100/95 dark:bg-zinc-850 border-2 border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.18)]'
+                            ? 'glass-card border-[var(--accent-orange)]/70 ring-1 ring-[var(--accent-orange)]/40 shadow-[0_0_18px_rgba(241,143,1,0.14)]'
                             : level.isComingSoon
-                            ? 'bg-slate-100/60 dark:bg-zinc-850/60 border border-slate-200/60 dark:border-zinc-800/60 opacity-60'
-                            : 'bg-slate-100/80 dark:bg-zinc-850/80 border border-slate-200/80 dark:border-zinc-800/80 hover:border-[var(--accent-orange)]/50'
+                            ? 'glass-card border-[var(--border-color)] opacity-60'
+                            : 'glass-card border-[var(--border-color)]'
                         }`}
                       >
                         {/* Clickable Level Header Button */}
                         <button
                           type="button"
                           onClick={() => toggleLevel(level.id, level.isComingSoon)}
-                          className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-slate-200/50 dark:hover:bg-zinc-800/70 hover:text-[var(--accent-orange)] transition-all"
+                          className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${containsCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-slate-200 dark:bg-zinc-750 text-[var(--text-secondary)]'}`}>
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${containsCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
                               <IconComponent className="w-4 h-4 stroke-[2]" />
                             </div>
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -615,17 +611,17 @@ export default function BottomNavigation() {
                                     key={lesson.id}
                                     href={`/lesson/${lesson.id}`}
                                     onClick={() => {
-                                       setIsExpanded(false);
-                                       setDragY(null);
+                                      setIsExpanded(false);
+                                      setDragY(null);
                                     }}
                                     className={`group/item flex items-center justify-between gap-2.5 p-2.5 rounded-xl text-xs transition-all ${
                                       isActive 
                                         ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] text-[var(--accent-orange)] font-black shadow-[0_0_12px_rgba(241,143,1,0.2)]' 
-                                        : 'border border-slate-200/70 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 hover:bg-white dark:hover:bg-zinc-800 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)]'
+                                        : 'border border-[var(--border-color)]/70 bg-[var(--card-hover)]/40 hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)]'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? 'bg-[var(--accent-orange)] text-white' : completed ? 'bg-[var(--accent-green)] text-white' : 'bg-slate-200 dark:bg-zinc-800 text-[var(--text-secondary)]'}`}>
+                                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${isActive ? 'bg-[var(--accent-orange)] text-white' : completed ? 'bg-[var(--accent-green)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'}`}>
                                         {completed ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
                                       </div>
                                       <div className="min-w-0 flex-1">
@@ -662,10 +658,10 @@ export default function BottomNavigation() {
                     return (
                       <div
                         key={idx}
-                        className="p-3 sm:p-3.5 rounded-2xl border border-slate-200/60 dark:border-zinc-800/60 opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-slate-100/60 dark:bg-zinc-850/60"
+                        className="p-3 sm:p-3.5 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-zinc-750 flex items-center justify-center text-[var(--text-secondary)] shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] shrink-0">
                             <ToolIcon className="w-4 h-4 stroke-[1.8]" />
                           </div>
                           <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] truncate">{tool.title}</h3>
@@ -687,13 +683,13 @@ export default function BottomNavigation() {
                       }}
                       className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
                         isCurrent 
-                          ? 'bg-[var(--accent-orange)]/15 border-2 border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
-                          : 'bg-slate-100/80 dark:bg-zinc-850/80 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:border-[var(--accent-orange)]/50 hover:shadow-md border border-slate-200/80 dark:border-zinc-800/80'
+                          ? 'bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.25)]' 
+                          : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-slate-200 dark:bg-zinc-750 text-[var(--text-secondary)]'
+                          isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'
                         }`}>
                           <ToolIcon className="w-4 h-4 stroke-[2]" />
                         </div>

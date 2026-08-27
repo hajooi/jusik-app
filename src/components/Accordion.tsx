@@ -15,6 +15,8 @@ import {
   PieChart, 
   TrendingUp, 
   Cpu, 
+  Bot,
+  Crown,
   CheckCircle2,
   Sparkles
 } from 'lucide-react';
@@ -26,6 +28,7 @@ const ICON_MAP: Record<string, any> = {
   PieChart,
   TrendingUp,
   Cpu,
+  Bot,
 };
 
 interface AccordionProps {
@@ -135,12 +138,18 @@ export default function Accordion({ levels }: AccordionProps) {
                     <span className="text-[10px] font-mono font-bold text-[var(--accent-orange)] uppercase tracking-wider block">
                       LEVEL {level.levelNumber}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className={`text-base sm:text-lg font-extrabold tracking-[-0.02em] transition-colors truncate ${
                         isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
                       }`}>
                         {level.title}
                       </h3>
+                      {level.isProOnly && (
+                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-mono border border-[var(--accent-orange)]/30 shrink-0">
+                          <Crown className="w-3 h-3 stroke-[2.2]" />
+                          PRO
+                        </span>
+                      )}
                       {isLevelFullyCompleted && !level.isComingSoon && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-green)] text-white shrink-0">
                           <CheckCircle2 className="w-3 h-3" /> 완료
@@ -152,9 +161,11 @@ export default function Accordion({ levels }: AccordionProps) {
 
                 {/* Status Indicator */}
                 {level.isComingSoon ? (
-                  <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider shrink-0 border border-[var(--border-color)]">
-                    COMING SOON
-                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider border border-[var(--border-color)]">
+                      COMING SOON
+                    </span>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     {user && (

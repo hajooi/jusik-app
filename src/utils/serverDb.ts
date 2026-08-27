@@ -14,6 +14,8 @@ export interface ServerUserRecord {
   simulatorSettings?: any;
   avatarUrl?: string;
   activeBadge?: string;
+  isPro?: boolean;
+  proExpiresAt?: string;
   termsQuizBest?: {
     level?: number;
     score?: number;
@@ -34,6 +36,7 @@ export interface CommentRecord {
   investmentType?: string;
   typeScores?: { g: number; a: number; l: number; r: number };
   activeBadge?: string;
+  isPro?: boolean;
   termsQuiz?: {
     level?: number;
     score?: number;

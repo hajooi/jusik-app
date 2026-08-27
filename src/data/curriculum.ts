@@ -79,6 +79,7 @@ export interface Level {
   badgeText: string;
   iconName: string;
   isComingSoon?: boolean;
+  isProOnly?: boolean;
   lessons: Lesson[];
 }
 
@@ -764,6 +765,18 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "초과 수익 전략",
     iconName: "TrendingUp",
     isComingSoon: true,
+    lessons: []
+  },
+  {
+    id: "lv5",
+    levelId: "lv5",
+    levelNumber: 5,
+    title: "투자 자동화",
+    description: "Gemini, Antigravity, 파이썬 웹훅 및 증권사 API를 활용해 감정을 배제하고 24시간 자동으로 돌아가는 나만의 투자 시스템 구축",
+    badgeText: "투자 자동화",
+    iconName: "Bot",
+    isComingSoon: true,
+    isProOnly: true,
     lessons: []
   }
 ];

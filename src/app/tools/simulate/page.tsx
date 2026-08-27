@@ -146,16 +146,7 @@ const SELECT_ASSET_GROUPS: AssetSelectGroup[] = [
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
-  const { user, updateSimulatorSettings, openAuthPopover } = useAuth();
-
-  // Pro Membership Status Evaluation
-  const isPro = useMemo(() => {
-    if (!user) return false;
-    if (user.nickname === '주식부엉') return true;
-    if ((user as any).isPro) return true;
-    if ((user as any).proExpiresAt && new Date((user as any).proExpiresAt).getTime() > Date.now()) return true;
-    return false;
-  }, [user]);
+  const { user, isPro, updateSimulatorSettings, openAuthPopover } = useAuth();
 
   const [proPopoverOpen, setProPopoverOpen] = useState<boolean>(false);
 

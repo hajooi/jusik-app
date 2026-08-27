@@ -62,16 +62,16 @@ export default function WealthComparisonChart() {
   return (
     <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-5 shadow-2xs my-6">
       {/* Header */}
-      <div className="pb-3 border-b border-[var(--border-color)] flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+      <div className="pb-3 border-b border-[var(--border-color)] flex items-start sm:items-center justify-between gap-2">
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+          <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 mt-0.5 sm:mt-0">
             <TrendingUp className="w-5 h-5 stroke-[2.2]" />
           </span>
-          <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight truncate">
-            10억 일시 투자 vs 월 500만 원 적립 복리 비교
+          <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight break-keep leading-snug">
+            10억 일시 vs 월 500만 복리 비교
           </h3>
         </div>
-        <span className="text-[11px] sm:text-xs font-bold text-[var(--accent-orange)] px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/10 shrink-0 font-mono">
+        <span className="text-[11px] sm:text-xs font-bold text-[var(--accent-orange)] px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/10 shrink-0 font-mono self-start sm:self-auto mt-1 sm:mt-0">
           연 8% 가정
         </span>
       </div>

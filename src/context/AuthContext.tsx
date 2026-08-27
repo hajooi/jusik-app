@@ -13,6 +13,8 @@ export interface UserAccount {
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
   rankPercentile?: number;
+  isPro?: boolean;
+  proExpiresAt?: string;
   termsQuizBest?: {
     level: number;
     score: number;
@@ -26,6 +28,8 @@ export interface UserAccount {
 
 interface AuthContextType {
   user: UserAccount | null;
+  isPro: boolean;
+  proExpiresAt: string | null;
   completedLessons: string[];
   investmentType: string | null;
   typeAnswers: Record<number, number> | null;
@@ -38,6 +42,7 @@ interface AuthContextType {
   login: (nickname: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   changePin: (newPin: string) => Promise<{ success: boolean; error?: string }>;
+  redeemPromoCode: (code: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   markLessonCompleted: (lessonId: string) => void;
   toggleLessonCompleted: (lessonId: string) => void;
   isLessonCompleted: (lessonId: string) => boolean;
@@ -111,7 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (data.success && data.user) {
                 const serverUser: UserAccount = {
                   ...data.user,
-                  pin: userPin
+                  pin: userPin,
+                  isPro: data.user.isPro,
+                  proExpiresAt: data.user.proExpiresAt
                 };
                 setUser(serverUser);
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(serverUser));
@@ -584,6 +591,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Pro Membership Status Evaluation (현재는 testuser를 제외한 로그인한 모든 사용자에게 임시 Pro 권한 부여)
+  const isPro = !!(user && user.nickname.trim().toLowerCase() !== 'testuser');
+
+  // Pro 만료일 (현재는 임시 무료 체험 중이거나 등록된 만료일 표기)
+  const proExpiresAt = user?.proExpiresAt || null;
+
+  const redeemPromoCode = async (code: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    if (!user || !user.nickname) {
+      return { success: false, error: '로그인이 필요합니다.' };
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode || cleanCode.length < 3) {
+      return { success: false, error: '유효한 4자리 코드를 입력해 주세요.' };
+    }
+
+    try {
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'redeemPromoCode',
+          nickname: user.nickname,
+          pin: user.pin,
+          code: cleanCode
+        })
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return { success: false, error: data.error || '코드 등록에 실패했습니다.' };
+      }
+
+      if (data.user) {
+        const updatedUser: UserAccount = {
+          ...user,
+          ...data.user,
+          pin: user.pin
+        };
+        setUser(updatedUser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      }
+
+      return { success: true, message: data.message || 'Pro 코드가 성공적으로 등록되었습니다!' };
+    } catch (e) {
+      console.error('redeemPromoCode error:', e);
+      return { success: false, error: '서버 통신 중 오류가 발생했습니다.' };
+    }
+  };
+
   const logout = () => {
     // 1. Wipe all local storage keys
     localStorage.removeItem(USER_STORAGE_KEY);
@@ -606,6 +663,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
+        isPro,
+        proExpiresAt,
         completedLessons,
         investmentType,
         typeAnswers,
@@ -618,6 +677,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         changePin,
+        redeemPromoCode,
         markLessonCompleted,
         toggleLessonCompleted,
         isLessonCompleted,

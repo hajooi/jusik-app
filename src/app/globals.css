@@ -643,6 +643,89 @@ input[type='range']::-moz-range-thumb:hover {
   animation: textShimmerOrange 4.5s ease-in-out infinite;
 }
 
+/* Radiant Shimmering Light Sweep for PRO & Elite Badges */
+@keyframes proBadgeGleam {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.75;
+  }
+  40% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes proAuraPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(241, 143, 1, 0.3), 0 0 8px rgba(241, 143, 1, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(241, 143, 1, 0.6), 0 0 14px rgba(241, 143, 1, 0.35);
+  }
+}
+
+.animate-pro-badge {
+  position: relative;
+  overflow: hidden;
+  animation: proAuraPulse 3s ease-in-out infinite;
+}
+
+.animate-pro-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: proBadgeGleam 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes eliteAuraPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), 0 0 6px rgba(16, 185, 129, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.6), 0 0 12px rgba(16, 185, 129, 0.35);
+  }
+}
+
+.animate-elite-badge {
+  position: relative;
+  overflow: hidden;
+  animation: eliteAuraPulse 3.5s ease-in-out infinite;
+}
+
+.animate-elite-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: proBadgeGleam 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
 /* Pure CSS Zoom In Keyframe Animation for READY & GO Overlay */
 @keyframes zoomInScale {
   0% {

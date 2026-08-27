@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
-import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown } from 'lucide-react';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 
@@ -18,6 +18,7 @@ export interface CommentData {
   investmentType?: string;
   typeScores?: { g: number; a: number; l: number; r: number };
   activeBadge?: string;
+  isPro?: boolean;
   termsQuiz?: {
     level?: number;
     score?: number;
@@ -162,6 +163,7 @@ export default function CommentSection({
           investmentType: user.investmentType,
           typeScores: computedScores,
           activeBadge: user.activeBadge,
+          isPro: true,
           termsQuiz: user.termsQuizBest,
         }),
       });
@@ -216,6 +218,7 @@ export default function CommentSection({
           investmentType: user.investmentType,
           typeScores: computedScores,
           activeBadge: user.activeBadge,
+          isPro: true,
           termsQuiz: user.termsQuizBest,
         }),
       });
@@ -412,8 +415,16 @@ export default function CommentSection({
                     />
                     <span className="font-bold text-[var(--text-primary)]">{root.nickname}</span>
 
-                    {/* User Active Badge: Terms Quiz Rank Badge OR Investment Type Badge (Unified Styling) */}
-                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'terms_percentile' && rootTermsQuiz?.badgeName ? (
+                    {/* User Active Badge Selection (One of: PRO / Terms Quiz / Investment Type) */}
+                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' && root.nickname !== '주식부엉' ? (
+                      <span 
+                        className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
+                        title={`${root.nickname}님의 PRO 회원 뱃지`}
+                      >
+                        <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                        <span className="tracking-wide">PRO</span>
+                      </span>
+                    ) : rootActiveBadge === 'terms_percentile' && rootTermsQuiz?.badgeName ? (
                       <div className="relative inline-block">
                         <button
                           type="button"
@@ -437,7 +448,11 @@ export default function CommentSection({
                                   }
                             );
                           }}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                            (rootTermsQuiz.percentile && rootTermsQuiz.percentile <= 10) || rootTermsQuiz.badgeName?.includes('마스터')
+                              ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs'
+                          }`}
                           title={`${root.nickname}님의 실전 용어 퀴즈 랭킹 보기`}
                         >
                           {rootTermsQuiz.badgeName}
@@ -611,8 +626,16 @@ export default function CommentSection({
                               />
                               <span className="font-bold text-[var(--text-primary)]">{reply.nickname}</span>
 
-                              {/* Reply Badge */}
-                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'terms_percentile' && replyTermsQuiz?.badgeName ? (
+                              {/* User Active Badge Selection on Reply (One of: PRO / Terms Quiz / Investment Type) */}
+                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' && reply.nickname !== '주식부엉' ? (
+                                <span 
+                                  className="animate-pro-badge inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
+                                  title={`${reply.nickname}님의 PRO 회원 뱃지`}
+                                >
+                                  <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                                  <span className="tracking-wide">PRO</span>
+                                </span>
+                              ) : replyActiveBadge === 'terms_percentile' && replyTermsQuiz?.badgeName ? (
                                 <div className="relative inline-block">
                                   <button
                                     type="button"
@@ -636,7 +659,11 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                    className={`inline-flex items-center px-1 py-0.2 rounded text-[9.5px] sm:text-[10px] font-bold font-mono transition-all leading-none select-none cursor-pointer ${
+                                      (replyTermsQuiz.percentile && replyTermsQuiz.percentile <= 10) || replyTermsQuiz.badgeName?.includes('마스터')
+                                        ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40 hover:border-emerald-500'
+                                        : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]'
+                                    }`}
                                     title={`${reply.nickname}님의 실전 용어 퀴즈 랭킹 보기`}
                                   >
                                     {replyTermsQuiz.badgeName}
@@ -675,7 +702,7 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                                    className="inline-flex items-center px-1 py-0.2 rounded text-[9.5px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] transition-all leading-none select-none cursor-pointer"
                                     title={`${reply.nickname}님의 ${replyInvestmentType} 성향 미리보기`}
                                   >
                                     {replyInvestmentType}
@@ -692,9 +719,10 @@ export default function CommentSection({
                                 </div>
                               ) : null}
 
+                              {/* Master Admin Indicator */}
                               {reply.nickname === '주식부엉' && (
-                                <span className="inline-flex items-center text-[var(--accent-orange)]" title="공식 인증">
-                                  <CheckCircle2 className="w-3.5 h-3.5 fill-[var(--accent-orange)] text-[var(--bg-main)]" />
+                                <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-green)]/20 text-[var(--accent-green)] text-[8.5px] font-sans font-bold">
+                                  관리자
                                 </span>
                               )}
                             </div>
