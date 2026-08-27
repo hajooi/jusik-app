@@ -58,15 +58,13 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(QUESTIONS.length / PAGE_SIZE);
 
-  // Restore draft or completed result ONCE on component mount to prevent resize/re-render question jump bug
+  // Restore completed result ONCE on component mount
   useEffect(() => {
     try {
       const savedAnswers = localStorage.getItem('jusik_type_answers');
-      const savedDraft = localStorage.getItem('jusik_type_draft_answers');
       const savedCompleted = localStorage.getItem('jusik_type_completed');
-      const savedPage = localStorage.getItem('jusik_type_current_page');
 
-      // 1) 공식 완성 계정 성향 데이터 우선 (40문항 완결 시에만)
+      // 공식 완성 계정 성향 데이터 우선 (40문항 완결 시에만)
       if (user && user.typeAnswers && Object.keys(user.typeAnswers).length === 40) {
         setAnswers(user.typeAnswers);
         setIsCompleted(true);
@@ -76,26 +74,11 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           setAnswers(parsedAnswers);
           setIsCompleted(true);
         }
-      } else if (savedDraft) {
-        // 2) 진행 중인 미완료 임시 데이터(Draft) 복원
-        const parsedDraft = JSON.parse(savedDraft);
-        setAnswers(parsedDraft);
-        if (savedPage !== null) {
-          const pageNum = parseInt(savedPage, 10);
-          if (!isNaN(pageNum) && pageNum >= 0 && pageNum < totalPages) {
-            setCurrentPage(pageNum);
-          }
-        }
       }
     } catch (e) {
       console.error(e);
     }
   }, []); // Run ONCE on mount!
-
-  // Save currentPage to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('jusik_type_current_page', currentPage.toString());
-  }, [currentPage]);
 
   // Fetch stats (GET read-only) when viewing completed result
   useEffect(() => {
@@ -124,8 +107,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   const handleSelectScore = (questionId: number, score: number, pageIdx: number) => {
     const nextAnswers = { ...answers, [questionId]: score };
     setAnswers(nextAnswers);
-    // 미완료 응답은 오직 draft 임시 키에만 저장하여 공식 계정 데이터와 격리
-    localStorage.setItem('jusik_type_draft_answers', JSON.stringify(nextAnswers));
 
     // Smooth precision auto-scroll to next question card with navbar offset
     if (pageIdx < pageQuestions.length - 1) {
@@ -144,9 +125,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      localStorage.setItem('jusik_type_current_page', nextPage.toString());
+      setCurrentPage(currentPage + 1);
     } else {
       // 40문항 전체 완료 시에만 공식 승격
       if (Object.keys(answers).length === 40) {
@@ -155,7 +134,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
         setJustFinishedTest(true);
         localStorage.setItem('jusik_type_completed', 'true');
         localStorage.setItem('jusik_type_answers', JSON.stringify(answers));
-        localStorage.removeItem('jusik_type_draft_answers');
         
         const resultData = calculateSurveyResult(answers);
         updateInvestmentType(resultData.typeCode, answers);
@@ -179,9 +157,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
   const handlePrevPage = () => {
     if (currentPage > 0) {
-      const prevPage = currentPage - 1;
-      setCurrentPage(prevPage);
-      localStorage.setItem('jusik_type_current_page', prevPage.toString());
+      setCurrentPage(currentPage - 1);
     }
   };
 
@@ -192,8 +168,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     setJustFinishedTest(false);
     setIsTakingTest(true);
     setTypePercentage(undefined);
-    localStorage.removeItem('jusik_type_draft_answers');
-    localStorage.removeItem('jusik_type_current_page');
   };
 
   // Extract 1:1 comparison params if present in shared link (e.g. created from "이 비교 결과 공유하기")

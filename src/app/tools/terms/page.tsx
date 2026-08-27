@@ -159,7 +159,7 @@ function TermsQuizContent() {
 
   useEffect(() => {
     fetchLeaderboard(activeLeaderboardTab);
-  }, [activeLeaderboardTab, fetchLeaderboard, user?.activeBadge, user?.avatarUrl]);
+  }, [activeLeaderboardTab, fetchLeaderboard]);
 
   // Timer Tick (0.01s continuous precision during sprint)
   useEffect(() => {
