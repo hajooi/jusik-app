@@ -511,14 +511,11 @@ export default function BottomNavigation() {
             className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{
               contain: 'paint layout',
-              opacity: progress >= 0.4 ? Math.min(1, (progress - 0.4) / 0.55) : 0,
-              pointerEvents: progress > 0.6 ? 'auto' : 'none',
-              visibility: progress >= 0.35 ? 'visible' : 'hidden',
+              pointerEvents: isExpanded ? 'auto' : 'none',
               minWidth: '320px',
               maxWidth: '100%',
               transform: 'translateZ(0)',
               WebkitTransform: 'translateZ(0)',
-              transition: isDragging ? 'none' : 'opacity 0.22s ease',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
