@@ -380,7 +380,18 @@ export default function BottomNavigation() {
   const currentNavBottom = Math.round(2 + progress * (14 - 2));
   const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
 
-
+  // Apple Staggered Content Lifecycle: Contents fade in after expansion, disappear instantly on close
+  const [contentReady, setContentReady] = useState(false);
+  useEffect(() => {
+    if (isExpanded) {
+      const timer = setTimeout(() => {
+        setContentReady(true);
+      }, 140);
+      return () => clearTimeout(timer);
+    } else {
+      setContentReady(false);
+    }
+  }, [isExpanded]);
 
   return (
     <>
@@ -494,19 +505,21 @@ export default function BottomNavigation() {
           </div>
 
           {/* ==================================================== */}
-          {/* REVEALED DRAWER CONTENT AREA (Physical Shutter Clip)  */}
+          {/* REVEALED DRAWER CONTENT AREA (Apple Staggered Lifecycle) */}
           {/* ==================================================== */}
           <div 
             className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{
               contain: 'paint layout',
-              opacity: progress > 0.08 ? Math.min(1, (progress - 0.08) / 0.82) : 0,
-              pointerEvents: progress > 0.6 ? 'auto' : 'none',
+              opacity: (!isDragging && isExpanded && contentReady) ? 1 : 0,
+              pointerEvents: (!isDragging && isExpanded && contentReady) ? 'auto' : 'none',
+              transform: (!isDragging && isExpanded && contentReady) ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
+              WebkitTransform: (!isDragging && isExpanded && contentReady) ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
               minWidth: '320px',
               maxWidth: '100%',
-              transform: 'translateZ(0)',
-              WebkitTransform: 'translateZ(0)',
-              transition: isDragging ? 'none' : 'opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1)',
+              transition: (!isDragging && isExpanded && contentReady) 
+                ? 'opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1)' 
+                : 'opacity 0.08s ease-out, transform 0.08s ease-out',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
