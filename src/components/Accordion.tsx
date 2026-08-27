@@ -182,9 +182,9 @@ export default function Accordion({ levels }: AccordionProps) {
                 )}
               </button>
 
-              {/* Accordion Content - M3 Emphasized Smooth Transition */}
+              {/* Accordion Content - Apple Smooth Transition */}
               <div
-                className={`grid transition-all duration-400 ease-[cubic-bezier(0.2,0,0,1)] ${
+                className={`grid transition-all duration-550 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                   isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                 }`}
               >

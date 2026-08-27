@@ -1094,8 +1094,8 @@ function TermsQuizContent() {
                         </div>
                       </div>
 
-                      {/* Expanded Details (CSS Grid Smooth Height Transition) */}
-                      <div className={`grid transition-all duration-300 ease-out overflow-hidden ${
+                      {/* Expanded Details (Apple Smooth Height Transition) */}
+                      <div className={`grid transition-all duration-550 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden ${
                         isExpanded ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0'
                       }`}>
                         <div className="min-h-0 pt-3 border-t border-[var(--border-color)] space-y-3 text-xs sm:text-sm">

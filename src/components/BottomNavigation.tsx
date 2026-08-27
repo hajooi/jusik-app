@@ -137,6 +137,74 @@ export default function BottomNavigation() {
     };
   }, []);
 
+  // Lock background body & html scroll on iOS/Android when drawer is open
+  useEffect(() => {
+    if (isExpanded) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isExpanded]);
+
+  // Drawer inner content scroll vs drawer pull-down detection (2-Step Gesture Protection)
+  const contentRef = useRef<HTMLDivElement>(null);
+  const contentTouchStartYRef = useRef(0);
+  const isContentDraggingRef = useRef(false);
+  const startedAtTopRef = useRef(false);
+
+  const handleContentTouchStart = (e: React.TouchEvent) => {
+    if (!isExpanded) return;
+    contentTouchStartYRef.current = e.touches[0].clientY;
+    isContentDraggingRef.current = false;
+    const scrollTop = contentRef.current ? contentRef.current.scrollTop : 0;
+    // CRITICAL: ONLY allow drawer pull-down if the gesture STARTED when already at the top (scrollTop <= 0)
+    startedAtTopRef.current = scrollTop <= 0;
+  };
+
+  const handleContentTouchMove = (e: React.TouchEvent) => {
+    if (!isExpanded || !startedAtTopRef.current) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = contentTouchStartYRef.current - currentY; // negative when dragging down
+    const scrollTop = contentRef.current ? contentRef.current.scrollTop : 0;
+
+    // Only initiate drawer drag when started at top, still at top, and pulling downwards
+    if (scrollTop <= 0 && deltaY < -12) {
+      isContentDraggingRef.current = true;
+      setIsDragging(true);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const maxDelta = sheetHeightRef.current - COLLAPSED_HEIGHT;
+        const clamped = Math.max(-maxDelta, Math.min(0, deltaY));
+        setDragY(clamped);
+      });
+    }
+  };
+
+  const handleContentTouchEnd = (e: React.TouchEvent) => {
+    if (!isContentDraggingRef.current) return;
+    isContentDraggingRef.current = false;
+    setIsDragging(false);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    const currentY = e.changedTouches[0].clientY;
+    const deltaY = contentTouchStartYRef.current - currentY;
+    const threshold = (sheetHeightRef.current - COLLAPSED_HEIGHT) * 0.25;
+
+    if (deltaY < -threshold) {
+      setIsExpanded(false);
+    }
+    setDragY(null);
+  };
+
   // Screen width & viewport-based max sheet dimensions
   const [screenWidth, setScreenWidth] = useState(400);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
@@ -352,7 +420,12 @@ export default function BottomNavigation() {
     progress = isExpanded ? 1 : 0;
   }
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
+  const [transitionsEnabled, setTransitionsEnabled] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+    const timer = setTimeout(() => setTransitionsEnabled(true), 120);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Apple Music Style: Always a sleek 44px floating pill when collapsed across ALL pages
   const baseCollapsedHeight = 44;
@@ -400,8 +473,9 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
+        onTouchMove={(e) => e.preventDefault()}
         onClick={() => {
           setIsExpanded(false);
           setDragY(null);
@@ -422,7 +496,7 @@ export default function BottomNavigation() {
             WebkitClipPath: currentClipPath,
             transform: 'translate3d(0, 0, 0)',
             WebkitTransform: 'translate3d(0, 0, 0)',
-            transition: !isMounted || isDragging 
+            transition: !transitionsEnabled || isDragging 
               ? 'none' 
               : 'clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
@@ -437,7 +511,7 @@ export default function BottomNavigation() {
               right: `${horizontalInset}px`,
               bottom: '0px',
               borderRadius: `${currentRadius}px`,
-              transition: !isMounted || isDragging 
+              transition: !transitionsEnabled || isDragging 
                 ? 'none' 
                 : 'top 0.38s cubic-bezier(0.16, 1, 0.3, 1), left 0.38s cubic-bezier(0.16, 1, 0.3, 1), right 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
@@ -451,7 +525,7 @@ export default function BottomNavigation() {
               minWidth: '240px',
               transform: `translate3d(0, ${topInset}px, 0)`,
               WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
-              transition: !isMounted || isDragging ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: !transitionsEnabled || isDragging ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -466,7 +540,7 @@ export default function BottomNavigation() {
               }`} 
               style={{
                 opacity: currentNotchOpacity,
-                transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
 
@@ -476,7 +550,7 @@ export default function BottomNavigation() {
               className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
               style={{
                 bottom: `${currentNavBottom}px`,
-                transition: !isMounted || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
@@ -522,6 +596,10 @@ export default function BottomNavigation() {
           {/* REVEALED DRAWER CONTENT AREA (Synchronized Slide)    */}
           {/* ==================================================== */}
           <div 
+            ref={contentRef}
+            onTouchStart={handleContentTouchStart}
+            onTouchMove={handleContentTouchMove}
+            onTouchEnd={handleContentTouchEnd}
             className="flex-1 overflow-y-auto px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10"
             style={{
               contain: 'paint layout',
@@ -529,9 +607,10 @@ export default function BottomNavigation() {
               pointerEvents: progress > 0.6 ? 'auto' : 'none',
               minWidth: '320px',
               maxWidth: '100%',
-              transform: `translate3d(0, ${topInset}px, 0)`,
-              WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
-              transition: !isMounted || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              transformOrigin: 'top center',
+              transform: `translate3d(0, ${topInset}px, 0) scale(${0.96 + progress * 0.04})`,
+              WebkitTransform: `translate3d(0, ${topInset}px, 0) scale(${0.96 + progress * 0.04})`,
+              transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}

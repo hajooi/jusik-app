@@ -21,6 +21,8 @@
     --royal-indigo: #6366F1;   /* Royal Indigo Token */
     --glow-color: rgba(241, 143, 1, 0.18); /* Subtle Ambient Orange Glow */
     --glow-color-secondary: rgba(16, 185, 129, 0.14); /* Subtle Emerald Secondary Glow */
+    --motion-apple-smooth: 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-apple-snappy: 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -395,29 +397,29 @@ html {
 }
 
 .animate-modal-expand {
-  animation: modalExpand 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: modalExpand 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .animate-modal-shrink {
-  animation: modalShrink 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: modalShrink 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .animate-popover-expand {
-  animation: popoverExpand 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: popoverExpand 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   transform-origin: top right;
 }
 
 .animate-popover-shrink {
-  animation: popoverShrink 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: popoverShrink 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   transform-origin: top right;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInLeft 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .animate-slide-out-left {
-  animation: slideOutLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideOutLeft 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes fadeIn {
@@ -432,15 +434,30 @@ html {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .animate-fade-in-overlay {
-  animation: fadeInOverlay 0.25s ease-out forwards;
+  animation: fadeInOverlay 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .animate-fade-out-overlay {
-  animation: fadeOutOverlay 0.25s ease-in forwards;
+  animation: fadeOutOverlay 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes bottomPillGlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-bottom-pill-glide {
+  animation: bottomPillGlideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .animated-mesh-bg {
@@ -774,7 +791,7 @@ input[type='range']::-moz-range-thumb:hover {
 .m3-accordion-content {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 400ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  transition: grid-template-rows 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .m3-accordion-content.is-open {

@@ -5,7 +5,7 @@ import React, { useRef, useState, useEffect } from 'react';
 interface SmoothHeightProps {
   children: React.ReactNode;
   className?: string;
-  duration?: number; // milliseconds (default 320ms)
+  duration?: number; // milliseconds (default 550ms)
   easing?: string; // CSS transition timing function (default Apple HIG smooth curve)
   animateInitial?: boolean;
 }
@@ -17,8 +17,8 @@ interface SmoothHeightProps {
 export default function SmoothHeight({
   children,
   className = '',
-  duration = 320,
-  easing = 'cubic-bezier(0.32, 0.72, 0, 1)',
+  duration = 550,
+  easing = 'cubic-bezier(0.2, 0.8, 0.2, 1)',
   animateInitial = false,
 }: SmoothHeightProps) {
   const contentRef = useRef<HTMLDivElement>(null);

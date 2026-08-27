@@ -68,7 +68,11 @@ iOS/Android 모바일 UI 가이드라인에 맞춰 화면 하단에 2개의 핵�
   - 16가지 투자 성향 리포트 4대 세부 비율 스펙트럼은 전체 100% 바에 우세 성향(`Signature Orange` fill + `우세` 뱃지)과 열세 성향(`Soft Slate Gray` fill)이 투톤으로 명확히 구분 및 대조되어야 함.
 - **Dynamic Component Height Stability & SmoothHeight Mandatory Rule (동적 컴포넌트 높이 안정화 및 SmoothHeight 필수 적용)**:
   - 탭 전환, 스텝 진행, 조건부 배너/모달 등 상태 변경에 따라 컨텐츠 높이가 달라지는 모든 인터랙티브/동적 컴포넌트는 **화면이 뚝뚝 끊기거나 덜컹거리는 레이아웃 시프트(CLS)를 100% 엄격 금지**.
-  - 높이가 가변적인 영역은 반드시 `<SmoothHeight>` (`src/components/SmoothHeight.tsx`)를 감싸거나, 컨테이너 `min-height`를 사전에 충분히 고정하고 CSS 높이 보간(`transition-[height] duration-300`)을 적용하여 항상 부드럽고 유려한 높이 전환을 보장해야 함.
+  - 높이가 가변적인 영역은 반드시 `<SmoothHeight>` (`src/components/SmoothHeight.tsx`)를 감싸거나, CSS 변수 `--motion-apple-smooth`를 적용하여 항상 부드럽고 유려한 높이 전환을 보장해야 함.
+- **Apple Native 2-Token Physics Engine Rule (애플 2대 표준 물리 모션 시스템 원칙)**:
+  - 컴포넌트마다 제각각 다른 임의의 `transition duration` 하드코딩을 100% 엄격 금지하고, 반드시 애플 표준 2대 물리 토큰을 사용함.
+  - 1. **`--motion-apple-smooth: 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)`**: 하단 서랍 바텀시트, 모든 팝업 모달, 프로필 드롭다운, `SmoothHeight` 동적 높이 보간.
+  - 2. **`--motion-apple-snappy: 0.38s cubic-bezier(0.2, 0.8, 0.2, 1)`**: 토글 스위치, 탭 슬라이딩 인디케이터, 4분할 프리셋 버튼 등 마이크로 컨트롤.
 - **No Cursor Tracking**: 과도한 마우스 추적 Glow 효과나 조잡한 애니메이션 배제.
 
 ## 7. Color System & Auto Dark/Light Mode (주식부엉 2.0 10색 시그니처 팔레트)

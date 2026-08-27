@@ -1243,7 +1243,7 @@ function SimulatorContent() {
             <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans">
               {/* Physical Sliding Pill Indicator */}
               <div
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: depositFrequency === 'monthly' ? '2px' : 'calc(50% + 0px)',
@@ -1387,7 +1387,7 @@ function SimulatorContent() {
               {/* Scale Toggle: [ 선형 | 로그 ] */}
               <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans shrink-0">
                 <div
-                  className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                  className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                   style={{
                     width: 'calc(50% - 2px)',
                     left: chartScale === 'linear' ? '2px' : 'calc(50% + 0px)',
@@ -1440,7 +1440,7 @@ function SimulatorContent() {
                   {isPro ? (
                     <div className="w-full h-full relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
                       <div
-                        className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                        className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                         style={{
                           width: 'calc(50% - 2px)',
                           left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
@@ -1991,7 +1991,7 @@ function SimulatorContent() {
                       <div className="relative grid grid-cols-4 p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs">
                         {/* Physical Sliding Pill Indicator */}
                         <div
-                          className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                          className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                           style={{
                             width: 'calc(25% - 2px)',
                             left:
