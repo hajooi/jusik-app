@@ -484,7 +484,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                       type="button"
                       disabled={isCodeSubmitting || !promoCode.trim()}
                       onClick={handlePromoCodeSubmit}
-                      className="w-full py-2.5 px-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                      className="w-full py-2.5 px-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 hover:shadow-[0_0_18px_rgba(241,143,1,0.28)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs border border-[var(--accent-orange)]"
                     >
                       {isCodeSubmitting ? (
                         <>

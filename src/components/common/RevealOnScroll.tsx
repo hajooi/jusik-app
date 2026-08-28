@@ -25,26 +25,35 @@ export default function RevealOnScroll({
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(el);
-        }
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.unobserve(entry.target);
+          }
+        });
       },
       {
-        threshold: 0.05,
-        rootMargin: '0px 0px -20px 0px',
+        threshold: 0.01,
+        rootMargin: '50px 0px 50px 0px',
       }
     );
 
     observer.observe(el);
 
+    // Fallback: If for any reason observer doesn't trigger within 350ms, force visible
+    const fallbackTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 350);
+
     const onScroll = () => {
       setHasScrolled(true);
+      setIsVisible(true);
     };
     window.addEventListener('scroll', onScroll, { passive: true, once: true });
 
     return () => {
+      clearTimeout(fallbackTimer);
       observer.disconnect();
       window.removeEventListener('scroll', onScroll);
     };

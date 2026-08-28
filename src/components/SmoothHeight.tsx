@@ -29,6 +29,13 @@ export default function SmoothHeight({
     const el = contentRef.current;
     if (!el) return;
 
+    const updateHeight = () => {
+      const newHeight = el.scrollHeight;
+      setHeight(newHeight);
+    };
+
+    updateHeight();
+
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const newHeight = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
@@ -49,6 +56,11 @@ export default function SmoothHeight({
       resizeObserver.disconnect();
     };
   }, [animateInitial]);
+
+  // If children is null, undefined or empty boolean, do not render extra spacing
+  const hasContent = React.Children.count(children) > 0 && Boolean(children);
+
+  if (!hasContent) return null;
 
   return (
     <div

@@ -259,6 +259,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
 
           const effectiveTermsQuizBest = rowSettings.termsQuizBest || row.terms_quiz_best || master?.termsQuizBest || undefined;
           const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || master?.termsQuizEntries || undefined;
+          const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? master?.isPro ?? false;
+          const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || master?.proExpiresAt || undefined;
 
           db[row.nickname] = {
             nickname: row.nickname,
@@ -273,6 +275,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             activeBadge: effectiveActiveBadge,
             termsQuizBest: effectiveTermsQuizBest,
             termsQuizEntries: effectiveTermsQuizEntries,
+            isPro: effectiveIsPro,
+            proExpiresAt: effectiveProExpiresAt,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -308,12 +312,14 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           pureSimulatorSettings = pureSim;
         }
 
-        // Supabase JSONB 컬럼에 뱃지 및 퀴즈 데이터를 함께 안전하게 Pack
+        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태 데이터를 함께 안전하게 Pack
         const packedSettings = {
           ...pureSimulatorSettings,
           activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
           termsQuizBest: u.termsQuizBest || null,
           termsQuizEntries: u.termsQuizEntries || null,
+          isPro: u.isPro || false,
+          proExpiresAt: u.proExpiresAt || null,
         };
 
         return {
@@ -930,7 +936,15 @@ function attachUserMetadata(entry: TermsQuizLeaderboardEntry, userDb: Record<str
   if (u) {
     avatarUrl = u.avatarUrl || entry.avatarUrl;
     effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
-    activeBadge = (u.activeBadge !== undefined && u.activeBadge !== null) ? u.activeBadge : (entry.activeBadge || 'investmentType');
+    
+    // Check if user is currently a valid PRO member
+    const isUserPro = !!(u.isPro === true || (u.proExpiresAt && new Date(u.proExpiresAt).getTime() > Date.now()));
+    
+    let rawBadge = (u.activeBadge !== undefined && u.activeBadge !== null) ? u.activeBadge : (entry.activeBadge || 'investmentType');
+    if (rawBadge === 'pro' && !isUserPro) {
+      rawBadge = 'investmentType';
+    }
+    activeBadge = rawBadge;
     termsQuizBest = u.termsQuizBest || entry.termsQuizBest;
 
     if (u.typeAnswers && Object.keys(u.typeAnswers).length > 0) {

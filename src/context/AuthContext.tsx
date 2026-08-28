@@ -591,10 +591,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Pro Membership Status Evaluation (현재는 testuser를 제외한 로그인한 모든 사용자에게 임시 Pro 권한 부여)
-  const isPro = !!(user && user.nickname.trim().toLowerCase() !== 'testuser');
+  // Pro Membership Status Evaluation (실제 프로 코드 인증 또는 유효한 proExpiresAt 만료일을 보유한 계정만 PRO 인정)
+  const isPro = !!(
+    user && (
+      user.isPro === true ||
+      (user.proExpiresAt && new Date(user.proExpiresAt).getTime() > Date.now())
+    )
+  );
 
-  // Pro 만료일 (현재는 임시 무료 체험 중이거나 등록된 만료일 표기)
+  // Pro 만료일 (실제 등록된 만료일 표기)
   const proExpiresAt = user?.proExpiresAt || null;
 
   const redeemPromoCode = async (code: string): Promise<{ success: boolean; message?: string; error?: string }> => {

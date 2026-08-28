@@ -12,6 +12,7 @@ interface AdminUserRecord {
   completedLessonsCount: number;
   investmentType: string;
   hasSimulatorSettings: boolean;
+  isPro?: boolean;
 }
 
 interface SurveyStatsResponse {
@@ -252,13 +253,18 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                   {filteredUsers.map((u) => (
                     <div key={u.nickname} className="p-3 hover:bg-[var(--card-hover)] transition-colors flex items-center justify-between gap-3">
                       <div className="space-y-0.5 min-w-0">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-[var(--text-primary)] font-mono truncate">
                             {u.nickname}
                           </span>
                           {u.nickname === '주식부엉' && (
                             <span className="px-1.5 py-0.2 rounded bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] text-[9px] font-bold shrink-0">
                               관리자
+                            </span>
+                          )}
+                          {u.isPro && (
+                            <span className="px-1.5 py-0.2 rounded bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/40 text-[var(--accent-orange)] text-[9px] font-extrabold font-mono shrink-0 flex items-center gap-0.5 shadow-2xs">
+                              PRO
                             </span>
                           )}
                         </div>

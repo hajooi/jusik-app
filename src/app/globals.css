@@ -839,6 +839,57 @@ input[type='range']:focus::-moz-range-thumb {
   grid-template-rows: 1fr;
 }
 
+/* Radiant Shimmering Animated Button (반짝반짝 앰비언트 글로우 버튼 모션) */
+@keyframes buttonShimmerGleam {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  40% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes buttonAuraPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(241, 143, 1, 0.4), 0 0 12px rgba(241, 143, 1, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 1.5px rgba(241, 143, 1, 0.85), 0 0 22px rgba(241, 143, 1, 0.45);
+  }
+}
+
+.animate-shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  animation: buttonAuraPulse 3s ease-in-out infinite;
+}
+
+.animate-shimmer-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: buttonShimmerGleam 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
 
 
 

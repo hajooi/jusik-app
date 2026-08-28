@@ -421,11 +421,12 @@ function TermsQuizContent() {
     }
   }, [user, quizState]);
 
-  // Format seconds to mm:ss.ms
-  const formatTime = (sec: number) => {
-    const mins = Math.floor(sec / 60);
-    const remainingSecs = Math.floor(sec % 60);
-    const millis = Math.floor((sec % 1) * 100);
+  // Format seconds to mm:ss.ms (Bulletproof against null/undefined/NaN)
+  const formatTime = (sec?: number | null) => {
+    const s = Math.max(0, typeof sec === 'number' && !isNaN(sec) ? sec : 0);
+    const mins = Math.floor(s / 60);
+    const remainingSecs = Math.floor(s % 60);
+    const millis = Math.floor((s % 1) * 100);
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}.${millis.toString().padStart(2, '0')}`;
   };
 
@@ -488,11 +489,9 @@ function TermsQuizContent() {
         </p>
       </div>
 
-      <RevealOnScroll>
-        <div className="space-y-6">
-
-        {/* 1:1 Challenge Challenger Banner (If arrived via challenge link) */}
-        {challengerNick && challengerScore !== null && challengerTime !== null && quizState === 'intro' && (
+      {/* 1:1 Challenge Challenger Banner (If arrived via challenge link) */}
+      {challengerNick && challengerScore !== null && challengerTime !== null && quizState === 'intro' && (
+        <RevealOnScroll delayIndex={1}>
           <div className="p-4 rounded-2xl bg-[var(--card-surface)] border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] space-y-2 text-left animate-fadeIn">
             <div className="flex items-center gap-2 text-xs font-extrabold text-[var(--accent-orange)]">
               <Swords className="w-4 h-4" />
@@ -505,14 +504,16 @@ function TermsQuizContent() {
               지금 바로 퀴즈를 시작해 상대방의 기록을 깨보세요.
             </p>
           </div>
-        )}
+        </RevealOnScroll>
+      )}
 
-        {/* ======================================================== */}
-        {/* VIEW 1: INTRO & LEVEL SELECTION & LEADERBOARD           */}
-        {/* ======================================================== */}
-        {quizState === 'intro' && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Level Cards Grid */}
+      {/* ======================================================== */}
+      {/* VIEW 1: INTRO & LEVEL SELECTION & LEADERBOARD           */}
+      {/* ======================================================== */}
+      {quizState === 'intro' && (
+        <div className="space-y-6">
+          {/* Level Cards Grid */}
+          <RevealOnScroll delayIndex={2}>
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-1.5">
@@ -586,8 +587,10 @@ function TermsQuizContent() {
                 })}
               </div>
             </div>
+          </RevealOnScroll>
 
-            {/* Real-time Leaderboard Section */}
+          {/* Real-time Leaderboard Section */}
+          <RevealOnScroll delayIndex={3}>
             <div className="glass-card rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs border border-[var(--border-color)]">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -795,8 +798,9 @@ function TermsQuizContent() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          </RevealOnScroll>
+        </div>
+      )}
 
         {/* ======================================================== */}
         {/* VIEW 2: CONTINUOUS SPEED SPRINT ENGINE                  */}
@@ -1164,11 +1168,9 @@ function TermsQuizContent() {
             onClose={() => setQuizPopoverTarget(null)}
           />
         )}
-        </div>
-      </RevealOnScroll>
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
 export default function TermsQuizPage() {
   return (

@@ -136,6 +136,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
+      // 현재 활성화된 공식 4자리 프로모션 코드 (8월 31일까지 적용)
+      const VALID_PROMO_CODES: Record<string, number> = {
+        'OW26': 30, // 주식부엉 8월 공식 4자리 인증 코드
+      };
+
+      if (!VALID_PROMO_CODES[cleanCode]) {
+        return NextResponse.json({ 
+          success: false, 
+          error: '유효하지 않거나 만료된 프로모션 코드입니다.' 
+        }, { status: 200 });
+      }
+
       // Calculate end of current month (e.g. 2026-08-31 23:59:59 KST / UTC)
       const now = new Date();
       const currentYear = now.getFullYear();

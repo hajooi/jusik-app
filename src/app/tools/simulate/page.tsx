@@ -1548,7 +1548,7 @@ function SimulatorContent() {
       {/* ---------------------------------------------------- */}
       <RevealOnScroll delayIndex={2}>
         <div className="glass-card p-5 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-4 relative shadow-sm">
-          <div className="relative z-30 flex flex-wrap items-center justify-between gap-2">
+          <div className="relative z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="p-1.5 rounded-xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] shrink-0">
                 <BarChart3 className="w-4 h-4" />
@@ -1563,8 +1563,8 @@ function SimulatorContent() {
               </div>
             </div>
 
-            {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] (Always right-aligned on both mobile and desktop) */}
-            <div className="flex items-center justify-end gap-2 shrink-0 ml-auto">
+            {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] (Always right-aligned with 30y securely positioned on the right edge) */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
               {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] */}
               <div className="flex items-center gap-1.5 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 <button
@@ -2067,7 +2067,7 @@ function SimulatorContent() {
                 d={getSvgPath(valsA)}
                 fill="none"
                 stroke="#F18F01"
-                strokeWidth="3.5"
+                strokeWidth="2.2"
                 className="transition-all duration-500 ease-out"
                 style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
               />
@@ -2080,7 +2080,7 @@ function SimulatorContent() {
                   d={getSvgPath(valsB)}
                   fill="none"
                   stroke="#10B981"
-                  strokeWidth="3"
+                  strokeWidth="2.2"
                   className="transition-all duration-500 ease-out"
                   style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
                 />
@@ -2094,7 +2094,7 @@ function SimulatorContent() {
                   d={getSvgPath(valsC)}
                   fill="none"
                   stroke="#6366F1"
-                  strokeWidth="3"
+                  strokeWidth="2.2"
                   className="transition-all duration-500 ease-out"
                   style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
                 />
@@ -2140,7 +2140,7 @@ function SimulatorContent() {
         {/* DYNAMIC MULTI-STRATEGY BUILDER (INSIDE MASTER CARD)  */}
         {/* ---------------------------------------------------- */}
         <SmoothHeight duration={500}>
-          <div className={`w-full grid gap-4 pt-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+          <div className={`w-full grid gap-4 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
               strategyCount === 1 ? 'grid-cols-1' : strategyCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}>
               
@@ -2244,8 +2244,8 @@ function SimulatorContent() {
                   </div>
 
                   {/* Smooth Accordion for Strategy Information with padding container */}
-                  <SmoothHeight>
-                    {activeTooltip === 'strategy_info' && (
+                  {activeTooltip === 'strategy_info' && (
+                    <SmoothHeight>
                       <div className="pt-3 pb-1">
                         <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium shadow-2xs">
                           💡 {userProfileCode ? (
@@ -2255,8 +2255,8 @@ function SimulatorContent() {
                           )}
                         </div>
                       </div>
-                    )}
-                  </SmoothHeight>
+                    </SmoothHeight>
+                  )}
 
                   <div className="mt-4">
                     <SmoothHeight>
@@ -2362,13 +2362,13 @@ function SimulatorContent() {
                         <HelpCircle className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <SmoothHeight>
-                      {activeTooltip === 'defense_a' && (
+                    {activeTooltip === 'defense_a' && (
+                      <SmoothHeight>
                         <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
-                      )}
-                    </SmoothHeight>
+                      </SmoothHeight>
+                    )}
                     <select
                       value={strategyPeriodA}
                       onChange={(e) => {
@@ -2501,13 +2501,13 @@ function SimulatorContent() {
                         <HelpCircle className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <SmoothHeight>
-                      {activeTooltip === 'defense_b' && (
+                    {activeTooltip === 'defense_b' && (
+                      <SmoothHeight>
                         <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
-                      )}
-                    </SmoothHeight>
+                      </SmoothHeight>
+                    )}
                     <select
                       value={strategyPeriodB}
                       onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
@@ -2638,13 +2638,13 @@ function SimulatorContent() {
                         <HelpCircle className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <SmoothHeight>
-                      {activeTooltip === 'defense_c' && (
+                    {activeTooltip === 'defense_c' && (
+                      <SmoothHeight>
                         <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
-                      )}
-                    </SmoothHeight>
+                      </SmoothHeight>
+                    )}
                     <select
                       value={strategyPeriodC}
                       onChange={(e) => setStrategyPeriodC(Number(e.target.value))}

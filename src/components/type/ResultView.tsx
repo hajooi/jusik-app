@@ -224,253 +224,251 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </p>
       </div>
 
-      <RevealOnScroll>
-        <div className="space-y-6">
-          {/* Main Personality Card */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
+      {/* Main Personality Card */}
+      <RevealOnScroll delayIndex={1}>
+        <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-orange)]/15 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Floating Large Emoji Avatar & Title Section */}
-            <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
-              {/* Borderless Pure Floating Large Emoji */}
-              <div className="relative shrink-0 group py-2 flex items-center justify-center">
-            <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none" />
-            <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative z-10 animate-float-y group-hover:scale-110 transition-transform duration-300">
-              <span className="text-7xl sm:text-8xl select-none filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.22)] leading-none">
-                {TYPE_EMOJIS[profile.code] || '🦉'}
-              </span>
+          {/* Floating Large Emoji Avatar & Title Section */}
+          <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
+            {/* Borderless Pure Floating Large Emoji */}
+            <div className="relative shrink-0 group py-2 flex items-center justify-center">
+              <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none" />
+              <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative z-10 animate-float-y group-hover:scale-110 transition-transform duration-300">
+                <span className="text-7xl sm:text-8xl select-none filter drop-shadow-[0_12px_24px_rgba(241,143,1,0.22)] leading-none">
+                  {TYPE_EMOJIS[profile.code] || '🦉'}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-3 flex-1">
-            {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
-            <div className="space-y-2">
-              <div className="min-h-[26px] flex items-center justify-center sm:justify-start">
-                {percentage !== undefined && percentage > 0 ? (
-                  <div className="animate-in fade-in duration-300">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
-                      🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+            <div className="space-y-3 flex-1">
+              {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
+              <div className="space-y-2">
+                <div className="min-h-[26px] flex items-center justify-center sm:justify-start">
+                  {percentage !== undefined && percentage > 0 ? (
+                    <div className="animate-in fade-in duration-300">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
+                        🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="animate-in fade-in duration-300">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
+                        🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">6.3%</span>가 이 유형이에요!
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  {profile.badges.map((b, i) => (
+                    <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
+                      {b}
                     </span>
-                  </div>
-                ) : percentage === undefined ? (
-                  <div className="h-6 w-48 rounded-full bg-[var(--card-hover)]/80 border border-[var(--border-color)]/50 animate-pulse flex items-center px-3">
-                    <div className="h-2.5 w-full bg-[var(--text-secondary)]/15 rounded-full" />
-                  </div>
-                ) : null}
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                {profile.badges.map((b, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">
-                    {b}
-                  </span>
-                ))}
+
+              <div className="space-y-1">
+                <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
+                  {profile.name} <span className="text-lg sm:text-xl font-bold text-[var(--accent-orange)] font-mono">({profile.code})</span>
+                </h2>
               </div>
+
+              <p className="text-sm sm:text-base font-bold text-[var(--accent-orange)] leading-relaxed pt-1">
+                "{profile.tagline}"
+              </p>
             </div>
-
-            <div className="space-y-1">
-              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] tracking-tight">
-                {profile.name} <span className="text-lg sm:text-xl font-bold text-[var(--accent-orange)] font-mono">({profile.code})</span>
-              </h2>
-            </div>
-
-            <p className="text-sm sm:text-base font-bold text-[var(--accent-orange)] leading-relaxed pt-1">
-              "{profile.tagline}"
-            </p>
-          </div>
-        </div>
-
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)]">
-          {profile.description}
-        </p>
-
-        {/* 4-Axis Spectrum Gauges (Intuitive Dual-Color Split vs Winner Highlight) */}
-        <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5 font-mono">
-              <Compass className="w-4 h-4 text-[var(--accent-orange)]" />
-              세부 성향 비율 리포트
-            </h3>
           </div>
 
-          {/* Spectrum Axis Items */}
-          {[
-            {
-              key: 'GS',
-              title: '목표 축',
-              leftCode: 'S',
-              leftLabel: '안전형',
-              leftPct: scores.GS.S,
-              rightCode: 'G',
-              rightLabel: '수익형',
-              rightPct: scores.GS.G,
-            },
-            {
-              key: 'AP',
-              title: '실행 축',
-              leftCode: 'P',
-              leftLabel: '수동형',
-              leftPct: scores.AP.P,
-              rightCode: 'A',
-              rightLabel: '능동형',
-              rightPct: scores.AP.A,
-            },
-            {
-              key: 'LT',
-              title: '시간 축',
-              leftCode: 'T',
-              leftLabel: '추세형',
-              leftPct: scores.LT.T,
-              rightCode: 'L',
-              rightLabel: '장기형',
-              rightPct: scores.LT.L,
-            },
-            {
-              key: 'RI',
-              title: '심리 축',
-              leftCode: 'I',
-              leftLabel: '직감형',
-              leftPct: scores.RI.I,
-              rightCode: 'R',
-              rightLabel: '원칙형',
-              rightPct: scores.RI.R,
-            },
-          ].map((item, idx) => (
-            <SpectrumGaugeItem
-              key={item.key}
-              item={item}
-              axisExp={AXIS_EXPLANATIONS[item.key]}
-              dominantCode={profile.code[idx]}
-            />
-          ))}
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)]">
+            {profile.description}
+          </p>
+
+          {/* 4-Axis Spectrum Gauges (Intuitive Dual-Color Split vs Winner Highlight) */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5 font-mono">
+                <Compass className="w-4 h-4 text-[var(--accent-orange)]" />
+                세부 성향 비율 리포트
+              </h3>
+            </div>
+
+            {/* Spectrum Axis Items */}
+            {[
+              {
+                key: 'GS',
+                title: '목표 축',
+                leftCode: 'S',
+                leftLabel: '안전형',
+                leftPct: scores.GS.S,
+                rightCode: 'G',
+                rightLabel: '수익형',
+                rightPct: scores.GS.G,
+              },
+              {
+                key: 'AP',
+                title: '실행 축',
+                leftCode: 'P',
+                leftLabel: '수동형',
+                leftPct: scores.AP.P,
+                rightCode: 'A',
+                rightLabel: '능동형',
+                rightPct: scores.AP.A,
+              },
+              {
+                key: 'LT',
+                title: '시간 축',
+                leftCode: 'T',
+                leftLabel: '추세형',
+                leftPct: scores.LT.T,
+                rightCode: 'L',
+                rightLabel: '장기형',
+                rightPct: scores.LT.L,
+              },
+              {
+                key: 'RI',
+                title: '심리 축',
+                leftCode: 'I',
+                leftLabel: '직감형',
+                leftPct: scores.RI.I,
+                rightCode: 'R',
+                rightLabel: '원칙형',
+                rightPct: scores.RI.R,
+              },
+            ].map((item, idx) => (
+              <SpectrumGaugeItem
+                key={item.key}
+                item={item}
+                axisExp={AXIS_EXPLANATIONS[item.key]}
+                dominantCode={profile.code[idx]}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </RevealOnScroll>
 
       {/* Strengths & Weaknesses Cards */}
       {(profile.strengths || profile.weaknesses) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* 5 Strengths */}
-          {profile.strengths && (
-            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-1">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
-                <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
-                  {profile.name}의 핵심 강점
-                </h3>
+        <RevealOnScroll delayIndex={2}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 5 Strengths */}
+            {profile.strengths && (
+              <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                    {profile.name}의 핵심 강점
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium">
+                  {profile.strengths.map((str, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                      <span className="text-[var(--accent-green)] font-black text-xs shrink-0 mt-0.5">✓</span>
+                      <span>{str}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium">
-                {profile.strengths.map((str, idx) => (
-                  <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                    <span className="text-[var(--accent-green)] font-black text-xs shrink-0 mt-0.5">✓</span>
-                    <span>{str}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            )}
 
-          {/* Weaknesses / Caution */}
-          {profile.weaknesses && (
-            <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-xs m3-card-enter stagger-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-                <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
-                  투자 시 주의할 점
-                </h3>
+            {/* Weaknesses / Caution */}
+            {profile.weaknesses && (
+              <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                    투자 시 주의할 점
+                  </h3>
+                </div>
+                <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+                  {profile.weaknesses.map((weak, idx) => (
+                    <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                      <span className="text-[var(--accent-orange)] font-black text-xs shrink-0 mt-0.5">!</span>
+                      <span>{weak}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-                {profile.weaknesses.map((weak, idx) => (
-                  <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                    <span className="text-[var(--accent-orange)] font-black text-xs shrink-0 mt-0.5">!</span>
-                    <span>{weak}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </RevealOnScroll>
       )}
 
       {/* Tailored Investment Guidelines Card */}
       {profile.guidelines && (
-        <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-xs border border-[var(--border-color)] transition-all duration-300 m3-card-enter stagger-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
-            <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
-              감정을 이기는 원칙 & 추천 가이드
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
-            {/* Recommendation (원칙 지침) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
-              <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>원칙 지침</span>
-              </div>
-              <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
-                {profile.guidelines.recommendation}
-              </p>
+        <RevealOnScroll delayIndex={3}>
+          <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
+              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+                감정을 이기는 원칙 & 추천 가이드
+              </h3>
             </div>
 
-            {/* Warning (경고 수칙) */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
-              <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>경고 수칙</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
+              {/* Recommendation (원칙 지침) */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
+                <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>원칙 지침</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                  {profile.guidelines.recommendation}
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
-                {profile.guidelines.warning}
-              </p>
+
+              {/* Warning (경고 수칙) */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
+                <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>경고 수칙</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                  {profile.guidelines.warning}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </RevealOnScroll>
       )}
 
-      {/* Simulator Link CTA Card (내 성향에 맞는 투자 방법 안내 - 중앙 정렬 일반 글래스 버튼) */}
-      {!isReadOnly && showSimulatorCta && (
-        <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden m3-card-enter stagger-4">
-          <div className="space-y-1.5 max-w-lg mx-auto">
-            <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
-              "{profile.name}" 맞춤 투자 전략 확인하기
-            </h3>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              내 성향에 맞는 주식 조합과 과거 수익률을 시뮬레이터로 검증해보세요.
-            </p>
-          </div>
-          <div className="pt-1 flex justify-center">
-            <Link
-              href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
-              className="inline-flex items-center justify-center gap-1.5 px-6 py-3 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] hover:text-[var(--accent-orange)] font-extrabold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 shadow-xs active:scale-[0.98] transition-all cursor-pointer"
-            >
-              <span>맞춤 전략 검증하기</span>
-              <span className="text-[var(--accent-orange)]">➔</span>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Action Buttons: 공유하기 & 다시 진단하기 */}
+      {/* Action Buttons: 공유하기 & 맞춤 투자 전략 확인하기(반짝 글로우 버튼) & 다시 진단하기 (반응형 3버튼 그룹) */}
       {!isReadOnly && (
-        <div className="flex flex-col sm:flex-row gap-3 pt-1">
-          <button
-            onClick={handleShare}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-sm border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_18px_rgba(241,143,1,0.28)] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Share2 className="w-4 h-4 text-white" />
-            <span>{copied ? '궁합 링크 복사 완료! 친구에게 보내보세요' : '친구에게 공유하고 투자 궁합 확인하기'}</span>
-          </button>
+        <RevealOnScroll delayIndex={4}>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
+            {/* 1. 친구에게 공유하고 투자 궁합 확인 (시그니처 오렌지) */}
+            <button
+              onClick={handleShare}
+              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-xs sm:text-sm border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_18px_rgba(241,143,1,0.28)] active:scale-[0.98] transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+            >
+              <Share2 className="w-4 h-4 text-white shrink-0" />
+              <span>{copied ? '궁합 링크 복사 완료!' : '친구에게 공유하고 투자 궁합 확인'}</span>
+            </button>
 
-          <button
-            onClick={onRestart}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />
-            <span>다시 진단하기</span>
-          </button>
-        </div>
+            {/* 2. 맞춤 투자 전략 (다시 진단하기와 동일한 은은한 글래스 스타일, 별과 성향 코드만 주황색 강조) */}
+            {showSimulatorCta && (
+              <Link
+                href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
+                className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              >
+                <Sparkles className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
+                <span className="text-[var(--accent-orange)] font-mono font-extrabold">{profile.code}</span>
+                <span>맞춤 투자 전략</span>
+                <span className="text-[var(--text-secondary)] font-bold ml-0.5">➔</span>
+              </Link>
+            )}
+
+            {/* 3. 다시 진단하기 (은은한 글래스 카드) */}
+            <button
+              onClick={onRestart}
+              className="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+            >
+              <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />
+              <span>다시 진단하기</span>
+            </button>
+          </div>
+        </RevealOnScroll>
       )}
-        </div>
-      </RevealOnScroll>
     </div>
   );
 }

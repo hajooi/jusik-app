@@ -80,20 +80,33 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     }
   }, []); // Run ONCE on mount!
 
-  // Fetch stats (GET read-only) when viewing completed result
+  // Fetch stats (GET read-only) when viewing completed result or shared profile
   useEffect(() => {
+    let targetCode: string | undefined = undefined;
     if (isCompleted && Object.keys(answers).length === 40) {
       const resultData = calculateSurveyResult(answers);
-      fetch('/api/survey-stats')
+      targetCode = resultData.typeCode;
+    } else if (sharedProfile) {
+      targetCode = sharedProfile.code;
+    }
+
+    if (targetCode) {
+      fetch(`/api/survey-stats?_t=${Date.now()}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.percentages) {
-            setTypePercentage(data.percentages[resultData.typeCode] || 0);
+            const pct = data.percentages[targetCode!];
+            setTypePercentage(pct !== undefined && pct > 0 ? pct : 6.3);
+          } else {
+            setTypePercentage(6.3);
           }
         })
-        .catch((err) => console.error('Survey stats API error:', err));
+        .catch((err) => {
+          console.error('Survey stats API error:', err);
+          setTypePercentage(6.3);
+        });
     }
-  }, [isCompleted, answers]);
+  }, [isCompleted, answers, sharedProfile]);
 
   // Page change or completion change scroll to top effect
   useEffect(() => {
