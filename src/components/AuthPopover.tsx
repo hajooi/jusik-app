@@ -430,14 +430,14 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     className="w-full py-2 px-3 rounded-full text-xs font-bold text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 hover:border-[rgba(241,143,1,0.5)] active:scale-95 transition-all border border-[var(--accent-orange)]/30 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                   >
                     <Crown className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>PRO 코드 등록</span>
+                    <span>PRO 코드 인증</span>
                   </button>
                 ) : (
                   <div className="p-3.5 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                         <Crown className="w-3.5 h-3.5 text-[var(--accent-orange)] stroke-[2.2]" />
-                        <span>PRO 코드 등록</span>
+                        <span>PRO 코드 인증</span>
                       </div>
                       <button
                         type="button"

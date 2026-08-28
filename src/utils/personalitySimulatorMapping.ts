@@ -259,9 +259,9 @@ export function getPersonality3Presets(
     case 'GALI': // 사자 (뚝심의 승부사): 나스닥 2배(QLD) + 반도체(SOXX) + S&P500
       balancedPeriod = 0;
       balancedPortfolio = [
-        { assetId: 'QLD', weight: 40, enableDefense: false },
-        { assetId: 'SOXX', weight: 30, enableDefense: false },
-        { assetId: 'SPY', weight: 30, enableDefense: false },
+        { assetId: 'QLD', weight: 25, enableDefense: false },
+        { assetId: 'SOXX', weight: 35, enableDefense: false },
+        { assetId: 'SPY', weight: 40, enableDefense: false },
       ];
       break;
 
@@ -331,12 +331,13 @@ export function getPersonality3Presets(
       ];
       break;
 
-    case 'SALI': // 산양 (신중한 검증가): 고배당 귀족(SCHD) + S&P 500 + 금
+    case 'SALI': // 산양 (신중한 검증가): 고배당 귀족(SCHD) + S&P 500 + 금 + 중기채
       balancedPeriod = 0;
       balancedPortfolio = [
-        { assetId: 'SCHD', weight: 45, enableDefense: false },
-        { assetId: 'SPY', weight: 35, enableDefense: false },
+        { assetId: 'SCHD', weight: 40, enableDefense: false },
+        { assetId: 'SPY', weight: 30, enableDefense: false },
         { assetId: 'GLD', weight: 20, enableDefense: false },
+        { assetId: 'IEF', weight: 10, enableDefense: false },
       ];
       break;
 
@@ -369,12 +370,12 @@ export function getPersonality3Presets(
       ];
       break;
 
-    case 'SPLI': // 판다 (평화로운 투자자): 마음 편한 미국 대표 3대 지수 (SPY + QQQ + SCHD)
+    case 'SPLI': // 판다 (평화로운 투자자): 마음 편한 배당/지수 + 금(GLD) 완충 적립
       balancedPeriod = 0;
       balancedPortfolio = [
-        { assetId: 'SPY', weight: 45, enableDefense: false },
-        { assetId: 'QQQ', weight: 30, enableDefense: false },
-        { assetId: 'SCHD', weight: 25, enableDefense: false },
+        { assetId: 'SPY', weight: 40, enableDefense: false },
+        { assetId: 'SCHD', weight: 35, enableDefense: false },
+        { assetId: 'GLD', weight: 25, enableDefense: false },
       ];
       break;
 
@@ -390,9 +391,9 @@ export function getPersonality3Presets(
     case 'SPTI': // 비버 (안전지대 지킴이): SCHD + SPY + 단기채(SHY) 무스트레스 적립
       balancedPeriod = 0;
       balancedPortfolio = [
-        { assetId: 'SCHD', weight: 45, enableDefense: false },
-        { assetId: 'SPY', weight: 35, enableDefense: false },
-        { assetId: 'SHY', weight: 20, enableDefense: false },
+        { assetId: 'SCHD', weight: 40, enableDefense: false },
+        { assetId: 'SPY', weight: 30, enableDefense: false },
+        { assetId: 'SHY', weight: 30, enableDefense: false },
       ];
       break;
 
@@ -553,12 +554,15 @@ export function calculatePersonalitySimulatorConfig(
       // 200일선 방어선 가동 성향
       recommendedTargetCAGR = is30 ? 5 : 7;
       recommendedMaxMDD = is30 ? 16 : 12;
-    } else if (typeCode === 'SPTR' || typeCode === 'SPTI') {
-      recommendedTargetCAGR = is30 ? 6 : 7;
+    } else if (typeCode === 'SPTR') {
+      recommendedTargetCAGR = is30 ? 5 : 7;
       recommendedMaxMDD = is30 ? 25 : 20;
+    } else if (typeCode === 'SPTI') {
+      recommendedTargetCAGR = is30 ? 5 : 7;
+      recommendedMaxMDD = is30 ? 35 : 22;
     } else {
       recommendedTargetCAGR = is30 ? 6 : 8;
-      recommendedMaxMDD = is30 ? 30 : 25;
+      recommendedMaxMDD = is30 ? 36 : 26;
     }
   }
 

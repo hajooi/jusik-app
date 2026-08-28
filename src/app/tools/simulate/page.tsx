@@ -171,9 +171,12 @@ const SELECT_ASSET_GROUPS: AssetSelectGroup[] = [
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
-  const { user, isPro, updateSimulatorSettings, openAuthPopover } = useAuth();
+  const { user, isPro, updateSimulatorSettings, openAuthPopover, redeemPromoCode } = useAuth();
 
   const [proPopoverOpen, setProPopoverOpen] = useState<boolean>(false);
+  const [promoCodeInput, setPromoCodeInput] = useState<string>('');
+  const [promoCodeLoading, setPromoCodeLoading] = useState<boolean>(false);
+  const [promoCodeMessage, setPromoCodeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Global Simulation Settings
   const [initialCapital, setInitialCapital] = useState<number>(100); // 100만 원
@@ -1156,10 +1159,10 @@ function SimulatorContent() {
     });
   }, [simulation.portC, simulation.benchmark, portfolioC, strategyPeriodC, targetCAGR, maxTolerableMDD, userPersonalityInfo]);
 
-  // Chart Canvas Dimensions
-  const chartHeight = 320;
+  // Chart Canvas Dimensions (Full-Width Dynamic Range)
+  const chartHeight = 260;
   const chartWidth = 800;
-  const proLeftOffset = !isPro && !customStartDate ? 44 : 0;
+  const proLeftOffset = !isPro && !customStartDate ? 36 : 0;
 
   const valsA = simulation.points.map((p) => p.valA);
   const valsB = strategyCount >= 2 ? simulation.points.map((p) => p.valB || 0) : [];
@@ -1169,9 +1172,9 @@ function SimulatorContent() {
   const maxVal = Math.max(...valsA, ...valsB, ...valsC, ...investedVals, 10);
   const minVal = Math.min(...valsA, ...valsB, ...investedVals, initialCapital);
 
-  // Precompute Log Bounds once in O(1): Bottom is 15% below actual minimum so the graph starts near the bottom
-  const safeLogMin = Math.max(1, minVal * 0.85);
-  const safeLogMax = Math.max(maxVal * 1.05, safeLogMin * 1.15);
+  // Precompute Log Bounds: Starts exactly at bottom
+  const safeLogMin = Math.max(1, minVal * 0.95);
+  const safeLogMax = Math.max(maxVal * 1.02, safeLogMin * 1.05);
   const logMin = Math.log10(safeLogMin);
   const logMax = Math.log10(safeLogMax);
 
@@ -1185,9 +1188,9 @@ function SimulatorContent() {
     if (chartScale === 'log') {
       const safeVal = Math.max(safeLogMin, val);
       const ratio = (Math.log10(safeVal) - logMin) / (logMax - logMin || 1);
-      return chartHeight - ratio * (chartHeight - 40) - 20;
+      return chartHeight - 8 - ratio * (chartHeight - 16);
     }
-    return chartHeight - ((val - minVal) / (maxVal - minVal || 1)) * (chartHeight - 40) - 20;
+    return chartHeight - 8 - ((val - minVal) / (maxVal - minVal || 1)) * (chartHeight - 16);
   };
 
   const getSvgPath = (values: number[]) => {
@@ -1339,20 +1342,25 @@ function SimulatorContent() {
         </p>
       </div>
 
-      <RevealOnScroll>
-        <div className="space-y-4 sm:space-y-6">
-
       {/* ---------------------------------------------------- */}
-      {/* PERSONALIZED TARGET & RISK CONTROLS (성향 연동 가이드) */}
+      {/* [STEP 1 MASTER CARD] 나의 투자 기준                    */}
       {/* ---------------------------------------------------- */}
-      <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] relative overflow-hidden shadow-2xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
-          <div className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-[var(--accent-orange)]" />
-            <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-              목표 연수익률 & 감내 손실 설정
-            </h2>
-          </div>
+      <RevealOnScroll delayIndex={1}>
+        <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)] relative overflow-hidden shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]">
+                <Target className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+                  나의 투자 기준
+                </h2>
+                <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] font-medium">
+                  내 목표 수익, 감내 손실, 투자 금액과 주기를 설정합니다.
+                </p>
+              </div>
+            </div>
           <button
             type="button"
             onClick={() => resetGoalSettingsToRecommendation()}
@@ -1363,15 +1371,15 @@ function SimulatorContent() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Target CAGR Control */}
-          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-2xl border border-[var(--border-color)]">
+          <div className="bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)] space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-mid-green)]" />
-                목표 연수익률 (CAGR)
+                목표 연수익률
               </span>
-              <span className="text-sm font-extrabold text-[var(--accent-mid-green)] font-mono">
+              <span className="text-xs font-extrabold text-[var(--accent-mid-green)] font-mono">
                 +{targetCAGR}%
               </span>
             </div>
@@ -1385,23 +1393,18 @@ function SimulatorContent() {
                 setTargetCAGR(Number(e.target.value));
                 setIsTargetCustomized(true);
               }}
-              className="w-full accent-[var(--accent-mid-green)] cursor-pointer"
+              className="w-full accent-[var(--accent-mid-green)] cursor-pointer h-1.5"
             />
-            <div className="flex justify-between text-[10px] text-[var(--text-secondary)] font-mono">
-              <span>+5% (안정)</span>
-              <span>+20% (성장)</span>
-              <span>+40% (초고수익)</span>
-            </div>
           </div>
 
           {/* Max Tolerable MDD Control */}
-          <div className="space-y-2 bg-[var(--bg-main)]/60 p-3.5 rounded-2xl border border-[var(--border-color)]">
+          <div className="bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)] space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1">
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
-                감내 가능한 최대 손실 (MDD)
+                감내 가능한 최대 손실
               </span>
-              <span className="text-sm font-extrabold text-rose-500 font-mono">
+              <span className="text-xs font-extrabold text-rose-500 font-mono">
                 -{maxTolerableMDD}%
               </span>
             </div>
@@ -1415,35 +1418,16 @@ function SimulatorContent() {
                 setMaxTolerableMDD(Number(e.target.value));
                 setIsTargetCustomized(true);
               }}
-              className="w-full accent-rose-500 cursor-pointer"
+              className="w-full accent-rose-500 cursor-pointer h-1.5"
             />
-            <div className="flex justify-between text-[10px] text-[var(--text-secondary)] font-mono">
-              <span>-5% (보수적)</span>
-              <span>-25% (적정)</span>
-              <span>-60% (공격적)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {/* ---------------------------------------------------- */}
-      {/* GLOBAL SIMULATION SETTINGS (초기자본 & 적립액 & 주기)    */}
-      {/* ---------------------------------------------------- */}
-      <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--border-color)]">
-        <div className="flex items-center justify-between pb-1">
-          <div className="flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-[var(--accent-orange)]" />
-            <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-              투자 조건 설정
-            </h2>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Investment Conditions Sub-Grid (투자 주기 / 시작 자본금 / 적립 금액 - 구분선 없이 결합) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           {/* Deposit Frequency Toggle with Physical Sliding Pill */}
           <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)] flex flex-col justify-between">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] block">저금 주기</label>
+            <label className="text-[11px] font-bold text-[var(--text-secondary)] block">투자 주기</label>
             <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans">
               {/* Physical Sliding Pill Indicator */}
               <div
@@ -1557,191 +1541,205 @@ function SimulatorContent() {
           </div>
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* ---------------------------------------------------- */}
-      {/* REAL DATA INTERACTIVE MAIN CHART (수익률 차트)        */}
+      {/* [STEP 2 MASTER CARD] 실전 전략 & 투자 시뮬레이션       */}
       {/* ---------------------------------------------------- */}
-      <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] relative">
-        <div className="relative z-30 flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex items-center flex-wrap gap-2">
-            <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] tracking-tight flex items-center gap-2">
-              <BarChart3 className="w-5.5 h-5.5 text-[var(--accent-orange)]" />
-              수익률 차트
-            </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[var(--card-surface)] border border-[var(--border-color)] text-[var(--text-secondary)] font-mono shadow-2xs">
-              배당 재투자
-            </span>
-          </div>
-
-          {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] */}
-          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-            {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] (Always together, smooth gliding transition) */}
-            <div className="flex items-center gap-1.5 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-              <button
-                type="button"
-                onClick={() => setActiveTooltip(activeTooltip === 'chart_scale' ? null : 'chart_scale')}
-                className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
-                  activeTooltip === 'chart_scale' ? 'text-[var(--accent-orange)] bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                }`}
-                title="차트 보기 방식 설명"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-              </button>
-
-              {/* Scale Toggle: [ 선형 | 로그 ] */}
-              <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans shrink-0">
-                <div
-                  className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
-                  style={{
-                    width: 'calc(50% - 2px)',
-                    left: chartScale === 'linear' ? '2px' : 'calc(50% + 0px)',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleToggleScale('linear')}
-                  className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                    chartScale === 'linear'
-                      ? 'text-[var(--accent-orange)] font-extrabold'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                  }`}
-                >
-                  선형
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleScale('log')}
-                  className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                    chartScale === 'log'
-                      ? 'text-[var(--accent-orange)] font-extrabold'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                  }`}
-                >
-                  로그
-                </button>
+      <RevealOnScroll delayIndex={2}>
+        <div className="glass-card p-5 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-4 relative shadow-sm">
+          <div className="relative z-30 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="p-1.5 rounded-xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] shrink-0">
+                <BarChart3 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] truncate">
+                  실전 전략 & 투자 시뮬레이션
+                </h2>
+                <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] font-medium truncate">
+                  원하는 자산과 방어 옵션을 구성하고 과거 30년 실제 성과를 검증합니다.
+                </p>
               </div>
             </div>
 
-            {/* 3. Duration / Reset Controls (Unified 108px Capsule Container) */}
-            <div className="relative z-30 flex items-center justify-end shrink-0 w-[108px] h-[28px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
-              {customStartDate || customEndDate ? (
-                <div key="reset-btn-wrapper" className="w-full h-full flex items-center justify-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans shrink-0 animate-fade-in">
+            {/* Header Controls: Left [? + Scale] & Right [15/30y or Reset] (Always right-aligned on both mobile and desktop) */}
+            <div className="flex items-center justify-end gap-2 shrink-0 ml-auto">
+              {/* Left Sub-Group: ? Tooltip + [ 선형 | 로그 ] */}
+              <div className="flex items-center gap-1.5 shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTooltip(activeTooltip === 'chart_scale' ? null : 'chart_scale')}
+                  className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
+                    activeTooltip === 'chart_scale' ? 'text-[var(--accent-orange)] bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                  }`}
+                  title="차트 보기 방식 설명"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Scale Toggle: [ 선형 | 로그 ] */}
+                <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans shrink-0">
+                  <div
+                    className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
+                    style={{
+                      width: 'calc(50% - 2px)',
+                      left: chartScale === 'linear' ? '2px' : 'calc(50% + 0px)',
+                    }}
+                  />
                   <button
                     type="button"
-                    onClick={() => {
-                      setCustomStartDate(null);
-                      setCustomEndDate(null);
-                    }}
-                    className="w-full h-full flex items-center justify-center gap-1.5 px-2 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.4)] transition-all cursor-pointer font-sans whitespace-nowrap active:scale-95 shrink-0"
+                    onClick={() => handleToggleScale('linear')}
+                    className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                      chartScale === 'linear'
+                        ? 'text-[var(--accent-orange)] font-extrabold'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                    }`}
                   >
-                    <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
-                    <span>전체 보기</span>
+                    선형
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleScale('log')}
+                    className={`relative z-10 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                      chartScale === 'log'
+                        ? 'text-[var(--accent-orange)] font-extrabold'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                    }`}
+                  >
+                    로그
                   </button>
                 </div>
-              ) : (
-                <div key="duration-pill-wrapper" className="w-full h-full relative shrink-0 animate-fade-in">
-                  {/* Unified Segmented Pill Design matching Scale Switch */}
-                  {isPro ? (
-                    <div className="w-full h-full relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
-                      <div
-                        className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
-                        style={{
-                          width: 'calc(50% - 2px)',
-                          left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDurationYears(15);
-                          if (!isTargetCustomized && activePresetA) {
-                            resetGoalSettingsToRecommendation(15, true);
-                          }
-                        }}
-                        className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                          durationYears === 15
-                            ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
-                        }`}
-                      >
-                        15년
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDurationYears(30);
-                          if (!isTargetCustomized && activePresetA) {
-                            resetGoalSettingsToRecommendation(30, true);
-                          }
-                        }}
-                        className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                          durationYears === 30
-                            ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
-                        }`}
-                      >
-                        30년
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-between p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
-                      <span className="w-1/2 flex items-center justify-center py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] font-mono whitespace-nowrap">
-                        15년
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setProPopoverOpen(!proPopoverOpen)}
-                        className="w-1/2 flex items-center justify-center gap-1 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
-                      >
-                        <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
-                        <span>30년</span>
-                      </button>
-                    </div>
-                  )}
+              </div>
 
-                {/* Floating Pro Popover anchored to Top Right Button */}
-                {proPopoverOpen && !isPro && (
-                  <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 max-w-[calc(100vw-36px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left font-sans">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
-                        <Crown className="w-4 h-4" />
-                        <span>PRO 전용 (과거 30년 전체 데이터)</span>
+              {/* 3. Duration / Reset Controls (Unified 108px Capsule Container) */}
+              <div className="relative z-30 flex items-center justify-end shrink-0 w-[108px] h-[28px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                {customStartDate || customEndDate ? (
+                  <div key="reset-btn-wrapper" className="w-full h-full flex items-center justify-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans shrink-0 animate-fade-in">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomStartDate(null);
+                        setCustomEndDate(null);
+                      }}
+                      className="w-full h-full flex items-center justify-center gap-1.5 px-2 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] hover:border-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.4)] transition-all cursor-pointer font-sans whitespace-nowrap active:scale-95 shrink-0"
+                    >
+                      <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
+                      <span>전체 보기</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div key="duration-pill-wrapper" className="w-full h-full relative shrink-0 animate-fade-in">
+                    {/* Unified Segmented Pill Design matching Scale Switch */}
+                    {isPro ? (
+                      <div className="w-full h-full relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                        <div
+                          className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
+                          style={{
+                            width: 'calc(50% - 2px)',
+                            left: durationYears === 15 ? '2px' : 'calc(50% + 0px)',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDurationYears(15);
+                            if (!isTargetCustomized) {
+                              resetGoalSettingsToRecommendation(15, true);
+                            }
+                          }}
+                          className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                            durationYears === 15
+                              ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                          }`}
+                        >
+                          15년
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDurationYears(30);
+                            if (!isTargetCustomized) {
+                              resetGoalSettingsToRecommendation(30, true);
+                            }
+                          }}
+                          className={`relative z-10 w-1/2 flex items-center justify-center py-0.5 rounded-full font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                            durationYears === 30
+                              ? 'text-[var(--accent-orange)] font-extrabold text-[11px]'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] text-[11px]'
+                          }`}
+                        >
+                          30년
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setProPopoverOpen(false)}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
-                      2000년 닷컴 버블(-80%), 2008년 리먼 사태(-55%) 등 <strong>과거 30년 역사적 위기 구간</strong>을 통과 검증하는 프리미엄 기능입니다.
-                    </p>
-                    {!user ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProPopoverOpen(false);
-                          openAuthPopover();
-                        }}
-                        className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <Crown className="w-3.5 h-3.5" />
-                        로그인 / 가입하고 둘러보기
-                      </button>
                     ) : (
-                      <div className="text-center py-2 px-3 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[11px] font-bold text-[var(--accent-orange)]">
-                        멤버십 및 프로모션 코드 연동 준비 중입니다
+                      <div className="w-full h-full flex items-center justify-between p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
+                        <span className="w-1/2 flex items-center justify-center py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] font-mono whitespace-nowrap">
+                          15년
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setProPopoverOpen(!proPopoverOpen)}
+                          className="w-1/2 flex items-center justify-center gap-1 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
+                        >
+                          <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
+                          <span>30년</span>
+                        </button>
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
-            )}
+
+                  {/* Floating Pro Popover anchored to Top Right Button (Optimized for Mobile/Desktop to avoid overflow) */}
+                  {proPopoverOpen && !isPro && (
+                    <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left font-sans">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
+                          <Crown className="w-4 h-4" />
+                          <span>PRO 전용 (과거 30년 전체 데이터)</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setProPopoverOpen(false)}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
+                        2000년 닷컴 버블(-80%), 2008년 리먼 사태(-55%) 등 <strong>과거 30년 역사적 위기 구간</strong>을 통과 검증하는 프리미엄 기능입니다.
+                      </p>
+                      {!user ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProPopoverOpen(false);
+                            openAuthPopover();
+                          }}
+                          className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                          로그인 / 가입하고 둘러보기
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProPopoverOpen(false);
+                            openAuthPopover();
+                          }}
+                          className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <Crown className="w-3.5 h-3.5" />
+                          PRO 코드 인증
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
         {/* 1. Inline SmoothHeight Chart Scale Explanation Box */}
         <SmoothHeight duration={320}>
@@ -1840,18 +1838,18 @@ function SimulatorContent() {
           })()}
         </SmoothHeight>
 
-        {/* SVG Canvas Container */}
-        <div className="mt-3.5 sm:mt-4 bg-[var(--card-surface)] p-4 sm:p-5 rounded-2xl border border-[var(--border-color)] space-y-3 relative z-10 overflow-hidden transition-all duration-300">
-          {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER */}
-          <div className="min-h-[42px] flex items-center px-3.5 py-2 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono">
+        {/* Integrated Clean Full-Width Chart Canvas */}
+        <div className="space-y-3 relative z-10 overflow-hidden transition-all duration-300">
+          {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER (Fixed 36px Height to Prevent Layout Shift) */}
+          <div className="h-[38px] flex items-center px-3.5 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono overflow-hidden">
             {dragRangeInfo ? (
-              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px] break-keep">
-                <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold">
-                  <span>선택 구간:</span>
+              <div className="w-full flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
+                <div className="flex items-center gap-1 text-[var(--accent-orange)] font-extrabold shrink-0">
+                  <span>선택:</span>
                   <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate}</span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-x-3 gap-y-1 text-[11px]">
-                  <span>추천 전략: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{Number(dragRangeInfo.diffA).toLocaleString()}%</strong></span>
+                <div className="flex items-center gap-3 text-[11px] shrink-0">
+                  <span>추천: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{Number(dragRangeInfo.diffA).toLocaleString()}%</strong></span>
                   {strategyCount >= 2 && (
                     <span>전략 1: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-emerald-500 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{Number(dragRangeInfo.diffB).toLocaleString()}%</strong></span>
                   )}
@@ -1861,12 +1859,12 @@ function SimulatorContent() {
                 </div>
               </div>
             ) : activeHoverPoint ? (
-              <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-[11px] break-keep">
-                <div className="flex items-center justify-between sm:justify-start gap-2 text-[var(--text-secondary)]">
+              <div className="w-full flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-[var(--text-secondary)] shrink-0">
                   <span>{activeHoverPoint.date}</span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-x-3 gap-y-1 text-[11px]">
-                  <span>추천 전략: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.retA > 0 ? '+' : ''}{Number(activeHoverPoint.retA).toLocaleString()}%</strong></span>
+                <div className="flex items-center gap-3 text-[11px] shrink-0">
+                  <span>추천: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.retA > 0 ? '+' : ''}{Number(activeHoverPoint.retA).toLocaleString()}%</strong></span>
                   {strategyCount >= 2 && activeHoverPoint.valB !== undefined && (
                     <span>전략 1: <strong className="text-emerald-500">{(activeHoverPoint.retB || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retB || 0).toLocaleString()}%</strong></span>
                   )}
@@ -1876,11 +1874,11 @@ function SimulatorContent() {
                 </div>
               </div>
             ) : customStartDate || customEndDate ? (
-              <div className="w-full text-[11px] font-bold text-[var(--accent-orange)] py-0.5 break-keep">
+              <div className="w-full text-[11px] font-bold text-[var(--accent-orange)] truncate">
                 <span>선택된 구간: {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}</span>
               </div>
             ) : (
-              <div className="w-full text-[11px] font-medium text-[var(--text-secondary)] py-0.5 break-keep">
+              <div className="w-full text-[11px] font-medium text-[var(--text-secondary)] truncate">
                 <span>차트를 드래그하여 원하는 구간을 자유롭게 확대할 수 있습니다</span>
               </div>
             )}
@@ -2136,64 +2134,34 @@ function SimulatorContent() {
               </span>
             ))}
           </div>
-
-          {/* Dynamic Legend Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold pt-2 border-t border-[var(--border-color)]">
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Recommended Strategy Legend */}
-              <div className="flex items-center gap-2">
-                <span className="w-3.5 h-1.5 bg-[var(--accent-orange)] rounded-full shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-                <span className="text-[var(--accent-orange)] font-extrabold">
-                  기본 전략
-                </span>
-              </div>
-              {/* Strategy 1 Legend (Fintech Emerald) */}
-              {strategyCount >= 2 && (
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                  <span className="text-emerald-500 font-extrabold">전략 1</span>
-                </div>
-              )}
-
-              {/* Strategy 2 Legend (Royal Indigo) */}
-              {strategyCount >= 3 && (
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                  <span className="text-indigo-400 font-extrabold">전략 2</span>
-                </div>
-              )}
-            </div>
-            <div className="text-[11px] text-[var(--text-secondary)] font-mono">
-              총 투입 원금: {simulation.finalInvested.toLocaleString()}만원
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* ---------------------------------------------------- */}
-      {/* DYNAMIC MULTI-STRATEGY BUILDER & PERFORMANCE BLOCK   */}
-      {/* ---------------------------------------------------- */}
-      <div className="pt-2">
-        <div className="flex flex-col lg:flex-row items-stretch w-full">
-            
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              <div className="glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-[var(--accent-orange)] flex-1 flex flex-col justify-between shadow-sm">
-                <div>
-                  <div className="flex items-center justify-between min-h-[32px]">
-                    <h3 className="text-base font-black text-[var(--accent-orange)] flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-                      기본 전략
-                    </h3>
+        {/* ---------------------------------------------------- */}
+        {/* DYNAMIC MULTI-STRATEGY BUILDER (INSIDE MASTER CARD)  */}
+        {/* ---------------------------------------------------- */}
+        <SmoothHeight duration={500}>
+          <div className={`w-full grid gap-4 pt-2 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+              strategyCount === 1 ? 'grid-cols-1' : strategyCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}>
+              
+              {/* STRATEGY A (기본 전략) */}
+              <div className="w-full min-w-0 flex flex-col justify-between p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)] space-y-4 shadow-2xs transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
+              <div>
+                <div className="flex items-center justify-between min-h-[32px] gap-1">
+                  <h3 className="text-sm sm:text-base font-black text-[var(--accent-orange)] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                    기본 전략
+                  </h3>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 shrink-0">
                       {/* Strategy Info Tooltip on the left of presets */}
                       <button
                         type="button"
                         onClick={() => setActiveTooltip(activeTooltip === 'strategy_info' ? null : 'strategy_info')}
-                        className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer p-1 rounded-full hover:bg-[var(--card-hover)]"
+                        className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer p-0.5 rounded-full hover:bg-[var(--card-hover)] shrink-0"
                         title="전략 안내"
                       >
-                        <HelpCircle className="w-4 h-4" />
+                        <HelpCircle className="w-3.5 h-3.5" />
                       </button>
 
                       {/* 3-Preset Sliding Pill Toggle */}
@@ -2222,7 +2190,7 @@ function SimulatorContent() {
                             setStrategyPeriodA(personalityPresets.balanced.strategyPeriod);
                             setActivePresetA('balanced');
                           }}
-                          className={`relative z-10 py-1 px-2.5 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                          className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'balanced'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
@@ -2237,7 +2205,7 @@ function SimulatorContent() {
                             setStrategyPeriodA(personalityPresets.growth.strategyPeriod);
                             setActivePresetA('growth');
                           }}
-                          className={`relative z-10 py-1 px-2.5 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                          className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'growth'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
@@ -2252,7 +2220,7 @@ function SimulatorContent() {
                             setStrategyPeriodA(personalityPresets.defensive.strategyPeriod);
                             setActivePresetA('defensive');
                           }}
-                          className={`relative z-10 py-1 px-2.5 rounded-full text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
+                          className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'defensive'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold'
@@ -2266,12 +2234,10 @@ function SimulatorContent() {
                         <button
                           type="button"
                           onClick={handleAddStrategy}
-                          className="flex items-center gap-1 text-xs font-extrabold px-2.5 py-1 rounded-full bg-[var(--accent-orange)] text-white hover:brightness-110 active:scale-95 shadow-sm transition-all cursor-pointer shrink-0 ml-0.5"
+                          className="w-7 h-7 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[rgba(241,143,1,0.6)] hover:shadow-[0_0_14px_rgba(241,143,1,0.3)] hover:bg-[var(--accent-orange)]/10 active:scale-90 transition-all flex items-center justify-center cursor-pointer shrink-0 shadow-2xs"
+                          title="전략 추가"
                         >
-                          <span>+ 추가</span>
-                          <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full">
-                            {strategyCount}/3
-                          </span>
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                         </button>
                       )}
                     </div>
@@ -2296,7 +2262,7 @@ function SimulatorContent() {
                     <SmoothHeight>
                       <div className="space-y-2.5">
                         {portfolioA.map((item, index) => (
-                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
                             <div className="flex items-center justify-between gap-2">
                               <select
                                 value={item.assetId}
@@ -2304,7 +2270,7 @@ function SimulatorContent() {
                                   setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)));
                                   setActivePresetA(null);
                                 }}
-                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
                               >
                                 {SELECT_ASSET_GROUPS.map((grp) => (
                                   <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
@@ -2324,8 +2290,11 @@ function SimulatorContent() {
                                   max={100}
                                   step={5}
                                   value={item.weight}
-                                  onChange={(e) => handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
+                                  onChange={(e) => {
+                                    handleUpdateWeightA(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5);
+                                    setActivePresetA(null);
+                                  }}
+                                  className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-[var(--accent-orange)] py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent-orange)] font-mono"
                                 />
                                 <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
                                 {portfolioA.length > 1 && (
@@ -2347,7 +2316,7 @@ function SimulatorContent() {
                                 className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
                               />
                               {strategyPeriodA > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
                                   <input
                                     type="checkbox"
                                     checked={item.enableDefense !== false}
@@ -2368,7 +2337,7 @@ function SimulatorContent() {
                           <button
                             type="button"
                             onClick={handleAddSlotA}
-                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                           >
                             <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                             <span>종목 추가</span>
@@ -2395,7 +2364,7 @@ function SimulatorContent() {
                     </div>
                     <SmoothHeight>
                       {activeTooltip === 'defense_a' && (
-                        <div className="p-2.5 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
                       )}
@@ -2417,19 +2386,10 @@ function SimulatorContent() {
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div
-              className={`min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.4,1)] flex flex-col justify-between ${
-                strategyCount >= 2
-                  ? 'w-full lg:w-auto lg:flex-1 opacity-100 max-h-[3000px] lg:max-h-none max-w-full lg:max-w-[1000px] mt-5 lg:mt-0 lg:ml-5 scale-100'
-                  : 'w-full lg:w-0 lg:flex-none opacity-0 max-h-0 lg:max-w-0 pointer-events-none p-0 m-0 border-0 scale-95'
-              }`}
-              style={{
-                transformOrigin: 'top left',
-              }}
-            >
-              <div className="w-full min-w-[280px] lg:min-w-[260px] glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-emerald-500 flex-1 flex flex-col justify-between shadow-sm">
+              {/* STRATEGY B (전략 1) */}
+            {strategyCount >= 2 && (
+              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.12)] flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
                 <div>
                   <div className="flex items-center justify-between min-h-[32px]">
                     <h3 className="text-base font-black text-emerald-500 flex items-center gap-2">
@@ -2439,9 +2399,10 @@ function SimulatorContent() {
                     <button
                       type="button"
                       onClick={() => handleRemoveStrategy('B')}
-                      className="text-[var(--text-secondary)] hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
+                      title="전략 1 삭제"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
@@ -2449,17 +2410,17 @@ function SimulatorContent() {
                     <SmoothHeight>
                       <div className="space-y-2.5">
                         {portfolioB.map((item, index) => (
-                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
                             <div className="flex items-center justify-between gap-2">
                               <select
                                 value={item.assetId}
                                 onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, assetId: e.target.value } : sb)))}
-                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
                               >
                                 {SELECT_ASSET_GROUPS.map((grp) => (
                                   <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
                                     {grp.options.map((opt) => (
-                                      <option key={opt.id} value={opt.id} disabled={portfolioB.some((sb, idx) => idx !== index && sb.assetId === opt.id)}>
+                                      <option key={opt.id} value={opt.id}>
                                         {opt.label}
                                       </option>
                                     ))}
@@ -2475,7 +2436,7 @@ function SimulatorContent() {
                                   step={5}
                                   value={item.weight}
                                   onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-emerald-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-emerald-500 font-mono"
+                                  className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-emerald-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-emerald-500 font-mono"
                                 />
                                 <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
                                 {portfolioB.length > 1 && (
@@ -2497,7 +2458,7 @@ function SimulatorContent() {
                                 className="flex-1 accent-emerald-500 cursor-pointer"
                               />
                               {strategyPeriodB > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
                                   <input
                                     type="checkbox"
                                     checked={item.enableDefense !== false}
@@ -2515,7 +2476,7 @@ function SimulatorContent() {
                           <button
                             type="button"
                             onClick={handleAddSlotB}
-                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                           >
                             <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                             <span>종목 추가</span>
@@ -2542,7 +2503,7 @@ function SimulatorContent() {
                     </div>
                     <SmoothHeight>
                       {activeTooltip === 'defense_b' && (
-                        <div className="p-2.5 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
                       )}
@@ -2552,7 +2513,7 @@ function SimulatorContent() {
                       onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
                       className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
                     >
-                      <option value={0}>기본 없음 (주식 계속 보유)</option>
+                      <option value={0}>없음 (주식 계속 보유)</option>
                       <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
                       <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
                       <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
@@ -2561,19 +2522,11 @@ function SimulatorContent() {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div
-              className={`min-w-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.25,1,0.4,1)] flex flex-col justify-between ${
-                strategyCount >= 3
-                  ? 'w-full lg:w-auto lg:flex-1 opacity-100 max-h-[3000px] lg:max-h-none max-w-full lg:max-w-[1000px] mt-5 lg:mt-0 lg:ml-5 scale-100'
-                  : 'w-full lg:w-0 lg:flex-none opacity-0 max-h-0 lg:max-w-0 pointer-events-none p-0 m-0 border-0 scale-95'
-              }`}
-              style={{
-                transformOrigin: 'top left',
-              }}
-            >
-              <div className="w-full min-w-[280px] lg:min-w-[260px] glass-card p-5 rounded-2xl sm:rounded-3xl space-y-4 border border-indigo-500 flex-1 flex flex-col justify-between shadow-sm">
+            {/* STRATEGY C (전략 2) */}
+            {strategyCount >= 3 && (
+              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.12)] flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
                 <div>
                   <div className="flex items-center justify-between min-h-[32px]">
                     <h3 className="text-base font-black text-indigo-500 flex items-center gap-2">
@@ -2583,9 +2536,10 @@ function SimulatorContent() {
                     <button
                       type="button"
                       onClick={() => handleRemoveStrategy('C')}
-                      className="text-[var(--text-secondary)] hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
+                      title="전략 2 삭제"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
@@ -2593,12 +2547,12 @@ function SimulatorContent() {
                     <SmoothHeight>
                       <div className="space-y-2.5">
                         {portfolioC.map((item, index) => (
-                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
                             <div className="flex items-center justify-between gap-2">
                               <select
                                 value={item.assetId}
                                 onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, assetId: e.target.value } : sc)))}
-                                className="flex-1 appearance-none bg-[var(--card-surface)] text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
                               >
                                 {SELECT_ASSET_GROUPS.map((grp) => (
                                   <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
@@ -2619,7 +2573,7 @@ function SimulatorContent() {
                                   step={5}
                                   value={item.weight}
                                   onChange={(e) => handleUpdateWeightC(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                                  className="w-12 bg-[var(--card-surface)] text-xs font-extrabold text-center text-indigo-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-indigo-500 font-mono"
+                                  className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-indigo-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-indigo-500 font-mono"
                                 />
                                 <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
                                 {portfolioC.length > 1 && (
@@ -2641,7 +2595,7 @@ function SimulatorContent() {
                                 className="flex-1 accent-indigo-500 cursor-pointer"
                               />
                               {strategyPeriodC > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--card-surface)] px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
                                   <input
                                     type="checkbox"
                                     checked={item.enableDefense !== false}
@@ -2659,7 +2613,7 @@ function SimulatorContent() {
                           <button
                             type="button"
                             onClick={handleAddSlotC}
-                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)] text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                           >
                             <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                             <span>종목 추가</span>
@@ -2686,7 +2640,7 @@ function SimulatorContent() {
                     </div>
                     <SmoothHeight>
                       {activeTooltip === 'defense_c' && (
-                        <div className="p-2.5 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
                           시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
                         </div>
                       )}
@@ -2696,7 +2650,7 @@ function SimulatorContent() {
                       onChange={(e) => setStrategyPeriodC(Number(e.target.value))}
                       className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
                     >
-                      <option value={0}>기본 없음 (주식 계속 보유)</option>
+                      <option value={0}>없음 (주식 계속 보유)</option>
                       <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
                       <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
                       <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
@@ -2705,312 +2659,320 @@ function SimulatorContent() {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
           </div>
-      </div>
-
-      {/* ---------------------------------------------------- */}
-      {/* INTEGRATED MULTI-STRATEGY COMPARISON & SCORE DASHBOARD */}
-      {/* ---------------------------------------------------- */}
-      <div className="glass-card p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-[var(--text-primary)]">
-                전략 성적 & 내 성향 적합도 비교
-              </h3>
-              <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] font-medium">
-                {userProfileCode ? (
-                  <span>내 투자 성향(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 기준 맞춤 평가</span>
-                ) : (
-                  <span>미국 시장(S&P 500) 대비 종합 평가</span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setActiveTooltip(activeTooltip === 'score_info' ? null : 'score_info')}
-            className="p-1 rounded-full hover:bg-[var(--card-hover)] text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer"
-            title="점수 산출 기준 안내"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Smooth Accordion for Score Mechanism */}
-        <SmoothHeight>
-          {activeTooltip === 'score_info' && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-3.5 text-xs text-[var(--text-secondary)] leading-relaxed">
-              <p className="font-bold text-[var(--text-primary)]">
-                💡 미국 대표 시장(S&P 500)과 비교하여 목표를 얼마나 잘 달성하고 위험을 방어했는지 종합 평가합니다.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
-                  <div className="font-bold text-[var(--text-primary)]">
-                    1. 목표 수익 (35점)
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">설정하신 목표 연수익률 달성 여부 및 시장 대비 초과 수익을 측정합니다.</p>
-                </div>
-                <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
-                  <div className="font-bold text-[var(--text-primary)]">
-                    2. 낙폭 방어 (35점)
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">감내 가능한 최대 손실폭을 지켜냈는지와 하락장에서의 방어력을 평가합니다.</p>
-                </div>
-                <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
-                  <div className="font-bold text-[var(--text-primary)]">
-                    3. 하방 효율 (15점)
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">하락할 때 겪는 손실 위험 대비 수익 효율과 하락 후 회복 속도를 평가합니다.</p>
-                </div>
-                <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
-                  <div className="font-bold text-[var(--text-primary)]">
-                    4. 실행 지속성 (15점)
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">내 투자 스타일에 맞춰 심리적 스트레스 없이 10년 이상 꾸준히 이어갈 수 있는 구조인지 평가합니다.</p>
-                </div>
-              </div>
-            </div>
-          )}
         </SmoothHeight>
+      </div>
+      </RevealOnScroll>
 
-        {/* Side-by-Side 3-Strategy Score & Performance Cards */}
-        <div className={`grid gap-4 ${
-          strategyCount === 1 ? 'grid-cols-1' : strategyCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'
-        }`}>
-          {/* Card 1: Default Strategy */}
-          <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)] shadow-sm space-y-3 flex flex-col justify-between transition-all duration-300 ${
-            scoreBreakdownA.grade === 'S'
-              ? 'shadow-[0_0_20px_rgba(241,143,1,0.18)]'
-              : scoreBreakdownA.grade === 'A'
-              ? 'shadow-[0_0_12px_rgba(241,143,1,0.10)]'
-              : ''
-          }`}>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-                  기본 전략
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
-                    scoreBreakdownA.grade === 'S' || scoreBreakdownA.grade === 'A' ? 'font-black' : ''
-                  }`}>
-                    {scoreBreakdownA.grade}등급
-                  </span>
-                  <span className="text-lg font-black font-mono text-[var(--accent-orange)]">
-                    <AnimatedNumber value={scoreBreakdownA.totalScore} suffix="점" />
-                  </span>
-                </div>
+      {/* ---------------------------------------------------- */}
+      {/* [STEP 3 MASTER CARD] 최종 성적표                      */}
+      {/* ---------------------------------------------------- */}
+      <RevealOnScroll delayIndex={3}>
+        <div className="glass-card p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]">
+                <Sparkles className="w-4 h-4" />
               </div>
-
-              {/* 4-Metric Mini Distribution (Clean Neutral Styling) */}
-              <div className="grid grid-cols-4 gap-1 pt-1.5 border-t border-[var(--border-color)] text-center text-[10px]">
-                <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                  <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                  <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
-                </div>
-                <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                  <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                  <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
-                </div>
-                <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                  <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                  <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
-                </div>
-                <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                  <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                  <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
-                </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+                  최종 성적표
+                </h2>
+                <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] font-medium">
+                  {userProfileCode ? (
+                    <span>내 투자 성향(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 기준 맞춤 종합 평가 리포트입니다.</span>
+                  ) : (
+                    <span>미국 시장(S&P 500) 대비 종합 평가 리포트입니다.</span>
+                  )}
+                </p>
               </div>
-
-              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
-                {scoreBreakdownA.summaryFeedback}
-              </p>
             </div>
 
-            {/* Performance Snapshot */}
-            <div className="pt-3 border-t border-[var(--border-color)] space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--text-secondary)]">최종 자산</span>
-                <span className="font-mono font-extrabold text-[var(--text-primary)]">
-                  <AnimatedNumber value={simulation.portA.val} suffix=" 만원" />
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--text-secondary)]">연수익률 (CAGR)</span>
-                <span className="font-mono font-bold text-[var(--accent-orange)]">
-                  +<AnimatedNumber value={Number(simulation.portA.cagr)} suffix="% /년" />
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[var(--text-secondary)]">최대 손실폭 (MDD)</span>
-                <span className="font-mono font-bold text-red-500">
-                  -<AnimatedNumber value={Number(simulation.portA.mdd)} suffix="%" />
-                </span>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTooltip(activeTooltip === 'score_info' ? null : 'score_info')}
+              className="p-1 rounded-full hover:bg-[var(--card-hover)] text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer"
+              title="점수 산출 기준 안내"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* Card 2: Strategy 1 (Emerald) */}
-          {strategyCount >= 2 && (
-            <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-emerald-500 shadow-sm space-y-3 flex flex-col justify-between transition-all duration-300 ${
-              scoreBreakdownB.grade === 'S'
-                ? 'shadow-[0_0_20px_rgba(16,185,129,0.22)]'
-                : scoreBreakdownB.grade === 'A'
-                ? 'shadow-[0_0_12px_rgba(16,185,129,0.12)]'
+          <SmoothHeight>
+            {activeTooltip === 'score_info' && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-3.5 text-xs text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-bold text-[var(--text-primary)]">
+                  💡 미국 대표 시장(S&P 500)과 비교하여 목표를 얼마나 잘 달성하고 위험을 방어했는지 종합 평가합니다.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
+                    <div className="font-bold text-[var(--text-primary)]">
+                      1. 목표 수익 (35점)
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)]">설정하신 목표 연수익률 달성 여부 및 시장 대비 초과 수익을 측정합니다.</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
+                    <div className="font-bold text-[var(--text-primary)]">
+                      2. 낙폭 방어 (35점)
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)]">감내 가능한 최대 손실폭을 지켜냈는지와 하락장에서의 방어력을 평가합니다.</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
+                    <div className="font-bold text-[var(--text-primary)]">
+                      3. 하방 효율 (15점)
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)]">하락할 때 겪는 손실 위험 대비 수익 효율과 하락 후 회복 속도를 평가합니다.</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
+                    <div className="font-bold text-[var(--text-primary)]">
+                      4. 실행 지속성 (15점)
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)]">내 투자 스타일에 맞춰 심리적 스트레스 없이 10년 이상 꾸준히 이어갈 수 있는 구조인지 평가합니다.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </SmoothHeight>
+
+          <div className={`grid gap-4 ${
+            strategyCount === 1 ? 'grid-cols-1' : strategyCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'
+          }`}>
+            <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)] shadow-sm space-y-3 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+              scoreBreakdownA.grade === 'S'
+                ? 'shadow-[0_0_20px_rgba(241,143,1,0.18)]'
+                : scoreBreakdownA.grade === 'A'
+                ? 'shadow-[0_0_12px_rgba(241,143,1,0.10)]'
                 : ''
             }`}>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-emerald-500 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                    전략 1
+                  <span className="text-xs font-black text-[var(--accent-orange)] flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+                    기본 전략
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
-                      scoreBreakdownB.grade === 'S' || scoreBreakdownB.grade === 'A' ? 'font-black' : ''
+                      scoreBreakdownA.grade === 'S' || scoreBreakdownA.grade === 'A' ? 'font-black' : ''
                     }`}>
-                      {scoreBreakdownB.grade}등급
+                      {scoreBreakdownA.grade}등급
                     </span>
-                    <span className="text-lg font-black font-mono text-emerald-500">
-                      <AnimatedNumber value={scoreBreakdownB.totalScore} suffix="점" />
+                    <span className="text-lg font-black font-mono text-[var(--accent-orange)]">
+                      <AnimatedNumber value={scoreBreakdownA.totalScore} suffix="점" />
                     </span>
                   </div>
                 </div>
 
-                {/* 4-Metric Mini Distribution (Clean Neutral Styling) */}
-                <div className="grid grid-cols-4 gap-1 pt-1.5 border-t border-[var(--border-color)] text-center text-[10px]">
+                <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
                   <div className="p-1 rounded-lg bg-[var(--card-surface)]">
                     <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                   </div>
                   <div className="p-1 rounded-lg bg-[var(--card-surface)]">
                     <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                   </div>
                   <div className="p-1 rounded-lg bg-[var(--card-surface)]">
                     <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                   </div>
                   <div className="p-1 rounded-lg bg-[var(--card-surface)]">
                     <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                   </div>
                 </div>
 
                 <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
-                  {scoreBreakdownB.summaryFeedback}
+                  {scoreBreakdownA.summaryFeedback}
                 </p>
               </div>
 
-              {/* Performance Snapshot */}
-              <div className="pt-3 border-t border-[var(--border-color)] space-y-1.5 text-xs">
+              <div className="pt-2 space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--text-secondary)]">최종 자산</span>
                   <span className="font-mono font-extrabold text-[var(--text-primary)]">
-                    <AnimatedNumber value={simulation.portB.val} suffix=" 만원" />
+                    <AnimatedNumber value={simulation.portA.val} suffix=" 만원" />
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--text-secondary)]">연수익률 (CAGR)</span>
-                  <span className="font-mono font-bold text-emerald-500">
-                    +<AnimatedNumber value={Number(simulation.portB.cagr)} suffix="% /년" />
+                  <span className="text-[var(--text-secondary)]">연수익률</span>
+                  <span className="font-mono font-bold text-[var(--accent-orange)]">
+                    +<AnimatedNumber value={Number(simulation.portA.cagr)} suffix="% /년" />
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--text-secondary)]">최대 손실폭 (MDD)</span>
+                  <span className="text-[var(--text-secondary)]">최대 손실폭</span>
                   <span className="font-mono font-bold text-red-500">
-                    -<AnimatedNumber value={Number(simulation.portB.mdd)} suffix="%" />
+                    -<AnimatedNumber value={Number(simulation.portA.mdd)} suffix="%" />
                   </span>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Card 3: Strategy 2 (Indigo) */}
-          {strategyCount >= 3 && (
-            <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-indigo-500 shadow-sm space-y-3 flex flex-col justify-between transition-all duration-300 ${
-              scoreBreakdownC.grade === 'S'
-                ? 'shadow-[0_0_20px_rgba(99,102,241,0.22)]'
-                : scoreBreakdownC.grade === 'A'
-                ? 'shadow-[0_0_12px_rgba(99,102,241,0.12)]'
-                : ''
-            }`}>
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-indigo-500 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                    전략 2
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
-                      scoreBreakdownC.grade === 'S' || scoreBreakdownC.grade === 'A' ? 'font-black' : ''
-                    }`}>
-                      {scoreBreakdownC.grade}등급
+            {/* Card 2: Strategy 1 (Emerald) */}
+            {strategyCount >= 2 && (
+              <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-emerald-500 shadow-sm space-y-3 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95 ${
+                scoreBreakdownB.grade === 'S'
+                  ? 'shadow-[0_0_20px_rgba(16,185,129,0.22)]'
+                  : scoreBreakdownB.grade === 'A'
+                  ? 'shadow-[0_0_12px_rgba(16,185,129,0.12)]'
+                  : ''
+              }`}>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-500 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      전략 1
                     </span>
-                    <span className="text-lg font-black font-mono text-indigo-500">
-                      <AnimatedNumber value={scoreBreakdownC.totalScore} suffix="점" />
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
+                        scoreBreakdownB.grade === 'S' || scoreBreakdownB.grade === 'A' ? 'font-black' : ''
+                      }`}>
+                        {scoreBreakdownB.grade}등급
+                      </span>
+                      <span className="text-lg font-black font-mono text-emerald-500">
+                        <AnimatedNumber value={scoreBreakdownB.totalScore} suffix="점" />
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
+                    {scoreBreakdownB.summaryFeedback}
+                  </p>
+                </div>
+
+                <div className="pt-2 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">최종 자산</span>
+                    <span className="font-mono font-extrabold text-[var(--text-primary)]">
+                      <AnimatedNumber value={simulation.portB.val} suffix=" 만원" />
                     </span>
                   </div>
-                </div>
-
-                {/* 4-Metric Mini Distribution (Clean Neutral Styling) */}
-                <div className="grid grid-cols-4 gap-1 pt-1.5 border-t border-[var(--border-color)] text-center text-[10px]">
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                    <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">연수익률</span>
+                    <span className="font-mono font-bold text-emerald-500">
+                      +<AnimatedNumber value={Number(simulation.portB.cagr)} suffix="% /년" />
+                    </span>
                   </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                    <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">최대 손실폭</span>
+                    <span className="font-mono font-bold text-red-500">
+                      -<AnimatedNumber value={Number(simulation.portB.mdd)} suffix="%" />
+                    </span>
                   </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                    <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
-                  </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
-                    <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
-                  {scoreBreakdownC.summaryFeedback}
-                </p>
-              </div>
-
-              {/* Performance Snapshot */}
-              <div className="pt-3 border-t border-[var(--border-color)] space-y-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--text-secondary)]">최종 자산</span>
-                  <span className="font-mono font-extrabold text-[var(--text-primary)]">
-                    <AnimatedNumber value={simulation.portC.val} suffix=" 만원" />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--text-secondary)]">연수익률 (CAGR)</span>
-                  <span className="font-mono font-bold text-indigo-500">
-                    +<AnimatedNumber value={Number(simulation.portC.cagr)} suffix="% /년" />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--text-secondary)]">최대 손실폭 (MDD)</span>
-                  <span className="font-mono font-bold text-red-500">
-                    -<AnimatedNumber value={Number(simulation.portC.mdd)} suffix="%" />
-                  </span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Card 3: Strategy 2 (Indigo) */}
+            {strategyCount >= 3 && (
+              <div className={`p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-indigo-500 shadow-sm space-y-3 flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95 ${
+                scoreBreakdownC.grade === 'S'
+                  ? 'shadow-[0_0_20px_rgba(99,102,241,0.22)]'
+                  : scoreBreakdownC.grade === 'A'
+                  ? 'shadow-[0_0_12px_rgba(99,102,241,0.12)]'
+                  : ''
+              }`}>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-indigo-500 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      전략 2
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
+                        scoreBreakdownC.grade === 'S' || scoreBreakdownC.grade === 'A' ? 'font-black' : ''
+                      }`}>
+                        {scoreBreakdownC.grade}등급
+                      </span>
+                      <span className="text-lg font-black font-mono text-indigo-500">
+                        <AnimatedNumber value={scoreBreakdownC.totalScore} suffix="점" />
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    </div>
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                      <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
+                    {scoreBreakdownC.summaryFeedback}
+                  </p>
+                </div>
+
+                <div className="pt-2 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">최종 자산</span>
+                    <span className="font-mono font-extrabold text-[var(--text-primary)]">
+                      <AnimatedNumber value={simulation.portC.val} suffix=" 만원" />
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">연수익률</span>
+                    <span className="font-mono font-bold text-indigo-500">
+                      +<AnimatedNumber value={Number(simulation.portC.cagr)} suffix="% /년" />
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-secondary)]">최대 손실폭</span>
+                    <span className="font-mono font-bold text-red-500">
+                      -<AnimatedNumber value={Number(simulation.portC.mdd)} suffix="%" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </RevealOnScroll>
+
+      {/* ---------------------------------------------------- */}
+      {/* Dynamic Data Synthesis Notice & Disclaimer           */}
+      {/* ---------------------------------------------------- */}
+      <RevealOnScroll>
+        <div className="p-4 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-1.5 text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-[var(--text-secondary)]">
+            <AlertTriangle className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
+            <span>결과 안내 및 과거 데이터 산출 방식</span>
+          </div>
+          <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium">
+            본 도구는 Yahoo Finance의 30년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 매달 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
+          </p>
         </div>
       </RevealOnScroll>
     </div>
