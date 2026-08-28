@@ -349,7 +349,7 @@ export default function CommentSection({
                 >
                   {user.termsQuizBest.badgeName}
                 </span>
-              ) : (user.activeBadge === 'investmentType' || !user.activeBadge) && user.investmentType && user.investmentType !== '미진단' ? (
+              ) : user.activeBadge === 'investmentType' && user.investmentType && user.investmentType !== '미진단' ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
                   {user.investmentType}
                 </span>
@@ -699,7 +699,7 @@ export default function CommentSection({
                                     />
                                   )}
                                 </div>
-                              ) : (replyActiveBadge === 'investmentType' || !replyActiveBadge) && replyInvestmentType && replyInvestmentType !== '미진단' ? (
+                              ) : replyActiveBadge === 'investmentType' && replyInvestmentType && replyInvestmentType !== '미진단' ? (
                                 <div className="relative inline-block">
                                   <button
                                     type="button"

@@ -431,10 +431,10 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] bg-[var(--card-surface)]/60 text-center relative overflow-hidden m3-card-enter stagger-4">
           <div className="space-y-1.5 max-w-lg mx-auto">
             <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
-              "{profile.name}" 성향을 위한 가장 알맞은 투자 방법을 알려드릴게요!
+              "{profile.name}" 맞춤 투자 전략 확인하기
             </h3>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              내 성향에 맞춰 주식을 고르고, 과거에 투자했다면 얼마를 벌었을지 직접 확인해볼 수 있어요.
+              내 성향에 맞는 주식 조합과 과거 수익률을 시뮬레이터로 검증해보세요.
             </p>
           </div>
           <div className="pt-1 flex justify-center">
@@ -442,7 +442,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
               className="inline-flex items-center justify-center gap-1.5 px-6 py-3 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] hover:text-[var(--accent-orange)] font-extrabold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 shadow-xs active:scale-[0.98] transition-all cursor-pointer"
             >
-              <span>직접 테스트해보기</span>
+              <span>맞춤 전략 검증하기</span>
               <span className="text-[var(--accent-orange)]">➔</span>
             </Link>
           </div>

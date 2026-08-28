@@ -225,15 +225,24 @@ export default function BottomNavigation() {
   // Screen width & viewport-based max sheet dimensions
   const [screenWidth, setScreenWidth] = useState(400);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const prevWidthRef = useRef(0);
 
   useEffect(() => {
     const updateDimensions = () => {
       const w = window.innerWidth;
+      const h = window.innerHeight;
       const isMob = w < 640;
-      setScreenWidth(w);
-      setIsMobileScreen(isMob);
-      sheetHeightRef.current = Math.min(window.innerHeight * 0.78, 600);
-      maxSheetWidthRef.current = Math.min(isMob ? w : 576, 576);
+      
+      // On mobile devices, vertical scrolling collapses/expands browser URL bar which changes innerHeight continuously.
+      // We only recalculate sheet height when width changes (orientation change / resize) or on initial load to avoid pill morphing/jitter.
+      const widthChanged = Math.abs(prevWidthRef.current - w) > 2;
+      if (widthChanged || prevWidthRef.current === 0) {
+        prevWidthRef.current = w;
+        setScreenWidth(w);
+        setIsMobileScreen(isMob);
+        sheetHeightRef.current = Math.min(h * 0.78, 600);
+        maxSheetWidthRef.current = Math.min(isMob ? w : 576, 576);
+      }
     };
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
@@ -813,9 +822,7 @@ export default function BottomNavigation() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {isCurrent ? (
-                          <span className="text-[9px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)] text-white">이용 중</span>
-                        ) : (
+                        {!isCurrent && (
                           <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
                         )}
                       </div>

@@ -707,7 +707,7 @@ function TermsQuizContent() {
                             >
                               {item.termsQuizBest?.badgeName || `상위 ${item.percentile}%`}
                             </button>
-                          ) : (effectiveActiveBadge === 'investmentType' || !effectiveActiveBadge) && item.investmentType && item.investmentType !== '미진단' ? (
+                          ) : effectiveActiveBadge === 'investmentType' && item.investmentType && item.investmentType !== '미진단' ? (
                             <button
                               type="button"
                               onClick={(e) => {

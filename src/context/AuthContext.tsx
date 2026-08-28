@@ -392,7 +392,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedUser: UserAccount = {
         ...user,
         termsQuizBest: newBest,
-        activeBadge: user.activeBadge || 'terms_percentile',
+        activeBadge: user.activeBadge,
       };
 
       setUser(updatedUser);

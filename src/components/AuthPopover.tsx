@@ -252,11 +252,42 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
               )}
             </div>
 
-            {/* Centered Nickname & Status */}
-            <div className="space-y-0.5">
+            {/* Centered Nickname & Live Badge Preview */}
+            <div className="space-y-1">
               <div className="text-[10px] text-[var(--text-secondary)] font-medium">내 계정</div>
-              <div className="text-base font-bold text-[var(--text-primary)] flex items-center justify-center font-mono">
-                <span>{user.nickname}</span>
+              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                <span className="text-base font-bold text-[var(--text-primary)] font-mono">
+                  {user.nickname}
+                </span>
+
+                {/* Live Selected Badge Display next to Nickname */}
+                {user.activeBadge === 'pro' && isPro ? (
+                  <span 
+                    className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none shadow-2xs"
+                    title="PRO 회원 뱃지"
+                  >
+                    <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                    <span className="tracking-wide">PRO</span>
+                  </span>
+                ) : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
+                  <span 
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono leading-none select-none shadow-2xs ${
+                      (user.termsQuizBest.percentile && user.termsQuizBest.percentile <= 10) || user.termsQuizBest.badgeName?.includes('마스터')
+                        ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
+                        : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'
+                    }`}
+                    title="주식 용어 퀴즈 뱃지"
+                  >
+                    {user.termsQuizBest.badgeName}
+                  </span>
+                ) : user.activeBadge === 'investmentType' && user.investmentType && user.investmentType !== '미진단' ? (
+                  <span 
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none shadow-2xs"
+                    title="투자 성향 뱃지"
+                  >
+                    {user.investmentType}
+                  </span>
+                ) : null}
               </div>
             </div>
 
@@ -286,7 +317,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
 
             if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge) return null;
 
-            const isTypeActive = user.activeBadge === 'investmentType' || (!user.activeBadge && hasInvestmentType);
+            const isTypeActive = user.activeBadge === 'investmentType';
             const isQuizActive = user.activeBadge === 'terms_percentile';
             const isProActive = user.activeBadge === 'pro';
 
