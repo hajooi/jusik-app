@@ -511,7 +511,7 @@ export default function BottomNavigation() {
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
       <div className="fixed inset-x-0 bottom-3 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-[var(--card-surface)]/95 dark:bg-[#121215]/95 backdrop-blur-xl relative"
+          className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-white/95 dark:bg-[#121215]/95 backdrop-blur-xl relative"
           style={{
             height: `${targetSheetHeight}px`,
             width: `${maxTargetWidth}px`,
