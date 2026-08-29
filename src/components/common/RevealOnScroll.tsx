@@ -14,7 +14,6 @@ export default function RevealOnScroll({
   delayIndex = 0,
 }: RevealOnScrollProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [hasScrolled, setHasScrolled] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,33 +33,19 @@ export default function RevealOnScroll({
         });
       },
       {
-        threshold: 0.01,
-        rootMargin: '50px 0px 50px 0px',
+        threshold: 0.05,
+        rootMargin: '0px 0px -30px 0px',
       }
     );
 
     observer.observe(el);
 
-    // Fallback: If for any reason observer doesn't trigger within 350ms, force visible
-    const fallbackTimer = setTimeout(() => {
-      setIsVisible(true);
-    }, 350);
-
-    const onScroll = () => {
-      setHasScrolled(true);
-      setIsVisible(true);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true, once: true });
-
     return () => {
-      clearTimeout(fallbackTimer);
       observer.disconnect();
-      window.removeEventListener('scroll', onScroll);
     };
   }, []);
 
-  // Use stagger delay only on initial page load entrance. Once scrolled, reveal immediately.
-  const delayMs = !hasScrolled && delayIndex > 0 ? Math.min(delayIndex * 80, 500) : 0;
+  const delayMs = delayIndex > 0 ? Math.min(delayIndex * 70, 400) : 0;
 
   return (
     <div
@@ -78,3 +63,4 @@ export default function RevealOnScroll({
     </div>
   );
 }
+

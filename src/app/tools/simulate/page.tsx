@@ -1423,67 +1423,20 @@ function SimulatorContent() {
           </div>
         </div>
 
-        {/* Investment Conditions Sub-Grid (투자 주기 / 시작 자본금 / 적립 금액 - 구분선 없이 결합) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          {/* Deposit Frequency Toggle with Physical Sliding Pill */}
-          <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)] flex flex-col justify-between">
-            <label className="text-[11px] font-bold text-[var(--text-secondary)] block">투자 주기</label>
-            <div className="relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs font-sans">
-              {/* Physical Sliding Pill Indicator */}
-              <div
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
-                style={{
-                  width: 'calc(50% - 2px)',
-                  left: depositFrequency === 'monthly' ? '2px' : 'calc(50% + 0px)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setDepositFrequency('monthly');
-                  setDragStart(null);
-                  setDragEnd(null);
-                }}
-                className={`relative z-10 w-1/2 py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer ${
-                  depositFrequency === 'monthly'
-                    ? 'text-[var(--accent-orange)] font-extrabold'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                }`}
-              >
-                매월 투자
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDepositFrequency('weekly');
-                  setDragStart(null);
-                  setDragEnd(null);
-                }}
-                className={`relative z-10 w-1/2 py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer ${
-                  depositFrequency === 'weekly'
-                    ? 'text-[var(--accent-orange)] font-extrabold'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                }`}
-              >
-                매주 투자
-              </button>
-            </div>
-          </div>
-
+        {/* Investment Conditions Sub-Grid (시작 자본금 / 매달 적립 금액 - 50:50 대칭 배치) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {/* Initial Capital */}
           <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">시작 자본금</label>
-            <div className="flex items-center justify-between gap-1">
-              <div className="flex items-center gap-1 min-w-0">
-                <input
-                  type="number"
-                  value={initialCapital}
-                  onChange={(e) => setInitialCapital(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">만원</span>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <input
+                type="number"
+                value={initialCapital}
+                onChange={(e) => setInitialCapital(Math.max(0, Number(e.target.value)))}
+                className="flex-1 min-w-0 bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">만원</span>
                 <button
                   type="button"
                   onClick={() => setInitialCapital(Math.max(0, initialCapital - 50))}
@@ -1504,22 +1457,20 @@ function SimulatorContent() {
             </div>
           </div>
 
-          {/* Deposit Amount */}
+          {/* Monthly Deposit Amount */}
           <div className="space-y-1 bg-[var(--bg-main)]/60 p-3 rounded-2xl border border-[var(--border-color)]">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] block">
-              {depositFrequency === 'weekly' ? '매주' : '매달'} 적립 금액
+              매달 적립 금액
             </label>
-            <div className="flex items-center justify-between gap-1">
-              <div className="flex items-center gap-1 min-w-0">
-                <input
-                  type="number"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">만원</span>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <input
+                type="number"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(Math.max(0, Number(e.target.value)))}
+                className="flex-1 min-w-0 bg-transparent text-sm font-extrabold text-[var(--text-primary)] focus:outline-none font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">만원</span>
                 <button
                   type="button"
                   onClick={() => setDepositAmount(Math.max(0, depositAmount - 10))}
@@ -1843,51 +1794,7 @@ function SimulatorContent() {
         })()}
 
         {/* Integrated Clean Full-Width Chart Canvas */}
-        <div className="space-y-3 relative z-10 overflow-hidden transition-all duration-300">
-          {/* CONSOLIDATED INTERACTIVE DATA INFO HEADER (Fixed 36px Height to Prevent Layout Shift) */}
-          <div className="h-[38px] flex items-center px-3.5 bg-[var(--bg-main)]/80 rounded-xl border border-[var(--border-color)] text-xs font-bold font-mono overflow-hidden">
-            {dragRangeInfo ? (
-              <div className="w-full flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
-                <div className="flex items-center gap-1 text-[var(--accent-orange)] font-extrabold shrink-0">
-                  <span>선택:</span>
-                  <span>{dragRangeInfo.startDate} ~ {dragRangeInfo.endDate}</span>
-                </div>
-                <div className="flex items-center gap-3 text-[11px] shrink-0">
-                  <span>추천: <strong className={Number(dragRangeInfo.diffA) >= 0 ? 'text-[var(--accent-orange)] font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffA) > 0 ? '+' : ''}{Number(dragRangeInfo.diffA).toLocaleString()}%</strong></span>
-                  {strategyCount >= 2 && (
-                    <span>전략 1: <strong className={Number(dragRangeInfo.diffB) >= 0 ? 'text-emerald-500 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffB) > 0 ? '+' : ''}{Number(dragRangeInfo.diffB).toLocaleString()}%</strong></span>
-                  )}
-                  {strategyCount >= 3 && (
-                    <span>전략 2: <strong className={Number(dragRangeInfo.diffC) >= 0 ? 'text-indigo-400 font-extrabold' : 'text-red-500 font-extrabold'}>{Number(dragRangeInfo.diffC) > 0 ? '+' : ''}{Number(dragRangeInfo.diffC).toLocaleString()}%</strong></span>
-                  )}
-                </div>
-              </div>
-            ) : activeHoverPoint ? (
-              <div className="w-full flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
-                <div className="flex items-center gap-1.5 text-[var(--text-secondary)] shrink-0">
-                  <span>{activeHoverPoint.date}</span>
-                </div>
-                <div className="flex items-center gap-3 text-[11px] shrink-0">
-                  <span>추천: <strong className="text-[var(--accent-orange)]">{activeHoverPoint.retA > 0 ? '+' : ''}{Number(activeHoverPoint.retA).toLocaleString()}%</strong></span>
-                  {strategyCount >= 2 && activeHoverPoint.valB !== undefined && (
-                    <span>전략 1: <strong className="text-emerald-500">{(activeHoverPoint.retB || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retB || 0).toLocaleString()}%</strong></span>
-                  )}
-                  {strategyCount >= 3 && activeHoverPoint.valC !== undefined && (
-                    <span>전략 2: <strong className="text-indigo-400">{(activeHoverPoint.retC || 0) > 0 ? '+' : ''}{Number(activeHoverPoint.retC || 0).toLocaleString()}%</strong></span>
-                  )}
-                </div>
-              </div>
-            ) : customStartDate || customEndDate ? (
-              <div className="w-full text-[11px] font-bold text-[var(--accent-orange)] truncate">
-                <span>선택된 구간: {simulation.points[0]?.date} ~ {simulation.points[simulation.points.length - 1]?.date}</span>
-              </div>
-            ) : (
-              <div className="w-full text-[11px] font-medium text-[var(--text-secondary)] truncate">
-                <span>차트를 드래그하여 원하는 구간을 자유롭게 확대할 수 있습니다</span>
-              </div>
-            )}
-          </div>
-
+        <div className="relative z-10 overflow-hidden transition-all duration-300">
           <svg
             ref={svgRef}
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
@@ -2999,7 +2906,7 @@ function SimulatorContent() {
             <span>결과 안내 및 과거 데이터 산출 방식</span>
           </div>
           <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium">
-            본 도구는 Yahoo Finance의 30년 실제 데이터를 기반으로 작동됩니다. 선택하신 투자 주기마다 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 매달 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
+            본 도구는 Yahoo Finance의 30년 실제 데이터를 기반으로 작동됩니다. 매달 설정하신 금액을 적립하고 선택한 방어 옵션에 맞춰 자동 리밸런싱됩니다. 단, 일부 종목의 과거 데이터는 기초 지수 움직임을 기반으로 추론 계산하였으며, 과거 데이터 결과가 미래의 수익을 보장하지 않습니다.
           </p>
         </div>
       </RevealOnScroll>

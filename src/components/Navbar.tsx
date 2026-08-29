@@ -32,14 +32,30 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 inset-x-0 z-50 transition-all duration-200">
-        {/* iOS Progressive Glass Blur Layer */}
-        <div 
-          className="absolute inset-x-0 top-0 -bottom-3 bg-[var(--bg-main)]/75 backdrop-blur-md pointer-events-none transition-all"
-          style={{
-            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 100%)'
-          }}
-        />
+        {/* Apple Native Multi-stage Diffuse Progressive Blur */}
+        <div className="absolute inset-0 -bottom-3 pointer-events-none overflow-hidden transition-all">
+          <div 
+            className="absolute inset-0 bg-[var(--bg-main)]/35 backdrop-blur-[3px]"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)'
+            }}
+          />
+          <div 
+            className="absolute inset-x-0 top-0 h-12 bg-[var(--bg-main)]/35 backdrop-blur-[8px]"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+            }}
+          />
+          <div 
+            className="absolute inset-x-0 top-0 h-8 bg-[var(--bg-main)]/45 backdrop-blur-[16px]"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)'
+            }}
+          />
+        </div>
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             

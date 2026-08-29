@@ -86,7 +86,7 @@ const TOOLS_DIRECTORY = [
   },
 ];
 
-const COLLAPSED_HEIGHT = 54;
+const COLLAPSED_HEIGHT = 52;
 const COLLAPSED_WIDTH = 268;
 
 export default function BottomNavigation() {
@@ -453,21 +453,21 @@ export default function BottomNavigation() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Apple Music Style: Always a sleek 44px floating pill when collapsed across ALL pages
-  const baseCollapsedHeight = 44;
-  const baseCollapsedWidth = 244;
+  // Apple Music Style: Always a sleek 52px floating pill when collapsed across ALL pages
+  const baseCollapsedHeight = 52;
+  const baseCollapsedWidth = 268;
 
   // Real-time GPU clip-path calculation (Fixed size container, 100% GPU hardware clipping)
   const maxTargetWidth = maxSheetWidthRef.current;
   const targetSheetHeight = sheetHeightRef.current;
   const topInset = Math.round((1 - progress) * (targetSheetHeight - baseCollapsedHeight));
   const horizontalInset = Math.max(0, Math.round((1 - progress) * ((maxTargetWidth - baseCollapsedWidth) / 2)));
-  const currentRadius = Math.round(22 + progress * (28 - 22));
+  const currentRadius = Math.round(26 + progress * (30 - 26));
   const currentClipPath = `inset(${topInset}px ${horizontalInset}px 0px ${horizontalInset}px round ${currentRadius}px)`;
 
   // Continuous Header & Nav geometry interpolation (Zero abrupt jumps)
-  const currentHeaderHeight = Math.round(44 + progress * (72 - 44));
-  const currentNavBottom = Math.round(2 + progress * (14 - 2));
+  const currentHeaderHeight = Math.round(52 + progress * (78 - 52));
+  const currentNavBottom = Math.round(2 + progress * (16 - 2));
   const currentNotchOpacity = progress > 0.15 ? Math.min(1, (progress - 0.15) / 0.5) : 0;
 
   // Active indicator state for smooth animated pill position
@@ -543,12 +543,12 @@ export default function BottomNavigation() {
             }}
           />
 
-          {/* Top Header Area */}
+          {/* Top Header Area (Floating Fixed Overlay with Progressive Glass Blur, z-20) */}
           <div 
-            className="w-full relative shrink-0 select-none flex flex-col items-center touch-none cursor-default z-10"
+            className="w-full absolute top-0 inset-x-0 select-none flex flex-col items-center touch-none cursor-default z-20 pointer-events-none"
             style={{
               height: `${currentHeaderHeight}px`,
-              minWidth: '240px',
+              minWidth: '264px',
               transform: `translate3d(0, ${topInset}px, 0)`,
               WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
               transition: !transitionsEnabled || isDragging ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -558,11 +558,42 @@ export default function BottomNavigation() {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
+            {/* Apple Native Multi-stage Diffuse Progressive Blur System */}
+            <div 
+              className="absolute inset-x-0 -top-3 -bottom-8 pointer-events-none overflow-hidden transition-opacity duration-300"
+              style={{ opacity: progress > 0.05 ? progress : 0 }}
+            >
+              {/* Step 1: Broad ambient diffuse blur */}
+              <div 
+                className="absolute inset-0 bg-[var(--bg-main)]/35 backdrop-blur-[3px]"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)'
+                }}
+              />
+              {/* Step 2: Mid diffuse blur */}
+              <div 
+                className="absolute inset-x-0 top-0 h-14 bg-[var(--bg-main)]/35 backdrop-blur-[8px]"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)'
+                }}
+              />
+              {/* Step 3: Deep shape-breaking blur */}
+              <div 
+                className="absolute inset-x-0 top-0 h-9 bg-[var(--bg-main)]/45 backdrop-blur-[16px]"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)'
+                }}
+              />
+            </div>
+
             {/* Dedicated Notch Grab Handle Bar (Continuous smooth fade in) */}
             <div 
               aria-hidden="true"
-              className={`absolute top-[7px] left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full bg-slate-400/85 dark:bg-zinc-500/85 shadow-2xs ${
-                progress > 0.05 ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'
+              className={`absolute top-[7px] left-1/2 -translate-x-1/2 w-12 h-[2.5px] rounded-full bg-slate-400/85 dark:bg-zinc-500/85 shadow-2xs z-10 ${
+                progress > 0.05 ? 'cursor-grab active:cursor-grabbing pointer-events-auto' : 'pointer-events-none'
               }`} 
               style={{
                 opacity: currentNotchOpacity,
@@ -570,18 +601,18 @@ export default function BottomNavigation() {
               }}
             />
 
-            {/* The 240px Navigation Tab Bar (Centered & Smoothly positioned) */}
+            {/* The 264px Navigation Tab Bar (Centered & Smoothly positioned, 48px touch height) */}
             <nav 
               aria-label="하단 내비게이션"
-              className="w-[240px] h-[40px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default"
+              className="w-[264px] h-[48px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default z-10"
               style={{
                 bottom: `${currentNavBottom}px`,
                 transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
-              {/* Exact 50:50 Centered Sliding Orange Highlight Surface */}
+              {/* Exact 50:50 Centered Sliding Orange Highlight Surface with Tinted Glass Texture */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 shadow-[0_0_14px_rgba(241,143,1,0.22)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 backdrop-blur-md border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
@@ -592,48 +623,52 @@ export default function BottomNavigation() {
               <button
                 type="button"
                 onClick={(e) => handleTabClick('curriculum', '/', e)}
-                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'curriculum'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
                 }`}
               >
-                <BookOpen className="w-4 h-4 stroke-[2.2] shrink-0" />
-                <span className="text-xs tracking-tight whitespace-nowrap">커리큘럼</span>
+                <BookOpen className="w-[18px] h-[18px] stroke-[2.2] shrink-0" />
+                <span className="text-[13px] tracking-tight whitespace-nowrap font-bold">커리큘럼</span>
               </button>
 
               {/* Tab 2: 투자도구 */}
               <button
                 type="button"
                 onClick={(e) => handleTabClick('tools', '/tools', e)}
-                className={`relative z-10 w-1/2 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer ${
                   activeIndicatorTab === 'tools'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
                 }`}
               >
-                <Wrench className="w-4 h-4 stroke-[2.2] shrink-0" />
-                <span className="text-xs tracking-tight whitespace-nowrap">투자도구</span>
+                <Wrench className="w-[18px] h-[18px] stroke-[2.2] shrink-0" />
+                <span className="text-[13px] tracking-tight whitespace-nowrap font-bold">투자도구</span>
               </button>
             </nav>
           </div>
 
           {/* ==================================================== */}
-          {/* REVEALED DRAWER CONTENT AREA (Synchronized Slide)    */}
+          {/* REVEALED DRAWER CONTENT AREA (Synchronized Slide & Depth Blur) */}
           {/* ==================================================== */}
           <div 
             ref={contentRef}
-            className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10"
+            className="absolute inset-0 overflow-y-auto overscroll-contain px-4 sm:px-6 pt-[86px] pb-6 space-y-4 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden z-10 will-change-[opacity,transform,filter]"
             style={{
               contain: 'paint layout',
-              opacity: progress > 0.12 ? Math.min(1, (progress - 0.12) / 0.75) : 0,
+              opacity: progress > 0.08 ? Math.min(1, (progress - 0.08) / 0.72) : 0,
+              filter: progress < 0.99 ? `blur(${(Math.max(0, (1 - progress) * 10)).toFixed(1)}px)` : 'none',
+              WebkitFilter: progress < 0.99 ? `blur(${(Math.max(0, (1 - progress) * 10)).toFixed(1)}px)` : 'none',
               pointerEvents: progress > 0.6 ? 'auto' : 'none',
               minWidth: '320px',
               maxWidth: '100%',
               transformOrigin: 'top center',
               transform: `translate3d(0, ${topInset}px, 0) scale(${0.96 + progress * 0.04})`,
               WebkitTransform: `translate3d(0, ${topInset}px, 0) scale(${0.96 + progress * 0.04})`,
-              transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: !transitionsEnabled || isDragging 
+                ? 'none' 
+                : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-filter 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}

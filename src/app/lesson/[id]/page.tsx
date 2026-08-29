@@ -167,7 +167,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
         </div>
 
         {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Completion Bar */}
-        <RevealOnScroll>
+        <RevealOnScroll delayIndex={1}>
           <LessonVideoSection
             lessonId={lesson.id}
             youtubeId={lesson.youtubeId}
@@ -181,7 +181,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           {lesson.bookSections && lesson.bookSections.length > 0 && (
             <div className="space-y-6">
               {lesson.bookSections.map((section, sIdx) => (
-                <RevealOnScroll key={sIdx}>
+                <RevealOnScroll key={sIdx} delayIndex={sIdx + 2}>
                   <section 
                     className={`glass-card p-5 rounded-2xl sm:rounded-3xl shadow-2xs space-y-5 sm:space-y-6 ${
                       section.interactiveTool ? 'sm:p-7 sm:pb-6' : 'sm:p-8'
