@@ -136,9 +136,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
-      // 현재 활성화된 공식 4자리 프로모션 코드 (8월 31일까지 적용)
+      // 현재 활성화된 공식 4자리 프로모션 코드 (9월 30일까지 적용)
       const VALID_PROMO_CODES: Record<string, number> = {
-        'OW26': 30, // 주식부엉 8월 공식 4자리 인증 코드
+        'BO26': 30, // 주식부엉 9월 공식 4자리 인증 코드
       };
 
       if (!VALID_PROMO_CODES[cleanCode]) {
@@ -148,12 +148,9 @@ export async function POST(request: Request) {
         }, { status: 200 });
       }
 
-      // Calculate end of current month (e.g. 2026-08-31 23:59:59 KST / UTC)
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const lastDayDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
-      const endOfMonthIso = lastDayDate.toISOString();
+      // Calculate September 30th 23:59:59 KST (2026-09-30T14:59:59.999Z / 2026-09-30 23:59:59)
+      const sept30Date = new Date(2026, 8, 30, 23, 59, 59, 999);
+      const endOfMonthIso = sept30Date.toISOString();
 
       existing.isPro = true;
       existing.proExpiresAt = endOfMonthIso;
@@ -162,11 +159,9 @@ export async function POST(request: Request) {
       db[trimmedNickname] = existing;
       await saveServerDbAsync(db);
 
-      const monthName = `${currentMonth + 1}월`;
-
       return NextResponse.json({
         success: true,
-        message: `Pro 코드가 인증되어 ${monthName} 말일까지 Pro 권한이 활성화되었습니다!`,
+        message: 'Pro 코드가 인증되어 9월 말일까지 Pro 권한이 활성화되었습니다!',
         user: {
           nickname: existing.nickname,
           avatarUrl: existing.avatarUrl,

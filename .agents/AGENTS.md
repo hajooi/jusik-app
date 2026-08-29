@@ -63,3 +63,14 @@
 1. **10색 시그니처 팔레트 연계**: 오렌지, 앰버, 옵시디언, 슬레이트 등 테마 조명/반사광 반영.
 2. **미니멀리즘 & 여백(Negative Space)**: 정제된 고급 소재(매트 스톤, 앰버 글래스, 브라스 등) 위주의 미니멀 에디토리얼 구도.
 3. **얼굴 노출 배제 & 한국인 인물**: 인물 필요 시 한국인/동양인으로 설정하되, 뒷모습/실루엣/오브젝트 클로즈업/아웃포커싱으로 불쾌한 골짜기 방지.
+
+## 7. Announcement Ribbon Spec (공지 배너 표준)
+- **컴포넌트 위치**: `src/components/AnnouncementRibbon.tsx` (Navbar 최상단 결합)
+- **디자인 규격**:
+  - 36px(h-9) 초슬림 Glassmorphic 앰버 그라디언트 띠 (`bg-gradient-to-r from-[var(--accent-orange)]/15 via-amber-500/10 to-[var(--accent-orange)]/15 border-b border-[var(--accent-orange)]/25 backdrop-blur-md`).
+  - 100% Optical Absolute Centering: 텍스트 및 코드 캡슐은 화면 정중앙 배치, `X` 닫기 버튼은 우측 끝 `absolute right-2 sm:right-4` 고정.
+- **문구 및 톤**:
+  - `[월 한정] PRO 멤버십 무료 코드: [CODE]` (군더더기 복사 텍스트 없이 단독 캡슐)
+- **인터랙션 & 세션 정책**:
+  - 코드 캡슐 클릭 시 원클릭 클립보드 복사 및 `✓ CODE` 피드백.
+  - `X` 닫기 시 `sessionStorage`에 기록하여 **이번 방문(세션) 동안만 숨김**, 나중에 브라우저 재실행/재접속 시 자동으로 다시 노출.
