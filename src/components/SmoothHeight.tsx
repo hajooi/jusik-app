@@ -1,77 +1,59 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface SmoothHeightProps {
   children: React.ReactNode;
   className?: string;
-  duration?: number; // milliseconds (default 550ms)
-  easing?: string; // CSS transition timing function (default Apple HIG smooth curve)
+  duration?: number; // milliseconds (default 380ms)
+  easing?: string; // CSS transition timing function
   animateInitial?: boolean;
 }
 
 /**
- * High-performance, 0-overhead dynamic height animator using native ResizeObserver.
- * Smoothly transitions height whenever child content size changes (e.g. quiz results, tab switches, dynamic text).
+ * Modern High-Performance Dynamic Height Animator using CSS Grid (0fr <-> 1fr).
+ * Preserves child content during collapse so closing is 100% smooth and visible.
  */
 export default function SmoothHeight({
   children,
   className = '',
-  duration = 550,
+  duration = 380,
   easing = 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-  animateInitial = false,
 }: SmoothHeightProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | undefined>(undefined);
-  const isFirstRender = useRef(true);
+  const hasContent = Boolean(children && React.Children.count(children) > 0);
+  const [renderedContent, setRenderedContent] = useState<React.ReactNode>(children);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
-    const updateHeight = () => {
-      const newHeight = el.scrollHeight;
-      setHeight(newHeight);
-    };
-
-    updateHeight();
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newHeight = Math.round(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height);
-        if (isFirstRender.current) {
-          isFirstRender.current = false;
-          if (!animateInitial) {
-            setHeight(newHeight);
-            return;
-          }
-        }
-        setHeight(newHeight);
-      }
-    });
-
-    resizeObserver.observe(el);
+    if (hasContent) {
+      setRenderedContent(children);
+    } else {
+      // Keep displaying previous content during collapse transition
+      timerRef.current = setTimeout(() => {
+        setRenderedContent(null);
+      }, duration + 50);
+    }
 
     return () => {
-      resizeObserver.disconnect();
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [animateInitial]);
-
-  // If children is null, undefined or empty boolean, do not render extra spacing
-  const hasContent = React.Children.count(children) > 0 && Boolean(children);
-
-  if (!hasContent) return null;
+  }, [children, hasContent, duration]);
 
   return (
     <div
       style={{
-        height: height !== undefined ? `${height}px` : 'auto',
-        transition: `height ${duration}ms ${easing}`,
-        overflow: 'hidden',
+        display: 'grid',
+        gridTemplateRows: hasContent ? '1fr' : '0fr',
+        transition: `grid-template-rows ${duration}ms ${easing}, opacity ${duration}ms ${easing}`,
+        opacity: hasContent ? 1 : 0,
       }}
-      className={`will-change-[height] ${className}`}
+      className={`will-change-[grid-template-rows,opacity] ${className}`}
     >
-      <div ref={contentRef}>{children}</div>
+      <div className="overflow-hidden min-h-0">{renderedContent}</div>
     </div>
   );
 }

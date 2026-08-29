@@ -1742,9 +1742,9 @@ function SimulatorContent() {
         </div>
 
         {/* 1. Inline SmoothHeight Chart Scale Explanation Box */}
-        <SmoothHeight duration={320}>
+        <SmoothHeight>
           {activeTooltip === 'chart_scale' && (
-            <div className="pt-3">
+            <div className="pb-1.5">
               <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1.5 font-sans">
                 <div>
                   <strong className="text-[var(--text-primary)]">📊 선형:</strong> 실제 내 자산이 불어나는 최종 금액 크기를 있는 그대로 정직하게 보여줍니다.
@@ -1761,7 +1761,7 @@ function SimulatorContent() {
         </SmoothHeight>
 
         {/* 2. Inline SmoothHeight Synthetic Asset Inference Notice */}
-        <SmoothHeight duration={320}>
+        <SmoothHeight>
           {(() => {
             const simStartDate = simulation.points[0]?.date || '2006-01-01';
 
@@ -1809,7 +1809,7 @@ function SimulatorContent() {
             const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
             return (
-              <div className="pt-3 space-y-2">
+              <div className="pb-1.5 space-y-2">
                 {etfItems.length > 0 && (
                   <div
                     style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
@@ -2139,14 +2139,13 @@ function SimulatorContent() {
         {/* ---------------------------------------------------- */}
         {/* DYNAMIC MULTI-STRATEGY BUILDER (INSIDE MASTER CARD)  */}
         {/* ---------------------------------------------------- */}
-        <SmoothHeight duration={500}>
-          <div className={`w-full grid gap-4 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+        <SmoothHeight>
+          <div className={`w-full grid gap-4 transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
               strategyCount === 1 ? 'grid-cols-1' : strategyCount === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}>
               
               {/* STRATEGY A (기본 전략) */}
-              <div className="w-full min-w-0 flex flex-col justify-between p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)] space-y-4 shadow-2xs transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
-              <div>
+              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--accent-orange)] space-y-4 shadow-2xs transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
                 <div className="flex items-center justify-between min-h-[32px] gap-1">
                   <h3 className="text-sm sm:text-base font-black text-[var(--accent-orange)] flex items-center gap-1.5 whitespace-nowrap shrink-0">
                     <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
@@ -2244,9 +2243,9 @@ function SimulatorContent() {
                   </div>
 
                   {/* Smooth Accordion for Strategy Information with padding container */}
-                  {activeTooltip === 'strategy_info' && (
-                    <SmoothHeight>
-                      <div className="pt-3 pb-1">
+                  <SmoothHeight>
+                    {activeTooltip === 'strategy_info' && (
+                      <div className="pb-1.5">
                         <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium shadow-2xs">
                           💡 {userProfileCode ? (
                             <span>회원님의 성향 진단(<strong className="text-[var(--accent-orange)] font-mono">{userProfileCode}</strong>) 데이터를 분석하여 최적화된 맞춤형 자산 배분 전략입니다.</span>
@@ -2255,8 +2254,8 @@ function SimulatorContent() {
                           )}
                         </div>
                       </div>
-                    </SmoothHeight>
-                  )}
+                    )}
+                  </SmoothHeight>
 
                   <div className="mt-4">
                     <SmoothHeight>
@@ -2270,7 +2269,7 @@ function SimulatorContent() {
                                   setPortfolioA(portfolioA.map((sa, idx) => (idx === index ? { ...sa, assetId: e.target.value } : sa)));
                                   setActivePresetA(null);
                                 }}
-                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
+                                className="select-interactive flex-1 appearance-none text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-[var(--accent-orange)] cursor-pointer min-w-0 shadow-2xs"
                               >
                                 {SELECT_ASSET_GROUPS.map((grp) => (
                                   <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
@@ -2316,7 +2315,7 @@ function SimulatorContent() {
                                 className="flex-1 accent-[var(--accent-orange)] cursor-pointer"
                               />
                               {strategyPeriodA > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
+                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 hover:bg-[var(--card-hover)] px-2 py-0.5 rounded-md border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 transition-colors">
                                   <input
                                     type="checkbox"
                                     checked={item.enableDefense !== false}
@@ -2352,30 +2351,40 @@ function SimulatorContent() {
                     </SmoothHeight>
                   </div>
 
-                  <div className="pt-3 space-y-1 mt-auto">
-                    <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
                       <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                         <Lightbulb className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
                         방어 옵션 (이동평균선)
                       </label>
-                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTooltip(activeTooltip === 'defense_a' ? null : 'defense_a')}
+                        className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
+                          activeTooltip === 'defense_a' ? 'text-[var(--accent-orange)] bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                        }`}
+                        title="방어 옵션 설명"
+                      >
                         <HelpCircle className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    {activeTooltip === 'defense_a' && (
-                      <SmoothHeight>
-                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
+                    <SmoothHeight>
+                      {activeTooltip === 'defense_a' && (
+                        <div className="pb-1.5">
+                          <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
+                            <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
+                            <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
+                          </div>
                         </div>
-                      </SmoothHeight>
-                    )}
+                      )}
+                    </SmoothHeight>
                     <select
                       value={strategyPeriodA}
                       onChange={(e) => {
                         setStrategyPeriodA(Number(e.target.value));
                         setActivePresetA(null);
                       }}
-                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
+                      className="select-interactive w-full text-xs font-bold p-2.5 rounded-xl focus:outline-none focus:border-[var(--accent-orange)] cursor-pointer shadow-2xs"
                     >
                       <option value={0}>기본 없음 (주식 계속 보유)</option>
                       <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
@@ -2384,279 +2393,294 @@ function SimulatorContent() {
                       <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
                     </select>
                   </div>
-                </div>
               </div>
 
               {/* STRATEGY B (전략 1) */}
             {strategyCount >= 2 && (
-              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.12)] flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
-                <div>
-                  <div className="flex items-center justify-between min-h-[32px]">
-                    <h3 className="text-base font-black text-emerald-500 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                      전략 1
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStrategy('B')}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
-                      title="전략 1 삭제"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.12)] space-y-4 transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between min-h-[32px]">
+                  <h3 className="text-base font-black text-emerald-500 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                    전략 1
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStrategy('B')}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
+                    title="전략 1 삭제"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-                  <div className="mt-4">
-                    <SmoothHeight>
-                      <div className="space-y-2.5">
-                        {portfolioB.map((item, index) => (
-                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
-                            <div className="flex items-center justify-between gap-2">
-                              <select
-                                value={item.assetId}
-                                onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, assetId: e.target.value } : sb)))}
-                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
-                              >
-                                {SELECT_ASSET_GROUPS.map((grp) => (
-                                  <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
-                                    {grp.options.map((opt) => (
-                                      <option key={opt.id} value={opt.id}>
-                                        {opt.label}
-                                      </option>
-                                    ))}
-                                  </optgroup>
-                                ))}
-                              </select>
+                <div className="mt-4">
+                  <SmoothHeight>
+                    <div className="space-y-2.5">
+                      {portfolioB.map((item, index) => (
+                        <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <select
+                              value={item.assetId}
+                              onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, assetId: e.target.value } : sb)))}
+                              className="select-interactive flex-1 appearance-none text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-emerald-500 cursor-pointer min-w-0 shadow-2xs"
+                            >
+                              {SELECT_ASSET_GROUPS.map((grp) => (
+                                <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
+                                  {grp.options.map((opt) => (
+                                    <option key={opt.id} value={opt.id} disabled={portfolioB.some((sb, idx) => idx !== index && sb.assetId === opt.id)}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
 
-                              <div className="flex items-center gap-1 shrink-0">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={100}
-                                  step={5}
-                                  value={item.weight}
-                                  onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                                  className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-emerald-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-emerald-500 font-mono"
-                                />
-                                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
-                                {portfolioB.length > 1 && (
-                                  <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1 shrink-0">
                               <input
-                                type="range"
+                                type="number"
                                 min={0}
                                 max={100}
                                 step={5}
                                 value={item.weight}
-                                onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
-                                className="flex-1 accent-emerald-500 cursor-pointer"
+                                onChange={(e) => handleUpdateWeightB(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                                className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-emerald-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-emerald-500 font-mono"
                               />
-                              {strategyPeriodB > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                                  <input
-                                    type="checkbox"
-                                    checked={item.enableDefense !== false}
-                                    onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, enableDefense: e.target.checked } : sb)))}
-                                    className="w-3.5 h-3.5 accent-emerald-500 rounded cursor-pointer"
-                                  />
-                                  <span>방어 적용</span>
-                                </label>
+                              <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                              {portfolioB.length > 1 && (
+                                <button type="button" onClick={() => setPortfolioB(portfolioB.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               )}
                             </div>
                           </div>
-                        ))}
 
-                        {portfolioB.length < 6 && (
-                          <button
-                            type="button"
-                            onClick={handleAddSlotB}
-                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                          >
-                            <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                            <span>종목 추가</span>
-                          </button>
-                        )}
+                          <div className="flex items-center justify-between gap-2">
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={5}
+                              value={item.weight}
+                              onChange={(e) => handleUpdateWeightB(index, Number(e.target.value))}
+                              className="flex-1 accent-emerald-500 cursor-pointer"
+                            />
+                            {strategyPeriodB > 0 && (
+                              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 hover:bg-[var(--card-hover)] px-2 py-0.5 rounded-md border border-[var(--border-color)] hover:border-emerald-500/40 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={item.enableDefense !== false}
+                                  onChange={(e) => setPortfolioB(portfolioB.map((sb, idx) => (idx === index ? { ...sb, enableDefense: e.target.checked } : sb)))}
+                                  className="w-3.5 h-3.5 accent-emerald-500 rounded cursor-pointer"
+                                />
+                                <span>방어 적용</span>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      ))}
 
-                        <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                          <span className="text-[var(--text-primary)]">현금</span>
-                          <span className="font-mono font-extrabold text-emerald-500">{autoCashB}%</span>
+                      {portfolioB.length < 6 && (
+                        <button
+                          type="button"
+                          onClick={handleAddSlotB}
+                          className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                          <span>종목 추가</span>
+                        </button>
+                      )}
+
+                      <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                        <span className="text-[var(--text-primary)]">현금</span>
+                        <span className="font-mono font-extrabold text-emerald-500">{autoCashB}%</span>
+                      </div>
+                    </div>
+                  </SmoothHeight>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
+                      방어 옵션 (이동평균선)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')}
+                      className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
+                        activeTooltip === 'defense_b' ? 'text-emerald-500 bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-emerald-500'
+                      }`}
+                      title="방어 옵션 설명"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <SmoothHeight>
+                    {activeTooltip === 'defense_b' && (
+                      <div className="pb-1.5">
+                        <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
+                          <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
+                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
                         </div>
                       </div>
-                    </SmoothHeight>
-                  </div>
-
-                  <div className="pt-3 space-y-1 mt-auto">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                        <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
-                        방어 옵션 (이동평균선)
-                      </label>
-                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_b' ? null : 'defense_b')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    {activeTooltip === 'defense_b' && (
-                      <SmoothHeight>
-                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
-                        </div>
-                      </SmoothHeight>
                     )}
-                    <select
-                      value={strategyPeriodB}
-                      onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
-                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
-                    >
-                      <option value={0}>없음 (주식 계속 보유)</option>
-                      <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
-                      <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                      <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                      <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-                    </select>
-                  </div>
+                  </SmoothHeight>
+                  <select
+                    value={strategyPeriodB}
+                    onChange={(e) => setStrategyPeriodB(Number(e.target.value))}
+                    className="select-interactive w-full text-xs font-bold p-2.5 rounded-xl focus:outline-none focus:border-emerald-500 cursor-pointer shadow-2xs"
+                  >
+                    <option value={0}>없음 (주식 계속 보유)</option>
+                    <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
+                    <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                    <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                    <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                  </select>
                 </div>
               </div>
             )}
 
             {/* STRATEGY C (전략 2) */}
             {strategyCount >= 3 && (
-              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.12)] flex flex-col justify-between transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
-                <div>
-                  <div className="flex items-center justify-between min-h-[32px]">
-                    <h3 className="text-base font-black text-indigo-500 flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                      전략 2
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStrategy('C')}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
-                      title="전략 2 삭제"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+              <div className="w-full min-w-0 p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.12)] space-y-4 transition-all duration-380 ease-[cubic-bezier(0.2,0.8,0.2,1)] animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between min-h-[32px]">
+                  <h3 className="text-base font-black text-indigo-500 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                    전략 2
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStrategy('C')}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all active:scale-90 cursor-pointer"
+                    title="전략 2 삭제"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-                  <div className="mt-4">
-                    <SmoothHeight>
-                      <div className="space-y-2.5">
-                        {portfolioC.map((item, index) => (
-                          <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
-                            <div className="flex items-center justify-between gap-2">
-                              <select
-                                value={item.assetId}
-                                onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, assetId: e.target.value } : sc)))}
-                                className="flex-1 appearance-none bg-[var(--bg-main)]/60 text-xs font-bold text-[var(--text-primary)] py-1.5 px-2.5 rounded-lg border border-[var(--border-color)] focus:outline-none cursor-pointer hover:bg-[var(--card-hover)] transition-colors min-w-0"
-                              >
-                                {SELECT_ASSET_GROUPS.map((grp) => (
-                                  <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
-                                    {grp.options.map((opt) => (
-                                      <option key={opt.id} value={opt.id} disabled={portfolioC.some((sc, idx) => idx !== index && sc.assetId === opt.id)}>
-                                        {opt.label}
-                                      </option>
-                                    ))}
-                                  </optgroup>
-                                ))}
-                              </select>
+                <div className="mt-4">
+                  <SmoothHeight>
+                    <div className="space-y-2.5">
+                      {portfolioC.map((item, index) => (
+                        <div key={index} className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 transition-colors shadow-2xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <select
+                              value={item.assetId}
+                              onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, assetId: e.target.value } : sc)))}
+                              className="select-interactive flex-1 appearance-none text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:border-indigo-500 cursor-pointer min-w-0 shadow-2xs"
+                            >
+                              {SELECT_ASSET_GROUPS.map((grp) => (
+                                <optgroup key={grp.groupLabel} label={grp.groupLabel} className="bg-[var(--card-surface)] text-[var(--text-primary)] font-bold">
+                                  {grp.options.map((opt) => (
+                                    <option key={opt.id} value={opt.id} disabled={portfolioC.some((sc, idx) => idx !== index && sc.assetId === opt.id)}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
 
-                              <div className="flex items-center gap-1 shrink-0">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={100}
-                                  step={5}
-                                  value={item.weight}
-                                  onChange={(e) => handleUpdateWeightC(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
-                                  className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-indigo-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-indigo-500 font-mono"
-                                />
-                                <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
-                                {portfolioC.length > 1 && (
-                                  <button type="button" onClick={() => setPortfolioC(portfolioC.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1 shrink-0">
                               <input
-                                type="range"
+                                type="number"
                                 min={0}
                                 max={100}
                                 step={5}
                                 value={item.weight}
-                                onChange={(e) => handleUpdateWeightC(index, Number(e.target.value))}
-                                className="flex-1 accent-indigo-500 cursor-pointer"
+                                onChange={(e) => handleUpdateWeightC(index, Math.round(Math.max(0, Math.min(100, Number(e.target.value))) / 5) * 5)}
+                                className="w-12 bg-[var(--bg-main)]/60 text-xs font-extrabold text-center text-indigo-500 py-0.5 rounded-lg border border-[var(--border-color)] focus:outline-none focus:border-indigo-500 font-mono"
                               />
-                              {strategyPeriodC > 0 && (
-                                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 px-2 py-0.5 rounded-md border border-[var(--border-color)]">
-                                  <input
-                                    type="checkbox"
-                                    checked={item.enableDefense !== false}
-                                    onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, enableDefense: e.target.checked } : sc)))}
-                                    className="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"
-                                  />
-                                  <span>방어 적용</span>
-                                </label>
+                              <span className="text-xs font-bold text-[var(--text-secondary)] font-mono">%</span>
+                              {portfolioC.length > 1 && (
+                                <button type="button" onClick={() => setPortfolioC(portfolioC.filter((_, idx) => idx !== index))} className="text-[var(--text-secondary)] hover:text-red-500 p-0.5 ml-1 transition-all">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               )}
                             </div>
                           </div>
-                        ))}
 
-                        {portfolioC.length < 6 && (
-                          <button
-                            type="button"
-                            onClick={handleAddSlotC}
-                            className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                          >
-                            <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                            <span>종목 추가</span>
-                          </button>
-                        )}
+                          <div className="flex items-center justify-between gap-2">
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={5}
+                              value={item.weight}
+                              onChange={(e) => handleUpdateWeightC(index, Number(e.target.value))}
+                              className="flex-1 accent-indigo-500 cursor-pointer"
+                            />
+                            {strategyPeriodC > 0 && (
+                              <label className="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 bg-[var(--bg-main)]/60 hover:bg-[var(--card-hover)] px-2 py-0.5 rounded-md border border-[var(--border-color)] hover:border-indigo-500/40 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={item.enableDefense !== false}
+                                  onChange={(e) => setPortfolioC(portfolioC.map((sc, idx) => (idx === index ? { ...sc, enableDefense: e.target.checked } : sc)))}
+                                  className="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"
+                                />
+                                <span>방어 적용</span>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      ))}
 
-                        <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
-                          <span className="text-[var(--text-primary)]">현금</span>
-                          <span className="font-mono font-extrabold text-indigo-500">{autoCashC}%</span>
+                      {portfolioC.length < 6 && (
+                        <button
+                          type="button"
+                          onClick={handleAddSlotC}
+                          className="w-full py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/80 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/50 hover:bg-[var(--card-hover)] active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                          <span>종목 추가</span>
+                        </button>
+                      )}
+
+                      <div className="p-3 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] flex items-center justify-between text-xs font-bold">
+                        <span className="text-[var(--text-primary)]">현금</span>
+                        <span className="font-mono font-extrabold text-indigo-500">{autoCashC}%</span>
+                      </div>
+                    </div>
+                  </SmoothHeight>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-indigo-500" />
+                      방어 옵션 (이동평균선)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTooltip(activeTooltip === 'defense_c' ? null : 'defense_c')}
+                      className={`transition-all p-1 rounded-full hover:bg-[var(--card-hover)] cursor-pointer shrink-0 ${
+                        activeTooltip === 'defense_c' ? 'text-indigo-500 bg-[var(--card-hover)]' : 'text-[var(--text-secondary)] hover:text-indigo-500'
+                      }`}
+                      title="방어 옵션 설명"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <SmoothHeight>
+                    {activeTooltip === 'defense_c' && (
+                      <div className="pb-1.5">
+                        <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
+                          <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
+                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
                         </div>
                       </div>
-                    </SmoothHeight>
-                  </div>
-
-                  <div className="pt-3 space-y-1 mt-auto">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                        <Lightbulb className="w-3.5 h-3.5 text-indigo-500" />
-                        방어 옵션 (이동평균선)
-                      </label>
-                      <button type="button" onClick={() => setActiveTooltip(activeTooltip === 'defense_c' ? null : 'defense_c')} className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    {activeTooltip === 'defense_c' && (
-                      <SmoothHeight>
-                        <div className="p-2.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                          시장 변화에 맞춰 적극적으로 매매하는 투자자에게 어울리는 옵션입니다. 일정 기간의 평균 가격(이동평균선) 위로 올라왔을 때만 주식을 사고 보유하며, 평균 가격 밑으로 떨어지는 하락장에서는 현금으로 안전하게 지킵니다.
-                        </div>
-                      </SmoothHeight>
                     )}
-                    <select
-                      value={strategyPeriodC}
-                      onChange={(e) => setStrategyPeriodC(Number(e.target.value))}
-                      className="w-full bg-[var(--bg-main)] hover:bg-[var(--card-hover)] text-xs font-bold text-[var(--text-primary)] p-2.5 rounded-xl border border-[var(--border-color)] cursor-pointer transition-colors shadow-2xs"
-                    >
-                      <option value={0}>없음 (주식 계속 보유)</option>
-                      <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
-                      <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
-                      <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
-                      <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
-                    </select>
-                  </div>
+                  </SmoothHeight>
+                  <select
+                    value={strategyPeriodC}
+                    onChange={(e) => setStrategyPeriodC(Number(e.target.value))}
+                    className="select-interactive w-full text-xs font-bold p-2.5 rounded-xl focus:outline-none focus:border-indigo-500 cursor-pointer shadow-2xs"
+                  >
+                    <option value={0}>없음 (주식 계속 보유)</option>
+                    <option value={50}>50일 평균 가격 기준 (단기 방어)</option>
+                    <option value={100}>100일 평균 가격 기준 (중기 균형 방어)</option>
+                    <option value={150}>150일 평균 가격 기준 (안정적 방어)</option>
+                    <option value={200}>200일 평균 가격 기준 (큰 폭락장 방어)</option>
+                  </select>
                 </div>
               </div>
             )}

@@ -21,12 +21,14 @@ export default function AnimatedNumber({
 }: AnimatedNumberProps) {
   const [displayVal, setDisplayVal] = useState<number>(value);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
   const currentValRef = useRef<number>(value);
   const targetValRef = useRef<number>(value);
   const isInitialMountedRef = useRef<boolean>(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -104,7 +106,7 @@ export default function AnimatedNumber({
     : Math.round(displayVal).toLocaleString();
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} suppressHydrationWarning>
       {prefix}{formattedNumber}{suffix}
     </span>
   );
