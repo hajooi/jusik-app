@@ -1760,83 +1760,87 @@ function SimulatorContent() {
           )}
         </SmoothHeight>
 
-        {/* 2. Inline SmoothHeight Synthetic Asset Inference Notice */}
-        <SmoothHeight>
-          {(() => {
-            const simStartDate = simulation.points[0]?.date || '2006-01-01';
+        {/* 2. Inline SmoothHeight Synthetic Asset Inference Notices (Independent for smooth 1<->2 transitions) */}
+        {(() => {
+          const simStartDate = simulation.points[0]?.date || '2006-01-01';
 
-            const synthAssetMeta: Record<string, { label: string; dateStr: string; cutoffDate: string; isCrypto?: boolean }> = {
-              TQQQ: { label: '나스닥 100 3배 레버리지', dateStr: '2010년 2월 이전', cutoffDate: '2010-02-01' },
-              QLD: { label: '나스닥 100 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
-              SOXL: { label: '필라델피아 반도체 3배 레버리지', dateStr: '2010년 3월 이전', cutoffDate: '2010-03-01' },
-              USD: { label: '필라델피아 반도체 2배 레버리지', dateStr: '2007년 1월 이전', cutoffDate: '2007-01-01' },
-              UPRO: { label: 'S&P 500 3배 레버리지', dateStr: '2009년 6월 이전', cutoffDate: '2009-06-01' },
-              SSO: { label: 'S&P 500 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
-              SCHD: { label: '미국 배당 다우존스', dateStr: '2011년 10월 이전', cutoffDate: '2011-10-01' },
-              KS200: { label: '코스피 200', dateStr: '2002년 10월 이전', cutoffDate: '2002-10-01' },
-              KQ150: { label: '코스닥 150', dateStr: '2015년 10월 이전', cutoffDate: '2015-10-01' },
-              SLV: { label: '은', dateStr: '2006년 4월 이전', cutoffDate: '2006-04-01' },
-              GOOGL: { label: '알파벳/구글', dateStr: '2004년 8월 이전', cutoffDate: '2004-08-01' },
-              AMZN: { label: '아마존', dateStr: '1997년 5월 이전', cutoffDate: '1997-05-01' },
-              TSM: { label: 'TSMC', dateStr: '1997년 10월 이전', cutoffDate: '1997-10-01' },
-              SPCX: { label: '스페이스X', dateStr: '2026년 6월 이전', cutoffDate: '2026-06-01' },
-              AVGO: { label: '브로드컴', dateStr: '2009년 8월 이전', cutoffDate: '2009-08-01' },
-              TSLA: { label: '테슬라', dateStr: '2010년 6월 이전', cutoffDate: '2010-06-01' },
-              META: { label: '메타', dateStr: '2012년 5월 이전', cutoffDate: '2012-05-01' },
-              V: { label: '비자', dateStr: '2008년 3월 이전', cutoffDate: '2008-03-01' },
-              ASML: { label: 'ASML', dateStr: '1995년 3월 이전', cutoffDate: '1995-03-01' },
-              '000660': { label: 'SK하이닉스', dateStr: '1996년 12월 이전', cutoffDate: '1996-12-01' },
-              '402340': { label: 'SK스퀘어', dateStr: '2021년 11월 이전', cutoffDate: '2021-11-01' },
-              '373220': { label: 'LG에너지솔루션', dateStr: '2022년 1월 이전', cutoffDate: '2022-01-01' },
-              '207940': { label: '삼성바이오로직스', dateStr: '2016년 11월 이전', cutoffDate: '2016-11-01' },
-              '032830': { label: '삼성생명', dateStr: '2010년 5월 이전', cutoffDate: '2010-05-01' },
-              '028260': { label: '삼성물산', dateStr: '2014년 12월 이전', cutoffDate: '2014-12-01' },
-              '105560': { label: 'KB금융', dateStr: '2008년 10월 이전', cutoffDate: '2008-10-01' },
-              BTC: { label: '비트코인', dateStr: '2014년 9월 이전', cutoffDate: '2014-09-01', isCrypto: true },
-              ETH: { label: '이더리움', dateStr: '2017년 11월 이전', cutoffDate: '2017-11-01', isCrypto: true },
-            };
+          const synthAssetMeta: Record<string, { label: string; dateStr: string; cutoffDate: string; isCrypto?: boolean }> = {
+            TQQQ: { label: '나스닥 100 3배 레버리지', dateStr: '2010년 2월 이전', cutoffDate: '2010-02-01' },
+            QLD: { label: '나스닥 100 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SOXL: { label: '필라델피아 반도체 3배 레버리지', dateStr: '2010년 3월 이전', cutoffDate: '2010-03-01' },
+            USD: { label: '필라델피아 반도체 2배 레버리지', dateStr: '2007년 1월 이전', cutoffDate: '2007-01-01' },
+            UPRO: { label: 'S&P 500 3배 레버리지', dateStr: '2009년 6월 이전', cutoffDate: '2009-06-01' },
+            SSO: { label: 'S&P 500 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SCHD: { label: '미국 배당 다우존스', dateStr: '2011년 10월 이전', cutoffDate: '2011-10-01' },
+            KS200: { label: '코스피 200', dateStr: '2002년 10월 이전', cutoffDate: '2002-10-01' },
+            KQ150: { label: '코스닥 150', dateStr: '2015년 10월 이전', cutoffDate: '2015-10-01' },
+            SLV: { label: '은', dateStr: '2006년 4월 이전', cutoffDate: '2006-04-01' },
+            GOOGL: { label: '알파벳/구글', dateStr: '2004년 8월 이전', cutoffDate: '2004-08-01' },
+            AMZN: { label: '아마존', dateStr: '1997년 5월 이전', cutoffDate: '1997-05-01' },
+            TSM: { label: 'TSMC', dateStr: '1997년 10월 이전', cutoffDate: '1997-10-01' },
+            SPCX: { label: '스페이스X', dateStr: '2026년 6월 이전', cutoffDate: '2026-06-01' },
+            AVGO: { label: '브로드컴', dateStr: '2009년 8월 이전', cutoffDate: '2009-08-01' },
+            TSLA: { label: '테슬라', dateStr: '2010년 6월 이전', cutoffDate: '2010-06-01' },
+            META: { label: '메타', dateStr: '2012년 5월 이전', cutoffDate: '2012-05-01' },
+            V: { label: '비자', dateStr: '2008년 3월 이전', cutoffDate: '2008-03-01' },
+            ASML: { label: 'ASML', dateStr: '1995년 3월 이전', cutoffDate: '1995-03-01' },
+            '000660': { label: 'SK하이닉스', dateStr: '1996년 12월 이전', cutoffDate: '1996-12-01' },
+            '402340': { label: 'SK스퀘어', dateStr: '2021년 11월 이전', cutoffDate: '2021-11-01' },
+            '373220': { label: 'LG에너지솔루션', dateStr: '2022년 1월 이전', cutoffDate: '2022-01-01' },
+            '207940': { label: '삼성바이오로직스', dateStr: '2016년 11월 이전', cutoffDate: '2016-11-01' },
+            '032830': { label: '삼성생명', dateStr: '2010년 5월 이전', cutoffDate: '2010-05-01' },
+            '028260': { label: '삼성물산', dateStr: '2014년 12월 이전', cutoffDate: '2014-12-01' },
+            '105560': { label: 'KB금융', dateStr: '2008년 10월 이전', cutoffDate: '2008-10-01' },
+            BTC: { label: '비트코인', dateStr: '2014년 9월 이전', cutoffDate: '2014-09-01', isCrypto: true },
+            ETH: { label: '이더리움', dateStr: '2017년 11월 이전', cutoffDate: '2017-11-01', isCrypto: true },
+          };
 
-            const allSelectedAssets = [
-              ...portfolioA.map(p => p.assetId),
-              ...(strategyCount >= 2 ? portfolioB.map(p => p.assetId) : []),
-              ...(strategyCount >= 3 ? portfolioC.map(p => p.assetId) : [])
-            ];
-            const selectedIds = Array.from(new Set(allSelectedAssets)).filter(id => synthAssetMeta[id] && simStartDate < synthAssetMeta[id].cutoffDate);
+          const allSelectedAssets = [
+            ...portfolioA.map(p => p.assetId),
+            ...(strategyCount >= 2 ? portfolioB.map(p => p.assetId) : []),
+            ...(strategyCount >= 3 ? portfolioC.map(p => p.assetId) : [])
+          ];
+          const selectedIds = Array.from(new Set(allSelectedAssets)).filter(id => synthAssetMeta[id] && simStartDate < synthAssetMeta[id].cutoffDate);
 
-            if (selectedIds.length === 0) return null;
+          const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
+          const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
-            const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
-            const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
-
-            return (
-              <div className="pb-1.5 space-y-2">
+          return (
+            <>
+              <SmoothHeight>
                 {etfItems.length > 0 && (
-                  <div
-                    style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
-                    className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                  >
-                    <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
+                  <div className="pb-1.5">
+                    <div
+                      style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+                      className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                    >
+                      <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
+                      </div>
                     </div>
                   </div>
                 )}
+              </SmoothHeight>
 
+              <SmoothHeight>
                 {cryptoItems.length > 0 && (
-                  <div
-                    style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
-                    className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                  >
-                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                  <div className="pb-1.5">
+                    <div
+                      style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
+                      className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
+                    >
+                      <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                      </div>
                     </div>
                   </div>
                 )}
-              </div>
-            );
-          })()}
-        </SmoothHeight>
+              </SmoothHeight>
+            </>
+          );
+        })()}
 
         {/* Integrated Clean Full-Width Chart Canvas */}
         <div className="space-y-3 relative z-10 overflow-hidden transition-all duration-300">
@@ -2751,7 +2755,7 @@ function SimulatorContent() {
                   </div>
                   <div className="p-3 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1">
                     <div className="font-bold text-[var(--text-primary)]">
-                      4. 실행 지속성 (15점)
+                      4. 실행 지속 (15점)
                     </div>
                     <p className="text-[11px] text-[var(--text-secondary)]">내 투자 스타일에 맞춰 심리적 스트레스 없이 10년 이상 꾸준히 이어갈 수 있는 구조인지 평가합니다.</p>
                   </div>
@@ -2789,25 +2793,25 @@ function SimulatorContent() {
                 </div>
 
                 <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                  <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                     <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownA.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                   </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                  <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                     <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownA.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                   </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                  <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                     <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownA.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                   </div>
-                  <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                  <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                     <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                    <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownA.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                    <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownA.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
+                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1" suppressHydrationWarning>
                   {scoreBreakdownA.summaryFeedback}
                 </p>
               </div>
@@ -2822,13 +2826,13 @@ function SimulatorContent() {
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--text-secondary)]">연수익률</span>
                   <span className="font-mono font-bold text-[var(--accent-orange)]">
-                    +<AnimatedNumber value={Number(simulation.portA.cagr)} suffix="% /년" />
+                    +<AnimatedNumber value={Number(simulation.portA.cagr)} decimals={1} suffix="% /년" />
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--text-secondary)]">최대 손실폭</span>
                   <span className="font-mono font-bold text-red-500">
-                    -<AnimatedNumber value={Number(simulation.portA.mdd)} suffix="%" />
+                    -<AnimatedNumber value={Number(simulation.portA.mdd)} decimals={1} suffix="%" />
                   </span>
                 </div>
               </div>
@@ -2852,7 +2856,7 @@ function SimulatorContent() {
                     <div className="flex items-center gap-1.5">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
                         scoreBreakdownB.grade === 'S' || scoreBreakdownB.grade === 'A' ? 'font-black' : ''
-                      }`}>
+                      }`} suppressHydrationWarning>
                         {scoreBreakdownB.grade}등급
                       </span>
                       <span className="text-lg font-black font-mono text-emerald-500">
@@ -2862,25 +2866,25 @@ function SimulatorContent() {
                   </div>
 
                   <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownB.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownB.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownB.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownB.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownB.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1" suppressHydrationWarning>
                     {scoreBreakdownB.summaryFeedback}
                   </p>
                 </div>
@@ -2895,13 +2899,13 @@ function SimulatorContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">연수익률</span>
                     <span className="font-mono font-bold text-emerald-500">
-                      +<AnimatedNumber value={Number(simulation.portB.cagr)} suffix="% /년" />
+                      +<AnimatedNumber value={Number(simulation.portB.cagr)} decimals={1} suffix="% /년" />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">최대 손실폭</span>
                     <span className="font-mono font-bold text-red-500">
-                      -<AnimatedNumber value={Number(simulation.portB.mdd)} suffix="%" />
+                      -<AnimatedNumber value={Number(simulation.portB.mdd)} decimals={1} suffix="%" />
                     </span>
                   </div>
                 </div>
@@ -2926,7 +2930,7 @@ function SimulatorContent() {
                     <div className="flex items-center gap-1.5">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold border bg-[var(--card-surface)] text-[var(--text-primary)] border-[var(--border-color)] ${
                         scoreBreakdownC.grade === 'S' || scoreBreakdownC.grade === 'A' ? 'font-black' : ''
-                      }`}>
+                      }`} suppressHydrationWarning>
                         {scoreBreakdownC.grade}등급
                       </span>
                       <span className="text-lg font-black font-mono text-indigo-500">
@@ -2936,25 +2940,25 @@ function SimulatorContent() {
                   </div>
 
                   <div className="grid grid-cols-4 gap-1 pt-0.5 text-center text-[10px]">
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">수익</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownC.scores.returnScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">방어</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownC.scores.riskScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/35</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">효율</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownC.scores.downsideScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                     </div>
-                    <div className="p-1 rounded-lg bg-[var(--card-surface)]">
+                    <div className="p-1 rounded-lg bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs">
                       <div className="text-[var(--text-secondary)] text-[9px]">지속</div>
-                      <div className="font-mono font-bold text-[var(--text-primary)]">{scoreBreakdownC.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
+                      <div className="font-mono font-bold text-[var(--text-primary)]" suppressHydrationWarning>{scoreBreakdownC.scores.styleScore}<span className="text-[8px] text-[var(--text-secondary)] font-normal">/15</span></div>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1">
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-1" suppressHydrationWarning>
                     {scoreBreakdownC.summaryFeedback}
                   </p>
                 </div>
@@ -2969,13 +2973,13 @@ function SimulatorContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">연수익률</span>
                     <span className="font-mono font-bold text-indigo-500">
-                      +<AnimatedNumber value={Number(simulation.portC.cagr)} suffix="% /년" />
+                      +<AnimatedNumber value={Number(simulation.portC.cagr)} decimals={1} suffix="% /년" />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">최대 손실폭</span>
                     <span className="font-mono font-bold text-red-500">
-                      -<AnimatedNumber value={Number(simulation.portC.mdd)} suffix="%" />
+                      -<AnimatedNumber value={Number(simulation.portC.mdd)} decimals={1} suffix="%" />
                     </span>
                   </div>
                 </div>

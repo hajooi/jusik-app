@@ -762,14 +762,14 @@ export function calculateBenchmarkPortfolioScore(options: {
   if (totalScore >= 88) {
     grade = 'S';
     gradeLabel = '최적 (Perfect Fit)';
-    summaryFeedback = '🌟 회원님의 목표와 성향에 완벽히 부합하며, 수익성과 하방 방어력이 최상급으로 균형 잡힌 최적의 전략입니다!';
+    summaryFeedback = '🌟 회원님의 목표와 성향에 완벽히 부합하며, 수익성과 방어력이 최상급으로 균형 잡힌 최적의 전략입니다!';
   } else if (totalScore >= 75) {
     grade = 'A';
     gradeLabel = '우수 (Great)';
     if (riskScore < 25) {
-      summaryFeedback = '✨ 전반적으로 우수하나 하락장 손실폭이 다소 큽니다. 방어 옵션을 켜거나 채권/금 자산을 추가해 보세요.';
+      summaryFeedback = '✨ 전반적으로 우수하나 손실폭이 다소 큽니다. 방어 옵션을 켜거나 채권/금 자산을 추가해 보세요.';
     } else if (returnScore < 25) {
-      summaryFeedback = '✨ 매우 안전하고 견고한 전략입니다. 목표 연수익률을 높이고 싶다면 성장 지수(QQQ 등) 비중을 5~10% 늘려보세요.';
+      summaryFeedback = '✨ 매우 안전하고 견고한 전략입니다. 목표 연수익률을 높이고 싶다면 공격적인 자산의 비중을 5~10% 늘려보세요.';
     } else {
       summaryFeedback = '✨ 시장 수익과 안정성을 고르게 확보한 훌륭한 전략입니다. 약간의 비중 조절로 S등급에 도달할 수 있습니다.';
     }
@@ -779,9 +779,11 @@ export function calculateBenchmarkPortfolioScore(options: {
     if (riskScore < 20) {
       summaryFeedback = '⚠️ 감내 기준 대비 최대 낙폭이 큽니다. 방어 옵션을 켜거나 채권/금 자산을 추가해 보세요.';
     } else if (returnScore < 20) {
-      summaryFeedback = '⚠️ 안정성은 높으나 목표 연수익률 대비 성장성이 부족합니다. 우량 성장 자산(QQQ, SOXX 등) 비중을 확대해 보세요.';
+      summaryFeedback = '⚠️ 안정성은 높으나 목표 연수익률 대비 성장성이 부족합니다. 공격적인 자산의 비중을 확대해 보세요.';
     } else if (styleScore < 10) {
-      summaryFeedback = '⚠️ 내 투자 스타일 대비 변동성이 크거나 관리가 복잡합니다. 단순 핵심 지수로 정리하거나 방어선을 적용해 보세요.';
+      summaryFeedback = (pctP > 50 || pctL > 50)
+        ? '⚠️ 내 투자 스타일 대비 관리가 번거롭습니다. 단순한 핵심 지수 위주로 종목을 줄여보세요.'
+        : '⚠️ 내 투자 스타일 대비 대응 장치가 부족합니다. 방어 옵션을 켜거나 전략을 더 세분화해 보세요.';
     } else {
       summaryFeedback = '⚠️ 전반적인 효율이 보통 수준입니다. 비중을 조정하여 수익과 방어의 균형을 맞춰보세요.';
     }
