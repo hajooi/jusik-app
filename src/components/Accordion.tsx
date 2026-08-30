@@ -84,10 +84,10 @@ export default function Accordion({ levels }: AccordionProps) {
             )}
           </div>
 
-          {/* Progress Track with embedded count text */}
+          {/* Progress Track with embedded count text (0.55s Apple Smooth) */}
           <div className="relative w-full h-5 sm:h-5.5 rounded-full bg-[var(--card-hover)] overflow-hidden flex items-center justify-center border border-[var(--border-color)]">
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] rounded-full"
+              className="absolute left-0 top-0 bottom-0 bg-[var(--accent-orange)] transition-[width] duration-[550ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] rounded-full"
               style={{ width: isLoaded ? `${progressPercent}%` : '0%' }}
             />
             <span className="relative z-10 font-mono text-[10px] sm:text-xs font-extrabold text-[var(--text-primary)] drop-shadow-xs select-none px-2">
@@ -173,7 +173,7 @@ export default function Accordion({ levels }: AccordionProps) {
                         {levelCompletedCount}/{level.lessons.length}
                       </span>
                     )}
-                    <div className={`transition-transform duration-300 shrink-0 ${
+                    <div className={`transition-transform duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] shrink-0 ${
                       isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
                     }`}>
                       <ChevronDown className="w-5 h-5 stroke-[1.8]" />
@@ -182,9 +182,9 @@ export default function Accordion({ levels }: AccordionProps) {
                 )}
               </button>
 
-              {/* Accordion Content - Apple Smooth Transition */}
+              {/* Accordion Content - Apple Snappy Transition */}
               <div
-                className={`grid transition-all duration-550 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+                className={`grid transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
                   isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                 }`}
               >

@@ -433,13 +433,46 @@ function SimulatorContent() {
   const [chartBAnimKey, setChartBAnimKey] = useState<number>(0);
   const [chartCAnimKey, setChartCAnimKey] = useState<number>(0);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const hasInitialAnimatedRef = useRef(false);
 
-  // Global zoom / period / scale changes sweep all active lines
+  // Trigger draw animation upon first viewport entry
   useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setChartBaseAnimKey((k) => k + 1);
+      setChartBAnimKey((k) => k + 1);
+      setChartCAnimKey((k) => k + 1);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasInitialAnimatedRef.current) {
+            hasInitialAnimatedRef.current = true;
+            setChartBaseAnimKey((k) => k + 1);
+            setChartBAnimKey((k) => k + 1);
+            setChartCAnimKey((k) => k + 1);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, []);
+
+  // Global zoom / period / scale / portfolio changes sweep all active lines
+  useEffect(() => {
+    if (!hasInitialAnimatedRef.current) return;
     setChartBaseAnimKey((k) => k + 1);
     setChartBAnimKey((k) => k + 1);
     setChartCAnimKey((k) => k + 1);
-  }, [customStartDate, customEndDate, durationYears, chartScale]);
+  }, [customStartDate, customEndDate, durationYears, chartScale, portfolioA, portfolioB, portfolioC, initialCapital, depositAmount, depositFrequency, strategyCount]);
 
   // Weight Calculation Helpers
   const totalWeightA = useMemo(() => portfolioA.reduce((sum, item) => sum + item.weight, 0), [portfolioA]);
@@ -1759,7 +1792,7 @@ function SimulatorContent() {
           const hasNotices = etfItems.length > 0 || cryptoItems.length > 0;
 
           return (
-            <SmoothHeight duration={320}>
+            <SmoothHeight duration={550}>
               {hasNotices && (
                 <div className="pb-1.5">
                   <div
@@ -1768,14 +1801,14 @@ function SimulatorContent() {
                   >
                     <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <SmoothHeight duration={280}>
+                      <SmoothHeight duration={380}>
                         {etfItems.length > 0 && (
                           <div className={cryptoItems.length > 0 ? 'pb-1' : ''}>
                             <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
                           </div>
                         )}
                       </SmoothHeight>
-                      <SmoothHeight duration={280}>
+                      <SmoothHeight duration={380}>
                         {cryptoItems.length > 0 && (
                           <div className={etfItems.length > 0 ? 'pt-0.5' : ''}>
                             <strong className="text-[var(--accent-orange)] font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
@@ -1822,7 +1855,7 @@ function SimulatorContent() {
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                   }}
                 />
               </clipPath>
@@ -1834,7 +1867,7 @@ function SimulatorContent() {
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                   }}
                 />
               </clipPath>
@@ -1846,7 +1879,7 @@ function SimulatorContent() {
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
                   }}
                 />
               </clipPath>

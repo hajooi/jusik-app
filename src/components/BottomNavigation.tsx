@@ -499,7 +499,7 @@ export default function BottomNavigation() {
         style={{
           opacity: progress * 0.65,
           pointerEvents: progress > 0.05 ? 'auto' : 'none',
-          transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)',
         }}
         onTouchMove={(e) => e.preventDefault()}
         onClick={() => {
@@ -524,7 +524,7 @@ export default function BottomNavigation() {
             WebkitTransform: 'translate3d(0, 0, 0)',
             transition: !transitionsEnabled || isDragging 
               ? 'none' 
-              : 'clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              : 'clip-path 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-clip-path 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)',
           }}
         >
           {/* 1:1 Pixel-Perfect Dynamic Glass Border (360-degree perfect rounded curvature & full bottom border) */}
@@ -539,7 +539,7 @@ export default function BottomNavigation() {
               borderRadius: `${currentRadius}px`,
               transition: !transitionsEnabled || isDragging 
                 ? 'none' 
-                : 'top 0.38s cubic-bezier(0.16, 1, 0.3, 1), left 0.38s cubic-bezier(0.16, 1, 0.3, 1), right 0.38s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                : 'top 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), right 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), border-radius 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)',
             }}
           />
 
@@ -551,7 +551,7 @@ export default function BottomNavigation() {
               minWidth: '264px',
               transform: `translate3d(0, ${topInset}px, 0)`,
               WebkitTransform: `translate3d(0, ${topInset}px, 0)`,
-              transition: !transitionsEnabled || isDragging ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: !transitionsEnabled || isDragging ? 'none' : 'transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)',
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -597,7 +597,7 @@ export default function BottomNavigation() {
               }`} 
               style={{
                 opacity: currentNotchOpacity,
-                transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: !transitionsEnabled || isDragging ? 'none' : 'opacity 0.38s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             />
 
@@ -607,12 +607,12 @@ export default function BottomNavigation() {
               className="w-[264px] h-[48px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default z-10 isolate"
               style={{
                 bottom: `${currentNavBottom}px`,
-                transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             >
               {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Clean solid tint without backdrop-blur to prevent mobile text blur) */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
@@ -668,7 +668,7 @@ export default function BottomNavigation() {
               WebkitTransform: `translate3d(0, ${topInset}px, 0) scale(${0.96 + progress * 0.04})`,
               transition: !transitionsEnabled || isDragging 
                 ? 'none' 
-                : 'opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-filter 0.38s cubic-bezier(0.16, 1, 0.3, 1), transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), -webkit-transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+                : 'opacity 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-filter 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1)',
             }}
           >
             {/* A. CURRICULUM TOC VIEW */}
@@ -686,10 +686,10 @@ export default function BottomNavigation() {
                         {completedCount} / {totalLessonCount}강 ({progressPercent}%)
                       </span>
                     </div>
-                    {/* Animated Progress Fill Bar */}
+                    {/* Animated Progress Fill Bar (0.55s Apple Smooth) */}
                     <div className="relative w-full h-2 rounded-full bg-[var(--card-hover)] overflow-hidden border border-[var(--border-color)]/50">
                       <div 
-                        className="h-full rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.3)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                        className="h-full rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.3)] transition-all duration-[550ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
                         style={{ width: `${animatedPercent}%` }}
                       />
                     </div>
@@ -749,12 +749,12 @@ export default function BottomNavigation() {
                                 {user ? `${levelCompletedCount}/${level.lessons.length}강` : `${level.lessons.length}강`}
                               </span>
                             )}
-                            <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />
                           </div>
                         </button>
 
-                        {/* Smooth CSS Grid Accordion Transition */}
-                        <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                        {/* Smooth CSS Grid Accordion Transition (0.38s Apple Snappy) */}
+                        <div className={`grid transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                           <div className="overflow-hidden">
                             <div className="p-2 pt-1 space-y-1.5">
                               {level.lessons.map((lesson) => {

@@ -31,7 +31,7 @@ function hasValidContent(content: React.ReactNode): boolean {
 export default function SmoothHeight({
   children,
   className = '',
-  duration = 320,
+  duration = 550,
   easing = 'cubic-bezier(0.2, 0.8, 0.2, 1)',
 }: SmoothHeightProps) {
   const hasContent = hasValidContent(children);
