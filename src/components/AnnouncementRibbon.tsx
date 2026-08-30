@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Copy } from 'lucide-react';
 
-const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_sep26';
+const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_oct26';
 
 export default function AnnouncementRibbon() {
   const [isVisible, setIsVisible] = useState(false);
@@ -36,7 +36,7 @@ export default function AnnouncementRibbon() {
   const handleCopyCode = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText('BO26');
+      await navigator.clipboard.writeText('JU26');
       setIsCopied(true);
       setTimeout(() => {
         setIsCopied(false);
@@ -55,13 +55,13 @@ export default function AnnouncementRibbon() {
         opacity: isVisible ? 1 : 0,
         transition: 'max-height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease',
       }}
-      className="relative z-50 overflow-hidden bg-gradient-to-r from-[var(--accent-orange)]/15 via-amber-500/10 to-[var(--accent-orange)]/15 border-b border-[var(--accent-orange)]/25 backdrop-blur-md select-none"
+      className="relative z-50 overflow-hidden bg-gradient-to-r from-[var(--accent-orange)]/10 via-amber-500/5 to-[var(--accent-orange)]/10 border-b border-[var(--border-color)]/80 backdrop-blur-md select-none"
     >
       <div className="relative max-w-4xl mx-auto px-8 sm:px-12 h-9 sm:h-9 flex items-center justify-center text-xs font-sans">
         {/* True 100% Optical Center: Announcement Content */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 justify-center text-center">
-          <span className="px-1.5 py-0.5 rounded-md bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-extrabold text-[10px] sm:text-[10.5px] border border-[var(--accent-orange)]/30 shrink-0">
-            9월 한정
+          <span className="px-2 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-bold text-[10px] sm:text-[10.5px] border border-[var(--border-color)] tracking-tight shrink-0">
+            10월 말까지
           </span>
           
           <span className="text-[var(--text-secondary)] font-medium text-[11px] sm:text-xs whitespace-nowrap">
@@ -72,7 +72,7 @@ export default function AnnouncementRibbon() {
           <button
             type="button"
             onClick={handleCopyCode}
-            className={`inline-flex items-center font-mono font-black text-xs px-2 py-0.5 rounded-lg border transition-all cursor-pointer active:scale-95 shadow-2xs shrink-0 ${
+            className={`inline-flex items-center font-mono font-black text-xs px-2.5 py-0.5 rounded-lg border transition-all cursor-pointer active:scale-95 shadow-2xs shrink-0 ${
               isCopied
                 ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                 : 'bg-[var(--accent-orange)]/15 hover:bg-[var(--accent-orange)]/25 border-[var(--accent-orange)]/40 text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.25)]'
@@ -82,10 +82,10 @@ export default function AnnouncementRibbon() {
             {isCopied ? (
               <span className="inline-flex items-center gap-0.5 text-xs text-emerald-400 font-bold">
                 <Check className="w-3 h-3 stroke-[3]" />
-                <span>BO26</span>
+                <span>JU26</span>
               </span>
             ) : (
-              <span>BO26</span>
+              <span>JU26</span>
             )}
           </button>
         </div>

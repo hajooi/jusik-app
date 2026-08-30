@@ -604,15 +604,15 @@ export default function BottomNavigation() {
             {/* The 264px Navigation Tab Bar (Centered & Smoothly positioned, 48px touch height) */}
             <nav 
               aria-label="하단 내비게이션"
-              className="w-[264px] h-[48px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default z-10"
+              className="w-[264px] h-[48px] absolute left-1/2 -translate-x-1/2 flex items-center justify-around overflow-hidden rounded-full p-0.5 shrink-0 pointer-events-auto cursor-default z-10 isolate"
               style={{
                 bottom: `${currentNavBottom}px`,
                 transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
-              {/* Exact 50:50 Centered Sliding Orange Highlight Surface with Tinted Glass Texture */}
+              {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Clean solid tint without backdrop-blur to prevent mobile text blur) */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 backdrop-blur-md border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
@@ -623,7 +623,7 @@ export default function BottomNavigation() {
               <button
                 type="button"
                 onClick={(e) => handleTabClick('curriculum', '/', e)}
-                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer transform-gpu ${
                   activeIndicatorTab === 'curriculum'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'
@@ -637,7 +637,7 @@ export default function BottomNavigation() {
               <button
                 type="button"
                 onClick={(e) => handleTabClick('tools', '/tools', e)}
-                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer ${
+                className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-full transition-colors duration-200 cursor-pointer transform-gpu ${
                   activeIndicatorTab === 'tools'
                     ? 'text-[var(--accent-orange)] font-black'
                     : 'text-[var(--text-secondary)] font-bold hover:text-[var(--text-primary)]'

@@ -1756,40 +1756,37 @@ function SimulatorContent() {
           const etfItems = selectedIds.filter(id => !synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
           const cryptoItems = selectedIds.filter(id => synthAssetMeta[id].isCrypto).map(id => `${synthAssetMeta[id].label} ${synthAssetMeta[id].dateStr}`);
 
-          return (
-            <>
-              <SmoothHeight>
-                {etfItems.length > 0 && (
-                  <div className="pb-1.5">
-                    <div
-                      style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
-                      className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                    >
-                      <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </SmoothHeight>
+          const hasNotices = etfItems.length > 0 || cryptoItems.length > 0;
 
-              <SmoothHeight>
-                {cryptoItems.length > 0 && (
-                  <div className="pb-1.5">
-                    <div
-                      style={{ borderColor: 'rgba(244, 63, 94, 0.35)' }}
-                      className="p-3 rounded-xl bg-rose-500/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs"
-                    >
-                      <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="text-rose-500 font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
-                      </div>
+          return (
+            <SmoothHeight duration={320}>
+              {hasNotices && (
+                <div className="pb-1.5">
+                  <div
+                    style={{ borderColor: 'rgba(241, 143, 1, 0.35)' }}
+                    className="p-3 rounded-xl bg-[var(--accent-orange)]/10 border text-[11px] text-[var(--text-primary)] font-medium leading-relaxed flex items-start gap-2 shadow-2xs transition-all"
+                  >
+                    <AlertCircle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <SmoothHeight duration={280}>
+                        {etfItems.length > 0 && (
+                          <div className={cryptoItems.length > 0 ? 'pb-1' : ''}>
+                            <strong className="text-[var(--accent-orange)]">{etfItems.join(', ')}</strong>의 과거 구간은 기초지수 성과를 바탕으로 추론된 데이터입니다.
+                          </div>
+                        )}
+                      </SmoothHeight>
+                      <SmoothHeight duration={280}>
+                        {cryptoItems.length > 0 && (
+                          <div className={etfItems.length > 0 ? 'pt-0.5' : ''}>
+                            <strong className="text-[var(--accent-orange)] font-extrabold">{cryptoItems.join(', ')}</strong>의 과거 데이터는 추론 특성상 다른 자산보다 결과가 다소 부정확할 수 있습니다.
+                          </div>
+                        )}
+                      </SmoothHeight>
                     </div>
                   </div>
-                )}
-              </SmoothHeight>
-            </>
+                </div>
+              )}
+            </SmoothHeight>
           );
         })()}
 

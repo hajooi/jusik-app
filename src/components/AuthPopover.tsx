@@ -448,9 +448,19 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                       </button>
                     </div>
 
-                    <p className="text-[10.5px] text-[var(--text-secondary)] leading-relaxed">
-                      4자리 코드를 입력하세요.
-                    </p>
+                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[10.5px]">
+                      <span className="text-[var(--text-secondary)] font-medium">10월 무료 코드: <strong className="text-[var(--accent-orange)] font-mono font-bold">JU26</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPromoCode('JU26');
+                          setPromoError(null);
+                        }}
+                        className="text-[10px] font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
+                      >
+                        코드 입력하기
+                      </button>
+                    </div>
 
                     <div className="space-y-2">
                       <input
@@ -461,7 +471,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                           setPromoCode(e.target.value);
                           setPromoError(null);
                         }}
-                        placeholder="4자리 코드 입력 (예: 2608)"
+                        placeholder="4자리 코드 입력 (예: JU26)"
                         className="w-full px-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-mono tracking-wider uppercase text-center font-bold"
                       />
                     </div>
