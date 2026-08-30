@@ -356,7 +356,7 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
             <span className="text-[11px] font-extrabold text-[var(--accent-orange)] uppercase tracking-wider">
-              주식부엉 맞춤 전략
+              맞춤 전략
             </span>
           </div>
           <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
