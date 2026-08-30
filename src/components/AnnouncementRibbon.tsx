@@ -61,7 +61,7 @@ export default function AnnouncementRibbon() {
         {/* True 100% Optical Center: Announcement Content */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 justify-center text-center">
           <span className="px-2 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-bold text-[10px] sm:text-[10.5px] border border-[var(--border-color)] tracking-tight shrink-0">
-            10월 말까지
+            ~10/31
           </span>
           
           <span className="text-[var(--text-secondary)] font-medium text-[11px] sm:text-xs whitespace-nowrap">

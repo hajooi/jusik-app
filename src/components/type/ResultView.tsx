@@ -173,6 +173,284 @@ function SpectrumGaugeItem({
   );
 }
 
+interface AnimatedPortfolioCardProps {
+  profile: PersonalityProfile;
+  scores: {
+    GS: { G: number; S: number };
+    AP: { A: number; P: number };
+    LT: { L: number; T: number };
+    RI: { R: number; I: number };
+  };
+}
+
+interface AnimatedPortfolioCardProps {
+  profile: PersonalityProfile;
+  scores: {
+    GS: { G: number; S: number };
+    AP: { A: number; P: number };
+    LT: { L: number; T: number };
+    RI: { R: number; I: number };
+  };
+}
+
+// 애플 표준 물리 감속 커브 (Apple Spring/Quintic Ease-Out)
+// t => 1 - Math.pow(1 - t, 5)
+function useAppleAnimatedNumber(targetValue: number, duration: number = 1000): number {
+  const [currentValue, setCurrentValue] = useState(targetValue);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const initialValue = currentValue;
+    const diff = targetValue - initialValue;
+
+    if (diff === 0) return;
+
+    let animationFrameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Apple Quintic Ease-Out (극도로 매끄러운 감속)
+      const ease = 1 - Math.pow(1 - progress, 5);
+      setCurrentValue(Math.round(initialValue + diff * ease));
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [targetValue, duration]);
+
+  return currentValue;
+}
+
+function AnimatedAssetBadge({
+  name,
+  targetWeight,
+  color,
+}: {
+  name: string;
+  targetWeight: number;
+  color: string;
+}) {
+  const displayWeight = useAppleAnimatedNumber(targetWeight, 1100);
+
+  return (
+    <div
+      className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all duration-700 ${
+        displayWeight === 0
+          ? 'bg-[var(--bg-main)]/30 border-[var(--border-color)]/40 opacity-40'
+          : 'bg-[var(--bg-main)]/80 border-[var(--border-color)] shadow-2xs'
+      }`}
+    >
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span
+          className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform duration-500"
+          style={{ backgroundColor: color }}
+        />
+        <span className="font-extrabold text-[var(--text-primary)] truncate">{name}</span>
+      </div>
+      <span
+        className="font-mono font-extrabold text-xs ml-1 shrink-0 transition-colors duration-500"
+        style={{
+          color: displayWeight > 0 ? color : 'var(--text-secondary)',
+        }}
+      >
+        {displayWeight}%
+      </span>
+    </div>
+  );
+}
+
+function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) {
+  const preview = profile.recommendedPortfolioPreview;
+  if (!preview) return null;
+
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  // 시뮬레이션 상태 인덱스 (0: 전 종목 보유, 1: 1번 종목 현금화, 2: 2번 종목 현금화 등 순차적 시장 시나리오)
+  const [scenarioStep, setScenarioStep] = useState(0);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 추세 방어가 켜진(enableDefense !== false) 자산들의 목록 추출
+  const dynamicDefenseIndices = preview.allocation
+    .map((item, idx) => ((item as any).enableDefense !== false ? idx : -1))
+    .filter((idx) => idx !== -1);
+
+  // 3.2초 주기: 추세 방어가 켜진 자산들에 대해서만 순차적으로 현금 전환 시뮬레이션
+  useEffect(() => {
+    if (!preview.isDynamicTrend || !isInView || dynamicDefenseIndices.length === 0) return;
+
+    const interval = setInterval(() => {
+      setScenarioStep((prev) => (prev + 1) % (dynamicDefenseIndices.length * 2));
+    }, 3200);
+
+    return () => clearInterval(interval);
+  }, [preview.isDynamicTrend, isInView, dynamicDefenseIndices.length]);
+
+  // 각 자산의 목표 비중 계산 (인뷰 전에는 모두 0%에서 시작하여 스르륵 채워짐)
+  let cashTargetWeight = 0;
+  const baseItems = preview.allocation.map((item, idx) => {
+    let isHolding = true;
+    const canDefend = (item as any).enableDefense !== false;
+
+    if (preview.isDynamicTrend && canDefend && dynamicDefenseIndices.length > 0) {
+      // 짝수 스텝: 전체 보유 / 홀수 스텝: 특정 추세 자산만 현금 전환
+      const activeDefenseIndex = dynamicDefenseIndices[Math.floor(scenarioStep / 2) % dynamicDefenseIndices.length];
+      if (scenarioStep % 2 === 1 && idx === activeDefenseIndex) {
+        isHolding = false;
+      }
+    }
+
+    const targetWeight = isInView ? (isHolding ? item.weight : 0) : 0;
+    if (!isHolding && isInView) {
+      cashTargetWeight += item.weight;
+    }
+
+    return {
+      id: `asset-${idx}`,
+      name: item.name,
+      targetWeight,
+      color: item.color,
+    };
+  });
+
+  const allSlots = [...baseItems];
+  if (preview.isDynamicTrend) {
+    allSlots.push({
+      id: 'asset-cash',
+      name: '현금',
+      targetWeight: isInView ? cashTargetWeight : 0,
+      color: '#06B6D4',
+    });
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--border-color)] relative overflow-hidden transition-all duration-300"
+    >
+      {/* Header & Target Stats */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
+            <span className="text-[11px] font-extrabold text-[var(--accent-orange)] uppercase tracking-wider">
+              주식부엉 맞춤 전략
+            </span>
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] tracking-tight">
+            {preview.title}
+          </h3>
+        </div>
+
+        {/* Target CAGR & Target MDD with Smooth Count-in */}
+        <div className="flex items-center gap-3 bg-[var(--bg-main)]/80 px-4 py-2.5 rounded-2xl border border-[var(--border-color)] text-xs font-bold shrink-0 shadow-2xs">
+          <div className="text-left">
+            <span className="text-[10px] text-[var(--text-secondary)] block font-medium">목표 연 수익률</span>
+            <span
+              className={`text-[var(--accent-green)] font-black font-mono text-sm transition-all duration-700 ${
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+              }`}
+            >
+              {isInView ? preview.targetCAGR : '0%'}
+            </span>
+          </div>
+          <div className="w-[1px] h-6 bg-[var(--border-color)]" />
+          <div className="text-left">
+            <span className="text-[10px] text-[var(--text-secondary)] block font-medium">목표 하락폭</span>
+            <span
+              className={`text-[var(--accent-orange)] font-black font-mono text-sm transition-all duration-700 ${
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+              }`}
+            >
+              {isInView ? `${preview.targetMDD} 이내` : '0%'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Apple Physics Smooth Multi-Segment Bar */}
+      <div className="space-y-2.5 pt-1">
+        <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
+          <span>추천 자산 배분 비중</span>
+        </div>
+
+        {/* Container with rounded-full & seamless subpixel flex bar */}
+        <div className="w-full h-4 rounded-full overflow-hidden flex bg-[var(--bg-main)] p-0.5 border border-[var(--border-color)] shadow-inner">
+          <div className="w-full h-full rounded-full overflow-hidden flex">
+            {allSlots.map((slot) => (
+              <div
+                key={slot.id}
+                className="h-full"
+                style={{
+                  width: `${slot.targetWeight}%`,
+                  backgroundColor: slot.color,
+                  // Apple Quintic Fluid Easing (0.16, 1, 0.3, 1) - 1.1s 완벽한 감속
+                  transition: 'width 1.1s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+                title={`${slot.name}: ${slot.targetWeight}%`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Clean Asset Badges with Synchronized Apple Ease-out Counters */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-1">
+          {allSlots.map((slot) => (
+            <AnimatedAssetBadge
+              key={slot.id}
+              name={slot.name}
+              targetWeight={slot.targetWeight}
+              color={slot.color}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Why This Portfolio? */}
+      <div className="space-y-2 bg-[var(--bg-main)]/50 p-4 sm:p-5 rounded-2xl border border-[var(--border-color)]">
+        <h4 className="text-xs font-black text-[var(--text-primary)] flex items-center gap-1.5">
+          <span>💡 왜 이 비율을 추천할까요?</span>
+        </h4>
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+          {preview.rationale}
+        </p>
+      </div>
+
+      {/* Direct Interactive CTA Button to Simulator */}
+      <Link
+        href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
+        className="w-full inline-flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_24px_rgba(241,143,1,0.35)] active:scale-[0.99] transition-all cursor-pointer shadow-sm group"
+      >
+        <Sparkles className="w-4 h-4 text-white shrink-0 group-hover:rotate-12 transition-transform duration-300" />
+        <span>이 추천 비율로 실제 백테스트 결과 확인하기</span>
+        <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
+      </Link>
+    </div>
+  );
+}
+
 export default function ResultView({ profile, scores, percentage, ownerName, isReadOnly = false, showSimulatorCta = false, onRestart }: ResultViewProps) {
   const [copied, setCopied] = useState(false);
 
@@ -231,7 +509,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
           {/* Floating Large Emoji Avatar & Title Section */}
           <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-center sm:text-left">
-            {/* Borderless Pure Floating Large Emoji */}
             <div className="relative shrink-0 group py-2 flex items-center justify-center">
               <div className="absolute inset-0 bg-[var(--accent-orange)]/25 rounded-full blur-3xl pointer-events-none" />
               <div className="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative z-10 animate-float-y group-hover:scale-110 transition-transform duration-300">
@@ -242,7 +519,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             </div>
 
             <div className="space-y-3 flex-1">
-              {/* Badges (Overall Population Percentage Badge on top line, 4 Trait Badges on next line) */}
               <div className="space-y-2">
                 <div className="min-h-[26px] flex items-center justify-center sm:justify-start">
                   {percentage !== undefined && percentage > 0 ? (
@@ -284,7 +560,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             {profile.description}
           </p>
 
-          {/* 4-Axis Spectrum Gauges (Intuitive Dual-Color Split vs Winner Highlight) */}
+          {/* 4-Axis Spectrum Gauges */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5 font-mono">
@@ -347,11 +623,42 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </div>
       </RevealOnScroll>
 
+      {/* Unified Deep Narrative & Mindset Card */}
+      {profile.storyNarrative && (
+        <RevealOnScroll delayIndex={2}>
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+                투자를 대하는 {profile.name}의 내면과 시선
+              </h3>
+            </div>
+            
+            <div className="space-y-3.5 text-xs sm:text-sm leading-relaxed">
+              <div className="bg-[var(--bg-main)]/50 p-4 sm:p-6 rounded-2xl border border-[var(--border-color)] font-medium text-[var(--text-primary)] leading-relaxed">
+                <p className="whitespace-pre-line">{profile.storyNarrative.overview}</p>
+              </div>
+
+              {profile.storyNarrative.marketCaution && (
+                <div className="bg-[var(--accent-orange)]/5 p-4 sm:p-5 rounded-2xl border border-[var(--accent-orange)]/25 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span>시장이 흔들릴 때 주의할 점</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                    {profile.storyNarrative.marketCaution}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </RevealOnScroll>
+      )}
+
       {/* Strengths & Weaknesses Cards */}
       {(profile.strengths || profile.weaknesses) && (
-        <RevealOnScroll delayIndex={2}>
+        <RevealOnScroll delayIndex={3}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 5 Strengths */}
             {profile.strengths && (
               <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
                 <div className="flex items-center gap-2">
@@ -371,7 +678,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               </div>
             )}
 
-            {/* Weaknesses / Caution */}
             {profile.weaknesses && (
               <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
                 <div className="flex items-center gap-2">
@@ -406,7 +712,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
-              {/* Recommendation (원칙 지침) */}
               <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-green)]">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -417,7 +722,6 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                 </p>
               </div>
 
-              {/* Warning (경고 수칙) */}
               <div className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)] space-y-1.5 transition-all duration-200">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -432,33 +736,25 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
         </RevealOnScroll>
       )}
 
-      {/* Action Buttons: 공유하기 & 맞춤 투자 전략 확인하기(반짝 글로우 버튼) & 다시 진단하기 (반응형 3버튼 그룹) */}
-      {!isReadOnly && (
+      {/* Tailored Portfolio Preview & Direct Simulator CTA */}
+      {profile.recommendedPortfolioPreview && (
         <RevealOnScroll delayIndex={4}>
+          <AnimatedPortfolioCard profile={profile} scores={scores} />
+        </RevealOnScroll>
+      )}
+
+      {/* Action Buttons: 친구에게 공유하기 & 다시 진단하기 */}
+      {!isReadOnly && (
+        <RevealOnScroll delayIndex={5}>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
-            {/* 1. 친구에게 공유하고 투자 궁합 확인 (시그니처 오렌지) */}
             <button
               onClick={handleShare}
-              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-bold text-xs sm:text-sm border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_18px_rgba(241,143,1,0.28)] active:scale-[0.98] transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
             >
-              <Share2 className="w-4 h-4 text-white shrink-0" />
+              <Share2 className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
               <span>{copied ? '궁합 링크 복사 완료!' : '친구에게 공유하고 투자 궁합 확인'}</span>
             </button>
 
-            {/* 2. 맞춤 투자 전략 (다시 진단하기와 동일한 은은한 글래스 스타일, 별과 성향 코드만 주황색 강조) */}
-            {showSimulatorCta && (
-              <Link
-                href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
-                className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
-              >
-                <Sparkles className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
-                <span className="text-[var(--accent-orange)] font-mono font-extrabold">{profile.code}</span>
-                <span>맞춤 투자 전략</span>
-                <span className="text-[var(--text-secondary)] font-bold ml-0.5">➔</span>
-              </Link>
-            )}
-
-            {/* 3. 다시 진단하기 (은은한 글래스 카드) */}
             <button
               onClick={onRestart}
               className="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"

@@ -9,8 +9,28 @@ export interface Question {
 export interface PersonalityProfile {
   code: string;
   name: string;
+  animal?: string; // 상징 동물 (독수리, 사자 등)
   tagline: string;
   description: string;
+  storyNarrative?: {
+    overview: string; // 투자를 대하는 내면과 시선 (2배 확장된 깊은 줄글)
+    marketCaution: string; // 시장이 흔들릴 때 마주하는 심리적 함정과 주의점 (쉬운 우리말)
+  };
+  recommendedPortfolioPreview?: {
+    title: string;
+    targetCAGR: string; // 30년/15년 통합 목표 연수익률 범위 (예: '9~13%')
+    targetMDD: string;  // 30년/15년 통합 목표 하락폭 범위 (예: '-18~-38%')
+    isDynamicTrend?: boolean; // 시장 흐름에 따른 동적 현금 전환형 여부
+    allocation: { 
+      name: string; 
+      weight: number; 
+      weightRange?: string; 
+      color: string;
+      enableDefense?: boolean;
+    }[];
+    defenseAllocation?: { name: string; weight: number; weightRange?: string; color: string }[]; // 하락 추세 시 방어 비중
+    rationale: string;  // 쉬운 우리말로 설명한 추천 이유
+  };
   recommendedStrategy: string;
   suitableAssets: string[];
   badges: string[];
@@ -318,8 +338,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GALR: {
     code: 'GALR',
     name: '데이터 분석가',
+    animal: '독수리',
     tagline: '기업의 실적표와 수치 데이터로 원칙에 맞춰 투자하는 분석가',
     description: '뉴스나 소문 대신 기업의 재무제표와 숫자를 직접 검증하고, 스스로 정한 기준에 맞춰 주식을 사 모아가는 분석파입니다. 순간의 감정이나 시장의 열기에 휩쓸리지 않으며, 긴 호흡으로 자산을 키우는 것을 목표로 합니다.',
+    storyNarrative: {
+      overview: '당신은 구름 위 높은 하늘에서 전체 숲을 넓게 조망하다가, 확실한 목표가 포착되었을 때만 냉철하게 활강하는 독수리와 같습니다. 화려한 뉴스나 주변 사람들의 추천 소음보다는, 기업이 실제로 벌어들이는 영업이익과 탄탄한 재무제표의 숫자를 가장 신뢰합니다. 남들이 탐욕에 눈이 멀어 꼭대기에서 흥분하거나, 작은 악재에 공포에 질려 도망칠 때도 당신은 흔들리지 않습니다. 과거 수십 년간 축적된 통계 데이터와 스스로 세운 명확한 투자 원칙을 나침반 삼아 차분하고 우아하게 전진합니다. 당신에게 주식 투자란 단순한 요행이나 도박이 아니며, 철저한 검증과 통계적 인내가 만들어내는 위대한 복리의 예술입니다.',
+      marketCaution: '하지만 모든 숫자가 완벽하게 맞아떨어질 때까지 지나치게 망설이다 보면, 좋은 기업을 저렴하게 살 수 있는 결정적인 기회를 놓치기 쉽습니다. 세상의 모든 산업 구조 변화가 숫자로 먼저 찍히지는 않기에, 때로는 시대를 이끄는 거대한 패러다임을 믿고 조금 더 유연하게 첫 발을 떼는 용기가 계좌를 더 크게 키워줄 것입니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '데이터 기반 우량 성장 & 지수 조율 조합',
+      targetCAGR: '9~13%',
+      targetMDD: '38~55%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '나스닥 100', weight: 40, color: '#F18F01' },
+        { name: 'S&P 500', weight: 30, color: '#3B82F6' },
+        { name: '필라델피아 반도체', weight: 30, color: '#8B5CF6' },
+      ],
+      rationale: '데이터 분석가의 성향에 맞춰 평소에는 미국 대표 500대 기업과 나스닥 혁신주를 모아가며 수익을 극대화하고, 시장의 분위기가 꺾이고 하락 위험이 커지면 주식을 줄여 현금으로 자산을 방어하도록 설계했습니다.',
+    },
     recommendedStrategy: '빅테크 모멘텀 백테스팅, 듀얼 모멘텀 전략, 조건식 자동매매',
     suitableAssets: ['QQQ', 'TQQQ', '고성장 개별주', '퀀트 포트폴리오'],
     badges: ['수익형 🚀', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
@@ -341,8 +378,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GALI: {
     code: 'GALI',
     name: '뚝심의 승부사',
+    animal: '사자',
     tagline: '확신이 서면 흔들림 없이 주식을 사서 끝까지 밀고 가는 승부사',
     description: '세상을 바꾸는 혁신 기업이나 미래 성장성이 돋보이는 산업에 깊은 확신을 두고 장기 동행하는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 거친 초원에서 목표를 한 번 정하면 거센 비바람이 몰아쳐도 꿋꿋하게 자리를 지키는 용맹한 사자와 같습니다. 어설프게 여러 종목에 잔돈을 흩뿌려두기보다는, 세상을 근본적으로 바꿀 인류 최고의 1등 혁신 기업을 발굴하여 끝까지 믿고 동행하는 담대한 심장을 지녔습니다. 경제가 며칠 흔들리고 시장에 공포 폭락이 찾아와도 "이 기업의 위대한 기술과 시장 독점력은 결코 사라지지 않는다"는 깊은 신념으로 버텨냅니다. 남들이 공포에 질려 눈물로 주식을 처분할 때, 오히려 더 큰 용기로 주식을 든든하게 채워 넣을 줄 아는 타고난 승부사입니다.',
+      marketCaution: '하지만 나의 직관과 확신이 너무 강해진 나머지, 세상의 기술 환경이 완전히 바뀌고 기업의 실질 경쟁력이 꺾였는데도 이를 인정하지 않고 고집을 부리다가 큰 손해를 볼 수 있습니다. 아무리 위대해 보이는 1등 기업이라도 모든 돈을 한곳에만 쏟아붓지 말고, 최소한의 안전판을 나누어 담아두는 여유가 필요합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '미국 1등 혁신 기업 집중 복리 조합',
+      targetCAGR: '12~16%',
+      targetMDD: '45~60%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 40, color: '#3B82F6' },
+        { name: '필라델피아 반도체', weight: 35, color: '#8B5CF6' },
+        { name: '나스닥 100 (2배)', weight: 25, color: '#F18F01' },
+      ],
+      rationale: '사자처럼 시원한 고수익을 추구하는 성향에 맞추어 가장 대표적인 지수와 함께 필라델피아 반도체 및 나스닥 성장 자산에 집중 배치하여, 장기적으로 자산이 가파르게 불어나는 강력한 복리 효과를 누릴 수 있도록 구성했습니다.',
+    },
     recommendedStrategy: '주력 개별주 집중 투자, 딥다이브 기업 분석, 주식 구매 후 성과 추적',
     suitableAssets: ['주력 혁신 기업주', 'NVDA', 'TSLA', '테마 대장주'],
     badges: ['수익형 🚀', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
@@ -364,8 +418,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GATR: {
     code: 'GATR',
     name: '추세 공략가',
+    animal: '치타',
     tagline: '상승 흐름을 잡고 손실은 신속하게 끊어내는 기동파',
     description: '상승기의 흐름이 보일 때 신속하게 진입하여 이익을 챙기고, 흐름이 꺾이면 미련 없이 규칙을 적용하여 손해를 줄이는 기동파입니다.',
+    storyNarrative: {
+      overview: '당신은 바람을 가르며 폭발적인 가속도로 기회를 낚아채고, 사냥이 불리해지면 미련 없이 몸을 돌려 빠져나오는 민첩한 치타와 같습니다. 주식 시장에서 대세 상승의 강한 에너지가 감지될 때 신속하게 올라타 수익을 극대화하고, 시장의 힘이 빠지고 하락 흐름이 시작되면 칼같이 주식을 줄여 현금을 챙기는 탁월한 기동력을 발휘합니다. 특정 주식에 불필요한 감정이나 애착을 품지 않으며, 오직 살아 움직이는 시장의 힘과 방향성에 순응하는 매우 현실적이고 유연한 전략가입니다.',
+      marketCaution: '하지만 뚜렷한 방향성 없이 오르내림을 반복하는 횡보장에서는 잦은 진입과 이탈로 인해 수수료만 쌓이고 피로해질 수 있습니다. 매일 시세판을 보며 안절부절못하기보다는, 시장의 큰 물줄기가 확실히 바뀔 때만 여유 있게 대응하는 진득함을 함께 갖추면 완벽해집니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '상승 흐름 추종 & 유연한 현금 조율 조합',
+      targetCAGR: '9~13%',
+      targetMDD: '38~55%',
+      isDynamicTrend: true,
+      allocation: [
+        { name: '필라델피아 반도체', weight: 40, color: '#8B5CF6', enableDefense: true },
+        { name: '나스닥 100 (2배)', weight: 35, color: '#F18F01', enableDefense: true },
+        { name: 'S&P 500', weight: 25, color: '#3B82F6', enableDefense: true },
+      ],
+      rationale: '상승 흐름에서는 필라델피아 반도체와 나스닥 성장에 힘을 실어주고, 시장의 흐름이 꺾이고 위험이 감지될 때는 주식 비중을 줄이고 안전한 현금으로 피신하여 소중한 원금을 기계적으로 지켜내도록 돕습니다.',
+    },
     recommendedStrategy: '상대 모멘텀 전략, 이동평균선 돌파 매매, 단기 리밸런싱',
     suitableAssets: ['SOXX', '레버리지 ETF', '수급 상위 개별주'],
     badges: ['수익형 🚀', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
@@ -387,8 +458,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GATI: {
     code: 'GATI',
     name: '트렌드 세터',
+    animal: '경주마',
     tagline: '일상의 유행과 뜨거운 이슈에 관심이 많은 트렌드파',
     description: '새로운 기술이나 유행하는 상품, 시장의 화제성이 높은 종목을 빠르게 포착하여 기회를 찾는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 관중들의 뜨거운 환호와 축제의 열기를 느끼며 맨 앞에서 트랙을 질주하는 힘찬 경주마와 같습니다. 친구들이 열광하는 새로운 앱, SNS를 뜨겁게 달구는 유행 상품, 세상을 뒤흔들 미래 기술 소식을 남들보다 훨씬 기민하게 알아채고 투자 기회로 연결하는 탁월한 감각을 지녔습니다. 딱딱한 교과서적 이론 공부에 매달리기보다는, 살아 숨 쉬는 세상 사람들의 욕망과 소비 트렌드를 읽는 직관이 매우 뛰어나 시장의 가장 화려한 주인공에 일찍 올라타는 재주가 있습니다.',
+      marketCaution: '하지만 이미 온 세상이 떠들썩하게 이야기하고 가격이 꼭대기까지 오른 인기 종목에 조급함으로 뒤늦게 뛰어들면 크게 물릴 수 있습니다. 인기가 절정에 달했을 때일수록 흥분을 가라앉히고, 내가 감당할 수 있는 만큼만 나누어 담는 절제가 꼭 필요합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '트렌드 혁신 & 미래 성장 조합',
+      targetCAGR: '12~16%',
+      targetMDD: '45~60%',
+      isDynamicTrend: true,
+      allocation: [
+        { name: '나스닥 100', weight: 50, color: '#F18F01', enableDefense: true },
+        { name: '필라델피아 반도체', weight: 35, color: '#8B5CF6', enableDefense: true },
+        { name: '비트코인', weight: 15, color: '#F59E0B', enableDefense: true },
+      ],
+      rationale: '트렌드 세터의 감각을 살려 나스닥 혁신 기업과 필라델피아 반도체, 미래 디지털 자산에 골고루 힘을 실어주되, 시장 열기가 식었을 때는 주식을 덜어내어 현금으로 큰 손실을 방지하도록 조율합니다.',
+    },
     recommendedStrategy: '핫 테마주 순환매, 주도주 단기 추세 매매, 이슈 대응',
     suitableAssets: ['신성장 섹터 ETF', '주도 테마 개별주', '암호화폐'],
     badges: ['수익형 🚀', '능동형 ⚡', '추세형 📈', '직감형 💡'],
@@ -410,8 +498,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GPLR: {
     code: 'GPLR',
     name: '원칙 설계자',
+    animal: '황소',
     tagline: '정해둔 비율과 규칙대로만 담아두고 차분히 운용하는 관리자',
     description: '좋은 주식들을 정해둔 비율로만 나누어 담아두고, 정해진 주기에 비율만 다시 맞춰주며 본업과 일상에 전혀 방해를 받지 않는 시스템 운용자입니다.',
+    storyNarrative: {
+      overview: '당신은 묵묵히 기름진 밭을 갈며 사계절의 결실을 만들어내는 우직하고 힘찬 황소와 같습니다. 매일 요동치는 시세판을 보며 소중한 에너지를 낭비하기보다는, 수학적으로 가장 안전하고 검증된 자산 배분 비율을 딱 정해둔 뒤 일정한 주기마다 어긋난 비율만 제자리로 맞춰주는 기계적 리밸런싱을 실천합니다. 사람의 나약한 감정이나 어설픈 시장 예측을 철저히 배제하고, 내가 정교하게 설계한 시스템의 힘을 깊이 신뢰합니다. 일상과 투자의 경계를 건강하게 지켜내며 본업에 완벽히 몰입하는 성숙한 투자자입니다.',
+      marketCaution: '하지만 모든 것이 너무 평온하고 조용하게 흘러가다 보면, 시장에서 특정 테마주나 코인이 폭등한다는 소식이 들릴 때 지루함을 이기지 못하고 스스로 세운 황금 비율을 충동적으로 깨뜨리고 싶은 유혹에 빠질 수 있습니다. 시스템의 진정한 위력은 오직 긴 시간 동안 흔들림 없이 지켜내는 인내에서 나온다는 점을 잊지 마세요.',
+    },
+    recommendedPortfolioPreview: {
+      title: '원칙 기반 성장 & 안전자산 황금비율',
+      targetCAGR: '8~11%',
+      targetMDD: '35~50%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 45, color: '#3B82F6' },
+        { name: '금', weight: 30, color: '#EAB308' },
+        { name: '나스닥 100 (2배)', weight: 25, color: '#F18F01' },
+      ],
+      rationale: '황소처럼 우직하게 자산을 불려 나가기 위해 가장 대표적인 지수와 나스닥 성장에 투자하면서, 폭락장에서 계좌를 든든하게 지켜줄 금을 30% 섞어 떨어질 때 싸게 더 사는 기계적 조율이 완벽히 작동하도록 설계했습니다.',
+    },
     recommendedStrategy: '변동성 조절 알고리즘, 정기 정량 리밸런싱, 레버리지 적립식 투자',
     suitableAssets: ['TQQQ / UPRO', '지수 ETF 백테스트 포트폴리오'],
     badges: ['수익형 🚀', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
@@ -433,8 +538,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GPLI: {
     code: 'GPLI',
     name: '미래 개척자',
+    animal: '코끼리',
     tagline: '미래 유망 산업을 믿고 차곡차곡 사 모아가는 장기파',
     description: '매일 시세를 들여다보기보다, 앞으로 세상을 이끌어갈 대표 산업을 믿고 차곡차곡 모아가는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 긴 세월 동안 묵직하고 웅장한 발걸음으로 대륙을 건너는 지혜로운 코끼리와 같습니다. 오늘 내일 주가가 몇 퍼센트 오르고 내리는 시세의 잔물결에 일희일비하지 않고, 인류의 과학기술과 위대한 문명이 10년 뒤 어디에 도달해 있을지를 바라보는 넓고 따뜻한 시야를 가졌습니다. 매달 들어오는 소중한 월급의 일부를 미래 세상의 지분으로 바꾸어 차곡차곡 모아가며, 시간을 가장 든든한 아군으로 만들어 거대한 복리의 결실을 기다리는 남다른 여유가 돋보입니다.',
+      marketCaution: '다만 시세를 안 보는 느긋함이 지나쳐, 내가 투자한 기업이나 산업의 패러다임이 완전히 꺾였는데도 계좌를 아예 방치해 둘 위험이 있습니다. 1년에 두세 번 정도는 정기 점검일을 정해 내가 모아가는 혁신 자산들이 건강하게 성장하고 있는지 살피는 루틴이 필요합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '미래 혁신 기술 무스트레스 적립 조합',
+      targetCAGR: '9~13%',
+      targetMDD: '38~55%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '나스닥 100', weight: 50, color: '#F18F01' },
+        { name: 'S&P 500', weight: 30, color: '#3B82F6' },
+        { name: '필라델피아 반도체', weight: 20, color: '#8B5CF6' },
+      ],
+      rationale: '미래 개척자의 성향에 맞추어 인류의 기술 혁신을 이끄는 나스닥 100과 필라델피아 반도체에 70% 비중을 두고, S&P 500 30%를 더해 스트레스 없이 매달 적금처럼 편안하게 모아갈 수 있도록 최적화했습니다.',
+    },
     recommendedStrategy: '미래 기술 지수 적립식 투자, 장기 성장 ETF 매월 구매',
     suitableAssets: ['QQQ', 'SCHG', 'AI/반도체 테마 ETF'],
     badges: ['수익형 🚀', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
@@ -456,8 +578,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GPTR: {
     code: 'GPTR',
     name: '신호 포착가',
+    animal: '돌고래',
     tagline: '경제 신호가 올 때만 재빠르게 자산 비중을 조절하는 전략가',
     description: '평소에는 본업에 몰입하다가, 정해둔 경제 지표나 시장에 큰 기회/위험 신호가 올 때만 사전에 수립한 매뉴얼에 따라 자산 비중을 조절합니다.',
+    storyNarrative: {
+      overview: '당신은 바다의 수온과 파도의 미세한 진동을 감지하여 안전하고 풍요로운 수역으로 유영하는 영리한 돌고래와 같습니다. 매일 시장의 격랑 속에 뛰어들어 피를 흘리기보다는, 평소에는 본업과 일상에 집중하며 평화롭게 지내다가 사전에 정해둔 확실한 경제 신호가 켜질 때만 영리하게 자산 비중을 조절합니다. 감정에 휩쓸리지 않고 명확한 객관적 규칙에 따라 움직이므로 에너지 소모 없이 매우 효율적으로 자산을 지키고 불려 나갑니다.',
+      marketCaution: '하지만 신호를 기다리는 동안 시장이 완만하게 계속 오르면, 나만 뒤처지는 것 같아 조바심이 생길 수 있습니다. 신호가 뜨지 않는 긴 평화의 시기에도 내 규칙을 믿고 진득하게 기다리는 인내가 성공 투자의 핵심 열쇠입니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '성장 지수 & 안전 자산 균형 조율 조합',
+      targetCAGR: '8~11%',
+      targetMDD: '35~50%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '나스닥 100', weight: 45, color: '#F18F01' },
+        { name: 'S&P 500', weight: 35, color: '#3B82F6' },
+        { name: '금', weight: 20, color: '#EAB308' },
+      ],
+      rationale: '미국을 대표하는 우량 기업(나스닥 100, S&P 500 80%)으로 든든한 수익을 챙기면서, 금(20%)을 안전판으로 두어 큰 위기 신호가 감지될 때마다 차분하게 비중을 조율할 수 있도록 설계했습니다.',
+    },
     recommendedStrategy: '동적 자산 배분(VAA/DAA), 신호 기반 현금/주식 전환',
     suitableAssets: ['공격형 동적 ETF 포트폴리오', 'QQQ / TLT'],
     badges: ['수익형 🚀', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
@@ -479,8 +618,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   GPTI: {
     code: 'GPTI',
     name: '유연한 탐색가',
+    animal: '상어',
     tagline: '시장의 뉴스와 분위기 흐름을 유연하게 타고 내리는 탐색가',
     description: '시장의 분위기와 뉴스 흐름을 관찰하며, 가격이 출렁일 때 생기는 기회를 유연하게 포착하려는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 깊은 바닷속에서 작은 기류 변화를 맡고 기회를 유연하게 찾아내는 날렵한 상어와 같습니다. 딱딱한 교과서적 이론이나 고정관념에 갇히지 않고, 시장이 패닉에 빠져 좋은 주식들이 터무니없이 싸질 때 과감하게 다가가 기회를 낚아챕니다. 시장의 분위기와 세상 사람들의 심리 변화를 본능적으로 감지하여 실용적으로 이익을 챙기는 실전 감각이 매우 뛰어납니다.',
+      marketCaution: '그러나 \'유연함\'이라는 이름 뒤에 숨어 명확한 기준 없이 순간의 감정이나 뉴스 소음에 따라 즉흥적인 매매를 반복할 위험이 있습니다. 기회를 포착하더라도 한 번 더 침착하게 따져보고 계획을 세우는 습관을 들이면 계좌의 안전이 배가됩니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '고성장 테크 & 배당 쿠션 조합',
+      targetCAGR: '8~11%',
+      targetMDD: '35~50%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '나스닥 100', weight: 40, color: '#F18F01' },
+        { name: '필라델피아 반도체', weight: 30, color: '#8B5CF6' },
+        { name: '미국배당다우존스', weight: 30, color: '#10B981' },
+      ],
+      rationale: '나스닥 100과 필라델피아 반도체(70%)로 시원한 성장을 노리면서, 안정적인 배당을 지급하는 미국배당다우존스(30%)를 든든한 쿠션으로 배치하여 시장의 출렁임 속에서도 흔들림 없이 수익을 누리도록 구성했습니다.',
+    },
     recommendedStrategy: '스윙 매매, 시장 과매도 시 직관적 매수, 단기 랠리 활용',
     suitableAssets: ['고변동성 개별주', '레버리지 상품'],
     badges: ['수익형 🚀', '수동형 🛋️', '추세형 📈', '직감형 💡'],
@@ -504,8 +660,26 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SALR: {
     code: 'SALR',
     name: '원금 수호자',
+    animal: '곰',
     tagline: '검증된 안전 자산으로 마음 편히 계좌를 수호하는 철벽 방어자',
-    description: '힘겹게 모은 원금이 깎이는 것을 매우 피하고 싶어 하며, 과거 오랜 기간 안전하다고 증명된 자산(채권, 금, 대형 배당주 등) 위주로만 원칙에 맞춰 사 모아갑니다.',
+    description: '힘겹게 모은 원금이 깎이는 것을 매우 피하고 싶어 하며, 과거 오랜 기간 안전하다고 증명된 자산 위주로만 원칙에 맞춰 사 모아갑니다.',
+    storyNarrative: {
+      overview: '당신은 혹독한 겨울바람 속에서도 든든한 동굴 안에서 평온하게 겨울잠을 자는 지혜로운 곰과 같습니다. 얼마나 빠르게 부자가 되느냐보다는, "어떻게 평생 피땀 흘려 일군 내 소중한 자산을 단 1원도 잃지 않고 지켜내느냐"를 인생의 가장 숭고한 가치로 생각합니다. 미국을 대표하는 우량 기업과 든든한 미국 장기채, 그리고 극심한 인플레이션을 막아주는 금을 황금 비율로 나누어 담아, 시장에 어떤 금융위기 폭풍우가 몰아쳐도 밤에 두 발 뻗고 잘 수 있는 완벽한 안도감을 만들어냅니다. 밤잠을 설칠 바에는 약간의 초과 수익을 기꺼이 양보하는 성숙함이야말로 당신만의 위대한 강점입니다.',
+      marketCaution: '하지만 원금을 지키려는 마음이 지나치게 앞서다 보면, 물가가 오르는 속도보다 내 돈이 불어나는 속도가 느려져 시간이 흐를수록 실질 구매력이 줄어드는 함정에 빠질 수 있습니다. 전체 자산의 절반 정도는 자본주의의 성장을 묵묵히 따라가는 가장 대표적인 지수 주식에 당당하게 맡겨두는 건강한 용기가 필요합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '사계절 균형 안심 자산배분 조합',
+      targetCAGR: '6~8%',
+      targetMDD: '26~36%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 30, color: '#3B82F6' },
+        { name: '미국배당다우존스', weight: 30, color: '#10B981' },
+        { name: '금', weight: 20, color: '#EAB308' },
+        { name: '미국 장기채', weight: 20, color: '#06B6D4' },
+      ],
+      rationale: '곰처럼 철벽 방어를 원하는 성향에 맞추어 주식 60%(S&P 500+미국배당다우존스)와 안전자산 40%(미국 장기채+금)를 조화롭게 섞어, 과거 금융위기나 폭락장에서도 원금 손실 폭을 극적으로 줄여주도록 완성했습니다.',
+    },
     recommendedStrategy: '올웨더/영구 포트폴리오 백테스팅, 상관관계 최소화 자산 배분',
     suitableAssets: ['VT', 'BND', 'GLD (금)', '배당 성장의 대형주'],
     badges: ['안전형 🛡️', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
@@ -527,8 +701,26 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SALI: {
     code: 'SALI',
     name: '신중한 검증가',
+    animal: '산양',
     tagline: '확실히 검증된 안전한 대기업만 골라 신중히 투자하는 검증가',
     description: '꼼꼼히 조사해서 잘 알고 있는 안전한 대기업이나 우량 배당주만 고르고, 확실히 안전하다고 판단될 때만 조심스럽게 투자하는 검증가입니다.',
+    storyNarrative: {
+      overview: '당신은 깎아지른 가파른 절벽에서도 발을 딛을 돌다리를 하나하나 꼼꼼히 두드려보며 안전하게 정상으로 향하는 산양과 같습니다. 실체 없이 반짝 유행하는 신기술이나 주변 사람들의 뜬소문에 절대 현혹되지 않으며, 수십 년 동안 전쟁과 불황을 꿋꿋이 이겨내고 따박따박 현금 배당금을 늘려온 세계 1등 배당 기업들만을 깐깐하게 골라냅니다. 매 분기 내 계좌로 입금되는 든든한 배당금을 확인할 때 진정한 투자의 결실과 마음의 평화를 느끼는 현명한 현실주의자입니다.',
+      marketCaution: '그러나 작은 불확실성에도 너무 신중하게 고민만 거듭하다 보면, 정작 좋은 가격에 우량 주식을 담을 수 있는 귀한 기회를 계속 놓치게 됩니다. 모든 조건이 완벽해질 때까지 망설이기보다는, 매달 정해진 날짜에 기계처럼 나누어 사는 시스템을 만들어 실행력을 높여보세요.',
+    },
+    recommendedPortfolioPreview: {
+      title: '고배당 우량주 & 현금흐름 중심 조합',
+      targetCAGR: '6~8%',
+      targetMDD: '26~36%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '미국배당다우존스', weight: 40, color: '#10B981' },
+        { name: 'S&P 500', weight: 30, color: '#3B82F6' },
+        { name: '금', weight: 20, color: '#EAB308' },
+        { name: '미국 중기채', weight: 10, color: '#06B6D4' },
+      ],
+      rationale: '매년 배당금이 늘어나는 미국배당다우존스를 중심축으로 삼고, S&P 500과 금, 미국 중기채를 섞어 어떤 경제 위기에도 내 계좌에서 안정적으로 현금이 솟아나도록 설계했습니다.',
+    },
     recommendedStrategy: '고배당 우량주 분석 및 장기 보유, 안전 이익 구조 검증',
     suitableAssets: ['배당 귀족주 (KO, PG)', 'SCHD', '단기 국채'],
     badges: ['안전형 🛡️', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
@@ -550,8 +742,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SATR: {
     code: 'SATR',
     name: '위험 경보관',
+    animal: '다람쥐',
     tagline: '하락 기운이 느껴지면 신속히 현금으로 피신하는 경보관',
     description: '원금 지키는 것을 가장 중요하게 생각하며, 시장의 하락 기운이 느껴지면 사전에 정한 매뉴얼에 따라 주식을 팔고 현금으로 피신합니다.',
+    storyNarrative: {
+      overview: '당신은 숲속에 작은 바스락거림만 들려도 재빠르게 안전한 나무 위로 몸을 숨기는 영민한 다람쥐와 같습니다. 시장의 폭풍우를 무모하게 온몸으로 맞서기보다는, 하락의 징조가 포착될 때 주식 비중을 줄이고 든든한 미국 단기채와 현금으로 대피하는 탁월한 자기방어 능력을 발휘합니다. 탐욕에 눈이 멀지 않고 언제든 비상 탈출 매뉴얼을 꺼내어 소중한 원금을 철저히 보존해 내는 절제력이 매우 돋보입니다.',
+      marketCaution: '하지만 사소한 시장의 흔들림에도 매번 놀라 주식을 팔다 보면, 수수료만 빠져나가고 시장이 금방 회복할 때 밖에서 멍하니 구경만 하게 될 수 있습니다. 작은 소음과 진짜 위험 신호를 구분하여, 객관적인 큰 지표 신호가 올 때만 차분하게 움직이는 훈련이 필요합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '하락 방어 & 안전 현금 조율 조합',
+      targetCAGR: '5~7%',
+      targetMDD: '12~16%',
+      isDynamicTrend: true,
+      allocation: [
+        { name: 'S&P 500', weight: 50, color: '#3B82F6', enableDefense: true },
+        { name: '미국 단기채', weight: 30, color: '#06B6D4', enableDefense: false },
+        { name: '금', weight: 20, color: '#EAB308', enableDefense: false },
+      ],
+      rationale: '미국 대표 500대 기업에 투자하면서도, 시장 흐름이 꺾일 때 주식을 줄이고 안전한 미국 단기채와 금, 현금으로 대피할 수 있는 튼튼한 방어망을 마련하여 손실 폭을 10% 초반대로 철저히 묶어둡니다.',
+    },
     recommendedStrategy: '하락장 마켓 타이밍 룰, 이동평균 하회 시 현금화 전략',
     suitableAssets: ['USFR (단기채)', 'S&P500 Index', '현금성 자산'],
     badges: ['안전형 🛡️', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
@@ -573,8 +782,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SATI: {
     code: 'SATI',
     name: '위기 감지자',
+    animal: '여우',
     tagline: '시장의 위험 징후에 민감하게 반응하는 방어형',
     description: '손실에 대한 걱정이 크고 시장의 이상 신호나 하락 분위기를 민감하게 감지하여, 자산을 안전하게 지키는 데 집중하는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 짙은 밤안개 속에서도 주변의 작은 위험을 예리하게 감지하고 뒷걸음질 칠 줄 아는 영리한 여우와 같습니다. 남들이 욕심에 취해 과열된 축제에 뛰어들 때도, 당신은 어딘가 모를 싸한 분위기를 직감적으로 알아채고 조용히 발을 빼는 탁월한 생존 본능을 발휘합니다. 손실에 대한 방어벽을 가장 두텁게 쌓아두어 역사적인 경제 위기 속에서도 당당히 살아남는 지혜를 가졌습니다.',
+      marketCaution: '다만 세상의 자극적인 위기론 뉴스나 부정적인 소문에 너무 깊이 빠지면, 실제로는 건강하게 우상향하는 좋은 기업들까지 겁을 먹고 전부 팔아버릴 수 있습니다. 뉴스의 일시적 소음과 기업의 진짜 실력을 구분해 바라보는 균형 감각을 키워보세요.',
+    },
+    recommendedPortfolioPreview: {
+      title: '배당 중심 & 위기 방어 안심 조합',
+      targetCAGR: '5~7%',
+      targetMDD: '12~16%',
+      isDynamicTrend: true,
+      allocation: [
+        { name: '미국배당다우존스', weight: 45, color: '#10B981', enableDefense: true },
+        { name: 'S&P 500', weight: 35, color: '#3B82F6', enableDefense: true },
+        { name: '금', weight: 20, color: '#EAB308', enableDefense: false },
+      ],
+      rationale: '안전한 미국배당다우존스와 S&P 500(80%)으로 기본 수익을 다지고, 금(20%)을 방패 삼아 시장이 과열되거나 흔들릴 때 주식을 줄이고 안전하게 현금으로 자산을 지킬 수 있도록 설계했습니다.',
+    },
     recommendedStrategy: '위험 감지 시 부분 현금화, 리스크 관리 중심 유연 매매',
     suitableAssets: ['안정성 대형주', '배당 ETF', '파킹통장/현금'],
     badges: ['안전형 🛡️', '능동형 ⚡', '추세형 📈', '직감형 💡'],
@@ -596,8 +822,26 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SPLR: {
     code: 'SPLR',
     name: '꾸준한 적립가',
+    animal: '거북이',
     tagline: '안전한 비율로 주식을 모아두고 편안하게 일상에 몰입하는 적립가',
     description: '자산을 잃지 않는 안전한 자산 배분 비율을 정한 뒤, 주식 모으기 시스템을 갖춰두고 마음 편하게 본업과 일상생활에 집중하는 스타일입니다.',
+    storyNarrative: {
+      overview: '당신은 조급하게 뛰지 않고 자신만의 묵직한 호흡과 리듬으로 결승선까지 걸어가는 우직한 거북이와 같습니다. 화면 속 주가 그래프의 어지러운 출렁임에 결코 일상을 침범당하지 않으며, 가족과의 소중한 시간과 본업에서의 성취를 가장 우선순위에 둡니다. 역사적으로 검증된 황금 자산 배분 비율(주식과 안전자산의 조화)을 믿고 매달 적금 붓듯 모아가는 당신의 태도는 가장 지혜롭고 성숙한 투자자의 표본입니다. 하락장이 찾아와도 "내가 세운 시스템이 알아서 저렴해진 주식을 채워주겠지"라며 덤덤하게 넘기는 평정심을 지녔습니다.',
+      marketCaution: '하지만 주변에서 테마주나 코인으로 벼락부자가 되었다는 자극적인 무용담이 들려올 때, 나의 안전한 자산 배분이 너무 느리게 느껴져 순간적으로 조급해질 수 있습니다. 결국 토끼를 이기고 긴 여정에서 최후의 승자가 되는 것은 멈추지 않는 거북이의 장기 복리라는 사실을 굳게 믿으세요.',
+    },
+    recommendedPortfolioPreview: {
+      title: '글로벌 밸런스 60/40 안심 조합',
+      targetCAGR: '6~8%',
+      targetMDD: '26~36%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 40, color: '#3B82F6' },
+        { name: '미국배당다우존스', weight: 30, color: '#10B981' },
+        { name: '미국 장기채', weight: 15, color: '#06B6D4' },
+        { name: '금', weight: 15, color: '#EAB308' },
+      ],
+      rationale: '거북이처럼 꾸준히 자산을 지키며 불릴 수 있도록 주식 70%(S&P 500+미국배당다우존스)와 안전자산 30%(미국 장기채+금)로 나누어, 정기적인 비중 조율을 통해 마음 편히 일상에 전념할 수 있도록 완성했습니다.',
+    },
     recommendedStrategy: '올웨더 자동 정기 리밸런싱, 60/40 자산 배분 적립',
     suitableAssets: ['AOA', 'RPAR', 'SPY + AGG 분산 포트폴리오'],
     badges: ['안전형 🛡️', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
@@ -619,8 +863,25 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SPLI: {
     code: 'SPLI',
     name: '평화로운 투자자',
+    animal: '판다',
     tagline: '시장의 소음에 귀 닫고 미국 대표 지수 주식을 사 모으는 투자자',
     description: '주식 뉴스나 차트를 복잡하게 보지 않고, 가장 마음이 편안한 미국 대표 지수 주식을 매달 적금 들듯 꾸준히 사 모으며 평화롭게 자산을 모아갑니다.',
+    storyNarrative: {
+      overview: '당신은 푸른 대나무 숲에서 걱정 없이 평화롭게 하루를 즐기는 사랑스러운 판다와 같습니다. 복잡한 경제 뉴스나 어지러운 차트를 보며 스트레스받지 않고, "세계에서 가장 강력한 500대 기업 전체를 사서 묻어둔다"는 단순하고 명쾌한 진리를 실천합니다. 매일의 시세 등락은 스쳐 지나가는 바람일 뿐이라 생각하며, 매달 적금 붓듯 우직하게 모아가는 것만으로도 대부분의 펀드 매니저를 이길 수 있다는 것을 직관적으로 아는 여유로운 마음의 소유자입니다.',
+      marketCaution: '다만 너무 마음이 편안한 나머지, 내 계좌의 자산이 어떻게 굴러가고 있는지 아예 잊어버려 미래에 큰돈이 필요한 시점에 안전하게 현금화할 계획을 놓칠 수 있습니다. 1년에 한 번쯤은 자산 현황을 가볍게 점검해 두고 생애 주기에 맞춘 목표를 챙겨두는 것이 좋습니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '미국 500대 기업 & 배당 적립 조합',
+      targetCAGR: '6~8%',
+      targetMDD: '26~36%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 50, color: '#3B82F6' },
+        { name: '미국배당다우존스', weight: 30, color: '#10B981' },
+        { name: '금', weight: 20, color: '#EAB308' },
+      ],
+      rationale: '복잡한 조율 없이 평생 모아갈 수 있는 S&P 500(50%)과 미국배당다우존스(30%)를 중심축으로 삼고, 시장 전체의 장기 침체기에도 마음을 든든하게 지켜줄 금(20%)을 결합한 가장 평화로운 조합입니다.',
+    },
     recommendedStrategy: 'S&P 500 / 미국 전체 시장 ETF 매월 정량 자동 구매',
     suitableAssets: ['VOO', 'SPLG', 'VTI'],
     badges: ['안전형 🛡️', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
@@ -642,20 +903,38 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SPTR: {
     code: 'SPTR',
     name: '자산 조율사',
-    tagline: '경기 흐름에 맞춰 안전 자산과 현금 비중을 차분히 조율하는 조율사',
-    description: '원금 보전을 기본으로 하되, 경기 분위기가 변할 때 사전에 정한 기준에 따라 저렴하게 살 자산과 현금의 비율을 차분히 조율합니다.',
-    recommendedStrategy: '정량 자산배분 (LAA/VAA 보수형 모형), 주기적 비중 조절',
-    suitableAssets: ['IEF (중기채)', 'BIL (단기채)', 'SPLG'],
+    animal: '고슴도치',
+    tagline: '사계절 자산을 황금비율로 담아두고 차분히 조율하는 조율사',
+    description: '원금 보전을 기본으로 하여, 주식과 채권, 금을 사계절 황금비율로 담아두고 정기적으로 비중만 제자리로 맞춰주며 변동성을 일정하게 통제합니다.',
+    storyNarrative: {
+      overview: '당신은 날카로운 가시로 자신을 빈틈없이 방어하면서도, 계절의 변화에 맞춰 먹이를 영리하게 모아두는 고슴도치와 같습니다. 사계절이 바뀌듯 경제에도 봄, 여름, 가을, 겨울이 있다는 것을 깊이 이해하고 있기에, 무작정 비바람을 맞지 않고 주식과 미국 장기채, 금을 조화롭게 나누어 담아 계좌의 변동성을 일정하게 통제하는 사려 깊은 조율 능력을 보여줍니다. 무리하게 대박을 쫓기보다는 안정감을 지켜내는 데서 큰 성취감을 얻습니다.',
+      marketCaution: '하지만 앞으로의 경기를 섣부르게 예측하려다 보면, 경제 전문가들의 엇갈리는 전망에 휘둘려 계획에 없던 주관적이고 무리한 조정을 하게 될 수 있습니다. 예측에 기대기보다는 사전에 정해둔 기계적인 지표와 주기적인 리밸런싱 규칙에 따라서만 조율하는 원칙을 지켜보세요.',
+    },
+    recommendedPortfolioPreview: {
+      title: '사계절 자산 안심 조율 조합',
+      targetCAGR: '5~7%',
+      targetMDD: '20~25%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: 'S&P 500', weight: 35, color: '#3B82F6' },
+        { name: '미국배당다우존스', weight: 25, color: '#10B981' },
+        { name: '미국 장기채', weight: 25, color: '#06B6D4' },
+        { name: '금', weight: 15, color: '#EAB308' },
+      ],
+      rationale: '주식 60%(S&P 500+미국배당다우존스)와 안전자산 40%(미국 장기채+금)로 포트폴리오를 구성하여, 계절이 바뀔 때마다 정기적으로 가격이 떨어진 자산을 싸게 담고 비싸진 자산을 덜어내며 안정적으로 수익을 불려나갑니다.',
+    },
+    recommendedStrategy: '정량 자산배분 (올웨더/사계절 모형), 주기적 비중 조절',
+    suitableAssets: ['TLT (장기채)', 'GLD (금)', 'SPLG'],
     badges: ['안전형 🛡️', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
     strengths: [
-      '하락장에 현금으로 저렴하게 살 수 있는 유연한 기회 확보',
-      '경기 변화에 맞춘 차분한 현금 및 자산 조율',
-      '큰 손실 없이 소중한 자산을 지켜내는 안정감',
+      '하락장에도 큰 손실 없이 소중한 자산을 지켜내는 안정감',
+      '경제 계절에 맞춘 차분한 사계절 자산 조율',
+      '예측에 휘둘리지 않는 규칙적인 리밸런싱 운용',
     ],
     weaknesses: [
       '경제 분위기 예측에 신경 쓰다가 시점을 잘못 잡아 기회를 놓침',
-      '주식이 강하게 상승할 때 현금을 쥐고 있어 소외감을 느낌',
-      '자산 비중을 자주 바꾸면 교체 비용과 세금이 소모됨',
+      '주식이 강하게 상승할 때 안전자산 비중 때문에 상승폭이 완만함',
+      '자산 비중을 너무 자주 바꾸면 교체 비용과 세금이 소모됨',
     ],
     guidelines: {
       recommendation: '시장을 예측하려 하지 말고 정해둔 주기적 조율 원칙만 지키기',
@@ -665,8 +944,26 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
   SPTI: {
     code: 'SPTI',
     name: '안전지대 지킴이',
-    tagline: '불안할 땐 언제든 통장으로 피신해 마음을 챙기는 지킴이',
-    description: '평소에는 안전한 배당 주식이나 통장 이자로 돈을 모으다가, 시장이 조금이라도 과열되거나 불안해지면 즉시 현금으로 피신해 마음의 평화를 챙깁니다.',
+    animal: '비버',
+    tagline: '든든한 배당과 안전자산으로 마음의 평화를 챙기는 지킴이',
+    description: '현금 배당이 꾸준히 나오는 우량 주식과 금, 국채를 든든한 방파제로 둘러두어, 시장 소음에서 벗어나 언제나 마음 편히 자산을 지켜냅니다.',
+    storyNarrative: {
+      overview: '당신은 거센 물살 속에서도 나뭇가지를 단단히 엮어 누구도 무너뜨릴 수 없는 튼튼한 댐을 짓는 부지런한 비버와 같습니다. 아무리 화려하고 천문학적인 수익률을 약속한다고 해도 내 마음의 평화와 편안한 단잠을 바꿀 수는 없습니다. 안전한 현금 배당과 확실한 원금 보존을 최우선으로 여기며, 세상이 아무리 시끄러운 소음으로 요동쳐도 튼튼한 방파제 안에서 나만의 페이스를 굳건하게 지켜냅니다.',
+      marketCaution: '다만 손실에 대한 걱정이 너무 커서 지나치게 많은 돈을 통장에만 묶어두면, 물가가 오르면서 돈의 실질 가치가 떨어질 수 있습니다. 손실 걱정이 적은 미국배당다우존스로 최소한의 물가 방어막을 쳐두는 것이 안전합니다.',
+    },
+    recommendedPortfolioPreview: {
+      title: '철통 방어 배당 & 안전 쿠션 조합',
+      targetCAGR: '5~7%',
+      targetMDD: '22~35%',
+      isDynamicTrend: false,
+      allocation: [
+        { name: '미국배당다우존스', weight: 40, color: '#10B981' },
+        { name: 'S&P 500', weight: 30, color: '#3B82F6' },
+        { name: '금', weight: 20, color: '#EAB308' },
+        { name: '미국 장기채', weight: 10, color: '#06B6D4' },
+      ],
+      rationale: '마음 편히 잠들 수 있도록 현금 배당이 꾸준히 늘어나는 미국배당다우존스와 S&P 500을 70%로 담고, 금과 미국 장기채를 30% 둘러 원금 손실에 대한 불안을 완전히 덜어냈습니다.',
+    },
     recommendedStrategy: '안전지수 ETF 중심 운용 + 시장 과열 체감 시 현금 확보',
     suitableAssets: ['SCHD', 'SHY (단기채)', 'CMA/현금'],
     badges: ['안전형 🛡️', '수동형 🛋️', '추세형 📈', '직감형 💡'],

@@ -81,14 +81,14 @@ const SELECT_ASSET_GROUPS: AssetSelectGroup[] = [
     groupLabel: '미국 대표 지수 & 레버리지',
     options: [
       { id: 'SPY', label: 'S&P 500 (SPY)' },
-      { id: 'SSO', label: '　└ S&P 500 2배 레버리지 (SSO)' },
-      { id: 'UPRO', label: '　└ S&P 500 3배 레버리지 (UPRO)' },
+      { id: 'SSO', label: '　└ S&P 500 2배 (SSO)' },
+      { id: 'UPRO', label: '　└ S&P 500 3배 (UPRO)' },
       { id: 'QQQ', label: '나스닥 100 (QQQ)' },
-      { id: 'QLD', label: '　└ 나스닥 100 2배 레버리지 (QLD)' },
-      { id: 'TQQQ', label: '　└ 나스닥 100 3배 레버리지 (TQQQ)' },
+      { id: 'QLD', label: '　└ 나스닥 100 2배 (QLD)' },
+      { id: 'TQQQ', label: '　└ 나스닥 100 3배 (TQQQ)' },
       { id: 'SOXX', label: '필라델피아 반도체 (SOXX)' },
-      { id: 'USD', label: '　└ 반도체 2배 레버리지 (USD)' },
-      { id: 'SOXL', label: '　└ 반도체 3배 레버리지 (SOXL)' },
+      { id: 'USD', label: '　└ 반도체 2배 (USD)' },
+      { id: 'SOXL', label: '　└ 반도체 3배 (SOXL)' },
     ],
   },
   {
@@ -1075,7 +1075,7 @@ function SimulatorContent() {
       return {
         type: 'warning',
         title: '⚠️ 감내 가능한 범위를 넘어서는 위험한 전략입니다',
-        desc: `과거 최대 손실폭(-${actualMDD}%)이 설정하신 감내 기준(-${maxTolerableMDD}%)을 초과합니다. 200일선 방어 옵션을 켜거나 안전 자산(미국 배당 다우존스, 현금) 비중을 높여 위험을 낮춰보세요.`,
+        desc: `과거 최대 손실폭(-${actualMDD}%)이 설정하신 감내 기준(-${maxTolerableMDD}%)을 초과합니다. 200일선 방어 옵션을 켜거나 안전 자산(미국배당다우존스, 현금) 비중을 높여 위험을 낮춰보세요.`,
       };
     }
     if (isReturnTooLow) {
@@ -1749,13 +1749,13 @@ function SimulatorContent() {
           const simStartDate = simulation.points[0]?.date || '2006-01-01';
 
           const synthAssetMeta: Record<string, { label: string; dateStr: string; cutoffDate: string; isCrypto?: boolean }> = {
-            TQQQ: { label: '나스닥 100 3배 레버리지', dateStr: '2010년 2월 이전', cutoffDate: '2010-02-01' },
-            QLD: { label: '나스닥 100 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
-            SOXL: { label: '필라델피아 반도체 3배 레버리지', dateStr: '2010년 3월 이전', cutoffDate: '2010-03-01' },
-            USD: { label: '필라델피아 반도체 2배 레버리지', dateStr: '2007년 1월 이전', cutoffDate: '2007-01-01' },
-            UPRO: { label: 'S&P 500 3배 레버리지', dateStr: '2009년 6월 이전', cutoffDate: '2009-06-01' },
-            SSO: { label: 'S&P 500 2배 레버리지', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
-            SCHD: { label: '미국 배당 다우존스', dateStr: '2011년 10월 이전', cutoffDate: '2011-10-01' },
+            TQQQ: { label: '나스닥 100 3배', dateStr: '2010년 2월 이전', cutoffDate: '2010-02-01' },
+            QLD: { label: '나스닥 100 2배', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SOXL: { label: '필라델피아 반도체 3배', dateStr: '2010년 3월 이전', cutoffDate: '2010-03-01' },
+            USD: { label: '필라델피아 반도체 2배', dateStr: '2007년 1월 이전', cutoffDate: '2007-01-01' },
+            UPRO: { label: 'S&P 500 3배', dateStr: '2009년 6월 이전', cutoffDate: '2009-06-01' },
+            SSO: { label: 'S&P 500 2배', dateStr: '2006년 6월 이전', cutoffDate: '2006-06-01' },
+            SCHD: { label: '미국배당다우존스', dateStr: '2011년 10월 이전', cutoffDate: '2011-10-01' },
             KS200: { label: '코스피 200', dateStr: '2002년 10월 이전', cutoffDate: '2002-10-01' },
             KQ150: { label: '코스닥 150', dateStr: '2015년 10월 이전', cutoffDate: '2015-10-01' },
             SLV: { label: '은', dateStr: '2006년 4월 이전', cutoffDate: '2006-04-01' },
@@ -2314,7 +2314,7 @@ function SimulatorContent() {
                         <div className="pb-1.5">
                           <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
                             <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
-                            <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
+                            <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 가격이 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
                           </div>
                         </div>
                       )}
@@ -2461,7 +2461,7 @@ function SimulatorContent() {
                       <div className="pb-1.5">
                         <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
                           <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
-                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
+                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 가격이 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
                         </div>
                       </div>
                     )}
@@ -2606,7 +2606,7 @@ function SimulatorContent() {
                       <div className="pb-1.5">
                         <div className="p-3.5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] leading-relaxed space-y-1 font-sans">
                           <strong className="text-[var(--text-primary)] block">🛡️ 이동평균선 방어 옵션이란?</strong>
-                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 주가가 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 사고 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
+                          <p>시장 변화에 맞춰 적극적으로 대응하는 투자자에게 유용한 옵션입니다. 가격이 일정 기간의 평균 가격선 위로 올라왔을 때만 주식을 보유하며, 평균선 밑으로 떨어지는 하락장에서는 <strong>전액 현금</strong>으로 안전하게 피신합니다.</p>
                         </div>
                       </div>
                     )}
