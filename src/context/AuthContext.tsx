@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsedUser.simulatorSettings) setSimulatorSettings(parsedUser.simulatorSettings);
 
         // 서버 최신 데이터 동기화 및 자동 복구(Auto-Healing)
-        const userPin = parsedUser.pin || (parsedUser.nickname === '주식부엉' ? '418019' : '');
+        const userPin = parsedUser.pin || '';
         if (parsedUser.nickname && userPin) {
           fetch(`/api/sync?nickname=${encodeURIComponent(parsedUser.nickname)}&pin=${encodeURIComponent(userPin)}`)
             .then((res) => res.json())
@@ -219,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(newCompletedList));
 
     if (user && user.nickname) {
-      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const userPin = user.pin || '';
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
@@ -261,7 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('jusik_type_completed', 'true');
 
     if (user && user.nickname) {
-      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const userPin = user.pin || '';
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
@@ -296,7 +296,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(settings));
 
     if (user && user.nickname) {
-      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const userPin = user.pin || '';
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
@@ -333,7 +333,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 프로필 아바타 이미지 서버 동기화
   const updateAvatar = (avatarUrl: string) => {
     if (user && user.nickname) {
-      const userPin = user.pin || (user.nickname === '주식부엉' ? '418019' : '');
+      const userPin = user.pin || '';
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,

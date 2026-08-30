@@ -235,16 +235,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
         data.forEach((row: any) => {
           const isFull = row.type_answers && typeof row.type_answers === 'object' && Object.keys(row.type_answers).length === 40;
           
-          let validatedTypeAnswers = isFull ? row.type_answers : undefined;
-          let validatedInvestmentType = row.investment_type || undefined;
-
-          // '주식부엉' 계정의 성향 데이터가 오염되었거나 누락된 경우 기본 마스터 GATR 데이터로 즉시 자동 복원
-          if (row.nickname === '주식부엉' && (!isFull || !validatedInvestmentType || validatedInvestmentType !== 'GATR')) {
-            validatedTypeAnswers = DEFAULT_MASTER_USERS['주식부엉'].typeAnswers;
-            validatedInvestmentType = 'GATR';
-          }
-
-          const master = DEFAULT_MASTER_USERS[row.nickname];
+          const validatedTypeAnswers = isFull ? row.type_answers : undefined;
+          const validatedInvestmentType = row.investment_type || undefined;
 
           // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록)를 안전하게 분리 Unpack
           const rowSettings = (row.simulator_settings && typeof row.simulator_settings === 'object') ? row.simulator_settings : {};
@@ -255,12 +247,12 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             ? rowSettings.activeBadge
             : (row.active_badge !== undefined && row.active_badge !== null)
             ? row.active_badge
-            : (master?.activeBadge || undefined);
+            : undefined;
 
-          const effectiveTermsQuizBest = rowSettings.termsQuizBest || row.terms_quiz_best || master?.termsQuizBest || undefined;
-          const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || master?.termsQuizEntries || undefined;
-          const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? master?.isPro ?? false;
-          const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || master?.proExpiresAt || undefined;
+          const effectiveTermsQuizBest = rowSettings.termsQuizBest || row.terms_quiz_best || undefined;
+          const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || undefined;
+          const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? false;
+          const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || undefined;
 
           db[row.nickname] = {
             nickname: row.nickname,
@@ -329,7 +321,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           last_active_at: u.lastActiveAt,
           completed_lessons: u.completedLessons || [],
           investment_type: u.investmentType || null,
-          type_answers: isFull ? u.typeAnswers : (u.nickname === '주식부엉' ? DEFAULT_MASTER_USERS['주식부엉'].typeAnswers : null),
+          type_answers: isFull ? u.typeAnswers : null,
           simulator_settings: packedSettings,
           avatar_url: u.avatarUrl || null,
         };
