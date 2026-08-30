@@ -610,14 +610,17 @@ export default function BottomNavigation() {
                 transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             >
-              {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Clean solid tint without backdrop-blur to prevent mobile text blur) */}
+              {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Original orange 100% preserved + content shield base) */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-white/95 dark:bg-[#121215]/95 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none overflow-hidden"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
                 }}
-              />
+              >
+                {/* 100% Original Signature Orange Tint Layer */}
+                <div className="absolute inset-0 bg-[var(--accent-orange)]/18 pointer-events-none" />
+              </div>
 
               {/* Tab 1: 커리큘럼 */}
               <button
