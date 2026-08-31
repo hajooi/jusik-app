@@ -636,17 +636,17 @@ export default function StockDcaGuide() {
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                  className={`rounded-2xl transition-all duration-300 overflow-hidden ${
                     isExpanded
-                      ? 'bg-[var(--card-surface)] border-[var(--accent-orange)]/70 shadow-[0_0_18px_rgba(241,143,1,0.18)] ring-1 ring-[var(--accent-orange)]/30'
-                      : 'bg-[var(--card-surface)]/80 border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)]'
+                      ? 'glass-card border-[var(--accent-orange)] ring-1 ring-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.20)]'
+                      : 'bg-[var(--card-surface)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] shadow-2xs'
                   }`}
                 >
                   {/* Card Header Button */}
                   <button
                     type="button"
                     onClick={() => togglePortfolio(item.id)}
-                    className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-4 cursor-pointer"
+                    className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-4 cursor-pointer outline-none focus:outline-none"
                   >
                     <div className="space-y-1.5 flex-1 min-w-0">
                       {/* Badge on its own line above title */}
