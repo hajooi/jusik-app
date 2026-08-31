@@ -466,13 +466,13 @@ function SimulatorContent() {
     return () => observer.disconnect();
   }, []);
 
-  // Global zoom / period / scale / portfolio changes sweep all active lines
+  // Global zoom / period / scale changes sweep all active lines
   useEffect(() => {
     if (!hasInitialAnimatedRef.current) return;
     setChartBaseAnimKey((k) => k + 1);
     setChartBAnimKey((k) => k + 1);
     setChartCAnimKey((k) => k + 1);
-  }, [customStartDate, customEndDate, durationYears, chartScale, portfolioA, portfolioB, portfolioC, initialCapital, depositAmount, depositFrequency, strategyCount]);
+  }, [customStartDate, customEndDate, durationYears, chartScale]);
 
   // Weight Calculation Helpers
   const totalWeightA = useMemo(() => portfolioA.reduce((sum, item) => sum + item.weight, 0), [portfolioA]);
