@@ -5,14 +5,12 @@ import React, { useState, useEffect, useRef } from 'react';
 interface SmoothHeightProps {
   children: React.ReactNode;
   className?: string;
-  duration?: number; // milliseconds (default 320ms)
+  duration?: number; // milliseconds (default 500ms)
   easing?: string; // CSS transition timing function
-  animateInitial?: boolean;
 }
 
 /**
  * Accurately check if children contains genuine renderable content.
- * Correctly handles false, null, undefined, and empty arrays.
  */
 function hasValidContent(content: React.ReactNode): boolean {
   if (content === null || content === undefined || typeof content === 'boolean') {
@@ -25,50 +23,61 @@ function hasValidContent(content: React.ReactNode): boolean {
 }
 
 /**
- * Apple-grade Pure Dynamic Smooth Height Animator using CSS Grid (0fr <-> 1fr).
- * 100% preserves content during collapse for buttery deceleration right to 0px without sudden snaps.
+ * Apple-grade Dynamic Smooth Height Animator.
+ * Uses ResizeObserver to continuously track inner content height and smoothly transitions the outer container height.
  */
 export default function SmoothHeight({
   children,
   className = '',
-  duration = 550,
+  duration = 450,
   easing = 'cubic-bezier(0.2, 0.8, 0.2, 1)',
 }: SmoothHeightProps) {
   const hasContent = hasValidContent(children);
-  const [renderedContent, setRenderedContent] = useState<React.ReactNode>(hasContent ? children : null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | 'auto'>('auto');
+  const [isInitial, setIsInitial] = useState(true);
 
   useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    const innerEl = innerRef.current;
+    if (!innerEl) return;
+
+    if (!hasContent) {
+      setHeight(0);
+      return;
     }
 
-    if (hasContent) {
-      setRenderedContent(children);
-    } else {
-      // Keep displaying previous content during smooth 0fr collapse transition, then unmount cleanly
-      timerRef.current = setTimeout(() => {
-        setRenderedContent(null);
-      }, duration + 80);
-    }
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const measuredHeight = entry.contentRect.height;
+        if (measuredHeight > 0) {
+          setHeight(measuredHeight);
+          if (isInitial) {
+            setIsInitial(false);
+          }
+        }
+      }
+    });
+
+    observer.observe(innerEl);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      observer.disconnect();
     };
-  }, [children, hasContent, duration]);
+  }, [hasContent, isInitial]);
 
   return (
     <div
+      ref={containerRef}
       style={{
-        display: 'grid',
-        gridTemplateRows: hasContent ? '1fr' : '0fr',
-        transition: `grid-template-rows ${duration}ms ${easing}, opacity ${duration}ms ${easing}`,
+        height: height === 'auto' ? 'auto' : `${height}px`,
+        transition: isInitial ? 'none' : `height ${duration}ms ${easing}, opacity ${duration}ms ${easing}`,
         opacity: hasContent ? 1 : 0,
       }}
-      className={`will-change-[grid-template-rows,opacity] overflow-hidden ${className}`}
+      className={`overflow-hidden will-change-[height,opacity] ${className}`}
     >
-      <div className="overflow-hidden min-h-0 w-full">
-        {renderedContent}
+      <div ref={innerRef} className="w-full">
+        {children}
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import DcaMotionSimulator from '@/components/DcaMotionSimulator';
 import JpMorganTimingBarChart from '@/components/JpMorganTimingBarChart';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
+import StockDcaGuide from '@/components/StockDcaGuide';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -315,6 +316,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     return (
                       <RevealOnScroll key={index}>
                         <StockTradeGuide />
+                      </RevealOnScroll>
+                    );
+                  }
+                  if (lesson.id === 'lv1-6') {
+                    return (
+                      <RevealOnScroll key={index}>
+                        <StockDcaGuide />
                       </RevealOnScroll>
                     );
                   }
