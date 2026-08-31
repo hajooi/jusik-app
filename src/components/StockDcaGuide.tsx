@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar,
   Search, 
@@ -252,12 +252,92 @@ function RatingStars({ value, colorClass, animate = true }: { value: number; col
   );
 }
 
+function AnimatedRatioStockCard({
+  name,
+  symbol,
+  ratio,
+  index
+}: {
+  name: string;
+  symbol: string;
+  ratio: string;
+  index: number;
+}) {
+  const targetNumber = parseFloat(ratio.replace('%', '')) || 0;
+  const [displayRatio, setDisplayRatio] = useState(0);
+  const [progressWidth, setProgressWidth] = useState(0);
+
+  useEffect(() => {
+    let animationFrameId: number;
+    const startTime = performance.now();
+    const duration = 650; // ms
+    const delay = Math.min(index * 35, 300);
+
+    const startTimer = setTimeout(() => {
+      setProgressWidth(targetNumber);
+
+      const updateCount = (currentTime: number) => {
+        const elapsed = currentTime - (startTime + delay);
+        if (elapsed < 0) {
+          animationFrameId = requestAnimationFrame(updateCount);
+          return;
+        }
+
+        const progress = Math.min(elapsed / duration, 1);
+        // Easing: easeOutCubic
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentVal = easeProgress * targetNumber;
+        setDisplayRatio(currentVal);
+
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(updateCount);
+        } else {
+          setDisplayRatio(targetNumber);
+        }
+      };
+
+      animationFrameId = requestAnimationFrame(updateCount);
+    }, delay);
+
+    return () => {
+      clearTimeout(startTimer);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [targetNumber, index]);
+
+  const formattedRatio = targetNumber % 1 === 0 
+    ? `${displayRatio.toFixed(0)}%` 
+    : targetNumber.toString().split('.')[1]?.length === 1
+    ? `${displayRatio.toFixed(1)}%`
+    : `${displayRatio.toFixed(2)}%`;
+
+  return (
+    <div className="relative overflow-hidden flex flex-col justify-between p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-xs shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_12px_rgba(241,143,1,0.15)] transition-all">
+      <div className="flex items-center justify-between gap-1.5 min-w-0 pb-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-bold text-[var(--text-primary)] truncate">{name}</span>
+          <span className="text-[10px] font-mono text-[var(--text-secondary)] shrink-0">({symbol})</span>
+        </div>
+        <span className="font-mono font-black text-[var(--accent-orange)] ml-2 shrink-0 tabular-nums">
+          {formattedRatio}
+        </span>
+      </div>
+
+      {/* Mini Progress Bar */}
+      <div className="w-full bg-[var(--card-hover)] h-1 rounded-full overflow-hidden mt-1">
+        <div 
+          className="bg-gradient-to-r from-[var(--accent-orange)] to-amber-400 h-full rounded-full transition-all duration-700 ease-out"
+          style={{ width: `${Math.min(progressWidth * 2, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function StockDcaGuide() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [currentScene, setCurrentScene] = useState<1 | 2 | 3>(1);
-  const [expandedPortfolios, setExpandedPortfolios] = useState<Record<string, boolean>>({
-    'us-dividend': true
-  });
+  const [expandedPortfolios, setExpandedPortfolios] = useState<Record<string, boolean>>({});
 
   const togglePortfolio = (id: string) => {
     setExpandedPortfolios((prev) => ({
@@ -622,18 +702,13 @@ export default function StockDcaGuide() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                           {item.stocks.map((stk, sIdx) => (
-                            <div
+                            <AnimatedRatioStockCard
                               key={sIdx}
-                              className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)] text-xs shadow-2xs hover:border-[var(--accent-orange)]/40 transition-all"
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="font-bold text-[var(--text-primary)] truncate">{stk.name}</span>
-                                <span className="text-[10px] font-mono text-[var(--text-secondary)] shrink-0">({stk.symbol})</span>
-                              </div>
-                              <span className="font-mono font-black text-[var(--accent-orange)] ml-2 shrink-0">
-                                {stk.ratio}
-                              </span>
-                            </div>
+                              name={stk.name}
+                              symbol={stk.symbol}
+                              ratio={stk.ratio}
+                              index={sIdx}
+                            />
                           ))}
                         </div>
                       </div>
