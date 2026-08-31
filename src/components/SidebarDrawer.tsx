@@ -98,7 +98,7 @@ export default function SidebarDrawer({ currentLessonId }: SidebarDrawerProps) {
   const renderContent = () => (
     <div className="flex flex-col h-full overflow-hidden select-none">
       {/* 1. Modal Top Bar / Header */}
-      <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-[var(--border-color)]/80 flex items-center justify-between gap-3 shrink-0">
+      <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-[var(--border-color)]/80 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/90 to-[var(--card-surface)]/60 backdrop-blur-xl flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 flex items-center justify-center text-[var(--accent-orange)] shrink-0 shadow-2xs">
             <BookOpen className="w-5 h-5 stroke-[2.2]" />

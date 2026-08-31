@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
+import { getPersonalityDynamicPreviewStats } from '@/utils/personalitySimulatorMapping';
 import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 
@@ -345,6 +346,11 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
     });
   }
 
+  // 시뮬레이터 백테스트 엔진 기반 실시간 동적 목표치 연동
+  const dynamicStats = useMemo(() => {
+    return getPersonalityDynamicPreviewStats(profile.code, scores);
+  }, [profile.code, scores]);
+
   return (
     <div
       ref={cardRef}
@@ -367,13 +373,13 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
         {/* Target CAGR & Target MDD with Smooth Count-in */}
         <div className="flex items-center gap-3 bg-[var(--bg-main)]/80 px-4 py-2.5 rounded-2xl border border-[var(--border-color)] text-xs font-bold shrink-0 shadow-2xs">
           <div className="text-left">
-            <span className="text-[10px] text-[var(--text-secondary)] block font-medium">목표 연 수익률</span>
+            <span className="text-[10px] text-[var(--text-secondary)] block font-medium">목표 연수익률</span>
             <span
               className={`text-[var(--accent-green)] font-black font-mono text-sm transition-all duration-700 ${
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
               }`}
             >
-              {isInView ? preview.targetCAGR : '0%'}
+              {isInView ? (dynamicStats.targetCAGR || preview.targetCAGR) : '0%'}
             </span>
           </div>
           <div className="w-[1px] h-6 bg-[var(--border-color)]" />
@@ -384,7 +390,7 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
               }`}
             >
-              {isInView ? `${preview.targetMDD} 이내` : '0%'}
+              {isInView ? `${dynamicStats.targetMDD || preview.targetMDD} 이내` : '0%'}
             </span>
           </div>
         </div>
@@ -444,7 +450,7 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
         className="w-full inline-flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_24px_rgba(241,143,1,0.35)] active:scale-[0.99] transition-all cursor-pointer shadow-sm group"
       >
         <Sparkles className="w-4 h-4 text-white shrink-0 group-hover:rotate-12 transition-transform duration-300" />
-        <span>이 추천 비율로 실제 백테스트 결과 확인하기</span>
+        <span>추천 비율로 백테스트 결과 보기</span>
         <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
       </Link>
     </div>

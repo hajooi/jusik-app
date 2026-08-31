@@ -558,30 +558,38 @@ export default function BottomNavigation() {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-            {/* Apple Native Multi-stage Diffuse Progressive Blur System */}
+            {/* Apple Native Progressive Background Fade Gradient & Multi-stage Blur System */}
             <div 
-              className="absolute inset-x-0 -top-3 -bottom-8 pointer-events-none overflow-hidden transition-opacity duration-300"
+              className="absolute inset-x-0 -top-3 -bottom-10 pointer-events-none overflow-hidden transition-opacity duration-300"
               style={{ opacity: progress > 0.05 ? progress : 0 }}
             >
-              {/* Step 1: Broad ambient diffuse blur */}
+              {/* Layer 1: Seamless background vertical gradient fade (dense at top -> transparent at bottom) */}
               <div 
-                className="absolute inset-0 bg-[var(--bg-main)]/35 backdrop-blur-[3px]"
+                className="absolute inset-0 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/85 to-transparent"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)'
+                }}
+              />
+              {/* Layer 2: Broad ambient diffuse blur */}
+              <div 
+                className="absolute inset-0 backdrop-blur-[4px]"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)'
                 }}
               />
-              {/* Step 2: Mid diffuse blur */}
+              {/* Layer 3: Mid diffuse blur */}
               <div 
-                className="absolute inset-x-0 top-0 h-14 bg-[var(--bg-main)]/35 backdrop-blur-[8px]"
+                className="absolute inset-x-0 top-0 h-16 backdrop-blur-[10px]"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)'
                 }}
               />
-              {/* Step 3: Deep shape-breaking blur */}
+              {/* Layer 4: Deep shape-breaking glass blur */}
               <div 
-                className="absolute inset-x-0 top-0 h-9 bg-[var(--bg-main)]/45 backdrop-blur-[16px]"
+                className="absolute inset-x-0 top-0 h-11 backdrop-blur-[20px]"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)'

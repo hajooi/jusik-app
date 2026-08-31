@@ -33,24 +33,35 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 inset-x-0 z-50 transition-all duration-200">
-        {/* Apple Native Multi-stage Diffuse Progressive Blur */}
-        <div className="absolute inset-0 -bottom-3 pointer-events-none overflow-hidden transition-all">
+        {/* Apple Native Progressive Background Fade Gradient & Multi-stage Blur */}
+        <div className="absolute inset-0 -bottom-4 pointer-events-none overflow-hidden transition-all">
+          {/* Layer 1: Seamless theme background color vertical gradient fade (dense at top -> transparent at bottom) */}
           <div 
-            className="absolute inset-0 bg-[var(--bg-main)]/35 backdrop-blur-[3px]"
+            className="absolute inset-0 bg-gradient-to-b from-[var(--bg-main)] via-[var(--bg-main)]/80 to-transparent"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)'
+            }}
+          />
+          {/* Layer 2: Broad ambient progressive blur */}
+          <div 
+            className="absolute inset-0 backdrop-blur-[4px]"
             style={{
               maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)'
             }}
           />
+          {/* Layer 3: Mid-depth progressive blur */}
           <div 
-            className="absolute inset-x-0 top-0 h-12 bg-[var(--bg-main)]/35 backdrop-blur-[8px]"
+            className="absolute inset-x-0 top-0 h-14 backdrop-blur-[10px]"
             style={{
               maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
             }}
           />
+          {/* Layer 4: Deep ultra-smooth glass blur */}
           <div 
-            className="absolute inset-x-0 top-0 h-8 bg-[var(--bg-main)]/45 backdrop-blur-[16px]"
+            className="absolute inset-x-0 top-0 h-10 backdrop-blur-[20px]"
             style={{
               maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)'
