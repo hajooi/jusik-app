@@ -142,8 +142,8 @@ def update_historical_prices():
     for asset_id, yf_symbol in SYMBOLS.items():
         try:
             ticker = yf.Ticker(yf_symbol)
-            df = ticker.history(start=start_date)
-            if df.empty:
+            df = ticker.history(period='3mo')
+            if df is None or df.empty:
                 print(f"[{asset_id}] No data retrieved for symbol {yf_symbol}")
                 continue
 
