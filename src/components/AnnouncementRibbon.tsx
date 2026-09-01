@@ -2,16 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Check, Copy } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_oct26';
 
 export default function AnnouncementRibbon() {
+  const { isPro } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // Hide if already PRO
+    if (isPro) {
+      setIsVisible(false);
+      return;
+    }
     // Check if user dismissed the banner in the current browser session
     try {
       const isDismissed = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -21,7 +28,7 @@ export default function AnnouncementRibbon() {
     } catch {
       setIsVisible(true);
     }
-  }, []);
+  }, [isPro]);
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();

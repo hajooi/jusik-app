@@ -442,6 +442,10 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
           {preview.rationale}
         </p>
+        <p className="text-[10px] text-[var(--text-secondary)]/60 font-medium leading-relaxed pt-2">
+          <AlertTriangle className="w-3 h-3 inline mr-1 mb-0.5 text-[var(--text-secondary)]/40" />
+          이 결과는 투자 성향 진단을 바탕으로 한 참고용 정보이며, 특정 수익이나 원금을 보장하지 않습니다. 모든 투자는 본인의 판단과 책임하에 진행해 주세요.
+        </p>
       </div>
 
       {/* Direct Interactive CTA Button to Simulator */}

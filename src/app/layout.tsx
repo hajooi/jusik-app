@@ -137,10 +137,12 @@ export default function RootLayout({
           }}
           aria-hidden="true"
         />
+        {/* Apple-style viewport bottom subtle fade — slim nav height (h-[76px]) */}
         <div 
-          className="fixed bottom-[-60px] right-[-60px] w-[500px] h-[450px] pointer-events-none z-0 opacity-35 dark:opacity-25 blur-[60px]"
+          className="fixed bottom-0 left-0 right-0 h-[76px] pointer-events-none z-30"
           style={{
-            background: 'radial-gradient(circle at 70% 70%, var(--glow-color-secondary) 0%, var(--glow-color) 50%, transparent 75%)',
+            background: 'linear-gradient(to top, var(--bg-main) 0%, var(--bg-main) 20%, transparent 100%)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
           }}
           aria-hidden="true"
         />

@@ -21,8 +21,9 @@
     --royal-indigo: #6366F1;   /* Royal Indigo Token */
     --glow-color: rgba(241, 143, 1, 0.18); /* Subtle Ambient Orange Glow */
     --glow-color-secondary: rgba(16, 185, 129, 0.14); /* Subtle Emerald Secondary Glow */
-    --motion-apple-smooth: 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
-    --motion-apple-snappy: 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-apple-smooth: 0.65s cubic-bezier(0.32, 1.56, 0.5, 1);
+    --motion-apple-snappy: 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --motion-apple-slide: 0.55s cubic-bezier(0.25, 1.4, 0.35, 1);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -198,7 +199,7 @@
   font-weight: 700;
   font-size: 0.8125rem; /* text-xs sm:text-sm */
   border: 1px solid transparent;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background-color 0.2s ease, filter 0.2s ease;
+  transition: box-shadow 0.25s ease, background-color 0.2s ease, filter 0.2s ease;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   will-change: transform;
@@ -208,7 +209,8 @@
   box-shadow: 0 0 18px rgba(241, 143, 1, 0.35);
 }
 .btn-primary:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
 .btn-secondary {
@@ -223,7 +225,7 @@
   border: 1px solid var(--border-color);
   font-weight: 700;
   font-size: 0.8125rem;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease, background-color 0.2s ease;
   cursor: pointer;
   will-change: transform;
 }
@@ -234,7 +236,8 @@
   color: var(--accent-orange);
 }
 .btn-secondary:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
 /* Choice Card (1234 4지선다 카드) */
@@ -248,7 +251,7 @@
   background-color: var(--card-surface);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.2s ease;
   cursor: pointer;
   text-align: left;
   position: relative;
@@ -260,7 +263,8 @@
   box-shadow: 0 0 18px rgba(241, 143, 1, 0.18);
 }
 .choice-card:active {
-  transform: scale(0.975);
+  transform: scale(0.97);
+  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Choice Badge (1234 번호 뱃지) */
@@ -345,7 +349,7 @@ html {
 @keyframes cardGlideIn {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(16px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -354,7 +358,7 @@ html {
 }
 
 .animate-card-glide {
-  animation: cardGlideIn 0.38s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  animation: cardGlideIn 0.55s cubic-bezier(0.32, 1.56, 0.5, 1) forwards;
   will-change: opacity, transform;
 }
 
@@ -397,7 +401,7 @@ html {
 @keyframes popoverExpand {
   from {
     opacity: 0;
-    transform: scale(0.85) translateY(-8px);
+    transform: scale(0.82) translateY(-10px);
   }
   to {
     opacity: 1;
@@ -419,7 +423,7 @@ html {
 @keyframes modalExpand {
   from {
     opacity: 0;
-    transform: scale(0.92) translateY(10px);
+    transform: scale(0.88) translateY(14px);
   }
   to {
     opacity: 1;
@@ -434,63 +438,63 @@ html {
   }
   to {
     opacity: 0;
-    transform: scale(0.92) translateY(10px);
+    transform: scale(0.90) translateY(10px);
   }
 }
 
 .animate-modal-expand {
-  animation: modalExpand 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: modalExpand 0.65s cubic-bezier(0.32, 1.56, 0.5, 1) forwards;
 }
 
 .animate-modal-shrink {
-  animation: modalShrink 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: modalShrink 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .animate-popover-expand {
-  animation: popoverExpand 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: popoverExpand 0.5s cubic-bezier(0.32, 1.56, 0.5, 1) forwards;
   transform-origin: top right;
 }
 
 .animate-popover-shrink {
-  animation: popoverShrink 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: popoverShrink 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   transform-origin: top right;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: slideInLeft 0.6s cubic-bezier(0.25, 1.4, 0.35, 1) forwards;
 }
 
 .animate-slide-out-left {
-  animation: slideOutLeft 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: slideOutLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.94) translateY(6px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: fadeIn 0.6s cubic-bezier(0.32, 1.56, 0.5, 1) forwards;
 }
 
 .animate-fade-in-overlay {
-  animation: fadeInOverlay 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: fadeInOverlay 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .animate-fade-out-overlay {
-  animation: fadeOutOverlay 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: fadeOutOverlay 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes bottomPillGlideIn {
   from {
     opacity: 0;
-    transform: translateY(22px) scale(0.96);
+    transform: translateY(28px) scale(0.94);
   }
   to {
     opacity: 1;
@@ -499,7 +503,7 @@ html {
 }
 
 .animate-bottom-pill-glide {
-  animation: bottomPillGlideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: bottomPillGlideIn 0.65s cubic-bezier(0.32, 1.56, 0.5, 1) both;
 }
 
 .animated-mesh-bg {
@@ -529,11 +533,11 @@ html {
 }
 
 .spring-tap {
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 .spring-tap:active {
-  transform: scale(0.965);
+  transform: scale(0.94);
+  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 .dark .animated-mesh-bg,
@@ -823,16 +827,16 @@ input[type='range']:focus::-moz-range-thumb {
 @keyframes m3CardEnter {
   0% {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px) scale(0.96);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .m3-card-enter {
-  animation: m3CardEnter 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: m3CardEnter 0.6s cubic-bezier(0.32, 1.56, 0.5, 1) both;
   will-change: opacity, transform;
 }
 

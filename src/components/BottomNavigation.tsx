@@ -511,7 +511,7 @@ export default function BottomNavigation() {
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
       <div className="fixed inset-x-0 bottom-3 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
         <div
-          className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-white/95 dark:bg-[#121215]/95 backdrop-blur-xl relative"
+          className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl relative"
           style={{
             height: `${targetSheetHeight}px`,
             width: `${maxTargetWidth}px`,
@@ -530,7 +530,7 @@ export default function BottomNavigation() {
           {/* 1:1 Pixel-Perfect Dynamic Glass Border (360-degree perfect rounded curvature & full bottom border) */}
           <div
             aria-hidden="true"
-            className="absolute pointer-events-none z-50 border border-[var(--border-color)]/90 shadow-[0_4px_24px_rgba(0,0,0,0.18)]"
+            className="absolute pointer-events-none z-50 border border-[var(--border-color)]/90 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.18)]"
             style={{
               top: `${topInset}px`,
               left: `${horizontalInset}px`,
@@ -618,17 +618,14 @@ export default function BottomNavigation() {
                 transition: !transitionsEnabled || isDragging ? 'none' : 'bottom 0.38s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             >
-              {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Original orange 100% preserved + content shield base) */}
+              {/* Exact 50:50 Centered Sliding Orange Highlight Surface (Clean translucent orange tint) */}
               <div 
-                className="absolute top-0.5 bottom-0.5 rounded-full bg-white/95 dark:bg-[#121215]/95 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none overflow-hidden"
+                className="absolute top-0.5 bottom-0.5 rounded-full bg-[var(--accent-orange)]/18 border border-[var(--accent-orange)]/60 shadow-[0_0_16px_rgba(241,143,1,0.28)] transition-all duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none"
                 style={{
                   width: 'calc(50% - 2px)',
                   left: activeIndicatorTab === 'curriculum' ? '2px' : 'calc(50% + 0px)',
                 }}
-              >
-                {/* 100% Original Signature Orange Tint Layer */}
-                <div className="absolute inset-0 bg-[var(--accent-orange)]/18 pointer-events-none" />
-              </div>
+              />
 
               {/* Tab 1: 커리큘럼 */}
               <button
