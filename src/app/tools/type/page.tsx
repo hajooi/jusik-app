@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
@@ -259,6 +258,16 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
     if (viewMyComparison && myResultData) {
       return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+          {/* De-boxed Clean Minimal Hero Banner */}
+          <div className="py-2 px-1 space-y-1 text-left">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
+              1:1 투자 성향 궁합
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+              두 사람의 투자 성향을 비교 분석하고, 서로의 장단점과 맞춤형 시너지 조언을 확인해보세요.
+            </p>
+          </div>
+
           <div className="flex items-center justify-start">
             <button
               onClick={() => setViewMyComparison(false)}
@@ -290,14 +299,14 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center justify-end">
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
-          </Link>
+        {/* De-boxed Clean Minimal Hero Banner */}
+        <div className="py-2 px-1 space-y-1 text-left">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
+            1:1 투자 성향 궁합
+          </h1>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+            두 사람의 투자 성향을 비교 분석하고, 서로의 장단점과 맞춤형 시너지 조언을 확인해보세요.
+          </p>
         </div>
 
         {/* 오직 공유된 두 사람 간의 1:1 궁합 리포트만 단독 노출 */}
@@ -323,16 +332,6 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center justify-end">
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all duration-300 glass-card glass-card-hover px-3.5 py-2 rounded-full active:scale-95 border border-[var(--border-color)]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            투자도구 목록으로
-          </Link>
-        </div>
-
         {/* (1) 상단 1순위: 상대방(공유한 친구)의 상세 성향 리포트가 먼저 노출 (isReadOnly=true) */}
         <ResultView
           profile={sharedProfile}

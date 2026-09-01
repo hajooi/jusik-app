@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } fr
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
-  ArrowLeft,
   Timer,
   Trophy,
   CheckCircle2,

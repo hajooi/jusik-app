@@ -33,7 +33,6 @@ import {
   Info,
   ShieldAlert,
   Target,
-  ArrowLeft,
   RotateCcw,
   Lock,
   Crown,
