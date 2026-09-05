@@ -38,16 +38,18 @@ export async function GET(request: Request) {
       );
     }
 
-    // Prepare user list excluding pin numbers
-    const users = Object.values(db).map((u) => ({
-      nickname: u.nickname,
-      createdAt: u.createdAt,
-      lastActiveAt: u.lastActiveAt,
-      completedLessonsCount: u.completedLessons ? u.completedLessons.length : 0,
-      investmentType: u.investmentType || '미진단',
-      hasSimulatorSettings: !!u.simulatorSettings,
-      isPro: !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true)
-    }));
+    // Prepare user list excluding pin numbers and system cache records
+    const users = Object.values(db)
+      .filter((u) => !u.nickname.startsWith('__system_'))
+      .map((u) => ({
+        nickname: u.nickname,
+        createdAt: u.createdAt,
+        lastActiveAt: u.lastActiveAt,
+        completedLessonsCount: u.completedLessons ? u.completedLessons.length : 0,
+        investmentType: u.investmentType || '미진단',
+        hasSimulatorSettings: !!u.simulatorSettings,
+        isPro: !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true)
+      }));
 
     // Sort by createdAt descending (newest first)
     users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
