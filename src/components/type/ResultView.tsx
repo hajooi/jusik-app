@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { getPersonalityDynamicPreviewStats } from '@/utils/personalitySimulatorMapping';
@@ -198,10 +198,12 @@ interface AnimatedPortfolioCardProps {
 // t => 1 - Math.pow(1 - t, 5)
 function useAppleAnimatedNumber(targetValue: number, duration: number = 1000): number {
   const [currentValue, setCurrentValue] = useState(targetValue);
+  const currentRef = useRef(currentValue);
+  currentRef.current = currentValue;
 
   useEffect(() => {
     let startTimestamp: number | null = null;
-    const initialValue = currentValue;
+    const initialValue = currentRef.current;
     const diff = targetValue - initialValue;
 
     if (diff === 0) return;
@@ -213,7 +215,8 @@ function useAppleAnimatedNumber(targetValue: number, duration: number = 1000): n
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       // Apple Quintic Ease-Out (극도로 매끄러운 감속)
       const ease = 1 - Math.pow(1 - progress, 5);
-      setCurrentValue(Math.round(initialValue + diff * ease));
+      const nextVal = progress >= 1 ? targetValue : Math.round(initialValue + diff * ease);
+      setCurrentValue(nextVal);
 
       if (progress < 1) {
         animationFrameId = requestAnimationFrame(step);
@@ -241,27 +244,29 @@ function AnimatedAssetBadge({
 
   return (
     <div
-      className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all duration-700 ${
+      className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all duration-500 ${
         displayWeight === 0
           ? 'bg-[var(--bg-main)]/30 border-[var(--border-color)]/40 opacity-40'
           : 'bg-[var(--bg-main)]/80 border-[var(--border-color)] shadow-2xs'
       }`}
     >
-      <div className="flex items-center gap-1.5 min-w-0">
+      <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0 transition-transform duration-500"
           style={{ backgroundColor: color }}
         />
         <span className="font-extrabold text-[var(--text-primary)] truncate">{name}</span>
       </div>
-      <span
-        className="font-mono font-extrabold text-xs ml-1 shrink-0 transition-colors duration-500"
-        style={{
-          color: displayWeight > 0 ? color : 'var(--text-secondary)',
-        }}
-      >
-        {displayWeight}%
-      </span>
+      <div className="shrink-0 text-right">
+        <span
+          className="font-mono font-extrabold text-xs inline-block min-w-[36px] text-right tabular-nums transition-colors duration-300"
+          style={{
+            color: displayWeight > 0 ? color : 'var(--text-secondary)',
+          }}
+        >
+          {displayWeight}%
+        </span>
+      </div>
     </div>
   );
 }

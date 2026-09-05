@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       completedLessonsCount: u.completedLessons ? u.completedLessons.length : 0,
       investmentType: u.investmentType || '미진단',
       hasSimulatorSettings: !!u.simulatorSettings,
-      isPro: !!(u.isPro || (u.proExpiresAt && new Date(u.proExpiresAt).getTime() > Date.now()))
+      isPro: !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true)
     }));
 
     // Sort by createdAt descending (newest first)

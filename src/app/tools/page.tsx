@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { HelpCircle, Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt } from 'lucide-react';
+import { HelpCircle, Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt, CloudLightning } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 
 export default function ToolsPage() {
@@ -25,6 +25,13 @@ export default function ToolsPage() {
       description: '내가 만든 조합의 성적 미리보기',
       href: '/tools/simulate',
       icon: LineChart,
+      isComingSoon: false,
+    },
+    {
+      title: '마켓 인사이트',
+      description: '오늘의 증시 현황과 주요 증시 일정',
+      href: '/tools/market',
+      icon: CloudLightning,
       isComingSoon: false,
     },
     {
@@ -58,7 +65,7 @@ export default function ToolsPage() {
           투자도구
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-          성공적인 투자를 시작할 수 있도록 돕는 맞춤형 도구 모음입니다.
+          투자를 쉽고 똑똑하게 시작하는 실전 도구 모음입니다.
         </p>
       </div>
 

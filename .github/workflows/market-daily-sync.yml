@@ -1,0 +1,27 @@
+name: Daily Market Data Sync
+
+on:
+  schedule:
+    # 월~금 22:15 UTC = 한국 시간(KST) 화~토 07:15 (주말 휴장 이후 불필요한 실행 방지)
+    - cron: '15 22 * * 1-5'
+  workflow_dispatch: # 깃허브 Actions 탭에서 버튼 클릭으로 즉시 수동 실행 가능
+
+jobs:
+  sync-market:
+    name: Sync Market Daily Snapshot & Charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Market Daily Update API
+        run: |
+          echo "Starting Market Daily Sync at $(date -u)..."
+          RESPONSE=$(curl -s -L -w "\nHTTP_STATUS:%{http_code}" -X GET "https://www.jusik.app/api/market/daily?refresh=true" -H "User-Agent: GitHub-Actions-Market-Cron")
+          HTTP_BODY=$(echo "$RESPONSE" | sed -e '$d')
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1 | cut -d':' -f2)
+          echo "Status: $HTTP_STATUS"
+          echo "Response summary:"
+          echo "$HTTP_BODY" | head -n 30
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Failed to sync market data. HTTP Status: $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Market Daily Sync completed successfully!"

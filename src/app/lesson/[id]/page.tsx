@@ -259,7 +259,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                           }
 
                           return (
-                            <p key={pIdx} className="font-medium text-justify">
+                            <p key={pIdx} className="font-medium text-left leading-relaxed break-all">
                               {para}
                             </p>
                           );

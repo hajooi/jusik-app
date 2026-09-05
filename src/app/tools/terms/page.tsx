@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { TERMS_QUIZ_DATA, QUIZ_LEVELS, QuizQuestion } from '@/data/termsQuizData';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
+import SmoothHeight from '@/components/SmoothHeight';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 import { triggerConfetti } from '@/utils/confetti';
@@ -617,9 +618,21 @@ function TermsQuizContent() {
               </div>
 
               {/* Leaderboard List with interactive popovers */}
+              <SmoothHeight duration={400} easing="cubic-bezier(0.2,0.8,0.2,1)">
               {leaderboardLoading ? (
-                <div className="py-8 text-center text-xs text-[var(--text-secondary)] font-medium">
-                  랭킹 데이터를 불러오는 중입니다...
+                <div className="space-y-1.5 divide-y divide-[var(--border-color)] animate-pulse">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="pt-2 first:pt-0 flex items-center justify-between py-1.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-[var(--border-color)]/60" />
+                        <div className="space-y-1">
+                          <div className="h-3 w-24 rounded bg-[var(--border-color)]/60" />
+                          <div className="h-2 w-16 rounded bg-[var(--border-color)]/40" />
+                        </div>
+                      </div>
+                      <div className="h-3 w-12 rounded bg-[var(--border-color)]/50" />
+                    </div>
+                  ))}
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="py-8 text-center space-y-1.5">
@@ -796,6 +809,7 @@ function TermsQuizContent() {
                   })}
                 </div>
               )}
+              </SmoothHeight>
             </div>
           </RevealOnScroll>
         </div>

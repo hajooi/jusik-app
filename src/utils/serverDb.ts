@@ -929,8 +929,8 @@ function attachUserMetadata(entry: TermsQuizLeaderboardEntry, userDb: Record<str
     avatarUrl = u.avatarUrl || entry.avatarUrl;
     effectiveType = (u.investmentType && u.investmentType !== '미진단') ? u.investmentType : entry.investmentType;
     
-    // Check if user is currently a valid PRO member
-    const isUserPro = !!(u.isPro === true || (u.proExpiresAt && new Date(u.proExpiresAt).getTime() > Date.now()));
+    // Check if user is currently a valid PRO member (만료 시 즉시 회수)
+    const isUserPro = !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true);
     
     let rawBadge = (u.activeBadge !== undefined && u.activeBadge !== null) ? u.activeBadge : (entry.activeBadge || 'investmentType');
     if (rawBadge === 'pro' && !isUserPro) {

@@ -449,7 +449,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     </div>
 
                     <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[10.5px]">
-                      <span className="text-[var(--text-secondary)] font-medium">10월 무료 코드: <strong className="text-[var(--accent-orange)] font-mono font-bold">JU26</strong></span>
+                      <span className="text-[var(--text-secondary)] font-medium">무료 코드: <strong className="text-[var(--accent-orange)] font-mono font-bold">JU26</strong></span>
                       <button
                         type="button"
                         onClick={() => {

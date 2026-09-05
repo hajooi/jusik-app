@@ -23,7 +23,8 @@ import {
   LineChart,
   Receipt,
   CandlestickChart,
-  ChevronRight
+  ChevronRight,
+  CloudLightning
 } from 'lucide-react';
 
 const LEVEL_ICON_MAP: Record<string, any> = {
@@ -58,6 +59,14 @@ const TOOLS_DIRECTORY = [
     href: '/tools/simulate',
     icon: LineChart,
     tag: '수익률 시뮬레이션',
+    isComingSoon: false,
+  },
+  {
+    title: '마켓 인사이트',
+    description: '오늘의 증시 현황과 주요 증시 일정 한눈에 보기',
+    href: '/tools/market',
+    icon: CloudLightning,
+    tag: '증시 레이더',
     isComingSoon: false,
   },
   {

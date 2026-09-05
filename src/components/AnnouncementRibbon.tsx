@@ -5,34 +5,66 @@ import { X, Check, Copy } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_oct26';
+const USER_STORAGE_KEY = 'jusik_app_user_account';
 
 export default function AnnouncementRibbon() {
   const { isPro } = useAuth();
-  const [isVisible, setIsVisible] = useState(false);
+
+  // Synchronously determine if ribbon should be eligible to display to avoid any FOUC / layout flash
+  const [isDismissed, setIsDismissed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      if (sessionStorage.getItem(SESSION_STORAGE_KEY) === 'true') return true;
+      const rawUser = localStorage.getItem(USER_STORAGE_KEY);
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        const validPro = !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true);
+        if (validPro) return true;
+      }
+    } catch {
+      // ignore
+    }
+    return false;
+  });
+
+  const [isScrolledDown, setIsScrolledDown] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    // Hide if already PRO
     if (isPro) {
-      setIsVisible(false);
+      setIsDismissed(true);
       return;
     }
-    // Check if user dismissed the banner in the current browser session
     try {
-      const isDismissed = sessionStorage.getItem(SESSION_STORAGE_KEY);
-      if (!isDismissed) {
-        setIsVisible(true);
+      if (sessionStorage.getItem(SESSION_STORAGE_KEY) === 'true') {
+        setIsDismissed(true);
       }
     } catch {
-      setIsVisible(true);
+      // ignore
     }
   }, [isPro]);
 
+  // Scroll detection: collapse ribbon when scrolling down (scrollY > 15), restore when at the very top (scrollY <= 5)
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      if (scrollY > 15) {
+        setIsScrolledDown(true);
+      } else if (scrollY <= 5) {
+        setIsScrolledDown(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsVisible(false);
+    setIsDismissed(true);
     try {
       sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
     } catch {
@@ -53,14 +85,17 @@ export default function AnnouncementRibbon() {
     }
   };
 
-  if (!isMounted) return null;
+  if (!isMounted || isDismissed) return null;
+
+  const isVisible = !isScrolledDown;
 
   return (
     <div
       style={{
         maxHeight: isVisible ? '48px' : '0px',
         opacity: isVisible ? 1 : 0,
-        transition: 'max-height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease',
+        transition: 'max-height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease',
+        pointerEvents: isVisible ? 'auto' : 'none',
       }}
       className="relative z-50 overflow-hidden bg-gradient-to-r from-[var(--accent-orange)]/10 via-amber-500/5 to-[var(--accent-orange)]/10 border-b border-[var(--border-color)]/80 backdrop-blur-md select-none"
     >

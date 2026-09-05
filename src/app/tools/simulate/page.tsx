@@ -431,6 +431,7 @@ function SimulatorContent() {
   const [chartBaseAnimKey, setChartBaseAnimKey] = useState<number>(0);
   const [chartBAnimKey, setChartBAnimKey] = useState<number>(0);
   const [chartCAnimKey, setChartCAnimKey] = useState<number>(0);
+  const [isChartReady, setIsChartReady] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const hasInitialAnimatedRef = useRef(false);
 
@@ -440,6 +441,7 @@ function SimulatorContent() {
     if (!svg) return;
 
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setIsChartReady(true);
       setChartBaseAnimKey((k) => k + 1);
       setChartBAnimKey((k) => k + 1);
       setChartCAnimKey((k) => k + 1);
@@ -451,9 +453,13 @@ function SimulatorContent() {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasInitialAnimatedRef.current) {
             hasInitialAnimatedRef.current = true;
-            setChartBaseAnimKey((k) => k + 1);
-            setChartBAnimKey((k) => k + 1);
-            setChartCAnimKey((k) => k + 1);
+            // 상위 RevealOnScroll의 140ms 지연 및 페이드인 타이밍과 동기화하여 자연스럽게 스위프 시작
+            setTimeout(() => {
+              setIsChartReady(true);
+              setChartBaseAnimKey((k) => k + 1);
+              setChartBAnimKey((k) => k + 1);
+              setChartCAnimKey((k) => k + 1);
+            }, 180);
             observer.disconnect();
           }
         });
@@ -1231,6 +1237,15 @@ function SimulatorContent() {
     return `M ${points.join(' L ')}`;
   };
 
+  const getSvgAreaPath = (values: number[]) => {
+    if (values.length === 0) return '';
+    const points = values.map((val, idx) => `${getX(idx)},${getY(val)}`);
+    const lastX = getX(values.length - 1);
+    const firstX = getX(0);
+    const bottomY = chartHeight - 8;
+    return `M ${points.join(' L ')} L ${lastX},${bottomY} L ${firstX},${bottomY} Z`;
+  };
+
   // Dynamic X-Axis Year Ticks for SVG Canvas
   const yearTicks = useMemo(() => {
     const pts = simulation.points;
@@ -1846,39 +1861,48 @@ function SimulatorContent() {
                   100% { width: ${chartWidth}px; }
                 }
               `}</style>
-              <clipPath id={`chartRevealClip-base-${chartBaseAnimKey}`}>
+              <clipPath id="chartRevealClip-base">
                 <rect
-                  key={chartBaseAnimKey}
+                  key={`base-rect-${chartBaseAnimKey}`}
                   x="0"
                   y="0"
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    animation: isChartReady
+                      ? 'chartSweepAnim 1250ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                      : 'none',
+                    animationDelay: '16ms',
                   }}
                 />
               </clipPath>
-              <clipPath id={`chartRevealClip-B-${chartBAnimKey}`}>
+              <clipPath id="chartRevealClip-B">
                 <rect
-                  key={chartBAnimKey}
+                  key={`B-rect-${chartBAnimKey}`}
                   x="0"
                   y="0"
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    animation: isChartReady
+                      ? 'chartSweepAnim 1250ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                      : 'none',
+                    animationDelay: '16ms',
                   }}
                 />
               </clipPath>
-              <clipPath id={`chartRevealClip-C-${chartCAnimKey}`}>
+              <clipPath id="chartRevealClip-C">
                 <rect
-                  key={chartCAnimKey}
+                  key={`C-rect-${chartCAnimKey}`}
                   x="0"
                   y="0"
                   width="0"
                   height={chartHeight}
                   style={{
-                    animation: 'chartSweepAnim 550ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    animation: isChartReady
+                      ? 'chartSweepAnim 1250ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                      : 'none',
+                    animationDelay: '16ms',
                   }}
                 />
               </clipPath>
@@ -1891,6 +1915,18 @@ function SimulatorContent() {
                 <stop offset="0%" stopColor="var(--accent-orange)" stopOpacity="0.25" />
                 <stop offset="70%" stopColor="var(--accent-orange)" stopOpacity="0.10" />
                 <stop offset="100%" stopColor="var(--accent-orange)" stopOpacity="0.01" />
+              </linearGradient>
+              <linearGradient id="simOrangeAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#F18F01" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#F18F01" stopOpacity="0.00" />
+              </linearGradient>
+              <linearGradient id="simEmeraldAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10B981" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#10B981" stopOpacity="0.00" />
+              </linearGradient>
+              <linearGradient id="simIndigoAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366F1" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#6366F1" stopOpacity="0.00" />
               </linearGradient>
             </defs>
 
@@ -1990,7 +2026,17 @@ function SimulatorContent() {
             )}
 
             {/* Base Line & Strategy A Curves (Buong Orange) */}
-            <g clipPath={`url(#chartRevealClip-base-${chartBaseAnimKey})`}>
+            <g
+              clipPath="url(#chartRevealClip-base)"
+              opacity={isChartReady ? 1 : 0}
+            >
+              {/* Strategy 1 Area Fill (은은한 주황 그라데이션) */}
+              <path
+                d={getSvgAreaPath(valsA)}
+                fill="url(#simOrangeAreaGrad)"
+                className="pointer-events-none"
+              />
+
               {/* Invested Principal Base Dashed Line */}
               <path
                 d={getSvgPath(investedVals)}
@@ -1998,8 +2044,6 @@ function SimulatorContent() {
                 stroke="#888888"
                 strokeWidth="1.5"
                 strokeDasharray="3 3"
-                className="transition-all duration-500 ease-out"
-                style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
               />
 
               {/* Strategy 1 Curve: Buong Orange */}
@@ -2008,35 +2052,47 @@ function SimulatorContent() {
                 fill="none"
                 stroke="#F18F01"
                 strokeWidth="2.2"
-                className="transition-all duration-500 ease-out"
-                style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
               />
             </g>
 
             {/* Strategy 2 Curve: Fintech Emerald (Independent Sweep on Add) */}
             {strategyCount >= 2 && (
-              <g clipPath={`url(#chartRevealClip-B-${chartBAnimKey})`}>
+              <g
+                clipPath="url(#chartRevealClip-B)"
+                opacity={isChartReady ? 1 : 0}
+              >
+                {/* Strategy 2 Area Fill (은은한 에메랄드 그라데이션) */}
+                <path
+                  d={getSvgAreaPath(valsB)}
+                  fill="url(#simEmeraldAreaGrad)"
+                  className="pointer-events-none"
+                />
                 <path
                   d={getSvgPath(valsB)}
                   fill="none"
                   stroke="#10B981"
                   strokeWidth="2.2"
-                  className="transition-all duration-500 ease-out"
-                  style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
                 />
               </g>
             )}
 
             {/* Strategy 3 Curve: Royal Indigo (Independent Sweep on Add) */}
             {strategyCount >= 3 && (
-              <g clipPath={`url(#chartRevealClip-C-${chartCAnimKey})`}>
+              <g
+                clipPath="url(#chartRevealClip-C)"
+                opacity={isChartReady ? 1 : 0}
+              >
+                {/* Strategy 3 Area Fill (은은한 인디고 그라데이션) */}
+                <path
+                  d={getSvgAreaPath(valsC)}
+                  fill="url(#simIndigoAreaGrad)"
+                  className="pointer-events-none"
+                />
                 <path
                   d={getSvgPath(valsC)}
                   fill="none"
                   stroke="#6366F1"
                   strokeWidth="2.2"
-                  className="transition-all duration-500 ease-out"
-                  style={{ transition: 'd 0.6s cubic-bezier(0.32, 0.72, 0, 1)' }}
                 />
               </g>
             )}

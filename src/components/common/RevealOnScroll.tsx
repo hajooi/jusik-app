@@ -23,6 +23,13 @@ export default function RevealOnScroll({
       return;
     }
 
+    // 마운트 시점에 이미 화면(뷰포트) 안에 있는 요소는 지연 없이 즉시 표시하여 모바일 렉 완전 방지
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -45,7 +52,7 @@ export default function RevealOnScroll({
     };
   }, []);
 
-  const delayMs = delayIndex > 0 ? Math.min(delayIndex * 70, 400) : 0;
+  const delayMs = delayIndex > 0 ? Math.min(delayIndex * 60, 240) : 0;
 
   return (
     <div

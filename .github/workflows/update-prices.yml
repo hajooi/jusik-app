@@ -38,3 +38,17 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add src/data/historicalPrices.json src/data/backtestData.json
           git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update market historical prices and backtest data" && git push)
+
+      - name: Notify Telegram on Success
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q' }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"📈 <b>[jusik.app 월간 시뮬레이터 데이터 갱신 완료]</b>\n매월 1일 정기 백테스트 및 시뮬레이터 주가 데이터가 성공적으로 갱신되었습니다.","parse_mode":"HTML"}'
+
+      - name: Notify Telegram on Failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q' }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"🚨 <b>[jusik.app 자동화 오류 경고]</b>\n월간 백테스트 데이터 갱신 작업(update-prices) 중 오류가 발생했습니다. 로그를 확인해 주세요.","parse_mode":"HTML"}'

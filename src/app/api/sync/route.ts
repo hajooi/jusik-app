@@ -44,6 +44,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
     }
 
+    // 만료된 PRO 권한 자동 회수 및 DB 반영
+    const effectiveIsPro = !!(userRecord.proExpiresAt ? new Date(userRecord.proExpiresAt).getTime() > Date.now() : userRecord.isPro === true);
+    if (userRecord.isPro && !effectiveIsPro) {
+      userRecord.isPro = false;
+      if (userRecord.activeBadge === 'pro') {
+        userRecord.activeBadge = 'investmentType';
+      }
+    }
+
     userRecord.lastActiveAt = new Date().toISOString();
     db[nickname] = userRecord;
     await saveServerDbAsync(db);
@@ -64,7 +73,7 @@ export async function GET(request: Request) {
           simulatorSettings: userRecord.simulatorSettings,
           activeBadge: userRecord.activeBadge,
           termsQuizBest: userRecord.termsQuizBest,
-          isPro: userRecord.isPro,
+          isPro: effectiveIsPro,
           proExpiresAt: userRecord.proExpiresAt,
           rankPercentile
         }
@@ -223,6 +232,15 @@ export async function POST(request: Request) {
           }
         }
 
+        // 만료된 PRO 권한 자동 회수 및 DB 반영
+        const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
+        if (existing.isPro && !effectiveIsPro) {
+          existing.isPro = false;
+          if (existing.activeBadge === 'pro') {
+            existing.activeBadge = 'investmentType';
+          }
+        }
+
         existing.lastActiveAt = new Date().toISOString();
 
         db[trimmedNickname] = existing;
@@ -243,7 +261,7 @@ export async function POST(request: Request) {
             simulatorSettings: existing.simulatorSettings,
             activeBadge: existing.activeBadge,
             termsQuizBest: existing.termsQuizBest,
-            isPro: existing.isPro,
+            isPro: effectiveIsPro,
             proExpiresAt: existing.proExpiresAt,
             rankPercentile
           }
@@ -332,6 +350,15 @@ export async function POST(request: Request) {
           existing.termsQuizBest = termsQuizBest;
         }
       }
+      // 만료된 PRO 권한 자동 회수 및 DB 반영
+      const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
+      if (existing.isPro && !effectiveIsPro) {
+        existing.isPro = false;
+        if (existing.activeBadge === 'pro') {
+          existing.activeBadge = 'investmentType';
+        }
+      }
+
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
@@ -352,7 +379,7 @@ export async function POST(request: Request) {
           simulatorSettings: existing.simulatorSettings,
           activeBadge: existing.activeBadge,
           termsQuizBest: existing.termsQuizBest,
-          isPro: existing.isPro,
+          isPro: effectiveIsPro,
           proExpiresAt: existing.proExpiresAt,
           rankPercentile
         }

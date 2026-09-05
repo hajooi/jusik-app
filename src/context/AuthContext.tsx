@@ -591,12 +591,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Pro Membership Status Evaluation (실제 프로 코드 인증 또는 유효한 proExpiresAt 만료일을 보유한 계정만 PRO 인정)
+  // Pro Membership Status Evaluation (유효한 proExpiresAt 만료일을 보유하거나 영구 PRO인 경우만 인정, 만료 시 즉시 회수)
   const isPro = !!(
-    user && (
-      user.isPro === true ||
-      (user.proExpiresAt && new Date(user.proExpiresAt).getTime() > Date.now())
-    )
+    user &&
+    (user.proExpiresAt
+      ? new Date(user.proExpiresAt).getTime() > Date.now()
+      : user.isPro === true)
   );
 
   // Pro 만료일 (실제 등록된 만료일 표기)
