@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { CALENDAR_EVENTS } from "@/data/marketCalendar";
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 export async function POST(request: Request) {
+  if (!TELEGRAM_BOT_TOKEN) {
+    return NextResponse.json({ ok: false, error: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 500 });
+  }
+
   try {
     const body = await request.json();
     const callbackQuery = body.callback_query;

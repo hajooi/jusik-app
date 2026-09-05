@@ -1,9 +1,14 @@
 // src/utils/telegram.ts
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q";
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "7954599592";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 export async function sendTelegramMessage(text: string, replyMarkup?: any): Promise<boolean> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.warn('[Telegram] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured in environment.');
+    return false;
+  }
+
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     const payload: Record<string, any> = {
