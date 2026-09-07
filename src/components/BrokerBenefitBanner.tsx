@@ -6,9 +6,14 @@ import { ArrowRight, X } from 'lucide-react';
 
 const SESSION_STORAGE_KEY = 'jusik_hide_broker_benefit_toast';
 
-export default function BrokerBenefitBanner() {
+interface BrokerBenefitBannerProps {
+  onDismiss?: () => void;
+}
+
+export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerProps) {
   const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -22,10 +27,10 @@ export default function BrokerBenefitBanner() {
       // ignore
     }
 
-    // 0.5초 뒤 부드럽게 등장
+    // 0.6초 뒤 프로필 아래로 자연스럽게 확장
     const enterTimer = setTimeout(() => {
       setIsVisible(true);
-    }, 500);
+    }, 600);
 
     // 9초 후 자동 퇴장
     timerRef.current = setTimeout(() => {
@@ -39,13 +44,23 @@ export default function BrokerBenefitBanner() {
   }, []);
 
   const handleDismiss = () => {
-    setIsVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsClosing(false);
+      if (onDismiss) onDismiss();
+    }, 320);
   };
 
   const handleManualClose = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsClosing(false);
+      if (onDismiss) onDismiss();
+    }, 320);
     try {
       sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
     } catch {
@@ -63,51 +78,51 @@ export default function BrokerBenefitBanner() {
     }, 4500);
   };
 
-  if (!isClient) return null;
+  if (!isClient || !isVisible) return null;
 
   return (
     <div
       data-nosnippet="true"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="grid overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-      style={{
-        gridTemplateRows: isVisible ? '1fr' : '0fr',
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0px) scale(1)' : 'translateY(-4px) scale(0.98)',
-        pointerEvents: isVisible ? 'auto' : 'none',
-      }}
+      className={`w-max max-w-[calc(100vw-1.5rem)] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-2xl border border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 shadow-xl hover:shadow-[0_0_16px_rgba(241,143,1,0.18)] transition-all duration-300 group text-left ${
+        isClosing ? 'animate-popover-shrink pointer-events-none' : 'animate-popover-expand'
+      }`}
     >
-      <div className="min-h-0 overflow-hidden py-0.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-[var(--card-surface)]/90 hover:bg-[var(--card-hover)] dark:bg-zinc-900/90 border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 shadow-xs hover:shadow-[0_0_18px_rgba(241,143,1,0.14)] backdrop-blur-xl transition-all duration-300 group max-w-full">
-          {/* Link Clickable Area */}
-          <Link
-            href="/lesson/lv1-3"
-            className="flex items-center gap-2 text-xs sm:text-[13px] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors min-w-0"
-          >
-            {/* 특별 제휴 뱃지 */}
-            <span className="px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold text-[10.5px] shrink-0">
-              특별 제휴
-            </span>
-            <span className="truncate">
-              해외주식 수수료{' '}
-              <span className="text-[var(--accent-orange)] font-extrabold">평생 0.04%</span>
-              {' '}적용받기
-            </span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-300 shrink-0 text-[var(--accent-orange)] ml-0.5" />
-          </Link>
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Link Clickable Area */}
+        <Link
+          href="/lesson/lv1-3"
+          className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
+        >
+          {/* 특별 제휴 뱃지 */}
+          <span className="px-1.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-bold text-[9.5px] sm:text-[10px] shrink-0">
+            특별 제휴
+          </span>
 
-          {/* Dismiss 'X' Button */}
-          <button
-            type="button"
-            onClick={handleManualClose}
-            className="p-1 -mr-1 rounded-full text-[var(--text-secondary)]/50 hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer shrink-0"
-            aria-label="공지 닫기"
-            title="이번 방문 동안 닫기"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
+          {/* 문구: 말줄임 없이 온전하게 표기 */}
+          <span className="whitespace-nowrap">
+            해외주식 수수료{' '}
+            <span className="text-[var(--accent-orange)] font-extrabold">평생 0.04%</span>
+            {' '}적용
+          </span>
+
+          <ArrowRight className="w-3 h-3 text-[var(--accent-orange)] group-hover:translate-x-0.5 transition-transform duration-300 shrink-0" />
+        </Link>
+
+        {/* Separator Hairline */}
+        <span className="w-px h-2.5 bg-[var(--border-color)] shrink-0 mx-0.5" />
+
+        {/* Dismiss 'X' Button */}
+        <button
+          type="button"
+          onClick={handleManualClose}
+          className="p-0.5 rounded-full text-[var(--text-secondary)]/50 hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer shrink-0"
+          aria-label="공지 닫기"
+          title="이번 방문 동안 닫기"
+        >
+          <X className="w-3 h-3" />
+        </button>
       </div>
     </div>
   );

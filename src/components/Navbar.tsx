@@ -2,18 +2,24 @@
 
 import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { BookmarkCheck, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import AuthPopover from '@/components/AuthPopover';
 import AdminModal from '@/components/AdminModal';
 import AnnouncementRibbon from '@/components/AnnouncementRibbon';
+import BrokerBenefitBanner from '@/components/BrokerBenefitBanner';
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
   const { user, isAuthPopoverOpen, toggleAuthPopover, closeAuthPopover } = useAuth();
   const authPopoverRef = useRef<HTMLDivElement>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isBenefitDismissed, setIsBenefitDismissed] = useState(false);
 
   const handleToggleAuth = () => {
+    setIsBenefitDismissed(true);
     toggleAuthPopover();
   };
 
@@ -116,6 +122,13 @@ export default function Navbar() {
                     onClose={closeAuthPopover} 
                     onOpenAdmin={() => setIsAdminModalOpen(true)}
                   />
+                </div>
+              )}
+
+              {/* Broker Benefit Banner Popover attached below Profile Button (Curriculum Home Page Only) */}
+              {isHomePage && !isAuthPopoverOpen && !isBenefitDismissed && (
+                <div className="absolute right-0 top-full mt-2 z-40">
+                  <BrokerBenefitBanner onDismiss={() => setIsBenefitDismissed(true)} />
                 </div>
               )}
             </div>
