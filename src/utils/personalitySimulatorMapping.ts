@@ -369,8 +369,6 @@ export function calculatePersonalitySimulatorConfig(
         name: '대표 균형 자산 배분',
         tagline: '시장 대표 지수를 기반으로 안정적인 복리 성장을 추구합니다.',
         description: 'S&P 500과 나스닥 100을 균형 있게 분산하여 장기 복리 수익을 극대화하는 표준 전략입니다.',
-        recommendedStrategy: '미국 시장 대표 지수(SPY, QQQ) 정기 적립식 분산 투자',
-        suitableAssets: ['SPY', 'QQQ'],
         badges: ['글로벌 우량주', '분산 투자', '적립식 복리'],
         strengths: ['검증된 장기 우상향 성과', '단순하고 지속 가능한 투자'],
         weaknesses: ['단기 시장 조정 시 심리적 인내 필요'],
