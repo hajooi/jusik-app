@@ -489,7 +489,7 @@ export default function AccountOpenGuide() {
         {/* STEP 5 SPECIAL: Clean Essentials & Contact Cards */}
         {step.stepNum === 5 && (
           <div className="space-y-5 pt-1">
-            {/* 2 Core Tips Cards */}
+            {/* 4 Core Tips Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-4 rounded-2xl bg-white/80 dark:bg-zinc-800/80 border border-[var(--border-color)] space-y-2">
                 <div className="flex items-center gap-2 text-sm font-extrabold text-[var(--text-primary)]">
@@ -518,6 +518,36 @@ export default function AccountOpenGuide() {
                 </p>
                 <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-[var(--card-hover)] p-2 rounded-lg">
                   첫 주식 거래 시 자동 처리
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/80 dark:bg-zinc-800/80 border border-[var(--border-color)] space-y-2">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-[var(--text-primary)]">
+                  <span className="p-1.5 rounded-lg bg-blue-500/15 text-blue-500">
+                    <Building className="w-4 h-4" />
+                  </span>
+                  <span>다수 계좌 개설 안내</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
+                  DB증권 강남금융센터 내방 시 20일 제한 없이 계좌 개설 가능합니다.
+                </p>
+                <div className="text-[11px] font-bold text-blue-500 bg-[var(--card-hover)] p-2 rounded-lg">
+                  목적별 다수 계좌 필요 시 지점 내방
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/80 dark:bg-zinc-800/80 border border-[var(--border-color)] space-y-2">
+                <div className="flex items-center gap-2 text-sm font-extrabold text-[var(--text-primary)]">
+                  <span className="p-1.5 rounded-lg bg-purple-500/15 text-purple-500">
+                    <FileCheck2 className="w-4 h-4" />
+                  </span>
+                  <span>주식 옮기기 (타사 대체출고)</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
+                  증권사를 옮길 때 주식을 팔고 다시 사야 하는 건 아닙니다. 주식을 옮기는 기능(타사 대체출고)이 있으니 지금 사용하시는 증권사에 문의하시면 됩니다.
+                </p>
+                <div className="text-[11px] font-bold text-purple-500 bg-[var(--card-hover)] p-2 rounded-lg">
+                  보유 주식 그대로 이체 가능
                 </div>
               </div>
             </div>

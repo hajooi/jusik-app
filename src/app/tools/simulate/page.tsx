@@ -2818,7 +2818,7 @@ function SimulatorContent() {
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--text-secondary)]">연수익률</span>
                   <span className="font-mono font-bold text-[var(--accent-orange)]">
-                    +<AnimatedNumber value={Number(simulation.portA.cagr)} decimals={1} suffix="% /년" />
+                    {Number(simulation.portA.cagr) > 0 ? '+' : ''}<AnimatedNumber value={Number(simulation.portA.cagr)} decimals={1} suffix="% /년" />
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -2891,7 +2891,7 @@ function SimulatorContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">연수익률</span>
                     <span className="font-mono font-bold text-emerald-500">
-                      +<AnimatedNumber value={Number(simulation.portB.cagr)} decimals={1} suffix="% /년" />
+                      {Number(simulation.portB.cagr) > 0 ? '+' : ''}<AnimatedNumber value={Number(simulation.portB.cagr)} decimals={1} suffix="% /년" />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -2965,7 +2965,7 @@ function SimulatorContent() {
                   <div className="flex items-center justify-between">
                     <span className="text-[var(--text-secondary)]">연수익률</span>
                     <span className="font-mono font-bold text-indigo-500">
-                      +<AnimatedNumber value={Number(simulation.portC.cagr)} decimals={1} suffix="% /년" />
+                      {Number(simulation.portC.cagr) > 0 ? '+' : ''}<AnimatedNumber value={Number(simulation.portC.cagr)} decimals={1} suffix="% /년" />
                     </span>
                   </div>
                   <div className="flex items-center justify-between">

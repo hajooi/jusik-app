@@ -210,25 +210,6 @@ export default function MarketCalendarSection() {
     });
   };
 
-  // Toss-style Continuous Feed: 과거 6월부터 연말까지 전체 일정을 정렬하여 제공 (타임라인 항상 보존)
-  const displayedEvents = useMemo(() => {
-    return filterEvents([...calendarEvents]).sort((a, b) => a.date.localeCompare(b.date));
-  }, [calendarEvents, categoryFilter, regionFilter, importanceFilter]);
-
-  // 페이지 마운트 시, 덜컹거리는 지연 애니메이션 없이 즉시 오늘 날짜 이벤트 위치로 바로 고정
-  useEffect(() => {
-    if (selectedDate) return;
-    const container = feedScrollRef.current;
-    if (!container) return;
-    const todayEl = container.querySelector('[data-anchor-today="true"]') as HTMLElement;
-    if (todayEl) {
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = todayEl.getBoundingClientRect();
-      const targetTop = container.scrollTop + (targetRect.top - containerRect.top) - 16;
-      container.scrollTop = Math.max(0, targetTop);
-    }
-  }, [selectedDate, displayedEvents]);
-
   const prevMonth = () => {
     if (!canGoPrev) return;
     if (currentMonth === 0) {
@@ -249,8 +230,30 @@ export default function MarketCalendarSection() {
 
   const MONTH_KR = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
-  // 오늘 이후 첫 번째 이벤트 인덱스 (초기 스크롤 타깃)
-  const firstUpcomingIdx = displayedEvents.findIndex((e) => e.date >= TODAY_STR);
+  const [visibleCount, setVisibleCount] = useState<number>(10);
+
+  // 날짜 클릭이나 필터 변경 시 노출 개수를 10개로 리셋
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [selectedDate, categoryFilter, regionFilter, importanceFilter]);
+
+  // 필터가 적용된 전체 일정 목록
+  const allFilteredEvents = useMemo(() => {
+    return filterEvents([...calendarEvents]).sort((a, b) => a.date.localeCompare(b.date));
+  }, [calendarEvents, categoryFilter, regionFilter, importanceFilter]);
+
+  // 기준일: 사용자가 특정 날짜를 클릭했으면 그 날짜(selectedDate), 없으면 오늘(TODAY_STR)
+  const baseDate = selectedDate || TODAY_STR;
+
+  // 기준일(baseDate) 이후 미래 일정만 정확하게 필터링하여 정렬
+  const futureEvents = useMemo(() => {
+    return allFilteredEvents.filter((e) => e.date >= baseDate);
+  }, [allFilteredEvents, baseDate]);
+
+  // 10개씩 더보기로 확장하여 노출할 목록
+  const visibleEvents = useMemo(() => {
+    return futureEvents.slice(0, visibleCount);
+  }, [futureEvents, visibleCount]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -285,121 +288,11 @@ export default function MarketCalendarSection() {
         </div>
       </RevealOnScroll>
 
-      {/* ── Top Section: 캘린더 (좌/상) + 핵심 체크포인트 (우/상) ── */}
+      {/* ── Top Section: 핵심 체크포인트 (좌/상) + 캘린더 (우/하) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        {/* 캘린더 카드 (7 cols on desktop) */}
-        <RevealOnScroll delayIndex={1} className="lg:col-span-7 flex flex-col h-full">
-        <div className="flex-1 flex flex-col rounded-3xl p-5 sm:p-6 bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
-          {/* Month navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
-              {currentYear}년 {MONTH_KR[currentMonth]}
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={prevMonth}
-                disabled={!canGoPrev}
-                aria-label="이전 달"
-                className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={nextMonth}
-                disabled={!canGoNext}
-                aria-label="다음 달"
-                className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 mb-2">
-            {WEEKDAYS.map((d) => (
-              <div 
-                key={d} 
-                className="text-center text-xs font-semibold py-1 text-[var(--text-secondary)]/70"
-              >
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Day grid */}
-          <div className="grid grid-cols-7 gap-y-2 flex-1 items-center">
-            {Array.from({ length: firstDay }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              const hasEvent = !!eventsByDate[dateStr]?.length;
-              const isSelected = selectedDate === dateStr;
-              const isToday = dateStr === TODAY_STR;
-
-              const scrollToElement = (target: HTMLElement) => {
-                const container = feedScrollRef.current;
-                if (!container) return;
-                const containerRect = container.getBoundingClientRect();
-                const targetRect = target.getBoundingClientRect();
-                const targetTop = container.scrollTop + (targetRect.top - containerRect.top) - 16;
-                container.scrollTo({
-                  top: Math.max(0, targetTop),
-                  behavior: 'smooth',
-                });
-              };
-
-              const handleDayClick = () => {
-                if (isSelected) {
-                  setSelectedDate(null);
-                  return;
-                }
-                setSelectedDate(dateStr);
-                const container = feedScrollRef.current;
-                if (!container) return;
-                const targetEl = container.querySelector(`[data-feed-date="${dateStr}"]`) as HTMLElement;
-                if (targetEl) {
-                  scrollToElement(targetEl);
-                } else {
-                  const allCards = Array.from(container.querySelectorAll('[data-feed-date]')) as HTMLElement[];
-                  const nextCard = allCards.find((el) => (el.getAttribute('data-feed-date') ?? '') >= dateStr);
-                  if (nextCard) {
-                    scrollToElement(nextCard);
-                  }
-                }
-              };
-
-              return (
-                <div key={dateStr} className="flex flex-col items-center relative py-1">
-                  <button
-                    onClick={handleDayClick}
-                    className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
-                      isSelected
-                        ? 'bg-[var(--accent-orange)] text-white font-black shadow-[0_0_14px_rgba(241,143,1,0.5)] ring-2 ring-[var(--accent-orange)]'
-                        : isToday
-                        ? 'text-[var(--accent-orange)] font-black bg-[var(--accent-orange)]/10 ring-2 ring-[var(--accent-orange)]'
-                        : hasEvent
-                        ? 'text-[var(--text-primary)] font-bold hover:bg-[var(--bg-main)]'
-                        : 'text-[var(--text-secondary)]/35 font-normal hover:bg-[var(--bg-main)]'
-                    }`}
-                  >
-                    <span>{day}</span>
-                    {hasEvent && !isSelected && (
-                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[var(--accent-orange)]/80" />
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        </RevealOnScroll>
-
-        {/* 핵심 체크포인트 위젯 (5 cols on desktop, 모바일에서도 온전히 노출) */}
-        <RevealOnScroll delayIndex={2} className="lg:col-span-5 flex flex-col h-full">
+        {/* 핵심 체크포인트 위젯 (데스크톱/모바일 공통 1순위: lg:col-span-5) */}
+        <RevealOnScroll delayIndex={1} className="lg:col-span-5 flex flex-col h-full">
         <div className="flex-1 flex flex-col justify-between p-5 sm:p-6 rounded-3xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
           <div>
             <div className="flex items-center justify-between mb-3.5">
@@ -418,10 +311,8 @@ export default function MarketCalendarSection() {
 
             <div className="space-y-2.5">
               {(() => {
-                // 다가올 일정 우선 선별 (오늘 이후 중요도 3 일정)
-                const upcomingKeyEvents = displayedEvents.filter((e) => e.importance === 3 && e.date >= TODAY_STR);
-                // 모자라면 최근 중요도 3 일정으로 보충
-                const pastKeyEvents = displayedEvents.filter((e) => e.importance === 3 && e.date < TODAY_STR).reverse();
+                const upcomingKeyEvents = allFilteredEvents.filter((e) => e.importance === 3 && e.date >= TODAY_STR);
+                const pastKeyEvents = allFilteredEvents.filter((e) => e.importance === 3 && e.date < TODAY_STR).reverse();
                 const keyEvents = [...upcomingKeyEvents, ...pastKeyEvents].slice(0, 3);
 
                 return keyEvents.map((keyEv) => {
@@ -432,15 +323,6 @@ export default function MarketCalendarSection() {
                       type="button"
                       onClick={() => {
                         setSelectedDate(keyEv.date);
-                        const container = feedScrollRef.current;
-                        if (!container) return;
-                        const targetEl = container.querySelector(`[data-feed-date="${keyEv.date}"]`) as HTMLElement;
-                        if (targetEl) {
-                          const containerRect = container.getBoundingClientRect();
-                          const targetRect = targetEl.getBoundingClientRect();
-                          const targetTop = container.scrollTop + (targetRect.top - containerRect.top) - 16;
-                          container.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-                        }
                       }}
                       className="w-full text-left p-3 rounded-2xl bg-[var(--bg-main)]/80 hover:bg-[var(--card-hover)] border border-[var(--border-color)]/80 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group space-y-1.5"
                     >
@@ -473,31 +355,133 @@ export default function MarketCalendarSection() {
           </div>
         </div>
         </RevealOnScroll>
+
+        {/* 캘린더 카드 (데스크톱/모바일 공통 2순위: lg:col-span-7) */}
+        <RevealOnScroll delayIndex={2} className="lg:col-span-7 flex flex-col h-full">
+        <div className="flex-1 flex flex-col rounded-3xl p-5 sm:p-6 bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
+          {/* Month navigation */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+              {currentYear}년 {MONTH_KR[currentMonth]}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={prevMonth}
+                disabled={!canGoPrev}
+                aria-label="이전 달"
+                className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={nextMonth}
+                disabled={!canGoNext}
+                aria-label="다음 달"
+                className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors disabled:opacity-20 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 mb-2 text-center">
+            {WEEKDAYS.map((day, i) => (
+              <div
+                key={day}
+                className={`text-xs font-bold py-1 ${
+                  i === 0 ? 'text-rose-500' : i === 6 ? 'text-blue-500' : 'text-[var(--text-secondary)]'
+                }`}
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-y-1">
+            {/* Empty slots for days before 1st */}
+            {Array.from({ length: firstDay }).map((_, i) => (
+              <div key={`empty-${i}`} className="h-9 sm:h-10" />
+            ))}
+
+            {/* Days of current month */}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const hasEvent = !!eventsByDate[dateStr]?.length;
+              const isSelected = selectedDate === dateStr;
+              const isToday = dateStr === TODAY_STR;
+
+              const handleDayClick = () => {
+                if (isSelected) {
+                  setSelectedDate(null);
+                  return;
+                }
+                setSelectedDate(dateStr);
+              };
+
+              return (
+                <div key={dateStr} className="flex flex-col items-center relative py-1">
+                  <button
+                    onClick={handleDayClick}
+                    className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
+                      isSelected
+                        ? 'bg-[var(--accent-orange)] text-white font-black shadow-[0_0_14px_rgba(241,143,1,0.5)] ring-2 ring-[var(--accent-orange)]'
+                        : isToday
+                        ? 'text-[var(--accent-orange)] font-black bg-[var(--accent-orange)]/10 ring-2 ring-[var(--accent-orange)]'
+                        : hasEvent
+                        ? 'text-[var(--text-primary)] font-bold hover:bg-[var(--bg-main)]'
+                        : 'text-[var(--text-secondary)]/35 font-normal hover:bg-[var(--bg-main)]'
+                    }`}
+                  >
+                    <span>{day}</span>
+                    {hasEvent && !isSelected && (
+                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[var(--accent-orange)]/80" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        </RevealOnScroll>
       </div>
 
-      {/* ── Bottom Section: 전체 일정 및 지표 피드 (Apple-style High Density Surface & Smooth Gradient Mask) ── */}
+      {/* ── Bottom Section: 전체 일정 및 지표 피드 (자연스러운 페이지 스크롤 & 더보기 접기/펼치기) ── */}
       <RevealOnScroll delayIndex={3}>
       <div className="relative w-full rounded-3xl p-5 sm:p-6 bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
-        <SmoothHeight>
-          {displayedEvents.length > 0 ? (
-            <div 
-              ref={feedScrollRef}
-              className="max-h-[600px] overflow-y-auto pr-1 space-y-3.5 overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1"
-              style={{
-                maskImage: 'linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 24px), transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 24px), transparent 100%)',
-              }}
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm sm:text-base font-extrabold text-[var(--text-primary)]">
+              증시 타임라인
+            </span>
+            <span className="text-[11px] font-mono text-[var(--text-secondary)]">
+              {selectedDate ? `${selectedDate.replace(/-/g, '.')} 기준` : '오늘 이후'} {futureEvents.length}개 중 {Math.min(visibleEvents.length, futureEvents.length)}개
+            </span>
+          </div>
+          {selectedDate && (
+            <button
+              type="button"
+              onClick={() => setSelectedDate(null)}
+              className="text-xs font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
             >
-              {displayedEvents.map((ev, idx) => {
+              선택 해제 (오늘 기준으로 보기)
+            </button>
+          )}
+        </div>
+
+        <SmoothHeight>
+          {visibleEvents.length > 0 ? (
+            <div className="space-y-3.5 py-1">
+              {visibleEvents.map((ev, idx) => {
                 const isPast = ev.date < TODAY_STR;
-                const isAnchor = idx === (firstUpcomingIdx >= 0 ? firstUpcomingIdx : 0);
                 const isDateSelected = ev.date === selectedDate;
 
                 return (
                   <div 
                     key={ev.id}
                     data-feed-date={ev.date}
-                    data-anchor-today={isAnchor ? 'true' : undefined}
                     className={`transition-all duration-300 rounded-2xl ${
                       isDateSelected ? 'ring-2 ring-[var(--accent-orange)]/60 p-1 bg-[var(--accent-orange)]/5' : ''
                     }`}
@@ -518,6 +502,22 @@ export default function MarketCalendarSection() {
                   </div>
                 );
               })}
+
+              {/* 미래 일정 10개씩 더보기 버튼 */}
+              {futureEvents.length > visibleCount && (
+                <div className="pt-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => prev + 10)}
+                    className="px-5 py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-main)]/90 hover:bg-[var(--card-hover)] text-xs font-extrabold text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.18)] transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <span>더보기</span>
+                    <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                      ({futureEvents.length - visibleCount}개 남음)
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-16 text-sm text-[var(--text-secondary)]">

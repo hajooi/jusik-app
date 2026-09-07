@@ -98,7 +98,12 @@ export default function MarketWeatherSection({
           {/* Integrated Gauge Bar with Fear & Greed Badge (Clean layout without dividing line) */}
           <div className="w-full max-w-xs sm:max-w-sm mt-5 space-y-2">
             <div className="flex items-center justify-between px-0.5">
-              <span className="text-xs font-bold text-[var(--text-secondary)]">공포와 탐욕 지수</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-[var(--text-secondary)]">공포와 탐욕 지수</span>
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-secondary)]/80">
+                  미국 증시 기준
+                </span>
+              </div>
               <span className="text-xs font-black font-mono px-2.5 py-0.5 rounded-full bg-[var(--bg-main)] border border-[var(--border-color)]" style={{ color: barColor }}>
                 {fearGreedIndex}점 ({fearGreedLabel})
               </span>
