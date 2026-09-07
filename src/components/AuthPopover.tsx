@@ -188,8 +188,8 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
           </div>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
             {user 
-              ? '학습 및 투자 기록이 안전하게 보관됩니다.' 
-              : '로그인하여 학습 및 투자 기록을 안전하게 보관하세요.'}
+              ? '학습 진도와 진단·분석 결과가 안전하게 보관 중입니다.' 
+              : '로그인하고 학습 진도와 진단·분석 결과를 보관하세요.'}
           </p>
         </div>
 

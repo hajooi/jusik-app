@@ -6,8 +6,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const STORAGE_DISMISSED_UNTIL_KEY = 'jusik_broker_benefit_dismissed_until';
-const STORAGE_LAST_SEEN_DATE_KEY = 'jusik_broker_benefit_last_seen_date';
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 interface BrokerBenefitBannerProps {
   onDismiss?: () => void;
@@ -17,7 +16,6 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
   const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -50,53 +48,25 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
         return;
       }
 
-      // 2. 사용자가 X를 눌러 7일간 숨김 중인지 확인
+      // 2. 사용자가 X를 눌러 3일간 숨김 중인지 확인
       const now = Date.now();
       const dismissedUntil = localStorage.getItem(STORAGE_DISMISSED_UNTIL_KEY);
       if (dismissedUntil && Number(dismissedUntil) > now) {
-        return;
-      }
-
-      // 3. 오늘 이미 1회 노출되었는지 확인
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const lastSeenDate = localStorage.getItem(STORAGE_LAST_SEEN_DATE_KEY);
-      if (lastSeenDate === todayStr) {
         return;
       }
     } catch {
       // ignore
     }
 
-    // 0.6초 뒤 프로필 아래로 자연스럽게 확장
+    // 0.6초 뒤 프로필 아래로 자연스럽게 확장 (유저가 X를 누르기 전까지 상시 유지)
     const enterTimer = setTimeout(() => {
-      try {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        localStorage.setItem(STORAGE_LAST_SEEN_DATE_KEY, todayStr);
-      } catch {
-        // ignore
-      }
       setIsVisible(true);
     }, 600);
 
-    // 9초 후 자동 퇴장
-    timerRef.current = setTimeout(() => {
-      handleDismiss();
-    }, 9000);
-
     return () => {
       clearTimeout(enterTimer);
-      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
-
-  const handleDismiss = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      setIsClosing(false);
-      if (onDismiss) onDismiss();
-    }, 260);
-  };
 
   const handleManualClose = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,22 +79,12 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
     }, 260);
 
     try {
-      // X를 클릭한 경우 7일간 숨김 기록
-      const expireTime = Date.now() + SEVEN_DAYS_MS;
+      // X를 클릭한 경우 3일간(72시간) 숨김 기록
+      const expireTime = Date.now() + THREE_DAYS_MS;
       localStorage.setItem(STORAGE_DISMISSED_UNTIL_KEY, String(expireTime));
     } catch {
       // ignore
     }
-  };
-
-  const handleMouseEnter = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  };
-
-  const handleMouseLeave = () => {
-    timerRef.current = setTimeout(() => {
-      handleDismiss();
-    }, 4500);
   };
 
   if (!isClient || !isVisible) return null;
@@ -132,8 +92,6 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
   return (
     <div
       data-nosnippet="true"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className={`w-max max-w-[calc(100vw-1.5rem)] px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-2xl border border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 shadow-xl hover:shadow-[0_0_16px_rgba(241,143,1,0.18)] transition-all duration-300 group text-left ${
         isClosing ? 'animate-popover-shrink pointer-events-none' : 'animate-popover-expand'
       }`}

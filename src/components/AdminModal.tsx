@@ -425,10 +425,10 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
             type="button"
             onClick={handleResetBrokerBanner}
             className="px-2.5 py-1 rounded-lg bg-[var(--accent-orange)]/10 hover:bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-semibold transition-all cursor-pointer flex items-center gap-1.5"
-            title="7일 숨김 및 오늘 노출 기록을 삭제하여 새로고침 시 팝업이 다시 뜨게 합니다"
+            title="3일 숨김 기록을 삭제하여 새로고침 시 팝업이 다시 뜨게 합니다"
           >
             <RefreshCw className={`w-3 h-3 ${bannerResetSuccess ? 'text-[var(--accent-green)]' : ''}`} />
-            <span>{bannerResetSuccess ? '초기화 완료! (새로고침 시 뜸)' : '제휴 팝업 노출 기록 초기화 (테스트용)'}</span>
+            <span>{bannerResetSuccess ? '초기화 완료! (새로고침 시 뜸)' : '제휴 팝업 숨김 초기화 (테스트용)'}</span>
           </button>
           
           <p className="text-[10px] text-[var(--text-secondary)] opacity-60">
