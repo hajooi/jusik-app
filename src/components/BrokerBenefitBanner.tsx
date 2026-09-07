@@ -3,8 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, X } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-const SESSION_STORAGE_KEY = 'jusik_hide_broker_benefit_toast';
+const STORAGE_DISMISSED_UNTIL_KEY = 'jusik_broker_benefit_dismissed_until';
+const STORAGE_LAST_SEEN_DATE_KEY = 'jusik_broker_benefit_last_seen_date';
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface BrokerBenefitBannerProps {
   onDismiss?: () => void;
@@ -20,7 +23,44 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
     setIsClient(true);
 
     try {
-      if (sessionStorage.getItem(SESSION_STORAGE_KEY) === 'true') {
+      // 1. 1-3(lv1-3) 수강 완료 유저는 영구 미노출 (비회원 로컬 & 로그인 회원 계정 모두 확인)
+      let is13Completed = false;
+
+      // 비회원 / 로컬 캐시 확인
+      const localCompletedJson = localStorage.getItem('jusik_app_completed_lessons');
+      if (localCompletedJson) {
+        try {
+          const list: string[] = JSON.parse(localCompletedJson);
+          if (list.includes('lv1-3')) is13Completed = true;
+        } catch {}
+      }
+
+      // 로그인 계정 데이터 확인
+      if (!is13Completed) {
+        const userJson = localStorage.getItem('jusik_app_user_account');
+        if (userJson) {
+          try {
+            const parsedUser = JSON.parse(userJson);
+            if (parsedUser.completedLessons?.includes('lv1-3')) is13Completed = true;
+          } catch {}
+        }
+      }
+
+      if (is13Completed) {
+        return;
+      }
+
+      // 2. 사용자가 X를 눌러 7일간 숨김 중인지 확인
+      const now = Date.now();
+      const dismissedUntil = localStorage.getItem(STORAGE_DISMISSED_UNTIL_KEY);
+      if (dismissedUntil && Number(dismissedUntil) > now) {
+        return;
+      }
+
+      // 3. 오늘 이미 1회 노출되었는지 확인
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const lastSeenDate = localStorage.getItem(STORAGE_LAST_SEEN_DATE_KEY);
+      if (lastSeenDate === todayStr) {
         return;
       }
     } catch {
@@ -29,6 +69,12 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
 
     // 0.6초 뒤 프로필 아래로 자연스럽게 확장
     const enterTimer = setTimeout(() => {
+      try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        localStorage.setItem(STORAGE_LAST_SEEN_DATE_KEY, todayStr);
+      } catch {
+        // ignore
+      }
       setIsVisible(true);
     }, 600);
 
@@ -49,7 +95,7 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
       setIsVisible(false);
       setIsClosing(false);
       if (onDismiss) onDismiss();
-    }, 320);
+    }, 260);
   };
 
   const handleManualClose = (e: React.MouseEvent) => {
@@ -60,9 +106,12 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
       setIsVisible(false);
       setIsClosing(false);
       if (onDismiss) onDismiss();
-    }, 320);
+    }, 260);
+
     try {
-      sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
+      // X를 클릭한 경우 7일간 숨김 기록
+      const expireTime = Date.now() + SEVEN_DAYS_MS;
+      localStorage.setItem(STORAGE_DISMISSED_UNTIL_KEY, String(expireTime));
     } catch {
       // ignore
     }
