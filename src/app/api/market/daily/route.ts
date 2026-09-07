@@ -575,7 +575,8 @@ export async function GET(request: Request) {
       todayNews: resolvedNews,
     };
 
-    // 캘린더 이벤트 동기화 (기존 DB 캐시된 이벤트 또는 정적 CALENDAR_EVENTS 기준)
+    // 캘린더 이벤트 동기화: 코드의 정식 CALENDAR_EVENTS를 기준(Single Source of Truth)으로 삼고,
+    // DB 캐시에 저장된 최신 actual 및 AI 요약(simpleSummary)만 안전하게 오버레이 병합
     let currentCalendarEvents: CalendarEvent[] = CALENDAR_EVENTS;
     if (supabase) {
       try {
@@ -584,8 +585,26 @@ export async function GET(request: Request) {
           .select('simulator_settings')
           .eq('nickname', '__system_market_daily_cache__')
           .maybeSingle();
-        if (Array.isArray(currentDb?.simulator_settings?.calendarEvents) && currentDb.simulator_settings.calendarEvents.length > 0) {
-          currentCalendarEvents = currentDb.simulator_settings.calendarEvents;
+
+        const dbEvents = currentDb?.simulator_settings?.calendarEvents;
+        if (Array.isArray(dbEvents) && dbEvents.length > 0) {
+          const dbEventMap = new Map<string, CalendarEvent>();
+          dbEvents.forEach((e: CalendarEvent) => {
+            if (e && e.id) dbEventMap.set(e.id, e);
+          });
+
+          // 코드의 최신 이벤트 정의에 DB의 발표 수치(actual)와 AI 요약만 오버레이
+          currentCalendarEvents = CALENDAR_EVENTS.map((baseEvent) => {
+            const cached = dbEventMap.get(baseEvent.id);
+            if (cached && (cached.actual || cached.simpleSummary)) {
+              return {
+                ...baseEvent,
+                ...(cached.actual ? { actual: cached.actual } : {}),
+                ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
+              };
+            }
+            return baseEvent;
+          });
         }
       } catch (e) {
         console.warn('Failed to load existing calendarEvents for sync:', e);
