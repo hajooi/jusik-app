@@ -115,7 +115,7 @@ export default function ToolsPage() {
           투자도구
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
-          투자를 쉽고 똑똑하게 시작하는 실전 도구 모음입니다. 별표(★)를 눌러 자주 찾는 도구를 상단에 배치해 보세요.
+          투자를 쉽고 똑똑하게 시작하는 실전 도구 모음입니다.
         </p>
       </div>
 
