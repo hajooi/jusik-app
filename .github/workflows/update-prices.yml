@@ -44,7 +44,7 @@ jobs:
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q' }}/sendMessage" \
             -H "Content-Type: application/json" \
-            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"📈 <b>[jusik.app 월간 시뮬레이터 데이터 갱신 완료]</b>\n매월 1일 정기 백테스트 및 시뮬레이터 주가 데이터가 성공적으로 갱신되었습니다.","parse_mode":"HTML"}'
+            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"📈 <b>[jusik.app 월간 시뮬레이터 데이터 갱신 완료]</b>\n매월 1일 정기 백테스트 및 시뮬레이터 주가 데이터가 성공적으로 갱신되었습니다.\n\n📌 <b>관리자 확인 요청:</b>\n새로운 달이 시작되었습니다! 미국/한국 대표 종목들의 시가총액 순위 변동 여부를 점검하고 시뮬레이터 종목 리스트의 시총 순위 업데이트를 진행해 주세요.","parse_mode":"HTML"}'
 
       - name: Notify Telegram on Failure
         if: failure()

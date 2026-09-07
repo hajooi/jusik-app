@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS } from '@/data/marketCalendar';
+import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS, CalendarEvent } from '@/data/marketCalendar';
 import { sendTelegramDailyReport, sendTelegramErrorAlert } from '@/utils/telegram';
+import { syncMarketCalendarEvents } from '@/utils/marketCalendarSync';
 
 export const dynamic = 'force-dynamic';
 
@@ -341,13 +342,17 @@ export async function GET(request: Request) {
             ? snap.todayNews
             : TODAY_MARKET_NEWS;
 
+          const cachedEvents = Array.isArray(dbRecord.simulator_settings?.calendarEvents) && dbRecord.simulator_settings.calendarEvents.length > 0
+            ? dbRecord.simulator_settings.calendarEvents
+            : CALENDAR_EVENTS;
+
           const cachedData = {
             ...dbRecord.simulator_settings,
             snapshot: {
               ...snap,
               todayNews: validNews,
             },
-            calendarEvents: CALENDAR_EVENTS,
+            calendarEvents: cachedEvents,
             weeklyBriefing: WEEKLY_BRIEFING,
           };
           // 메모리 캐시도 함께 갱신하여 초고속 서빙
@@ -570,11 +575,30 @@ export async function GET(request: Request) {
       todayNews: resolvedNews,
     };
 
+    // 캘린더 이벤트 동기화 (기존 DB 캐시된 이벤트 또는 정적 CALENDAR_EVENTS 기준)
+    let currentCalendarEvents: CalendarEvent[] = CALENDAR_EVENTS;
+    if (supabase) {
+      try {
+        const { data: currentDb } = await supabase
+          .from('users')
+          .select('simulator_settings')
+          .eq('nickname', '__system_market_daily_cache__')
+          .maybeSingle();
+        if (Array.isArray(currentDb?.simulator_settings?.calendarEvents) && currentDb.simulator_settings.calendarEvents.length > 0) {
+          currentCalendarEvents = currentDb.simulator_settings.calendarEvents;
+        }
+      } catch (e) {
+        console.warn('Failed to load existing calendarEvents for sync:', e);
+      }
+    }
+
+    const { updatedEvents, newlyPublished } = await syncMarketCalendarEvents(currentCalendarEvents);
+
     const responseData = {
       success: true,
       snapshot,
       assetCharts,
-      calendarEvents: CALENDAR_EVENTS,
+      calendarEvents: updatedEvents,
       weeklyBriefing: WEEKLY_BRIEFING,
     };
 
@@ -600,7 +624,7 @@ export async function GET(request: Request) {
     // 깃허브 액션 등 일일 강제 갱신(forceRefresh) 호출 시 텔레그램 일일 브리핑 리포트 발송
     if (forceRefresh) {
       try {
-        await sendTelegramDailyReport(snapshot);
+        await sendTelegramDailyReport(snapshot, newlyPublished);
       } catch (tgErr) {
         console.warn('Telegram daily report failed:', tgErr);
       }

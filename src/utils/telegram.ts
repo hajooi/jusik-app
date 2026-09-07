@@ -36,15 +36,24 @@ export async function sendTelegramMessage(text: string, replyMarkup?: any): Prom
 /**
  * 일일 증시 브리핑 리포트 전송 (화~토 07:15)
  */
-export async function sendTelegramDailyReport(snapshot: {
-  updatedAt: string;
-  fearGreedIndex: number;
-  fearGreedLabel: string;
-  weatherMessage: string;
-  indices: Array<{ name: string; value: string; changePercent: string; isPositive: boolean }>;
-  auxiliary: Array<{ label: string; value: string; isPositive: boolean }>;
-  todayNews?: Array<{ source: string; title: string; url: string }>;
-}): Promise<boolean> {
+export async function sendTelegramDailyReport(
+  snapshot: {
+    updatedAt: string;
+    fearGreedIndex: number;
+    fearGreedLabel: string;
+    weatherMessage: string;
+    indices: Array<{ name: string; value: string; changePercent: string; isPositive: boolean }>;
+    auxiliary: Array<{ label: string; value: string; isPositive: boolean }>;
+    todayNews?: Array<{ source: string; title: string; url: string }>;
+  },
+  newlyPublishedEvents?: Array<{
+    title: string;
+    ticker?: string;
+    actual: string;
+    expected?: string;
+    summary: string;
+  }>
+): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
   const lines = [
@@ -67,8 +76,21 @@ export async function sendTelegramDailyReport(snapshot: {
     lines.push(`• <b>${aux.label}</b>: ${aux.value}`);
   });
 
-  if (snapshot.todayNews && snapshot.todayNews.length > 0) {
+  // 새로 발표/동기화된 실적 및 경제지표와 AI 요약이 있는 경우
+  if (newlyPublishedEvents && newlyPublishedEvents.length > 0) {
     lines.push(``);
+    lines.push(`🔔 <b>[새로 발표된 실적/지표 & AI 요약]</b>`);
+    newlyPublishedEvents.forEach((item, i) => {
+      const tickerLabel = item.ticker ? ` (${item.ticker})` : '';
+      lines.push(`${i + 1}. <b>${item.title}${tickerLabel}</b>`);
+      lines.push(`• 발표치: <b>${item.actual}</b>${item.expected ? ` (예상: ${item.expected})` : ''}`);
+      const safeSummary = item.summary.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      lines.push(`• <i>\"${safeSummary}\"</i>`);
+      lines.push(``);
+    });
+  }
+
+  if (snapshot.todayNews && snapshot.todayNews.length > 0) {
     lines.push(`📰 <b>오늘 장 핵심 뉴스</b>`);
     snapshot.todayNews.slice(0, 5).forEach((item) => {
       // 텔레그램 HTML 안전 이스케이프
@@ -78,7 +100,7 @@ export async function sendTelegramDailyReport(snapshot: {
   }
 
   lines.push(``);
-  lines.push(`✅ <b>최신 시장 데이터가 성공적으로 갱신되었습니다.</b>`);
+  lines.push(`✅ <b>최신 시장 데이터 및 캘린더가 성공적으로 갱신되었습니다.</b>`);
 
   return sendTelegramMessage(lines.join("\n"));
 }
