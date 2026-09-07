@@ -126,25 +126,48 @@ export default function BottomNavigation() {
   const isToolsSubPage = pathname.startsWith('/tools/') && pathname !== '/tools';
   const currentLessonId = isLessonPage ? pathname.split('/lesson/')[1] : '';
 
-  // Scroll active state for translucent auto-fade while scrolling
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Scroll direction detection for auto-hiding navigation on scroll down
+  const [isNavHidden, setIsNavHidden] = useState(false);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
+    // If drawer is expanded, always keep navigation visible
+    if (isExpanded) {
+      setIsNavHidden(false);
+      return;
+    }
+
     const handleScroll = () => {
-      setIsScrolling(true);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 200);
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollYRef.current;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      const isBottom = windowHeight + currentScrollY >= docHeight - 40;
+
+      // 1. At the very top (< 40px) or at bottom of the page: always show
+      if (currentScrollY <= 40 || isBottom) {
+        setIsNavHidden(false);
+        lastScrollYRef.current = currentScrollY;
+        return;
+      }
+
+      // 2. Significant scroll down (> 12px): hide bar smoothly
+      if (scrollDelta > 12) {
+        setIsNavHidden(true);
+        lastScrollYRef.current = currentScrollY;
+      }
+      // 3. Significant scroll up (< -8px): reveal bar quickly
+      else if (scrollDelta < -8) {
+        setIsNavHidden(false);
+        lastScrollYRef.current = currentScrollY;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, []);
+  }, [isExpanded]);
 
   // Lock background body & html scroll on iOS/Android when drawer is open
   useEffect(() => {
@@ -266,6 +289,8 @@ export default function BottomNavigation() {
       setActiveTab('curriculum');
     }
     setIsExpanded(false);
+    setIsNavHidden(false);
+    lastScrollYRef.current = 0;
     setDragY(null);
   }, [pathname]);
 
@@ -518,7 +543,13 @@ export default function BottomNavigation() {
       />
 
       {/* 2. THE ADAPTIVE PHYSICAL BOTTOM DRAWER / FLOATING PILL BACKGROUND SHELL (z-[100]) */}
-      <div className="fixed inset-x-0 bottom-3 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate">
+      <div 
+        className={`fixed inset-x-0 bottom-3 z-[100] flex justify-center items-end select-none pointer-events-none p-0 isolate will-change-transform ${
+          isNavHidden && !isExpanded
+            ? 'translate-y-[76px] scale-[0.98] opacity-0 pointer-events-none transition-all duration-[360ms] ease-[cubic-bezier(0.32,0.72,0,1)]'
+            : 'translate-y-0 scale-100 opacity-100 transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]'
+        }`}
+      >
         <div
           className="pointer-events-auto overflow-hidden flex flex-col will-change-[clip-path] touch-none origin-bottom bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl relative"
           style={{
