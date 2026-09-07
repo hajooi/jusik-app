@@ -158,7 +158,7 @@ export default function ToolsPage() {
                 href={tool.href}
                 className={`glass-card glass-card-hover p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full gap-3 relative overflow-hidden ${
                   isFav
-                    ? 'border-[var(--accent-orange)]/40 shadow-[0_0_16px_rgba(241,143,1,0.12)]'
+                    ? 'border-[var(--accent-orange)]/45 shadow-[0_0_16px_rgba(241,143,1,0.12)] hover:border-[var(--accent-orange)]/75 hover:shadow-[0_0_22px_rgba(241,143,1,0.22)]'
                     : ''
                 }`}
               >

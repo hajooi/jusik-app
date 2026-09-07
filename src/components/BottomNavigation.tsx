@@ -24,7 +24,8 @@ import {
   Receipt,
   CandlestickChart,
   ChevronRight,
-  CloudLightning
+  CloudLightning,
+  Star
 } from 'lucide-react';
 
 const LEVEL_ICON_MAP: Record<string, any> = {
@@ -38,6 +39,7 @@ const LEVEL_ICON_MAP: Record<string, any> = {
 
 const TOOLS_DIRECTORY = [
   {
+    id: 'terms',
     title: '주식 용어 퀴즈',
     description: '주식 시장 필수 기초 용어! 퀴즈로 쉽고 재미있게 실력 점검',
     href: '/tools/terms',
@@ -46,6 +48,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'type',
     title: '투자 성향 진단',
     description: '손실 걱정형부터 성장 추구형까지! 나에게 맞는 16가지 투자 스타일',
     href: '/tools/type',
@@ -54,6 +57,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'simulate',
     title: '투자 전략 시뮬레이터',
     description: '과거 30년 실제 데이터로 검증하는 복리 수익률 & 자산 배분 계산기',
     href: '/tools/simulate',
@@ -62,6 +66,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'market',
     title: '마켓 인사이트',
     description: '오늘의 증시 현황과 주요 증시 일정 한눈에 보기',
     href: '/tools/market',
@@ -70,6 +75,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'etf-fee',
     title: 'ETF 수수료 정리',
     description: '표시된 보수 말고 진짜 떼어가는 실질 수수료 완벽 비교 분석',
     href: '#',
@@ -78,6 +84,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: true,
   },
   {
+    id: 'journal',
     title: '나의 투자일지',
     description: '내가 만든 포트폴리오를 저장하고 주기적으로 관리하는 투자 기록장',
     href: '#',
@@ -86,6 +93,7 @@ const TOOLS_DIRECTORY = [
     isComingSoon: true,
   },
   {
+    id: 'patterns',
     title: '차트 패턴 트레이닝',
     description: '다음 캔들은 상승할까, 하락할까? 핵심 패턴으로 익히는 실전 훈련',
     href: '#',
@@ -101,12 +109,45 @@ const COLLAPSED_WIDTH = 268;
 export default function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLessonCompleted, completedLessons } = useAuth();
+  const { user, isLessonCompleted, completedLessons, isFavoriteTool, toggleFavoriteTool } = useAuth();
 
   // Expanded State of the Drawer
   const [isExpanded, setIsExpanded] = useState(false);
   // Active Tab View: 'curriculum' | 'tools'
   const [activeTab, setActiveTab] = useState<'curriculum' | 'tools'>('curriculum');
+
+  // 바텀시트 펼쳐질 때(isExpanded가 true로 바뀔 때) 정렬된 도구 목록을 고정
+  // 사용자가 시트 안에서 별을 누르는 동안에는 자리가 바뀌지 않고, 시트를 닫았다가 다시 열면 맨 위로 정돈됨
+  const [displayNavTools, setDisplayNavTools] = useState(TOOLS_DIRECTORY);
+  const [animatingToolId, setAnimatingToolId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isExpanded) {
+      const sorted = [...TOOLS_DIRECTORY].sort((a, b) => {
+        if (a.isComingSoon !== b.isComingSoon) {
+          return a.isComingSoon ? 1 : -1;
+        }
+        const aFav = !a.isComingSoon && isFavoriteTool(a.id);
+        const bFav = !b.isComingSoon && isFavoriteTool(b.id);
+        if (aFav !== bFav) {
+          return aFav ? -1 : 1;
+        }
+        return 0;
+      });
+      setDisplayNavTools(sorted);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExpanded]);
+
+  const handleNavStarClick = (e: React.MouseEvent, toolId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAnimatingToolId(toolId);
+    toggleFavoriteTool(toolId);
+    setTimeout(() => {
+      setAnimatingToolId((prev) => (prev === toolId ? null : prev));
+    }, 500);
+  };
 
   // Real-time Dragging State (Mobile touch physics)
   const [isDragging, setIsDragging] = useState(false);
@@ -598,41 +639,35 @@ export default function BottomNavigation() {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
           >
-            {/* Apple Native Progressive Background Fade Gradient & Multi-stage Blur System */}
+            {/* Apple Native Progressive Background Blur Header Shell:
+                손잡이(노치)와 [커리큘럼 | 투자도구] 버튼 전체 배경을 블러로 덮고,
+                버튼 위쪽 여백만큼 버튼 아래쪽까지 연장된 뒤 스르륵 투명 페이드아웃 */}
             <div 
-              className="absolute inset-x-0 -top-3 -bottom-10 pointer-events-none overflow-hidden transition-opacity duration-300"
+              className="absolute inset-x-0 -top-3 h-[105px] pointer-events-none overflow-hidden transition-opacity duration-300"
               style={{ opacity: progress > 0.05 ? progress : 0 }}
             >
-              {/* Layer 1: Seamless background vertical gradient fade (dense at top -> transparent at bottom) */}
+              {/* Layer 1: Solid/Dense glass background (상단~버튼 밑까지 완벽 차단, 하단 끝에서만 페이드) */}
               <div 
-                className="absolute inset-0 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/85 to-transparent"
+                className="absolute inset-0 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/95 to-transparent"
                 style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 70%, transparent 100%)'
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)'
                 }}
               />
-              {/* Layer 2: Broad ambient diffuse blur */}
+              {/* Layer 2: 버튼 영역 전체를 덮는 짙은 글래스모픽 블러 */}
               <div 
-                className="absolute inset-0 backdrop-blur-[4px]"
+                className="absolute inset-x-0 top-0 h-[88px] backdrop-blur-xl"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)'
+                }}
+              />
+              {/* Layer 3: 하단 경계면 소프트 블러 */}
+              <div 
+                className="absolute inset-x-0 top-0 h-[105px] backdrop-blur-[6px]"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)'
-                }}
-              />
-              {/* Layer 3: Mid diffuse blur */}
-              <div 
-                className="absolute inset-x-0 top-0 h-16 backdrop-blur-[10px]"
-                style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)'
-                }}
-              />
-              {/* Layer 4: Deep shape-breaking glass blur */}
-              <div 
-                className="absolute inset-x-0 top-0 h-11 backdrop-blur-[20px]"
-                style={{
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 45%, transparent 100%)'
                 }}
               />
             </div>
@@ -852,14 +887,16 @@ export default function BottomNavigation() {
             {/* B. TOOLS DIRECTORY VIEW */}
             {activeTab === 'tools' && (
               <div className="space-y-2.5">
-                {TOOLS_DIRECTORY.map((tool, idx) => {
+                {displayNavTools.map((tool) => {
                   const ToolIcon = tool.icon;
                   const isCurrent = !tool.isComingSoon && pathname.startsWith(tool.href);
+                  const isFav = !tool.isComingSoon && isFavoriteTool(tool.id);
+                  const isAnimating = animatingToolId === tool.id;
                   
                   if (tool.isComingSoon) {
                     return (
                       <div
-                        key={idx}
+                        key={tool.id}
                         className="p-3 sm:p-3.5 rounded-2xl border border-[var(--border-color)] opacity-60 flex items-center justify-between gap-3 cursor-not-allowed bg-[var(--card-hover)]/30"
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -877,26 +914,34 @@ export default function BottomNavigation() {
 
                   return (
                     <Link
-                      key={idx}
+                      key={tool.id}
                       href={tool.href}
                       onClick={() => {
                         setIsExpanded(false);
                         setDragY(null);
                       }}
-                      className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all cursor-pointer ${
+                      className={`p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all duration-250 cursor-pointer relative group ${
                         isCurrent 
                           ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.22)]' 
+                          : isFav
+                          ? 'glass-card border-[var(--accent-orange)]/45 shadow-[0_0_14px_rgba(241,143,1,0.12)] hover:border-[var(--accent-orange)]/75 hover:bg-[var(--card-hover)] hover:shadow-[0_0_18px_rgba(241,143,1,0.2)]'
                           : 'glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          isCurrent ? 'bg-[var(--accent-orange)] text-white' : 'bg-[var(--card-hover)] text-[var(--text-secondary)]'
+                      <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 ${
+                          isCurrent 
+                            ? 'bg-[var(--accent-orange)] text-white' 
+                            : isFav
+                            ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] group-hover:scale-105'
+                            : 'bg-[var(--card-hover)] text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 group-hover:scale-105'
                         }`}>
                           <ToolIcon className="w-4 h-4 stroke-[2]" />
                         </div>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isCurrent ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                          <h3 className={`text-xs sm:text-sm font-extrabold truncate transition-colors ${
+                            isCurrent || isFav ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover:text-[var(--accent-orange)]'
+                          }`}>
                             {tool.title}
                           </h3>
                           <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
@@ -904,11 +949,27 @@ export default function BottomNavigation() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {!isCurrent && (
-                          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
-                        )}
-                      </div>
+
+                      {/* Apple HIG 글래스모픽 별표 토글 버튼 */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleNavStarClick(e, tool.id)}
+                        title={isFav ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+                        aria-label={isFav ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md cursor-pointer border shrink-0 ${
+                          isFav
+                            ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border-[var(--accent-orange)]/35 shadow-[0_0_8px_rgba(241,143,1,0.25)] scale-105'
+                            : 'bg-transparent text-[var(--text-secondary)]/40 border-transparent hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)]'
+                        }`}
+                      >
+                        <Star
+                          className={`w-3.5 h-3.5 transition-all duration-300 ${
+                            isFav
+                              ? 'fill-[var(--accent-orange)] stroke-[var(--accent-orange)]'
+                              : 'stroke-current stroke-[1.8]'
+                          } ${isAnimating ? 'animate-star-pop' : ''}`}
+                        />
+                      </button>
                     </Link>
                   );
                 })}
