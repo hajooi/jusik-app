@@ -40,6 +40,7 @@ export interface ServerUserRecord {
   activeBadge?: string;
   isPro?: boolean;
   proExpiresAt?: string;
+  favoriteTools?: string[];
   termsQuizBest?: {
     level?: number;
     score?: number;
@@ -238,9 +239,9 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
           const validatedTypeAnswers = isFull ? row.type_answers : undefined;
           const validatedInvestmentType = row.investment_type || undefined;
 
-          // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록)를 안전하게 분리 Unpack
+          // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록, 즐겨찾기 도구)를 안전하게 분리 Unpack
           const rowSettings = (row.simulator_settings && typeof row.simulator_settings === 'object') ? row.simulator_settings : {};
-          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, ...pureSim } = rowSettings;
+          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, favoriteTools: _fav, ...pureSim } = rowSettings;
           const cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
 
           const effectiveActiveBadge = (rowSettings.activeBadge !== undefined && rowSettings.activeBadge !== null)
@@ -253,6 +254,11 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
           const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || undefined;
           const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? false;
           const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || undefined;
+          const effectiveFavoriteTools = Array.isArray(rowSettings.favoriteTools)
+            ? rowSettings.favoriteTools
+            : Array.isArray(row.favorite_tools)
+            ? row.favorite_tools
+            : undefined;
 
           db[row.nickname] = {
             nickname: row.nickname,
@@ -269,6 +275,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             termsQuizEntries: effectiveTermsQuizEntries,
             isPro: effectiveIsPro,
             proExpiresAt: effectiveProExpiresAt,
+            favoriteTools: effectiveFavoriteTools,
           };
         });
         globalThis.__jusik_server_db__ = db;
@@ -283,9 +290,14 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
   return getServerDb();
 }
 
+/**
+ * 서버 사용자 DB를 비동기로 저장합니다.
+ * Supabase가 활성화된 환경에서는 Supabase users 테이블로 동기화합니다.
+ */
 export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): Promise<void> {
+  // 메모리 캐시 즉시 동기화
   globalThis.__jusik_server_db__ = db;
-  saveDbToFile(db);
+  saveServerDb(db);
 
   if (isLocalDevMode()) {
     return;
@@ -300,11 +312,11 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
         // 순수 시뮬레이터 설정 추출
         let pureSimulatorSettings = u.simulatorSettings || {};
         if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
-          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, ...pureSim } = pureSimulatorSettings;
+          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, favoriteTools: _f, ...pureSim } = pureSimulatorSettings;
           pureSimulatorSettings = pureSim;
         }
 
-        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태 데이터를 함께 안전하게 Pack
+        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태, 즐겨찾기 데이터를 함께 안전하게 Pack
         const packedSettings = {
           ...pureSimulatorSettings,
           activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
@@ -312,6 +324,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           termsQuizEntries: u.termsQuizEntries || null,
           isPro: u.isPro || false,
           proExpiresAt: u.proExpiresAt || null,
+          favoriteTools: u.favoriteTools || null,
         };
 
         return {

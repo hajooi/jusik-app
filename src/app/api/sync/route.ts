@@ -73,6 +73,7 @@ export async function GET(request: Request) {
           simulatorSettings: userRecord.simulatorSettings,
           activeBadge: userRecord.activeBadge,
           termsQuizBest: userRecord.termsQuizBest,
+          favoriteTools: userRecord.favoriteTools || [],
           isPro: effectiveIsPro,
           proExpiresAt: userRecord.proExpiresAt,
           rankPercentile
@@ -90,7 +91,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname) {
@@ -232,6 +233,11 @@ export async function POST(request: Request) {
           }
         }
 
+        // 6. 즐겨찾기 도구: Union 병합
+        if (favoriteTools && Array.isArray(favoriteTools)) {
+          existing.favoriteTools = Array.from(new Set([...(existing.favoriteTools || []), ...favoriteTools]));
+        }
+
         // 만료된 PRO 권한 자동 회수 및 DB 반영
         const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
         if (existing.isPro && !effectiveIsPro) {
@@ -261,6 +267,7 @@ export async function POST(request: Request) {
             simulatorSettings: existing.simulatorSettings,
             activeBadge: existing.activeBadge,
             termsQuizBest: existing.termsQuizBest,
+            favoriteTools: existing.favoriteTools || [],
             isPro: effectiveIsPro,
             proExpiresAt: existing.proExpiresAt,
             rankPercentile
@@ -278,7 +285,8 @@ export async function POST(request: Request) {
           typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
           simulatorSettings: simulatorSettings || undefined,
           activeBadge,
-          termsQuizBest
+          termsQuizBest,
+          favoriteTools: favoriteTools || [],
         };
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
@@ -298,6 +306,7 @@ export async function POST(request: Request) {
             simulatorSettings: newRecord.simulatorSettings,
             activeBadge: newRecord.activeBadge,
             termsQuizBest: newRecord.termsQuizBest,
+            favoriteTools: newRecord.favoriteTools || [],
             isPro: newRecord.isPro,
             proExpiresAt: newRecord.proExpiresAt,
             rankPercentile
@@ -350,6 +359,12 @@ export async function POST(request: Request) {
           existing.termsQuizBest = termsQuizBest;
         }
       }
+
+      // 6. 즐겨찾기 도구 갱신
+      if (favoriteTools !== undefined && Array.isArray(favoriteTools)) {
+        existing.favoriteTools = favoriteTools;
+      }
+
       // 만료된 PRO 권한 자동 회수 및 DB 반영
       const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
       if (existing.isPro && !effectiveIsPro) {
@@ -379,6 +394,7 @@ export async function POST(request: Request) {
           simulatorSettings: existing.simulatorSettings,
           activeBadge: existing.activeBadge,
           termsQuizBest: existing.termsQuizBest,
+          favoriteTools: existing.favoriteTools || [],
           isPro: effectiveIsPro,
           proExpiresAt: existing.proExpiresAt,
           rankPercentile

@@ -12,6 +12,7 @@ export interface UserAccount {
   investmentType?: string;
   typeAnswers?: Record<number, number>;
   simulatorSettings?: any;
+  favoriteTools?: string[];
   rankPercentile?: number;
   isPro?: boolean;
   proExpiresAt?: string;
@@ -34,6 +35,7 @@ interface AuthContextType {
   investmentType: string | null;
   typeAnswers: Record<number, number> | null;
   simulatorSettings: any | null;
+  favoriteTools: string[];
   isAuthPopoverOpen: boolean;
   isAuthPopoverClosing: boolean;
   openAuthPopover: () => void;
@@ -58,6 +60,8 @@ interface AuthContextType {
     badgeName?: string;
   }) => void;
   updateActiveBadge: (badgeMode: string) => void;
+  toggleFavoriteTool: (toolId: string) => void;
+  isFavoriteTool: (toolId: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +71,7 @@ const LOCAL_COMPLETED_LESSONS_KEY = 'jusik_app_completed_lessons';
 const LOCAL_TYPE_ANSWERS_KEY = 'jusik_type_answers';
 const LOCAL_TYPE_CODE_KEY = 'jusik_type_code';
 const LOCAL_SIMULATOR_SETTINGS_KEY = 'jusik_custom_simulator_settings';
+const LOCAL_FAVORITE_TOOLS_KEY = 'jusik_favorite_tools';
 
 // 40문항 완결 검증 헬퍼 (40문항 미만의 임시 데이터가 계정이나 서버 DB를 오염시키는 것을 원천 차단)
 const isFullSurveyAnswers = (answers?: Record<number, number> | null): boolean => {
@@ -79,11 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [investmentType, setInvestmentType] = useState<string | null>(null);
   const [typeAnswers, setTypeAnswers] = useState<Record<number, number> | null>(null);
   const [simulatorSettings, setSimulatorSettings] = useState<any | null>(null);
+  const [favoriteTools, setFavoriteTools] = useState<string[]>([]);
   const [isAuthPopoverOpen, setIsAuthPopoverOpen] = useState<boolean>(false);
   const [isAuthPopoverClosing, setIsAuthPopoverClosing] = useState<boolean>(false);
 
   // 디바운스 타이머 ref
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const favDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 로드 시 로컬 및 서버 상태 복원
   useEffect(() => {
@@ -91,6 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const localCompletedJson = localStorage.getItem(LOCAL_COMPLETED_LESSONS_KEY);
       const initialCompleted: string[] = localCompletedJson ? JSON.parse(localCompletedJson) : [];
       setCompletedLessons(initialCompleted);
+
+      const localFavJson = localStorage.getItem(LOCAL_FAVORITE_TOOLS_KEY);
+      const initialFavorites: string[] = localFavJson ? JSON.parse(localFavJson) : [];
+      setFavoriteTools(initialFavorites);
 
       const savedUserJson = localStorage.getItem(USER_STORAGE_KEY);
       if (savedUserJson) {
@@ -100,6 +111,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (parsedUser.completedLessons && parsedUser.completedLessons.length > 0) {
           const merged = Array.from(new Set([...initialCompleted, ...parsedUser.completedLessons]));
           setCompletedLessons(merged);
+        }
+        if (parsedUser.favoriteTools && parsedUser.favoriteTools.length > 0) {
+          const mergedFavs = Array.from(new Set([...initialFavorites, ...parsedUser.favoriteTools]));
+          setFavoriteTools(mergedFavs);
         }
         if (parsedUser.investmentType) setInvestmentType(parsedUser.investmentType);
         if (parsedUser.typeAnswers && isFullSurveyAnswers(parsedUser.typeAnswers)) {
@@ -126,6 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (data.user.completedLessons) {
                   setCompletedLessons(data.user.completedLessons);
                   localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(data.user.completedLessons));
+                }
+                if (data.user.favoriteTools) {
+                  setFavoriteTools(data.user.favoriteTools);
+                  localStorage.setItem(LOCAL_FAVORITE_TOOLS_KEY, JSON.stringify(data.user.favoriteTools));
                 }
                 if (data.user.investmentType) {
                   setInvestmentType(data.user.investmentType);
@@ -171,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     avatarUrl: parsedUser.avatarUrl || undefined,
                     activeBadge: parsedUser.activeBadge || undefined,
                     termsQuizBest: parsedUser.termsQuizBest || undefined,
+                    favoriteTools: parsedUser.favoriteTools || initialFavorites,
                   })
                 })
                   .then((r) => r.json())
@@ -463,6 +483,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return completedLessons.includes(lessonId);
   };
 
+  // 즐겨찾기 도구 토글 및 서버/로컬 동기화
+  const toggleFavoriteTool = (toolId: string) => {
+    setFavoriteTools((prev) => {
+      const isAlready = prev.includes(toolId);
+      const nextFavorites = isAlready
+        ? prev.filter((id) => id !== toolId)
+        : [...prev, toolId];
+
+      localStorage.setItem(LOCAL_FAVORITE_TOOLS_KEY, JSON.stringify(nextFavorites));
+
+      if (user && user.nickname) {
+        const userPin = user.pin || '';
+        const updatedUser: UserAccount = {
+          ...user,
+          pin: userPin,
+          favoriteTools: nextFavorites,
+          lastLoginAt: new Date().toISOString(),
+        };
+        setUser(updatedUser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+
+        if (favDebounceTimerRef.current) {
+          clearTimeout(favDebounceTimerRef.current);
+        }
+
+        favDebounceTimerRef.current = setTimeout(() => {
+          if (userPin) {
+            fetch('/api/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'syncData',
+                nickname: user.nickname,
+                pin: userPin,
+                completedLessons,
+                investmentType,
+                typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
+                simulatorSettings,
+                favoriteTools: nextFavorites,
+              }),
+            }).catch((e) => console.error('Server syncData favoriteTools error:', e));
+          }
+        }, 400);
+      }
+
+      return nextFavorites;
+    });
+  };
+
+  const isFavoriteTool = (toolId: string) => {
+    return favoriteTools.includes(toolId);
+  };
+
   // 서버 로그인 처리
   const login = async (nickname: string, pin: string) => {
     try {
@@ -476,7 +549,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           completedLessons,
           investmentType,
           typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
-          simulatorSettings
+          simulatorSettings,
+          favoriteTools,
         })
       });
 
@@ -497,6 +571,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const serverCompleted: string[] = data.user.completedLessons || [];
       setCompletedLessons(serverCompleted);
       localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(serverCompleted));
+
+      if (data.user.favoriteTools) {
+        const mergedFavs = Array.from(new Set([...favoriteTools, ...data.user.favoriteTools]));
+        setFavoriteTools(mergedFavs);
+        localStorage.setItem(LOCAL_FAVORITE_TOOLS_KEY, JSON.stringify(mergedFavs));
+      }
 
       if (data.user.investmentType && data.user.investmentType !== '미진단') {
         setInvestmentType(data.user.investmentType);
@@ -674,6 +754,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         investmentType,
         typeAnswers,
         simulatorSettings,
+        favoriteTools,
         isAuthPopoverOpen,
         isAuthPopoverClosing,
         openAuthPopover,
@@ -690,7 +771,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateSimulatorSettings,
         updateAvatar,
         updateTermsQuizResult,
-        updateActiveBadge
+        updateActiveBadge,
+        toggleFavoriteTool,
+        isFavoriteTool,
       }}
     >
       {children}
