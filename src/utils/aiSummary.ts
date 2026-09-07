@@ -11,9 +11,68 @@ export interface GenerateSummaryParams {
   previous?: string;
 }
 
+// 메모리 캐싱: 실행 시간 동안 모델 목록을 매번 찌르지 않도록 최근 감지된 최신 모델명 보관 (1시간 유효)
+let cachedLatestModel: { name: string; expiresAt: number } | null = null;
+
+/**
+ * Google API에서 현재 사용 가능한 정식 모델 중 가장 최신 버전의 Flash 모델명을 동적으로 자동 탐색합니다.
+ * 신규 모델(3.9, 4.0 등) 출시 시 코드 수정 없이도 항상 가장 최신 정규 버전을 자동으로 선택합니다.
+ */
+async function getLatestFlashModel(apiKey: string): Promise<string> {
+  const now = Date.now();
+  if (cachedLatestModel && cachedLatestModel.expiresAt > now) {
+    return cachedLatestModel.name;
+  }
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
+
+      // generateContent를 지원하는 flash 정식 모델 필터링
+      const flashModels = models
+        .filter((m) => {
+          const name = m.name.toLowerCase();
+          const supportsGenerate = m.supportedGenerationMethods?.includes('generateContent');
+          return (
+            supportsGenerate &&
+            name.includes('flash') &&
+            !name.includes('audio') &&
+            !name.includes('tts') &&
+            !name.includes('image') &&
+            !name.includes('preview')
+          );
+        })
+        .map((m) => m.name.replace(/^models\//, ''));
+
+      // 버전 번호(숫자)를 기준으로 내림차순 정렬하여 가장 높은 최신 버전 추출
+      flashModels.sort((a, b) => {
+        const parseVersion = (str: string) => {
+          const match = str.match(/gemini-(\d+(\.\d+)?)/);
+          return match ? parseFloat(match[1]) : 0;
+        };
+        return parseVersion(b) - parseVersion(a);
+      });
+
+      if (flashModels.length > 0 && flashModels[0]) {
+        const bestModel = flashModels[0];
+        cachedLatestModel = { name: bestModel, expiresAt: now + 1000 * 60 * 60 }; // 1시간 캐시
+        return bestModel;
+      }
+    }
+  } catch (err) {
+    console.warn('[Gemini API] Failed to fetch latest models dynamically:', err);
+  }
+
+  return 'gemini-3.8-flash'; // 비상 기본값
+}
+
 /**
  * Google Gemini REST API를 직접 호출하여 초보자 눈높이의 2줄 해설을 자동 생성합니다.
- * GEMINI_API_KEY가 없을 경우 신뢰성 있는 기본 룰베이스 요약문으로 안전하게 폴백합니다.
+ * 실시간 최신 Flash 모델을 동적으로 찾아 사용하며, 실패 시 룰베이스 요약문으로 안전하게 폴백합니다.
  */
 export async function generateEasyEventSummary(params: GenerateSummaryParams): Promise<string> {
   const { title, ticker, region, actual, expected, previous } = params;
@@ -47,7 +106,8 @@ ${previous ? `- 이전 발표치: ${previous}` : ''}
 `.trim();
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const targetModel = await getLatestFlashModel(GEMINI_API_KEY);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${GEMINI_API_KEY}`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -72,7 +132,7 @@ ${previous ? `- 이전 발표치: ${previous}` : ''}
     });
 
     if (!response.ok) {
-      console.warn(`[Gemini API] Failed: ${response.status} ${response.statusText}`);
+      console.warn(`[Gemini API] Failed (${targetModel}): ${response.status} ${response.statusText}`);
       return generateFallbackSummary(params);
     }
 
