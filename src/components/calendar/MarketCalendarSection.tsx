@@ -180,15 +180,6 @@ export default function MarketCalendarSection() {
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
-  // Group events by date
-  const eventsByDate = useMemo(() => {
-    const map: Record<string, CalendarEvent[]> = {};
-    calendarEvents.forEach((e) => {
-      if (!map[e.date]) map[e.date] = [];
-      map[e.date].push(e);
-    });
-    return map;
-  }, [calendarEvents]);
 
   // Apply filters
   const filterEvents = (events: CalendarEvent[]) => {
@@ -241,6 +232,16 @@ export default function MarketCalendarSection() {
   const allFilteredEvents = useMemo(() => {
     return filterEvents([...calendarEvents]).sort((a, b) => a.date.localeCompare(b.date));
   }, [calendarEvents, categoryFilter, regionFilter, importanceFilter]);
+
+  // 필터가 적용된 이벤트를 날짜별로 그룹화 (달력 그리드에서 스케줄 유무 판별)
+  const eventsByDate = useMemo(() => {
+    const map: Record<string, CalendarEvent[]> = {};
+    allFilteredEvents.forEach((e) => {
+      if (!map[e.date]) map[e.date] = [];
+      map[e.date].push(e);
+    });
+    return map;
+  }, [allFilteredEvents]);
 
   // 기준일: 사용자가 특정 날짜를 클릭했으면 그 날짜(selectedDate), 없으면 오늘(TODAY_STR)
   const baseDate = selectedDate || TODAY_STR;
@@ -431,14 +432,11 @@ export default function MarketCalendarSection() {
                         : isToday
                         ? 'text-[var(--accent-orange)] font-black bg-[var(--accent-orange)]/10 ring-2 ring-[var(--accent-orange)]'
                         : hasEvent
-                        ? 'text-[var(--text-primary)] font-bold hover:bg-[var(--bg-main)]'
-                        : 'text-[var(--text-secondary)]/35 font-normal hover:bg-[var(--bg-main)]'
+                        ? 'text-[var(--text-primary)] font-extrabold hover:bg-[var(--bg-main)]'
+                        : 'text-[var(--text-secondary)] opacity-25 font-normal hover:opacity-50 hover:bg-[var(--bg-main)]'
                     }`}
                   >
                     <span>{day}</span>
-                    {hasEvent && !isSelected && (
-                      <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[var(--accent-orange)]/80" />
-                    )}
                   </button>
                 </div>
               );
@@ -455,9 +453,6 @@ export default function MarketCalendarSection() {
           <div className="flex items-center gap-2">
             <span className="text-sm sm:text-base font-extrabold text-[var(--text-primary)]">
               증시 타임라인
-            </span>
-            <span className="text-[11px] font-mono text-[var(--text-secondary)]">
-              {selectedDate ? `${selectedDate.replace(/-/g, '.')} 기준` : '오늘 이후'} {futureEvents.length}개 중 {Math.min(visibleEvents.length, futureEvents.length)}개
             </span>
           </div>
           {selectedDate && (
@@ -482,13 +477,11 @@ export default function MarketCalendarSection() {
                   <div 
                     key={ev.id}
                     data-feed-date={ev.date}
-                    className={`transition-all duration-300 rounded-2xl ${
-                      isDateSelected ? 'ring-2 ring-[var(--accent-orange)]/60 p-1 bg-[var(--accent-orange)]/5' : ''
-                    }`}
+                    className="rounded-2xl"
                   >
                     <RevealOnScroll delayIndex={Math.min(idx, 3)}>
                       <div className="text-xs font-mono font-semibold text-[var(--text-secondary)] mb-1 pl-1 flex items-center justify-between">
-                        <span className={ev.date === TODAY_STR ? 'text-[var(--accent-orange)] font-black' : isDateSelected ? 'text-[var(--accent-orange)] font-bold' : ''}>
+                        <span className={ev.date === TODAY_STR ? 'text-[var(--accent-orange)] font-black' : ''}>
                           {ev.date.replace(/-/g, '.')}
                         </span>
                         <span className="text-[10px] text-[var(--text-secondary)]/70 uppercase">
