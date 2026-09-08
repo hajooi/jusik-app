@@ -268,7 +268,7 @@ export default function MarketWeatherSection({
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group p-3.5 sm:p-4 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all duration-200 flex flex-col justify-between gap-2"
+                className="group p-3.5 sm:p-4 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all duration-200 flex flex-col justify-start gap-2.5"
               >
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-extrabold font-mono text-[10px] sm:text-xs">
