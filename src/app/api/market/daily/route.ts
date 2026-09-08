@@ -327,7 +327,7 @@ export async function GET(request: Request) {
           .eq('nickname', '__system_market_daily_cache__')
           .maybeSingle();
 
-        console.log('DEBUG FULL DB RECORD SNAP:', JSON.stringify(dbRecord?.simulator_settings?.snapshot?.updatedAt), 'LAST_ACTIVE:', dbRecord?.last_active_at); if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
+        console.log('DEBUG EXACT URL KEY: 'undefined' '' DEBUG FULL DB RECORD SNAP:', JSON.stringify(dbRecord?.simulator_settings?.snapshot?.updatedAt), 'LAST_ACTIVE:', dbRecord?.last_active_at); if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
           const snap = dbRecord.simulator_settings.snapshot;
           const validNews = (Array.isArray(snap.todayNews) && snap.todayNews.length >= 4)
             ? snap.todayNews
