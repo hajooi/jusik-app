@@ -1012,7 +1012,13 @@ function TermsQuizContent() {
                     획득한 대표 뱃지
                   </span>
                   <div className="flex items-center justify-center gap-2">
-                    <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs sm:text-sm font-bold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs sm:text-sm font-bold font-mono transition-all leading-none select-none shadow-2xs ${
+                        (finalResult.percentile && finalResult.percentile <= 10) || finalResult.badgeName?.includes('마스터')
+                          ? 'animate-elite-badge text-emerald-500 bg-emerald-500/10 border border-emerald-500/40'
+                          : 'text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)]'
+                      }`}
+                    >
                       {finalResult.badgeName}
                     </span>
                   </div>
