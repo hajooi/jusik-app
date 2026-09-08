@@ -1861,9 +1861,8 @@ function SimulatorContent() {
                   100% { width: ${chartWidth}px; }
                 }
               `}</style>
-              <clipPath id="chartRevealClip-base">
+              <clipPath key={`chartRevealClip-base-${chartBaseAnimKey}`} id="chartRevealClip-base">
                 <rect
-                  key={`base-rect-${chartBaseAnimKey}`}
                   x="0"
                   y="0"
                   width="0"
@@ -1876,9 +1875,8 @@ function SimulatorContent() {
                   }}
                 />
               </clipPath>
-              <clipPath id="chartRevealClip-B">
+              <clipPath key={`chartRevealClip-B-${chartBAnimKey}`} id="chartRevealClip-B">
                 <rect
-                  key={`B-rect-${chartBAnimKey}`}
                   x="0"
                   y="0"
                   width="0"
@@ -1891,9 +1889,8 @@ function SimulatorContent() {
                   }}
                 />
               </clipPath>
-              <clipPath id="chartRevealClip-C">
+              <clipPath key={`chartRevealClip-C-${chartCAnimKey}`} id="chartRevealClip-C">
                 <rect
-                  key={`C-rect-${chartCAnimKey}`}
                   x="0"
                   y="0"
                   width="0"

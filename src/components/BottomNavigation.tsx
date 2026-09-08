@@ -109,26 +109,35 @@ const COLLAPSED_WIDTH = 268;
 export default function BottomNavigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLessonCompleted, completedLessons, isFavoriteTool, toggleFavoriteTool } = useAuth();
+  const { user, isLessonCompleted, completedLessons, favoriteTools, isFavoriteTool, toggleFavoriteTool } = useAuth();
 
   // Expanded State of the Drawer
   const [isExpanded, setIsExpanded] = useState(false);
   // Active Tab View: 'curriculum' | 'tools'
   const [activeTab, setActiveTab] = useState<'curriculum' | 'tools'>('curriculum');
 
-  // 바텀시트 펼쳐질 때(isExpanded가 true로 바뀔 때) 정렬된 도구 목록을 고정
-  // 사용자가 시트 안에서 별을 누르는 동안에는 자리가 바뀌지 않고, 시트를 닫았다가 다시 열면 맨 위로 정돈됨
+  // 바텀시트 내부 도구 목록 (SSR Hydration 불일치 방지)
   const [displayNavTools, setDisplayNavTools] = useState(TOOLS_DIRECTORY);
   const [animatingToolId, setAnimatingToolId] = useState<string | null>(null);
 
+  // 서랍이 열릴 때(isExpanded) 또는 favoriteTools가 변경될 때 최신 정렬 반영
   useEffect(() => {
     if (isExpanded) {
+      let effectiveFavs = favoriteTools;
+      if (effectiveFavs.length === 0 && typeof window !== 'undefined') {
+        try {
+          const cached = JSON.parse(localStorage.getItem('jusik_favorite_tools') || '[]');
+          if (Array.isArray(cached) && cached.length > 0) {
+            effectiveFavs = cached;
+          }
+        } catch {}
+      }
       const sorted = [...TOOLS_DIRECTORY].sort((a, b) => {
         if (a.isComingSoon !== b.isComingSoon) {
           return a.isComingSoon ? 1 : -1;
         }
-        const aFav = !a.isComingSoon && isFavoriteTool(a.id);
-        const bFav = !b.isComingSoon && isFavoriteTool(b.id);
+        const aFav = !a.isComingSoon && effectiveFavs.includes(a.id);
+        const bFav = !b.isComingSoon && effectiveFavs.includes(b.id);
         if (aFav !== bFav) {
           return aFav ? -1 : 1;
         }
@@ -136,8 +145,7 @@ export default function BottomNavigation() {
       });
       setDisplayNavTools(sorted);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isExpanded]);
+  }, [isExpanded, favoriteTools]);
 
   const handleNavStarClick = (e: React.MouseEvent, toolId: string) => {
     e.preventDefault();

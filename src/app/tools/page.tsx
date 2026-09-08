@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { HelpCircle, Sparkles, Clock, LineChart, BookOpen, CandlestickChart, Receipt, CloudLightning, Star } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
@@ -74,28 +74,50 @@ const RAW_TOOLS: ToolItem[] = [
   },
 ];
 
-export default function ToolsPage() {
-  const { isFavoriteTool, toggleFavoriteTool } = useAuth();
-  const [animatingId, setAnimatingId] = useState<string | null>(null);
-  const [displayTools, setDisplayTools] = useState<ToolItem[]>(RAW_TOOLS);
+const sortToolsWithFavorites = (tools: ToolItem[], favList: string[]) => {
+  return [...tools].sort((a, b) => {
+    if (a.isComingSoon !== b.isComingSoon) {
+      return a.isComingSoon ? 1 : -1;
+    }
+    const aFav = !a.isComingSoon && favList.includes(a.id);
+    const bFav = !b.isComingSoon && favList.includes(b.id);
+    if (aFav !== bFav) {
+      return aFav ? -1 : 1;
+    }
+    return 0;
+  });
+};
 
-  // 페이지 최초 마운트(또는 재접속/새로고침) 시점에만 즐겨찾기 기준 상단 정렬
-  // 사용자가 카드를 둘러보며 별표를 누를 때는 자리가 바뀌지 않고 제자리를 지켜 편안함을 제공합니다.
+export default function ToolsPage() {
+  const { favoriteTools, isFavoriteTool, toggleFavoriteTool } = useAuth();
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
+
+  // SSR Hydration 불일치 원천 방지 및 마운트 시 촤라락 스태거 애니메이션 적용
+  const [displayTools, setDisplayTools] = useState<ToolItem[]>(RAW_TOOLS);
+  const [isMounted, setIsMounted] = useState(false);
+  const isInitialSortDoneRef = useRef(false);
+
   useEffect(() => {
-    const sorted = [...RAW_TOOLS].sort((a, b) => {
-      if (a.isComingSoon !== b.isComingSoon) {
-        return a.isComingSoon ? 1 : -1;
+    // 최초 마운트 시 1회: 로컬 캐시 또는 favoriteTools 기준으로 정렬 적용 후 isMounted 활성화
+    if (!isInitialSortDoneRef.current) {
+      isInitialSortDoneRef.current = true;
+      let effectiveFavs = favoriteTools;
+      if (effectiveFavs.length === 0 && typeof window !== 'undefined') {
+        try {
+          const cached = JSON.parse(localStorage.getItem('jusik_favorite_tools') || '[]');
+          if (Array.isArray(cached) && cached.length > 0) {
+            effectiveFavs = cached;
+          }
+        } catch {}
       }
-      const aFav = !a.isComingSoon && isFavoriteTool(a.id);
-      const bFav = !b.isComingSoon && isFavoriteTool(b.id);
-      if (aFav !== bFav) {
-        return aFav ? -1 : 1;
-      }
-      return 0;
-    });
-    setDisplayTools(sorted);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setDisplayTools(sortToolsWithFavorites(RAW_TOOLS, effectiveFavs));
+      setIsMounted(true);
+      return;
+    }
+
+    // 이후 AuthContext의 favoriteTools가 서버에서 비동기로 갱신되었을 때 반영
+    setDisplayTools(sortToolsWithFavorites(RAW_TOOLS, favoriteTools));
+  }, [favoriteTools]);
 
   const handleStarClick = (e: React.MouseEvent, toolId: string) => {
     e.preventDefault();
@@ -124,10 +146,25 @@ export default function ToolsPage() {
           const Icon = tool.icon;
           const isFav = !tool.isComingSoon && isFavoriteTool(tool.id);
           const isAnimating = animatingId === tool.id;
+          const delayMs = idx * 60;
+
+          const cardWrapperStyle = isMounted
+            ? {
+                animationDelay: `${delayMs}ms`,
+                animationFillMode: 'both' as const,
+              }
+            : {
+                opacity: 0,
+                transform: 'translateY(16px)',
+              };
 
           if (tool.isComingSoon) {
             return (
-              <RevealOnScroll key={tool.id} delayIndex={idx}>
+              <div
+                key={tool.id}
+                style={cardWrapperStyle}
+                className={isMounted ? 'animate-card-glide h-full' : 'h-full'}
+              >
                 <div className="glass-card p-4 sm:p-5 rounded-2xl flex items-center justify-between opacity-75 cursor-not-allowed transition-all duration-300 shadow-2xs relative overflow-hidden h-full gap-3">
                   <div className="flex items-center gap-3.5 min-w-0 pr-2">
                     <div className="w-10 h-10 rounded-xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] shrink-0 border border-[var(--border-color)]/60">
@@ -148,12 +185,16 @@ export default function ToolsPage() {
                     <span>오픈 준비 중</span>
                   </div>
                 </div>
-              </RevealOnScroll>
+              </div>
             );
           }
 
           return (
-            <RevealOnScroll key={tool.id} delayIndex={idx}>
+            <div
+              key={tool.id}
+              style={cardWrapperStyle}
+              className={isMounted ? 'animate-card-glide h-full' : 'h-full'}
+            >
               <Link
                 href={tool.href}
                 className={`glass-card glass-card-hover p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full gap-3 relative overflow-hidden ${
@@ -209,7 +250,7 @@ export default function ToolsPage() {
                   />
                 </button>
               </Link>
-            </RevealOnScroll>
+            </div>
           );
         })}
       </div>

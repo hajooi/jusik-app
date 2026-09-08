@@ -746,6 +746,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(LOCAL_TYPE_CODE_KEY);
     localStorage.removeItem(LOCAL_TYPE_ANSWERS_KEY);
     localStorage.removeItem(LOCAL_SIMULATOR_SETTINGS_KEY);
+    localStorage.removeItem(LOCAL_FAVORITE_TOOLS_KEY);
     localStorage.removeItem('jusik_type_completed');
     localStorage.removeItem('jusik_user_pin');
 
@@ -755,6 +756,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setInvestmentType('미진단');
     setTypeAnswers({});
     setSimulatorSettings(null);
+    setFavoriteTools([]);
   };
 
   return (
