@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { CURRICULUM_DATA } from '@/data/curriculum';
 
 export interface UserAccount {
   nickname: string;
@@ -16,6 +17,7 @@ export interface UserAccount {
   rankPercentile?: number;
   isPro?: boolean;
   proExpiresAt?: string;
+  hasCompletedCourse?: boolean; // 전 강좌 수강 완료 영구 업적 플래그 (우등생 뱃지 해금)
   termsQuizBest?: {
     level: number;
     score: number;
@@ -24,7 +26,7 @@ export interface UserAccount {
     percentile?: number;
     badgeName?: string;
   };
-  activeBadge?: 'type_only' | 'terms_percentile' | 'terms_master' | string;
+  activeBadge?: 'type_only' | 'terms_percentile' | 'terms_master' | 'honor_student' | string;
 }
 
 interface AuthContextType {
@@ -133,7 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   ...data.user,
                   pin: userPin,
                   isPro: data.user.isPro,
-                  proExpiresAt: data.user.proExpiresAt
+                  proExpiresAt: data.user.proExpiresAt,
+                  hasCompletedCourse: Boolean(parsedUser.hasCompletedCourse || data.user.hasCompletedCourse),
                 };
                 setUser(serverUser);
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(serverUser));
@@ -238,12 +241,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCompletedLessons(newCompletedList);
     localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(newCompletedList));
 
+    // 동적으로 전체 커리큘럼 강의 수 파악 (앞으로 강의가 추가되어도 자동 반영)
+    const allLessonIds = CURRICULUM_DATA.flatMap((level) => level.lessons).map((l) => l.id);
+    const totalLessonCount = allLessonIds.length;
+    const isNowAllDone = totalLessonCount > 0 && allLessonIds.every((id) => newCompletedList.includes(id));
+
     if (user && user.nickname) {
       const userPin = user.pin || '';
+      // 영구 업적 달성형: 한 번 달성되었거나 지금 달성되면 영구 true 유지
+      const nextHasCompletedCourse = Boolean(user.hasCompletedCourse || isNowAllDone);
+
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
         completedLessons: newCompletedList,
+        hasCompletedCourse: nextHasCompletedCourse,
         lastLoginAt: new Date().toISOString()
       };
       setUser(updatedUser);
@@ -258,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             nickname: user.nickname,
             pin: userPin,
             completedLessons: newCompletedList,
+            hasCompletedCourse: nextHasCompletedCourse,
             investmentType,
             typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings

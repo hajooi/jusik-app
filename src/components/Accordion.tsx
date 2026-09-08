@@ -120,26 +120,26 @@ export default function Accordion({ levels }: AccordionProps) {
               {/* Header / Accordion Button */}
               <button
                 onClick={() => toggleLevel(level.id, level.isComingSoon)}
-                className={`group/btn w-full px-4 py-3.5 sm:px-5 sm:py-4 text-left flex items-center justify-between gap-3 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
+                className={`group/btn w-full p-4 sm:p-5 text-left flex items-center justify-between gap-3.5 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
                   level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
                 }`}
               >
-                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                  {/* Level Icon Container */}
-                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  {/* Level Icon Container (Standardized w-10 h-10 with hairline border) */}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 ${
                     isOpen 
-                      ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 scale-105 shadow-[0_0_12px_rgba(241,143,1,0.25)]' 
-                      : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-transparent'
+                      ? 'text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border-[var(--accent-orange)]/30 scale-105 shadow-[0_0_12px_rgba(241,143,1,0.25)]' 
+                      : 'text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-orange)] bg-[var(--bg-main)] border-[var(--border-color)]/60 group-hover/btn:bg-[var(--accent-orange)]/15 group-hover/btn:border-[var(--accent-orange)]/30 group-hover/btn:scale-105'
                   }`}>
                     <IconComponent className="w-5 h-5 stroke-[1.8]" />
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 space-y-0.5">
                     <span className="text-[10px] font-mono font-bold text-[var(--accent-orange)] uppercase tracking-wider block">
                       LEVEL {level.levelNumber}
                     </span>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className={`text-base sm:text-lg font-extrabold tracking-[-0.02em] transition-colors truncate ${
+                      <h3 className={`text-sm sm:text-base font-bold tracking-tight transition-colors truncate ${
                         isOpen ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)] group-hover/btn:text-[var(--accent-orange)]'
                       }`}>
                         {level.title}

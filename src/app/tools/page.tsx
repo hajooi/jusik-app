@@ -127,7 +127,7 @@ export default function ToolsPage() {
 
           if (tool.isComingSoon) {
             return (
-              <div key={tool.id} className="transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
+              <RevealOnScroll key={tool.id} delayIndex={idx}>
                 <div className="glass-card p-4 sm:p-5 rounded-2xl flex items-center justify-between opacity-75 cursor-not-allowed transition-all duration-300 shadow-2xs relative overflow-hidden h-full gap-3">
                   <div className="flex items-center gap-3.5 min-w-0 pr-2">
                     <div className="w-10 h-10 rounded-xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] shrink-0 border border-[var(--border-color)]/60">
@@ -148,12 +148,12 @@ export default function ToolsPage() {
                     <span>오픈 준비 중</span>
                   </div>
                 </div>
-              </div>
+              </RevealOnScroll>
             );
           }
 
           return (
-            <div key={tool.id} className="transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
+            <RevealOnScroll key={tool.id} delayIndex={idx}>
               <Link
                 href={tool.href}
                 className={`glass-card glass-card-hover p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full gap-3 relative overflow-hidden ${
@@ -209,7 +209,7 @@ export default function ToolsPage() {
                   />
                 </button>
               </Link>
-            </div>
+            </RevealOnScroll>
           );
         })}
       </div>

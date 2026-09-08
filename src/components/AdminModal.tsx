@@ -38,20 +38,6 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
   // Active Tab View: 'users' | 'surveyStats' | 'lessonStats'
   const [activeTab, setActiveTab] = useState<'users' | 'surveyStats' | 'lessonStats'>('users');
   const [surveyStats, setSurveyStats] = useState<SurveyStatsResponse | null>(null);
-  const [bannerResetSuccess, setBannerResetSuccess] = useState(false);
-
-  const handleResetBrokerBanner = () => {
-    try {
-      localStorage.removeItem('jusik_broker_benefit_dismissed_until');
-      localStorage.removeItem('jusik_broker_benefit_last_seen_date');
-      setBannerResetSuccess(true);
-      setTimeout(() => {
-        setBannerResetSuccess(false);
-      }, 2500);
-    } catch {
-      // ignore
-    }
-  };
 
   const handleClose = () => {
     if (isClosing) return;
@@ -421,15 +407,9 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
 
         {/* Modal Footer */}
         <div className="pt-2 border-t border-[var(--border-color)]/60 flex items-center justify-between shrink-0 text-[11px]">
-          <button
-            type="button"
-            onClick={handleResetBrokerBanner}
-            className="px-2.5 py-1 rounded-lg bg-[var(--accent-orange)]/10 hover:bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] font-semibold transition-all cursor-pointer flex items-center gap-1.5"
-            title="3일 숨김 기록을 삭제하여 새로고침 시 팝업이 다시 뜨게 합니다"
-          >
-            <RefreshCw className={`w-3 h-3 ${bannerResetSuccess ? 'text-[var(--accent-green)]' : ''}`} />
-            <span>{bannerResetSuccess ? '초기화 완료! (새로고침 시 뜸)' : '제휴 팝업 숨김 초기화 (테스트용)'}</span>
-          </button>
+          <span className="font-mono text-[11px] text-[var(--accent-orange)] font-semibold">
+            ● 시스템 실시간 연동 중
+          </span>
           
           <p className="text-[10px] text-[var(--text-secondary)] opacity-60">
             jusik.app 관리자 모드

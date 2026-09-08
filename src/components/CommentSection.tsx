@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
-import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown } from 'lucide-react';
+import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown, GraduationCap } from 'lucide-react';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 
@@ -437,7 +437,7 @@ export default function CommentSection({
                       )}
                     </span>
 
-                    {/* User Active Badge Selection (One of: PRO / Terms Quiz / Investment Type) - ALL rounded-full */}
+                    {/* User Active Badge Selection (One of: PRO / Honor Student / Terms Quiz / Investment Type) - ALL rounded-full */}
                     {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' ? (
                       <span 
                         className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
@@ -445,6 +445,14 @@ export default function CommentSection({
                       >
                         <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
                         <span className="tracking-wide">PRO</span>
+                      </span>
+                    ) : rootActiveBadge === 'honor_student' ? (
+                      <span 
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 select-none leading-none shadow-2xs"
+                        title={`${root.nickname}님의 전 강좌 수강 완료 우등생 뱃지`}
+                      >
+                        <GraduationCap className="w-3 h-3 stroke-[2.2]" />
+                        <span>우등생</span>
                       </span>
                     ) : rootActiveBadge === 'terms_percentile' && rootTermsQuiz?.badgeName ? (
                       <div className="relative inline-block">
@@ -648,7 +656,7 @@ export default function CommentSection({
                                 )}
                               </span>
 
-                              {/* User Active Badge Selection on Reply (One of: PRO / Terms Quiz / Investment Type) - ALL rounded-full */}
+                              {/* User Active Badge Selection on Reply (One of: PRO / Honor Student / Terms Quiz / Investment Type) - ALL rounded-full */}
                               {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' ? (
                                 <span 
                                   className="animate-pro-badge inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
@@ -656,6 +664,14 @@ export default function CommentSection({
                                 >
                                   <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
                                   <span className="tracking-wide">PRO</span>
+                                </span>
+                              ) : replyActiveBadge === 'honor_student' ? (
+                                <span 
+                                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 select-none leading-none shadow-2xs"
+                                  title={`${reply.nickname}님의 전 강좌 수강 완료 우등생 뱃지`}
+                                >
+                                  <GraduationCap className="w-2.5 h-2.5 stroke-[2.2]" />
+                                  <span>우등생</span>
                                 </span>
                               ) : replyActiveBadge === 'terms_percentile' && replyTermsQuiz?.badgeName ? (
                                 <div className="relative inline-block">

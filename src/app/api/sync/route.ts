@@ -76,6 +76,7 @@ export async function GET(request: Request) {
           favoriteTools: userRecord.favoriteTools || [],
           isPro: effectiveIsPro,
           proExpiresAt: userRecord.proExpiresAt,
+          hasCompletedCourse: userRecord.hasCompletedCourse,
           rankPercentile
         }
       },
@@ -91,7 +92,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools, hasCompletedCourse } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname) {
@@ -221,6 +222,9 @@ export async function POST(request: Request) {
         if (activeBadge !== undefined) {
           existing.activeBadge = activeBadge;
         }
+        if (hasCompletedCourse || existing.hasCompletedCourse) {
+          existing.hasCompletedCourse = true;
+        }
 
         // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존
         if (termsQuizBest) {
@@ -270,6 +274,7 @@ export async function POST(request: Request) {
             favoriteTools: existing.favoriteTools || [],
             isPro: effectiveIsPro,
             proExpiresAt: existing.proExpiresAt,
+            hasCompletedCourse: existing.hasCompletedCourse,
             rankPercentile
           }
         });
@@ -287,6 +292,7 @@ export async function POST(request: Request) {
           activeBadge,
           termsQuizBest,
           favoriteTools: favoriteTools || [],
+          hasCompletedCourse: Boolean(hasCompletedCourse),
         };
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
@@ -309,6 +315,7 @@ export async function POST(request: Request) {
             favoriteTools: newRecord.favoriteTools || [],
             isPro: newRecord.isPro,
             proExpiresAt: newRecord.proExpiresAt,
+            hasCompletedCourse: newRecord.hasCompletedCourse,
             rankPercentile
           }
         });
@@ -365,6 +372,11 @@ export async function POST(request: Request) {
         existing.favoriteTools = favoriteTools;
       }
 
+      // 7. 전 강좌 수강 완료 영구 업적 갱신
+      if (hasCompletedCourse || existing.hasCompletedCourse) {
+        existing.hasCompletedCourse = true;
+      }
+
       // 만료된 PRO 권한 자동 회수 및 DB 반영
       const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
       if (existing.isPro && !effectiveIsPro) {
@@ -397,6 +409,7 @@ export async function POST(request: Request) {
           favoriteTools: existing.favoriteTools || [],
           isPro: effectiveIsPro,
           proExpiresAt: existing.proExpiresAt,
+          hasCompletedCourse: existing.hasCompletedCourse,
           rankPercentile
         }
       });

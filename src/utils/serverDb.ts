@@ -40,6 +40,7 @@ export interface ServerUserRecord {
   activeBadge?: string;
   isPro?: boolean;
   proExpiresAt?: string;
+  hasCompletedCourse?: boolean;
   favoriteTools?: string[];
   termsQuizBest?: {
     level?: number;
