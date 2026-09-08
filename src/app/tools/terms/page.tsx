@@ -1017,7 +1017,7 @@ function TermsQuizContent() {
                     </span>
                   </div>
                   <p className="text-[11px] text-[var(--text-secondary)]">
-                    프로필 설정에서 위 뱃지를 댓글 뱃지로 선택할 수 있습니다.
+                    프로필 설정에서 대표 뱃지로 장착할 수 있습니다.
                   </p>
                 </div>
               )}
