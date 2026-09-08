@@ -17,6 +17,13 @@ export function getSupabaseAdmin(): SupabaseClient | null {
           persistSession: false,
           autoRefreshToken: false,
         },
+        global: {
+          // Next.js App Router는 서버사이드 fetch 결과를 캐싱함.
+          // Supabase는 내부적으로 fetch를 사용하므로 DB 변경이 즉시 반영되도록
+          // 모든 Supabase 요청에 cache: 'no-store'를 강제 적용.
+          fetch: (url: RequestInfo | URL, init?: RequestInit) =>
+            fetch(url, { ...init, cache: 'no-store' }),
+        },
       });
       return supabaseAdminInstance;
     } catch (e) {
@@ -25,6 +32,7 @@ export function getSupabaseAdmin(): SupabaseClient | null {
   }
   return null;
 }
+
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (supabaseClientInstance) return supabaseClientInstance;
