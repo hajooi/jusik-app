@@ -320,9 +320,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
-      // 1. 수강 완료 목록: Union 병합
+      // 1. 수강 완료 목록: 최신 상태 동기화 (수강 완료 취소 정상 반영)
       if (completedLessons !== undefined && Array.isArray(completedLessons)) {
-        existing.completedLessons = Array.from(new Set([...(existing.completedLessons || []), ...completedLessons]));
+        existing.completedLessons = Array.from(new Set(completedLessons));
       }
 
       // 2. 투자 성향 40문항 답변 보호
