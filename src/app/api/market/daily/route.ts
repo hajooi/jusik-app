@@ -17,7 +17,14 @@ interface YahooMeta {
 }
 
 interface YahooChartResult {
-  meta: YahooMeta;
+  meta: YahooMeta & {
+    currentTradingPeriod?: {
+      regular?: {
+        start?: number;
+        end?: number;
+      };
+    };
+  };
   indicators?: {
     adjclose?: Array<{ adjclose?: (number | null)[] }>;
     quote?: Array<{ close?: (number | null)[] }>;
@@ -65,69 +72,73 @@ async function fetchYahooData(symbol: string): Promise<{
       return null;
     }
     const json = await res.json();
-    const result = json?.chart?.result?.[0];
+    const result: YahooChartResult | undefined = json?.chart?.result?.[0];
     if (!result || !result.meta) return null;
 
-    const current = result.meta.regularMarketPrice ?? result.meta.fulldayPrice ?? 0;
-
-    const timestamps: number[] = result.timestamp ?? [];
+    const timestamps: number[] = (result as any).timestamp ?? [];
     const rawHistory = result.indicators?.adjclose?.[0]?.adjclose ?? result.indicators?.quote?.[0]?.close ?? [];
     
     // 정확히 1년 전 (작년 9월 5일 거래일부터 온전히 포함하도록 370일 전 기준)
-    const oneYearAgoMs = Date.now() - (370 * 24 * 60 * 60 * 1000);
+    const nowTimeMs = Date.now();
+    const oneYearAgoMs = nowTimeMs - (370 * 24 * 60 * 60 * 1000);
+    const nowSec = Math.floor(nowTimeMs / 1000);
 
-    // 최초 유효 종가 탐색 (current 대신 과거 첫 실제 거래 가격으로 초기화하여 첫 거래일 튀는 스파이크 원천 차단)
-    let firstValidClose = current;
-    for (let i = 0; i < rawHistory.length; i++) {
-      const v = rawHistory[i];
-      if (v !== null && typeof v === 'number' && !isNaN(v)) {
-        firstValidClose = Number(v.toFixed(2));
-        break;
-      }
-    }
+    // 정규장 세션 시간 (장중 실시간 캔들 제외 판별용)
+    const regPeriod = result.meta.currentTradingPeriod?.regular;
+    const regStart = regPeriod?.start ?? 0;
+    const regEnd = regPeriod?.end ?? 0;
 
     const points: DailyPoint[] = [];
     const history: number[] = [];
-    let lastValid = firstValidClose;
 
     for (let i = 0; i < timestamps.length; i++) {
       const ts = timestamps[i];
       const timeMs = ts * 1000;
       if (timeMs < oneYearAgoMs) continue; // 370일 이전 데이터 스킵
 
-      const rawVal = rawHistory[i];
-      if (rawVal !== null && typeof rawVal === 'number' && !isNaN(rawVal)) {
-        lastValid = Number(rawVal.toFixed(2));
+      // 현재 시각이 정규장 진행 중(개장 후 ~ 마감 전)인 경우, 당일 장중 캔들은 '마감 종가'가 아니므로 완전 제외!
+      const isOngoingSession = ts >= regStart && nowSec < regEnd;
+      if (isOngoingSession) {
+        continue;
       }
+
+      const rawVal = rawHistory[i];
+      // 종가가 null이거나 유효하지 않은 임시 캔들은 건너뜀 (직전값 복제로 인한 중복 데이터 원천 방지)
+      if (rawVal === null || typeof rawVal !== 'number' || isNaN(rawVal)) {
+        continue;
+      }
+
+      const validClose = Number(rawVal.toFixed(2));
 
       // 날짜 포맷 (YYYY.MM.DD)
       const d = new Date(timeMs);
       const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
-      points.push({ date: dateStr, value: lastValid });
-      history.push(lastValid);
-    }
-
-    // 전일 대비 변동 계산 (fulldayChange 우선, 없으면 직전 거래일 history[length - 2] 대비)
-    let change = result.meta.fulldayChange ?? result.meta.regularMarketChange;
-    let changePercent = result.meta.fulldayChangePercent ?? result.meta.regularMarketChangePercent;
-
-    if (change === undefined || change === null) {
-      if (history.length >= 2) {
-        const prevClose = history[history.length - 2];
-        change = current - prevClose;
+      // 동일한 날짜(시차/장중 캔들)가 이미 존재할 경우 마지막 확정값으로 갱신
+      if (points.length > 0 && points[points.length - 1].date === dateStr) {
+        points[points.length - 1].value = validClose;
+        history[history.length - 1] = validClose;
       } else {
-        change = 0;
+        points.push({ date: dateStr, value: validClose });
+        history.push(validClose);
       }
     }
 
-    if (changePercent === undefined || changePercent === null) {
-      if (history.length >= 2) {
-        const prevClose = history[history.length - 2];
-        changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
-      } else {
-        changePercent = 0;
-      }
+    if (points.length === 0) {
+      return null;
+    }
+
+    // 마감 종가 기준 현재가 (장중 실시간가가 아니라 공식 마감된 최신 종가)
+    const lastClosedPoint = points[points.length - 1];
+    const prevClosedPoint = points.length >= 2 ? points[points.length - 2] : null;
+
+    const current = lastClosedPoint.value;
+    let change = 0;
+    let changePercent = 0;
+
+    if (prevClosedPoint && prevClosedPoint.value > 0) {
+      change = Number((current - prevClosedPoint.value).toFixed(2));
+      changePercent = Number(((change / prevClosedPoint.value) * 100).toFixed(2));
     }
 
     return {
@@ -197,7 +208,7 @@ function mapRatingToWeather(score: number): {
   return { state: 'stormy', label: p.label, message: p.message, subMessage: p.subMessage };
 }
 
-// 한국 주요 언론사(연합뉴스 경제, 한국경제) 실시간 금융 뉴스 공식 RSS 파싱 수집기 (100% 실제 기사 직결 URL)
+// 구글 뉴스 비즈니스/경제 실시간 트렌딩 AI 피드 파싱 수집기 (살아 움직이는 시장 테마 자동 반영 & 5~6개 언론사 다각화)
 async function fetchRealKoreanMarketNews(): Promise<Array<{
   id: string;
   source: string;
@@ -205,91 +216,25 @@ async function fetchRealKoreanMarketNews(): Promise<Array<{
   url: string;
   category: 'us' | 'kr' | 'macro';
 }> | null> {
-  const feeds = [
-    { source: '연합뉴스', url: 'https://www.yna.co.kr/rss/economy.xml' },
-    { source: '한국경제', url: 'https://www.hankyung.com/feed/all-news' },
-  ];
-
-  const keywords = ['증시', '뉴욕증시', '코스피', '코스닥', '환율', '금리', '나스닥', '반도체', '유가', '연준', '물가', '다우', 'S&P'];
-
   try {
-    const feedResults: Record<string, Array<{
-      id: string;
-      source: string;
-      title: string;
-      url: string;
-      category: 'us' | 'kr' | 'macro';
-    }>> = {
-      연합뉴스: [],
-      한국경제: [],
-    };
+    const googleNewsUrl = 'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko';
+    const res = await fetch(googleNewsUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      },
+      cache: 'no-store',
+    });
 
-    const seenTitles = new Set<string>();
-
-    for (const feed of feeds) {
-      try {
-        const res = await fetch(feed.url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-          },
-          cache: 'no-store',
-        });
-
-        if (!res.ok) continue;
-        const xml = await res.text();
-        const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-
-        for (const item of items) {
-          const tMatch = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/);
-          const lMatch = item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/);
-          if (!tMatch || !lMatch) continue;
-
-          let title = tMatch[1]
-            .replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1')
-            .replace(/&amp;/g, '&')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-            .trim();
-
-          const link = lMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
-          if (!link.startsWith('http')) continue;
-
-          // 키워드 매칭 및 중복 방지
-          const isRelevant = keywords.some((k) => title.includes(k));
-          if (!isRelevant) continue;
-
-          // 제목 단순 정제
-          if (title.endsWith(` - ${feed.source}`)) {
-            title = title.replace(` - ${feed.source}`, '').trim();
-          }
-
-          if (seenTitles.has(title)) continue;
-          seenTitles.add(title);
-
-          const category: 'us' | 'kr' | 'macro' =
-            title.includes('코스피') || title.includes('코스닥') || title.includes('국고채') || title.includes('삼전')
-              ? 'kr'
-              : title.includes('환율') || title.includes('유가') || title.includes('금값') || title.includes('유동성')
-              ? 'macro'
-              : 'us';
-
-          feedResults[feed.source].push({
-            id: `news-${feed.source === '연합뉴스' ? 'yna' : 'hk'}-${feedResults[feed.source].length + 1}`,
-            source: feed.source,
-            title,
-            url: link,
-            category,
-          });
-
-          // 각 언론사별 최대 3개씩 선별
-          if (feedResults[feed.source].length >= 3) break;
-        }
-      } catch (feedErr) {
-        console.warn(`[News fetch failed for ${feed.source}]:`, feedErr);
-      }
+    if (!res.ok) {
+      console.warn(`[Google News fetch HTTP ${res.status}]`);
+      return null;
     }
 
-    // 연합뉴스 & 한국경제 1:1 교차(Round-Robin) 결합
+    const xml = await res.text();
+    const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+
+    const seenSources = new Set<string>();
+    const seenTitles = new Set<string>();
     const collected: Array<{
       id: string;
       source: string;
@@ -298,10 +243,56 @@ async function fetchRealKoreanMarketNews(): Promise<Array<{
       category: 'us' | 'kr' | 'macro';
     }> = [];
 
-    const maxItems = Math.max(feedResults['연합뉴스'].length, feedResults['한국경제'].length);
-    for (let i = 0; i < maxItems; i++) {
-      if (feedResults['연합뉴스'][i]) collected.push(feedResults['연합뉴스'][i]);
-      if (feedResults['한국경제'][i]) collected.push(feedResults['한국경제'][i]);
+    for (const item of items) {
+      const tMatch = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/);
+      const lMatch = item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/);
+      const sMatch = item.match(/<source[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/source>/);
+
+      if (!tMatch || !lMatch) continue;
+
+      let title = tMatch[1]
+        .replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .trim();
+
+      const link = lMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
+      if (!link.startsWith('http')) continue;
+
+      let source = sMatch ? sMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim() : '주요 언론';
+      if (source === 'v.daum.net') source = '다음뉴스';
+
+      // 언론사 명 접미사 제거 (예: '... - 조선일보')
+      if (title.includes(' - ')) {
+        title = title.split(' - ')[0].trim();
+      }
+
+      // 제목 중복 방지
+      if (seenTitles.has(title)) continue;
+      seenTitles.add(title);
+
+      // 언론사 쏠림 방지: 서로 다른 5~6개 언론사에서 1개씩 선별
+      if (seenSources.has(source)) continue;
+      seenSources.add(source);
+
+      // 카테고리 자동 판별
+      const category: 'us' | 'kr' | 'macro' =
+        title.includes('코스피') || title.includes('코스닥') || title.includes('국고채') || title.includes('한은') || title.includes('한국') || title.includes('삼전')
+          ? 'kr'
+          : title.includes('환율') || title.includes('유가') || title.includes('금값') || title.includes('달러') || title.includes('금리') || title.includes('GDP') || title.includes('물가')
+          ? 'macro'
+          : 'us';
+
+      collected.push({
+        id: `news-g-${collected.length + 1}`,
+        source,
+        title,
+        url: link,
+        category,
+      });
+
+      if (collected.length >= 6) break;
     }
 
     return collected.length >= 4 ? collected : null;
@@ -342,9 +333,26 @@ export async function GET(request: Request) {
             ? snap.todayNews
             : TODAY_MARKET_NEWS;
 
-          const cachedEvents = Array.isArray(dbRecord.simulator_settings?.calendarEvents) && dbRecord.simulator_settings.calendarEvents.length > 0
-            ? dbRecord.simulator_settings.calendarEvents
-            : CALENDAR_EVENTS;
+          // 코드의 최신 CALENDAR_EVENTS를 기준으로 삼고 DB 캐시의 actual 및 simpleSummary만 오버레이 병합
+          const dbEvents = dbRecord.simulator_settings?.calendarEvents;
+          let mergedEvents = CALENDAR_EVENTS;
+          if (Array.isArray(dbEvents) && dbEvents.length > 0) {
+            const dbMap = new Map<string, CalendarEvent>();
+            dbEvents.forEach((e: CalendarEvent) => {
+              if (e && e.id) dbMap.set(e.id, e);
+            });
+            mergedEvents = CALENDAR_EVENTS.map((base) => {
+              const cached = dbMap.get(base.id);
+              if (cached && (cached.actual || cached.simpleSummary)) {
+                return {
+                  ...base,
+                  ...(cached.actual ? { actual: cached.actual } : {}),
+                  ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
+                };
+              }
+              return base;
+            });
+          }
 
           const cachedData = {
             ...dbRecord.simulator_settings,
@@ -352,7 +360,7 @@ export async function GET(request: Request) {
               ...snap,
               todayNews: validNews,
             },
-            calendarEvents: cachedEvents,
+            calendarEvents: mergedEvents,
             weeklyBriefing: WEEKLY_BRIEFING,
           };
           // 메모리 캐시도 함께 갱신하여 초고속 서빙
@@ -391,12 +399,20 @@ export async function GET(request: Request) {
     const fgScore = fgData?.score ?? MARKET_SNAPSHOT.fearGreedIndex;
     const weather = mapRatingToWeather(fgScore);
 
-    // 날짜 포맷팅: 실제 마지막 데이터 날짜 또는 오늘 날짜 (2026.09.04 / 2026.09.05)
-    const lastDataDate = spx?.points && spx.points.length > 0 ? spx.points[spx.points.length - 1].date : null;
+    // 날짜 포맷팅: 전체 수집 자산 중 가장 최근에 공식 마감된 실제 거래일 산출 (미국 휴장 시 한국 마감일 자동 반영)
+    const allFetchedAssets = [spx, ndx, kospi, kosdaq, usdkrw, us10y, gold, oil];
+    const latestDates = allFetchedAssets
+      .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
+      .filter((d): d is string => Boolean(d));
+
+    // 최신 날짜 정렬 (YYYY.MM.DD 포맷이므로 사전순 비교로 정확히 최신일 도출)
+    latestDates.sort();
+    const latestClosedDate = latestDates.length > 0 ? latestDates[latestDates.length - 1] : null;
+
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
-    if (lastDataDate) {
-      const parts = lastDataDate.split('.');
+    if (latestClosedDate) {
+      const parts = latestClosedDate.split('.');
       if (parts.length === 3) {
         dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
       }
@@ -559,9 +575,42 @@ export async function GET(request: Request) {
       },
     };
 
-    // 실시간 한국어 금융 뉴스 자동 수집 (실패 시 정적 TODAY_MARKET_NEWS 폴백)
+    // 5. 데이터 수집 정합성 검증 및 이상 감지 텔레그램 알림
+    const dataIssues: string[] = [];
+
+    // 1) 뉴스 수집 이상 감지
     const autoNews = await fetchRealKoreanMarketNews();
+    if (!autoNews || autoNews.length < 4) {
+      dataIssues.push(`뉴스 수집 실패 (${autoNews ? autoNews.length : 0}개 수집됨, 정적 데이터로 폴백)`);
+    }
     const resolvedNews = (autoNews && autoNews.length >= 4) ? autoNews : TODAY_MARKET_NEWS;
+
+    // 2) 8대 핵심 자산 시계열 수집 실패 감지
+    const assetChecks: Array<{ name: string; data: any }> = [
+      { name: 'S&P 500', data: spx },
+      { name: '나스닥 100', data: ndx },
+      { name: '코스피', data: kospi },
+      { name: '코스닥', data: kosdaq },
+      { name: '달러 환율', data: usdkrw },
+      { name: '미국채 10년', data: us10y },
+      { name: '국제 금', data: gold },
+      { name: '국제 유가', data: oil },
+    ];
+
+    const failedAssets = assetChecks.filter((a) => !a.data || !a.data.points || a.data.points.length === 0);
+    if (failedAssets.length > 0) {
+      dataIssues.push(`자산 데이터 수집 누락: ${failedAssets.map((f) => f.name).join(', ')}`);
+    }
+
+    // 일일 정기 갱신(forceRefresh) 시점에 이슈가 발견되면 텔레그램 즉시 통보
+    if (dataIssues.length > 0) {
+      console.warn('[Market Daily Data Issues]:', dataIssues);
+      try {
+        await sendTelegramErrorAlert('일일 증시 데이터 수집 점검', dataIssues.join('\n'));
+      } catch (alertErr) {
+        console.warn('Telegram issue alert failed:', alertErr);
+      }
+    }
 
     const snapshot = {
       weatherState: weather.state,

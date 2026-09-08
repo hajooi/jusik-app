@@ -25,3 +25,11 @@ jobs:
             exit 1
           fi
           echo "Market Daily Sync completed successfully!"
+
+      - name: Notify Telegram on Failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q' }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"🚨 <b>[jusik.app 자동화 오류 경고]</b>\n일일 마켓 데이터 동기화 작업(market-daily-sync) 중 오류가 발생했습니다. GitHub Actions 로그 및 API 상태를 확인해 주세요.","parse_mode":"HTML"}'
+

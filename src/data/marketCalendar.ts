@@ -86,44 +86,44 @@ export interface MarketNewsItem {
 export const TODAY_MARKET_NEWS: MarketNewsItem[] = [
   {
     id: 'news-yna-1',
-    source: '연합뉴스',
-    title: '바브엘만데브 해협까지 불안…국제유가 상승세 지속',
-    url: 'https://www.yna.co.kr/view/AKR20260905005600072',
+    source: '다음뉴스',
+    title: '[개장시황] 코스피, 7000선 회복…반도체 숨고르기·2차전지 강세',
+    url: 'https://v.daum.net/v/20260908092800123',
+    category: 'kr',
+  },
+  {
+    id: 'news-kbs-1',
+    source: 'KBS 뉴스',
+    title: '올해 2분기 GDP 0.6% 성장…명목 GDP 47년 만 최고치',
+    url: 'https://news.kbs.co.kr/news/pc/view/view.do?ncd=8054321',
     category: 'macro',
+  },
+  {
+    id: 'news-chosun-1',
+    source: '조선일보',
+    title: "시중 금리 오르자 '10년 이상 금리 고정 주택담보대출' 다시 꺼낸 금융위…결국 관건은 '이자 부담'",
+    url: 'https://www.chosun.com/economy/economy_general/2026/09/08/XYZ12345',
+    category: 'macro',
+  },
+  {
+    id: 'news-mbc-1',
+    source: 'MBC 뉴스',
+    title: "노동장관 \"새 지침대로면 '삼성전자 N% 성과급' 요구 파업 불법\"",
+    url: 'https://imnews.imbc.com/news/2026/econo/article/6634567_36452.html',
+    category: 'us',
+  },
+  {
+    id: 'news-hani-1',
+    source: '한겨레',
+    title: '대미투자 1호는 ‘30조 텍사스 가스발전소’…원전 8기도 검토',
+    url: 'https://www.hani.co.kr/arti/economy/economy_general/1157890.html',
+    category: 'us',
   },
   {
     id: 'news-hk-1',
     source: '한국경제',
-    title: '"지금이라도 사야하나" 비명 쏟아지는데…삼전닉스 \'미소\'',
-    url: 'https://www.hankyung.com/article/2026090559947',
-    category: 'kr',
-  },
-  {
-    id: 'news-yna-2',
-    source: '연합뉴스',
-    title: '국고채 금리 대체로 하락…美 고용지표 대기',
-    url: 'https://www.yna.co.kr/view/AKR20260904142751008',
-    category: 'kr',
-  },
-  {
-    id: 'news-hk-2',
-    source: '한국경제',
-    title: '"비트코인 덕분에 짭짤했는데"…새로운 \'큰손\' 등장에 들썩',
-    url: 'https://www.hankyung.com/article/202609045408i',
-    category: 'macro',
-  },
-  {
-    id: 'news-yna-3',
-    source: '연합뉴스',
-    title: '엔화 강세에…원/달러 환율 14개월 만에 장중 1,340원대로',
-    url: 'https://www.yna.co.kr/view/AKR20260904124900002',
-    category: 'macro',
-  },
-  {
-    id: 'news-hk-3',
-    source: '한국경제',
-    title: "'S&P 500·미 단기국채 혼합 패시브' ETF 신규상장",
-    url: 'https://www.yna.co.kr/view/AKR20260904136500008',
+    title: "애플 '여권폰'만 기다렸는데…\"337만원에 이게 없다고\" 술렁 [테크로그]",
+    url: 'https://www.hankyung.com/article/2026090812345',
     category: 'us',
   },
 ];
@@ -11215,6 +11215,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 실물 경제의 뿌리인 중소기업과 소상공인들의 체감 경기 심리를 점검해요.",
     "impactTag": "관망",
     "importance": 1,
+    "expected": "99.4",
     "previous": "99.8"
   },
   {
@@ -11227,6 +11228,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "공장과 생산자들의 출하 가격 변동을 보여주는 도매물가 지표예요.\n이 지표가 안정되면 1~2개월 뒤 소비자물가 추가 안정으로 이어집니다.",
     "impactTag": "관망",
     "importance": 2,
+    "expected": "4.4%",
     "previous": "4.7%"
   },
   {
@@ -11239,6 +11241,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 9월 FOMC 금리 결정을 불과 5일 앞두고 공개되는 최후의 결정적 물가 성적표예요.\n물가 안정세가 확인되면 통화정책 완화 기대감이 더욱 탄력을 받아요.",
     "impactTag": "핵심지표",
     "importance": 3,
+    "expected": "3.4%",
     "previous": "3.4%"
   },
   {
@@ -11251,6 +11254,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "에너지와 식료품을 뺀 기조적 물가 흐름을 보여주는 연준의 핵심 주시 지표예요.",
     "impactTag": "핵심지표",
     "importance": 3,
+    "expected": "2.4%",
     "previous": "2.5%"
   },
   {
