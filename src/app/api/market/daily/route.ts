@@ -318,7 +318,7 @@ export async function GET(request: Request) {
     }
 
     // 2. Supabase 클라우드 영구 캐시 우선 확인 (서버 재시작/인스턴스 분산 환경 대응)
-    const supabase = getSupabaseAdmin(); console.log('DEBUG VERCEL SUPABASE:', !!supabase);
+    const supabase = getSupabaseAdmin(); console.log('DEBUG VERCEL SUPABASE URL:', process.env.NEXT_PUBLIC_SUPABASE_URL, 'KEY_PREFIX:', (process.env.SUPABASE_SERVICE_ROLE_KEY || '').slice(0, 10));
     if (!forceRefresh && supabase) {
       try {
         const { data: dbRecord } = await supabase
