@@ -318,7 +318,7 @@ export async function GET(request: Request) {
     }
 
     // 2. Supabase 클라우드 영구 캐시 우선 확인 (서버 재시작/인스턴스 분산 환경 대응)
-    const supabase = getSupabaseAdmin(); console.log('DEBUG VERCEL SUPABASE URL:', process.env.NEXT_PUBLIC_SUPABASE_URL, 'KEY_PREFIX:', (process.env.SUPABASE_SERVICE_ROLE_KEY || '').slice(0, 10));
+    const supabase = getSupabaseAdmin();
     if (!forceRefresh && supabase) {
       try {
         const { data: dbRecord } = await supabase
@@ -327,7 +327,7 @@ export async function GET(request: Request) {
           .eq('nickname', '__system_market_daily_cache__')
           .maybeSingle();
 
-        console.log('DEBUG EXACT URL KEY: 'undefined' '' DEBUG FULL DB RECORD SNAP:', JSON.stringify(dbRecord?.simulator_settings?.snapshot?.updatedAt), 'LAST_ACTIVE:', dbRecord?.last_active_at); if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
+        if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
           const snap = dbRecord.simulator_settings.snapshot;
           const validNews = (Array.isArray(snap.todayNews) && snap.todayNews.length >= 4)
             ? snap.todayNews
