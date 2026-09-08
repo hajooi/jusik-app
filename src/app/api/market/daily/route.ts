@@ -42,9 +42,11 @@ const YAHOO_SYMBOLS: Record<string, string> = {
   '국제 유가': 'CL=F',
 };
 
-// 안전한 서버 인메모리 일일 캐시 (성공한 데이터만 캐싱, 하루 1회 갱신)
+// 안전한 서버 인메모리 일일 캐시
+// DB가 단일 진실 공급원(Single Source of Truth)이므로 메모리 캐시는 성능 최적화 전용.
+// 1시간 TTL: 배포 직후 / 일일 갱신 후 각 Lambda 인스턴스가 빠르게 DB 값으로 갱신됨.
 let memoryCache: { data: any; timestamp: number } | null = null;
-const CACHE_DURATION_MS = 12 * 60 * 60 * 1000; // 12시간 (반나절~하루)
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1시간 (DB 갱신 후 최대 1시간 내 반영)
 
 export interface DailyPoint {
   date: string;
@@ -311,69 +313,89 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const forceRefresh = searchParams.get('refresh') === 'true';
 
-    // 1. 메모리 캐시 유효 시 즉시 반환 (0ms) - forceRefresh 아닐 때
-    const nowTime = Date.now();
-    if (!forceRefresh && memoryCache && (nowTime - memoryCache.timestamp < CACHE_DURATION_MS)) {
-      return NextResponse.json(memoryCache.data);
-    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // [일반 GET 경로] forceRefresh가 false인 모든 일반 요청
+    // DB = 단일 진실 공급원. Yahoo Finance는 절대 호출하지 않음.
+    // 순서: 메모리 캐시 → Supabase DB → 하드코딩 폴백
+    // ─────────────────────────────────────────────────────────────────────────
+    if (!forceRefresh) {
+      const nowTime = Date.now();
 
-    // 2. Supabase 클라우드 영구 캐시 우선 확인 (서버 재시작/인스턴스 분산 환경 대응)
-    const supabase = getSupabaseAdmin();
-    if (!forceRefresh && supabase) {
-      try {
-        const { data: dbRecord } = await supabase
-          .from('users')
-          .select('simulator_settings, last_active_at')
-          .eq('nickname', '__system_market_daily_cache__')
-          .maybeSingle();
-
-        if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
-          const snap = dbRecord.simulator_settings.snapshot;
-          const validNews = (Array.isArray(snap.todayNews) && snap.todayNews.length >= 4)
-            ? snap.todayNews
-            : TODAY_MARKET_NEWS;
-
-          // 코드의 최신 CALENDAR_EVENTS를 기준으로 삼고 DB 캐시의 actual 및 simpleSummary만 오버레이 병합
-          const dbEvents = dbRecord.simulator_settings?.calendarEvents;
-          let mergedEvents = CALENDAR_EVENTS;
-          if (Array.isArray(dbEvents) && dbEvents.length > 0) {
-            const dbMap = new Map<string, CalendarEvent>();
-            dbEvents.forEach((e: CalendarEvent) => {
-              if (e && e.id) dbMap.set(e.id, e);
-            });
-            mergedEvents = CALENDAR_EVENTS.map((base) => {
-              const cached = dbMap.get(base.id);
-              if (cached && (cached.actual || cached.simpleSummary)) {
-                return {
-                  ...base,
-                  ...(cached.actual ? { actual: cached.actual } : {}),
-                  ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
-                };
-              }
-              return base;
-            });
-          }
-
-          const cachedData = {
-            ...dbRecord.simulator_settings,
-            snapshot: {
-              ...snap,
-              todayNews: validNews,
-            },
-            calendarEvents: mergedEvents,
-            weeklyBriefing: WEEKLY_BRIEFING,
-          };
-          // 메모리 캐시도 함께 갱신하여 초고속 서빙
-          memoryCache = {
-            data: cachedData,
-            timestamp: nowTime,
-          };
-          return NextResponse.json(cachedData);
-        }
-      } catch (dbErr) {
-        console.warn('Supabase market cache lookup error:', dbErr);
+      // 1. 메모리 캐시 유효 시 즉시 반환 (0ms)
+      if (memoryCache && (nowTime - memoryCache.timestamp < CACHE_DURATION_MS)) {
+        return NextResponse.json(memoryCache.data);
       }
+
+      // 2. Supabase DB 읽기 (단일 진실 공급원)
+      const supabase = getSupabaseAdmin();
+      if (supabase) {
+        try {
+          const { data: dbRecord } = await supabase
+            .from('users')
+            .select('simulator_settings')
+            .eq('nickname', '__system_market_daily_cache__')
+            .maybeSingle();
+
+          if (dbRecord?.simulator_settings?.snapshot && dbRecord?.simulator_settings?.assetCharts) {
+            const snap = dbRecord.simulator_settings.snapshot;
+
+            // 뉴스: DB에 저장된 뉴스가 유효하면 사용, 아니면 하드코딩 폴백
+            const validNews = (Array.isArray(snap.todayNews) && snap.todayNews.length >= 4)
+              ? snap.todayNews
+              : TODAY_MARKET_NEWS;
+
+            // 캘린더: 코드 정의 기준으로 DB의 actual/simpleSummary만 오버레이
+            const dbEvents = dbRecord.simulator_settings?.calendarEvents;
+            let mergedEvents = CALENDAR_EVENTS;
+            if (Array.isArray(dbEvents) && dbEvents.length > 0) {
+              const dbMap = new Map<string, CalendarEvent>();
+              dbEvents.forEach((e: CalendarEvent) => { if (e?.id) dbMap.set(e.id, e); });
+              mergedEvents = CALENDAR_EVENTS.map((base) => {
+                const cached = dbMap.get(base.id);
+                if (cached && (cached.actual || cached.simpleSummary)) {
+                  return {
+                    ...base,
+                    ...(cached.actual ? { actual: cached.actual } : {}),
+                    ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
+                  };
+                }
+                return base;
+              });
+            }
+
+            const cachedData = {
+              ...dbRecord.simulator_settings,
+              snapshot: { ...snap, todayNews: validNews },
+              calendarEvents: mergedEvents,
+              weeklyBriefing: WEEKLY_BRIEFING,
+            };
+
+            // 메모리 캐시에 저장 (다음 요청은 DB 조회 없이 즉시 반환)
+            memoryCache = { data: cachedData, timestamp: nowTime };
+            return NextResponse.json(cachedData);
+          }
+        } catch (dbErr) {
+          console.warn('[Market Daily] Supabase read error (returning fallback):', dbErr);
+        }
+      }
+
+      // 3. DB 조회 실패 시 하드코딩 폴백 반환 (Yahoo 절대 호출 안 함)
+      console.warn('[Market Daily] DB unavailable, returning hardcoded fallback.');
+      const fallbackData = {
+        success: true,
+        snapshot: MARKET_SNAPSHOT,
+        assetCharts: ASSET_CHARTS,
+        calendarEvents: CALENDAR_EVENTS,
+        weeklyBriefing: WEEKLY_BRIEFING,
+      };
+      return NextResponse.json(fallbackData);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // [일일 갱신 경로] forceRefresh=true (GitHub Actions 크론 전용)
+    // Yahoo Finance + CNN F&G 호출 → 검증 → DB 저장 → 메모리 캐시 갱신
+    // ─────────────────────────────────────────────────────────────────────────
+    const supabase = getSupabaseAdmin();
 
     // 3. CNN Fear & Greed API 호출
     const fgData = await fetchFearGreedIndex();
@@ -578,7 +600,7 @@ export async function GET(request: Request) {
     // 5. 데이터 수집 정합성 검증 및 이상 감지 텔레그램 알림
     const dataIssues: string[] = [];
 
-    // 1) 뉴스 수집 이상 감지
+    // 1) 뉴스 수집: forceRefresh 시에만 실시간 파싱, 결과를 DB에 저장
     const autoNews = await fetchRealKoreanMarketNews();
     if (!autoNews || autoNews.length < 4) {
       dataIssues.push(`뉴스 수집 실패 (${autoNews ? autoNews.length : 0}개 수집됨, 정적 데이터로 폴백)`);
@@ -602,7 +624,7 @@ export async function GET(request: Request) {
       dataIssues.push(`자산 데이터 수집 누락: ${failedAssets.map((f) => f.name).join(', ')}`);
     }
 
-    // 일일 정기 갱신(forceRefresh) 시점에 이슈가 발견되면 텔레그램 즉시 통보
+    // 이슈 발견 시 텔레그램 즉시 통보
     if (dataIssues.length > 0) {
       console.warn('[Market Daily Data Issues]:', dataIssues);
       try {
@@ -638,11 +660,7 @@ export async function GET(request: Request) {
         const dbEvents = currentDb?.simulator_settings?.calendarEvents;
         if (Array.isArray(dbEvents) && dbEvents.length > 0) {
           const dbEventMap = new Map<string, CalendarEvent>();
-          dbEvents.forEach((e: CalendarEvent) => {
-            if (e && e.id) dbEventMap.set(e.id, e);
-          });
-
-          // 코드의 최신 이벤트 정의에 DB의 발표 수치(actual)와 AI 요약만 오버레이
+          dbEvents.forEach((e: CalendarEvent) => { if (e?.id) dbEventMap.set(e.id, e); });
           currentCalendarEvents = CALENDAR_EVENTS.map((baseEvent) => {
             const cached = dbEventMap.get(baseEvent.id);
             if (cached && (cached.actual || cached.simpleSummary)) {
@@ -670,12 +688,10 @@ export async function GET(request: Request) {
       weeklyBriefing: WEEKLY_BRIEFING,
     };
 
-    // 성공한 데이터 인메모리 및 Supabase DB에 동시 저장
-    memoryCache = {
-      data: responseData,
-      timestamp: Date.now(),
-    };
+    // 메모리 캐시 갱신
+    memoryCache = { data: responseData, timestamp: Date.now() };
 
+    // DB 저장 (크론 갱신 결과만 DB에 반영 — 일반 GET은 절대 이 코드에 도달하지 않음)
     if (supabase) {
       try {
         await supabase.from('users').upsert({
@@ -684,18 +700,17 @@ export async function GET(request: Request) {
           simulator_settings: responseData,
           last_active_at: new Date().toISOString(),
         });
+        console.log('[Market Daily] DB updated successfully. updatedAt:', dateStr);
       } catch (saveDbErr) {
         console.warn('Failed to persist market cache to Supabase:', saveDbErr);
       }
     }
 
-    // 깃허브 액션 등 일일 강제 갱신(forceRefresh) 호출 시 텔레그램 일일 브리핑 리포트 발송
-    if (forceRefresh) {
-      try {
-        await sendTelegramDailyReport(snapshot, newlyPublished);
-      } catch (tgErr) {
-        console.warn('Telegram daily report failed:', tgErr);
-      }
+    // 텔레그램 일일 브리핑 리포트 발송 (forceRefresh=true 전용)
+    try {
+      await sendTelegramDailyReport(snapshot, newlyPublished);
+    } catch (tgErr) {
+      console.warn('Telegram daily report failed:', tgErr);
     }
 
     return NextResponse.json(responseData, {
@@ -718,3 +733,4 @@ export async function GET(request: Request) {
     });
   }
 }
+

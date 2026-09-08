@@ -129,7 +129,7 @@ export const TODAY_MARKET_NEWS: MarketNewsItem[] = [
 ];
 
 export const MARKET_SNAPSHOT = {
-  updatedAt: '2026년 9월 4일 마감 기준',
+  updatedAt: '2026년 9월 7일 마감 기준',
   fearGreedIndex: 42,
   fearGreedLabel: '공포',
   weatherState: 'rainy' as WeatherState,
@@ -138,8 +138,8 @@ export const MARKET_SNAPSHOT = {
   indices: [
     { name: 'S&P 500', code: 'SPX', value: '7,718.60', change: '-29.11', changePercent: '-0.38', isPositive: false },
     { name: '나스닥 100', code: 'NDX', value: '29,544.15', change: '+61.83', changePercent: '+0.21', isPositive: true },
-    { name: '코스피', code: 'KOSPI', value: '6,687.21', change: '+107.73', changePercent: '+1.64', isPositive: true },
-    { name: '코스닥', code: 'KOSDAQ', value: '813.50', change: '+23.29', changePercent: '+2.95', isPositive: true },
+    { name: '코스피', code: 'KOSPI', value: '6,995.39', change: '+308.18', changePercent: '+4.60', isPositive: true },
+    { name: '코스닥', code: 'KOSDAQ', value: '822.19', change: '+8.69', changePercent: '+1.07', isPositive: true },
   ] as MarketIndex[],
   auxiliary: [
     { label: '달러 환율', value: '1,351원', isPositive: false },
@@ -149,6 +149,7 @@ export const MARKET_SNAPSHOT = {
   ],
   todayNews: TODAY_MARKET_NEWS,
 };
+
 
 // ─── 주간 브리핑 데이터 (2026년 9월 1주차: 8/31 ~ 9/4 결산) ─────────────────
 
