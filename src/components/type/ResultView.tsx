@@ -35,10 +35,10 @@ interface AxisExplanation {
 const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   GS: {
     leftCode: 'S',
-    leftName: '안전형 (Safety)',
+    leftName: '안정형 (Stable)',
     leftDesc: '원금 보전 최우선',
     rightCode: 'G',
-    rightName: '수익형 (Growth)',
+    rightName: '성장형 (Growing)',
     rightDesc: '위험 감수 및 높은 수익 추구',
   },
   AP: {
@@ -51,7 +51,7 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
   },
   LT: {
     leftCode: 'T',
-    leftName: '추세형 (Tactical)',
+    leftName: '추세형 (Trend-following)',
     leftDesc: '단기 트렌드 및 유연 대응',
     rightCode: 'L',
     rightName: '장기형 (Long-term)',
@@ -62,7 +62,7 @@ const AXIS_EXPLANATIONS: Record<string, AxisExplanation> = {
     leftName: '직감형 (Intuitive)',
     leftDesc: '시각적·직관적 인사이트 판단',
     rightCode: 'R',
-    rightName: '원칙형 (Rule-based)',
+    rightName: '원칙형 (Rational)',
     rightDesc: '검증된 룰 및 원칙 매매',
   },
 };
@@ -590,10 +590,10 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                 key: 'GS',
                 title: '목표 축',
                 leftCode: 'S',
-                leftLabel: '안전형',
+                leftLabel: '안정형',
                 leftPct: scores.GS.S,
                 rightCode: 'G',
-                rightLabel: '수익형',
+                rightLabel: '성장형',
                 rightPct: scores.GS.G,
               },
               {

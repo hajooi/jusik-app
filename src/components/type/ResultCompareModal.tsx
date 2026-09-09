@@ -198,7 +198,7 @@ export default function ResultCompareModal({
 
           {[
             {
-              title: '목표 축 (안전형 vs 수익형)',
+              title: '목표 축 (안정형 vs 성장형)',
               targetValG: targetUser.scores.GS.G,
               targetValS: targetUser.scores.GS.S,
               currentValG: currentUser.scores.GS.G,

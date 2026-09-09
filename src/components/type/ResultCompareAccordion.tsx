@@ -150,9 +150,9 @@ export default function ResultCompareAccordion({
   };
 
   // 4 Axes logic based on Left User (leftUser) as 100% baseline!
-  // 1. Goal Axis: GS (Growth vs Safety)
+  // 1. Goal Axis: GS (Growing vs Stable)
   const isLeftGrowth = leftUser.scores.GS.G >= 50;
-  const leftGoalLabel = isLeftGrowth ? '수익형 (Growth)' : '안전형 (Safety)';
+  const leftGoalLabel = isLeftGrowth ? '성장형 (Growing)' : '안정형 (Stable)';
   const leftGoalVal = isLeftGrowth ? leftUser.scores.GS.G : leftUser.scores.GS.S;
   const rightGoalVal = isLeftGrowth ? rightUser.scores.GS.G : rightUser.scores.GS.S;
 
@@ -162,15 +162,15 @@ export default function ResultCompareAccordion({
   const leftActionVal = isLeftActive ? leftUser.scores.AP.A : leftUser.scores.AP.P;
   const rightActionVal = isLeftActive ? rightUser.scores.AP.A : rightUser.scores.AP.P;
 
-  // 3. Time Axis: LT (Long-term vs Tactical)
+  // 3. Time Axis: LT (Long-term vs Trend-following)
   const isLeftLong = leftUser.scores.LT.L >= 50;
-  const leftTimeLabel = isLeftLong ? '장기형 (Long-term)' : '추세형 (Tactical)';
+  const leftTimeLabel = isLeftLong ? '장기형 (Long-term)' : '추세형 (Trend-following)';
   const leftTimeVal = isLeftLong ? leftUser.scores.LT.L : leftUser.scores.LT.T;
   const rightTimeVal = isLeftLong ? rightUser.scores.LT.L : rightUser.scores.LT.T;
 
-  // 4. Psychology Axis: RI (Rule-based vs Intuitive)
+  // 4. Psychology Axis: RI (Rational vs Intuitive)
   const isLeftRule = leftUser.scores.RI.R >= 50;
-  const leftPsychLabel = isLeftRule ? '원칙형 (Rule-based)' : '직감형 (Intuitive)';
+  const leftPsychLabel = isLeftRule ? '원칙형 (Rational)' : '직감형 (Intuitive)';
   const leftPsychVal = isLeftRule ? leftUser.scores.RI.R : leftUser.scores.RI.I;
   const rightPsychVal = isLeftRule ? rightUser.scores.RI.R : rightUser.scores.RI.I;
 

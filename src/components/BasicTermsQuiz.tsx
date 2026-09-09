@@ -265,7 +265,7 @@ export default function BasicTermsQuiz() {
 
           return (
             <button
-              key={idx}
+              key={`${currentQ.id || currentIndex}-${idx}`}
               onClick={() => handleSelectOption(idx)}
               disabled={isAnswered}
               className={`choice-card ${cardStateClass} !py-3 !px-2.5 sm:!px-3`}

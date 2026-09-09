@@ -858,7 +858,7 @@ function TermsQuizContent() {
 
                   return (
                     <button
-                      key={idx}
+                      key={`${currentQ.id}-${idx}`}
                       type="button"
                       onClick={() => handleSelectOption(idx)}
                       className={`choice-card ${

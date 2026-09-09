@@ -1,9 +1,9 @@
 export interface Question {
   id: number;
-  axis: 'GS' | 'AP' | 'LT' | 'RI'; // GS: Growth/Safety, AP: Active/Passive, LT: Long-term/Tactical, RI: Rule/Intuitive
+  axis: 'GS' | 'AP' | 'LT' | 'RI'; // GS: Growing/Stable, AP: Active/Passive, LT: Long-term/Trend-following, RI: Rational/Intuitive
   question: string;
-  leftLabel: string;  // Score 1 direction (Safety, Passive, Tactical, Intuitive)
-  rightLabel: string; // Score 5 direction (Growth, Active, Long-term, Rule)
+  leftLabel: string;  // Score 1 direction (Stable, Passive, Trend-following, Intuitive)
+  rightLabel: string; // Score 5 direction (Growing, Active, Long-term, Rational)
 }
 
 export interface PersonalityProfile {
@@ -42,7 +42,7 @@ export interface PersonalityProfile {
 
 // 40 Questions (10 per Axis) - 홀수(정방향: G, A, L, R) vs 짝수(역방향: S, P, T, I) 5:5 교차 배치
 export const QUESTIONS: Question[] = [
-  // --- 1. [목표 축] G (성장/수익형) vs S (안전/보존형) : 10문항 ---
+  // --- 1. [목표 축] G (성장형: Growing) vs S (안정형: Stable) : 10문항 ---
   {
     id: 1,
     axis: 'GS',
@@ -355,7 +355,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '데이터 분석가의 성향에 맞춰 평소에는 미국 대표 500대 기업과 나스닥 혁신주를 모아가며 수익을 극대화하고, 시장의 분위기가 꺾이고 하락 위험이 커지면 주식을 줄여 현금으로 자산을 방어하도록 설계했습니다.',
     },
-    badges: ['수익형 🚀', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
+    badges: ['성장형 🚀', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
     strengths: [
       '감정에 휘둘리지 않고 객관적인 숫자를 바탕으로 판단함',
       '기업 실적 데이터를 파헤쳐 진짜 가치를 파악하는 능력',
@@ -393,7 +393,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '사자처럼 시원한 고수익을 추구하는 성향에 맞추어 가장 대표적인 지수와 함께 필라델피아 반도체 및 나스닥 성장 자산에 집중 배치하여, 장기적으로 자산이 가파르게 불어나는 강력한 복리 효과를 누릴 수 있도록 구성했습니다.',
     },
-    badges: ['수익형 🚀', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
+    badges: ['성장형 🚀', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
     strengths: [
       '확신이 섰을 때 주저함 없이 실행하는 강한 결단력',
       '시장 흔들림에도 쉽게 불안해하지 않는 꿋꿋한 멘탈',
@@ -431,7 +431,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '상승 흐름에서는 필라델피아 반도체와 나스닥 성장에 힘을 실어주고, 시장의 흐름이 꺾이고 위험이 감지될 때는 주식 비중을 줄이고 안전한 현금으로 피신하여 소중한 원금을 기계적으로 지켜내도록 돕습니다.',
     },
-    badges: ['수익형 🚀', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
+    badges: ['성장형 🚀', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
     strengths: [
       '오르는 주식의 상승 모멘텀을 빠르게 알아채는 순발력',
       '손실이 커지기 전에 정해둔 규칙대로 파는 결단력',
@@ -469,7 +469,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '트렌드 세터의 감각을 살려 나스닥 혁신 기업과 필라델피아 반도체, 미래 디지털 자산에 골고루 힘을 실어주되, 시장 열기가 식었을 때는 주식을 덜어내어 현금으로 큰 손실을 방지하도록 조율합니다.',
     },
-    badges: ['수익형 🚀', '능동형 ⚡', '추세형 📈', '직감형 💡'],
+    badges: ['성장형 🚀', '능동형 ⚡', '추세형 📈', '직감형 💡'],
     strengths: [
       '일상에서 소비 트렌드와 인기 상품의 변화를 빠르게 알아챔',
       '과감하게 실행하고 빠르게 기회를 잡는 기동성',
@@ -507,7 +507,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '황소처럼 우직하게 자산을 불려 나가기 위해 가장 대표적인 지수와 나스닥 성장에 투자하면서, 폭락장에서 계좌를 든든하게 지켜줄 금을 30% 섞어 떨어질 때 싸게 더 사는 기계적 조율이 완벽히 작동하도록 설계했습니다.',
     },
-    badges: ['수익형 🚀', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
+    badges: ['성장형 🚀', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
     strengths: [
       '일상생활이나 본업이 주식 때문에 전혀 방해받지 않음',
       '감정에 휘둘리지 않고 정해둔 비율대로 기계적으로 운용함',
@@ -545,7 +545,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '미래 개척자의 성향에 맞추어 인류의 기술 혁신을 이끄는 나스닥 100과 필라델피아 반도체에 70% 비중을 두고, S&P 500 30%를 더해 스트레스 없이 매달 적금처럼 편안하게 모아갈 수 있도록 최적화했습니다.',
     },
-    badges: ['수익형 🚀', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
+    badges: ['성장형 🚀', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
     strengths: [
       '기술 발전과 미래 문명의 성장에 대한 긍정적인 신념',
       '단기 등락 스트레스 없이 장기 복리 효과를 기다리는 여유',
@@ -583,7 +583,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '미국을 대표하는 우량 기업(나스닥 100, S&P 500 80%)으로 든든한 수익을 챙기면서, 금(20%)을 안전판으로 두어 큰 위기 신호가 감지될 때마다 차분하게 비중을 조율할 수 있도록 설계했습니다.',
     },
-    badges: ['수익형 🚀', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
+    badges: ['성장형 🚀', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
     strengths: [
       '하락장이 오기 전에 현금을 확보해 내 돈을 지키는 방어력',
       '정해둔 지표 신호가 올 때만 반응하는 정돈된 신중함',
@@ -621,7 +621,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '나스닥 100과 필라델피아 반도체(70%)로 시원한 성장을 노리면서, 안정적인 배당을 지급하는 미국배당다우존스(30%)를 든든한 쿠션으로 배치하여 시장의 출렁임 속에서도 흔들림 없이 수익을 누리도록 구성했습니다.',
     },
-    badges: ['수익형 🚀', '수동형 🛋️', '추세형 📈', '직감형 💡'],
+    badges: ['성장형 🚀', '수동형 🛋️', '추세형 📈', '직감형 💡'],
     strengths: [
       '단기적으로 과도하게 하락한 구간에서 반등 기회를 포착하려는 민첩함',
       '고정관념 없이 변화된 환경에 유연하게 적응하는 유연함',
@@ -662,7 +662,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '곰처럼 철벽 방어를 원하는 성향에 맞추어 주식 60%(S&P 500+미국배당다우존스)와 안전자산 40%(미국 장기채+금)를 조화롭게 섞어, 과거 금융위기나 폭락장에서도 원금 손실 폭을 극적으로 줄여주도록 완성했습니다.',
     },
-    badges: ['안전형 🛡️', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
+    badges: ['안정형 🛡️', '능동형 ⚡', '장기형 ⏳', '원칙형 📐'],
     strengths: [
       '하락장에서도 마음 편히 밤잠을 잘 수 있는 평정심',
       '시장이 폭락해도 내 자산을 지켜내는 강력한 방어력',
@@ -701,7 +701,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '매년 배당금이 늘어나는 미국배당다우존스를 중심축으로 삼고, S&P 500과 금, 미국 중기채를 섞어 어떤 경제 위기에도 내 계좌에서 안정적으로 현금이 솟아나도록 설계했습니다.',
     },
-    badges: ['안전형 🛡️', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
+    badges: ['안정형 🛡️', '능동형 ⚡', '장기형 ⏳', '직감형 💡'],
     strengths: [
       '위험한 신생 기업이나 부실 기업을 완벽히 피해 가는 안목',
       '확실하고 안전한 구간에서만 주식을 사는 신중함',
@@ -739,7 +739,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '미국 대표 500대 기업에 투자하면서도, 시장 흐름이 꺾일 때 주식을 줄이고 안전한 미국 단기채와 금, 현금으로 대피할 수 있는 튼튼한 방어망을 마련하여 손실 폭을 10% 초반대로 철저히 묶어둡니다.',
     },
-    badges: ['안전형 🛡️', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
+    badges: ['안정형 🛡️', '능동형 ⚡', '추세형 📈', '원칙형 📐'],
     strengths: [
       '대형 폭락장에서 내 원금을 지키는 훌륭한 위험 관리 능력',
       '사전에 준비해둔 현금화 매뉴얼 보유',
@@ -777,7 +777,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '안전한 미국배당다우존스와 S&P 500(80%)으로 기본 수익을 다지고, 금(20%)을 방패 삼아 시장이 과열되거나 흔들릴 때 주식을 줄이고 안전하게 현금으로 자산을 지킬 수 있도록 설계했습니다.',
     },
-    badges: ['안전형 🛡️', '능동형 ⚡', '추세형 📈', '직감형 💡'],
+    badges: ['안정형 🛡️', '능동형 ⚡', '추세형 📈', '직감형 💡'],
     strengths: [
       '손실이 커지기 전에 빠르게 현금을 챙겨 원금을 지키려는 신중함',
       '손실이 커지기 전에 빠르게 피신하여 원금을 지키는 태도',
@@ -816,7 +816,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '거북이처럼 꾸준히 자산을 지키며 불릴 수 있도록 주식 70%(S&P 500+미국배당다우존스)와 안전자산 30%(미국 장기채+금)로 나누어, 정기적인 비중 조율을 통해 마음 편히 일상에 전념할 수 있도록 완성했습니다.',
     },
-    badges: ['안전형 🛡️', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
+    badges: ['안정형 🛡️', '수동형 🛋️', '장기형 ⏳', '원칙형 📐'],
     strengths: [
       '하락장에서도 멘탈이 나가지 않는 평정심',
       '일상과 삶의 균형이 주식 때문에 흔들리지 않음',
@@ -854,7 +854,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '복잡한 조율 없이 평생 모아갈 수 있는 S&P 500(50%)과 미국배당다우존스(30%)를 중심축으로 삼고, 시장 전체의 장기 침체기에도 마음을 든든하게 지켜줄 금(20%)을 결합한 가장 평화로운 조합입니다.',
     },
-    badges: ['안전형 🛡️', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
+    badges: ['안정형 🛡️', '수동형 🛋️', '장기형 ⏳', '직감형 💡'],
     strengths: [
       '주식 스트레스 0%의 가장 건강한 마음 상태 유지',
       '세계 시장 전체의 성장에 편안하게 탑승함',
@@ -893,7 +893,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '주식 60%(S&P 500+미국배당다우존스)와 안전자산 40%(미국 장기채+금)로 포트폴리오를 구성하여, 계절이 바뀔 때마다 정기적으로 가격이 떨어진 자산을 싸게 담고 비싸진 자산을 덜어내며 안정적으로 수익을 불려나갑니다.',
     },
-    badges: ['안전형 🛡️', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
+    badges: ['안정형 🛡️', '수동형 🛋️', '추세형 📈', '원칙형 📐'],
     strengths: [
       '하락장에도 큰 손실 없이 소중한 자산을 지켜내는 안정감',
       '경제 계절에 맞춘 차분한 사계절 자산 조율',
@@ -932,7 +932,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       ],
       rationale: '마음 편히 잠들 수 있도록 현금 배당이 꾸준히 늘어나는 미국배당다우존스와 S&P 500을 70%로 담고, 금과 미국 장기채를 30% 둘러 원금 손실에 대한 불안을 완전히 덜어냈습니다.',
     },
-    badges: ['안전형 🛡️', '수동형 🛋️', '추세형 📈', '직감형 💡'],
+    badges: ['안정형 🛡️', '수동형 🛋️', '추세형 📈', '직감형 💡'],
     strengths: [
       '주식 손실에 대한 걱정과 스트레스가 0에 가까움',
       '확실한 이자와 배당금으로 자산을 안전하게 챙김',
