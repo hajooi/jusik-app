@@ -260,23 +260,20 @@ function TermsQuizContent() {
     const rawScore = correctAnswers * 1000;
 
     // 1. Calculate optimistic rank & percentile immediately from current leaderboard
-    const currentLeaderboard = [...leaderboard];
+    // 본인의 기존 기록이 있다면 제외한 고유 경쟁자 목록 기준으로 정확한 가상 순위 계산
+    const otherLeaderboard = leaderboard.filter((entry) => !user?.nickname || entry.nickname !== user.nickname);
     const virtualRank =
-      currentLeaderboard.filter(
+      otherLeaderboard.filter(
         (entry) =>
           entry.correctCount > correctAnswers ||
           (entry.correctCount === correctAnswers && entry.timeSpentSec <= totalTime)
       ).length + 1;
 
-    const totalParticipants = Math.max(1, currentLeaderboard.length + 1);
+    const totalParticipants = otherLeaderboard.length + 1;
     // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
     const percentile = virtualRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((virtualRank / totalParticipants) * 100)));
     const rank = virtualRank;
-
-    const badgeName =
-      selectedLevel === 4 && correctAnswers >= 14
-        ? '마스터'
-        : `상위 ${percentile}%`;
+    const badgeName = `상위 ${percentile}%`;
 
     const resultData = {
       score: rawScore,
@@ -352,16 +349,34 @@ function TermsQuizContent() {
       });
       const data = await res.json();
       if (data.success) {
+        const serverPercentile = data.percentile || percentile;
+        const serverRank = data.rank || rank;
+        const serverTotal = data.totalParticipants || totalParticipants;
+        const serverBadgeName = `상위 ${serverPercentile}%`;
+
         setFinalResult((prev) =>
           prev
             ? {
                 ...prev,
-                percentile: data.percentile || prev.percentile,
-                rank: data.rank || prev.rank,
-                totalParticipants: data.totalParticipants || prev.totalParticipants,
+                percentile: serverPercentile,
+                rank: serverRank,
+                totalParticipants: serverTotal,
+                badgeName: serverBadgeName,
               }
             : null
         );
+
+        if (user?.nickname) {
+          updateTermsQuizResult({
+            level: selectedLevel,
+            score: rawScore,
+            correctCount: correctAnswers,
+            timeSpentSec: totalTime,
+            percentile: serverPercentile,
+            badgeName: serverBadgeName,
+          });
+        }
+
         fetchLeaderboard(selectedLevel);
       }
     } catch (e) {

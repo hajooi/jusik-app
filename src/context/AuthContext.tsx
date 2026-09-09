@@ -395,7 +395,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // 퀴즈 결과 및 뱃지 업데이트
+  // 퀴즈 결과 및 뱃지 업데이트 (4개 레벨 중 가장 우수한 백분위 우선 반영)
   const updateTermsQuizResult = (result: {
     level: number;
     score: number;
@@ -405,20 +405,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     badgeName?: string;
   }) => {
     const prevBest = user?.termsQuizBest;
+    const resPercentile = result.percentile ?? 100;
+    const prevPercentile = prevBest?.percentile ?? 100;
+
+    // 1순위: 백분위가 더 우수한 것 (숫자가 작은 것), 2순위: 높은 점수, 3순위: 빠른 시간
     const isBetter =
       !prevBest ||
-      result.score > prevBest.score ||
-      (result.score === prevBest.score && result.timeSpentSec < prevBest.timeSpentSec);
+      resPercentile < prevPercentile ||
+      (resPercentile === prevPercentile && result.score > (prevBest.score || 0)) ||
+      (resPercentile === prevPercentile && result.score === (prevBest.score || 0) && result.timeSpentSec < (prevBest.timeSpentSec || 999));
 
-    const targetBadgeName =
-      result.percentile && result.percentile <= 10
-        ? `상위 ${result.percentile}%`
-        : result.level === 4 && result.correctCount >= 14
-        ? '마스터'
-        : `상위 ${result.percentile || 50}%`;
+    const targetBadgeName = `상위 ${resPercentile}%`;
 
     const newBest = isBetter
-      ? { ...result, badgeName: targetBadgeName }
+      ? { ...result, percentile: resPercentile, badgeName: targetBadgeName }
       : prevBest;
 
     if (user) {

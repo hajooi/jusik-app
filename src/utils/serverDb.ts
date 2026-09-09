@@ -997,11 +997,11 @@ export async function saveTermsQuizEntryAsync(
     createdAt: new Date().toISOString(),
   };
 
+  // 1. 메모리/로컬 파일 DB에 먼저 반영 (로컬 개발 환경 및 싱글톤 캐시용)
   if (!globalThis.__jusik_quiz_db__) {
     globalThis.__jusik_quiz_db__ = loadQuizFromFile();
   }
 
-  // Keep best score per user per level in memory/file
   const existingIndex = globalThis.__jusik_quiz_db__.findIndex(
     (e) => e.nickname === entry.nickname && e.level === entry.level
   );
@@ -1020,21 +1020,14 @@ export async function saveTermsQuizEntryAsync(
 
   saveQuizToFile(globalThis.__jusik_quiz_db__);
 
-  // Calculate rank and percentile for this level first
-  const allEntries = await getTermsQuizEntriesAsync(entry.level);
-  const totalParticipants = Math.max(1, allEntries.length);
-  const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
-  const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
-  // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
-  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+  // 2. 운영 환경: Supabase users 레코드에 먼저 반영하여 getTermsQuizEntriesAsync()에서 누락되지 않도록 함
+  let userRecord: ServerUserRecord | null = null;
+  let userDb: Record<string, ServerUserRecord> | null = null;
 
-  newEntry.percentile = percentile;
-
-  // 운영 환경: Supabase users 레코드에 영구 저장 (배포 시 초기화 방지)
   if (!isLocalDevMode()) {
     try {
-      const userDb = await getServerDbAsync();
-      let userRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      userDb = await getServerDbAsync();
+      userRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
       if (!userRecord) {
         userRecord = {
           nickname: entry.nickname,
@@ -1048,8 +1041,7 @@ export async function saveTermsQuizEntryAsync(
         };
       }
 
-      // 퀴즈 기록을 시뮬레이터와 완전히 분리된 termsQuizEntries에 독립 보관
-      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(userRecord.termsQuizEntries) ? userRecord.termsQuizEntries : [];
+      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(userRecord.termsQuizEntries) ? [...userRecord.termsQuizEntries] : [];
       const idx = quizList.findIndex((q) => q.level === entry.level);
       if (idx >= 0) {
         const prev = quizList[idx];
@@ -1060,25 +1052,83 @@ export async function saveTermsQuizEntryAsync(
         quizList.push(newEntry);
       }
       userRecord.termsQuizEntries = quizList;
+      userRecord.lastActiveAt = new Date().toISOString();
+      userDb[entry.nickname] = userRecord;
+      await saveServerDbAsync(userDb);
+    } catch (err) {
+      console.error('Failed to pre-persist quiz entry to Supabase:', err);
+    }
+  }
 
-      // Update termsQuizBest if this entry is overall best
-      const prevBest = userRecord.termsQuizBest;
-      const isOverallBetter = !prevBest || entry.score > (prevBest.score || 0) || (entry.score === prevBest.score && entry.timeSpentSec < (prevBest.timeSpentSec || 999));
-      if (isOverallBetter) {
-        userRecord.termsQuizBest = {
+  // 3. 최신 전체 리더보드를 가져와 이 레벨에서의 정확한 순위와 백분위 산출
+  const allEntries = await getTermsQuizEntriesAsync(entry.level);
+  const totalParticipants = Math.max(1, allEntries.length);
+  const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
+  const rank = userRankIndex >= 0 ? userRankIndex + 1 : 1;
+  // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
+  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+  const badgeName = `상위 ${percentile}%`;
+
+  newEntry.percentile = percentile;
+  newEntry.termsQuizBest = {
+    level: entry.level,
+    score: entry.score,
+    correctCount: entry.correctCount,
+    timeSpentSec: entry.timeSpentSec,
+    percentile,
+    badgeName,
+  };
+
+  // 4. 레벨 1~4 전체 중 '가장 높은 백분위(percentile 숫자가 가장 작은 것)'를 termsQuizBest로 선정하여 최종 동기화
+  if (!isLocalDevMode() && userDb && userRecord) {
+    try {
+      const quizList: TermsQuizLeaderboardEntry[] = Array.isArray(userRecord.termsQuizEntries) ? userRecord.termsQuizEntries : [];
+      // 현재 레벨 항목에 최신 percentile 반영
+      const currentEntryInList = quizList.find((q) => q.level === entry.level);
+      if (currentEntryInList) {
+        currentEntryInList.percentile = percentile;
+        currentEntryInList.termsQuizBest = {
           level: entry.level,
           score: entry.score,
           correctCount: entry.correctCount,
           timeSpentSec: entry.timeSpentSec,
           percentile,
-          badgeName: entry.level === 4 && entry.correctCount >= 14 ? '마스터' : undefined,
+          badgeName,
         };
       }
-      userRecord.lastActiveAt = new Date().toISOString();
+
+      // 4개 레벨 중 가장 우수한 기록(1순위: 가장 낮은 percentile, 2순위: 높은 점수, 3순위: 빠른 시간)
+      let bestRecord: TermsQuizLeaderboardEntry = currentEntryInList || newEntry;
+      quizList.forEach((q) => {
+        const qPercentile = q.percentile ?? 100;
+        const bestPercentile = bestRecord.percentile ?? 100;
+        if (qPercentile < bestPercentile) {
+          bestRecord = q;
+        } else if (qPercentile === bestPercentile) {
+          if (q.correctCount > bestRecord.correctCount) {
+            bestRecord = q;
+          } else if (q.correctCount === bestRecord.correctCount && q.timeSpentSec < bestRecord.timeSpentSec) {
+            bestRecord = q;
+          }
+        }
+      });
+
+      const finalBestPercentile = bestRecord.percentile ?? percentile;
+      const finalBestBadgeName = `상위 ${finalBestPercentile}%`;
+
+      userRecord.termsQuizBest = {
+        level: bestRecord.level,
+        score: bestRecord.score,
+        correctCount: bestRecord.correctCount,
+        timeSpentSec: bestRecord.timeSpentSec,
+        percentile: finalBestPercentile,
+        badgeName: finalBestBadgeName,
+      };
+
       userDb[entry.nickname] = userRecord;
       await saveServerDbAsync(userDb);
     } catch (err) {
-      console.error('Failed to persist quiz entry to Supabase:', err);
+      console.error('Failed to finalize quiz entry to Supabase:', err);
     }
   }
 
