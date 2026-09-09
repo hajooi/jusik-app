@@ -308,6 +308,91 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// ─── KST 날짜 문자열 생성 헬퍼 ────────────────────────────────────────────────
+function toKstDateStr(date: Date): string {
+  // Asia/Seoul 기준 날짜 포맷 (YYYY.MM.DD)
+  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(kst.getUTCDate()).padStart(2, '0');
+  return `${y}.${m}.${d}`;
+}
+
+// ─── Naver Finance API 폴백 ────────────────────────────────────────────────────
+// Yahoo 한국 지수 일봉이 null로 반환되는 경우(장 개장 직후 미정산)의 보완 수단.
+// Naver는 한국 거래일 종가를 지연 없이 정확하게 제공함.
+interface NaverIndexPoint { date: string; value: number; change: number; changePercent: number; isPositive: boolean; }
+
+async function fetchNaverIndex(indexCode: 'KOSPI' | 'KOSDAQ'): Promise<NaverIndexPoint | null> {
+  try {
+    const res = await fetch(
+      `https://m.stock.naver.com/api/index/${indexCode}/price?pageSize=2&page=1`,
+      { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const data: Array<{
+      localTradedAt: string;
+      closePrice: string;
+      compareToPreviousClosePrice: string;
+      fluctuationsRatio: string;
+      compareToPreviousPrice?: { code: string };
+    }> = await res.json();
+    if (!data || data.length < 1) return null;
+    const latest = data[0];
+    const closeNum = parseFloat(latest.closePrice.replace(/,/g, ''));
+    const changeNum = parseFloat(latest.compareToPreviousClosePrice.replace(/,/g, ''));
+    const pctNum = parseFloat(latest.fluctuationsRatio);
+    const isPos = changeNum >= 0;
+    // YYYY-MM-DD → YYYY.MM.DD
+    const date = latest.localTradedAt.replace(/-/g, '.');
+    return { date, value: closeNum, change: changeNum, changePercent: pctNum, isPositive: isPos };
+  } catch (e) {
+    console.warn(`[Naver ${indexCode} fetch failed]`, e);
+    return null;
+  }
+}
+
+async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
+  try {
+    const res = await fetch(
+      'https://m.stock.naver.com/front-api/marketIndex/prices?category=exchange&reutersCode=FX_USDKRW&pageSize=10&page=1',
+      { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const data: Array<{
+      localTradedAt: string;
+      closePrice: string;
+      fluctuations: string;
+      fluctuationsRatio: string;
+      fluctuationsType?: { code: string };
+    }> = json.result;
+    if (!data || data.length < 1) return null;
+    const latest = data[0];
+    const closeNum = parseFloat(latest.closePrice.replace(/,/g, ''));
+    const changeNum = parseFloat(latest.fluctuations.replace(/,/g, ''));
+    const pctNum = parseFloat(latest.fluctuationsRatio);
+    const isPos = changeNum >= 0;
+    const date = latest.localTradedAt.replace(/-/g, '.');
+    return { date, value: closeNum, change: changeNum, changePercent: pctNum, isPositive: isPos };
+  } catch (e) {
+    console.warn('[Naver USDKRW fetch failed]', e);
+    return null;
+  }
+}
+
+// Yahoo 데이터의 최신 포인트가 오늘 기준 N일 이상 오래됐는지 확인
+function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
+  if (!points || points.length === 0) return true;
+  const lastDate = points[points.length - 1].date; // 'YYYY.MM.DD'
+  const [y, m, d] = lastDate.split('.').map(Number);
+  const lastMs = Date.UTC(y, m - 1, d);
+  const nowKst = Date.now() + 9 * 60 * 60 * 1000; // KST 기준 현재
+  const nowMidnightKst = nowKst - (nowKst % 86400000); // KST 자정
+  const diffDays = (nowMidnightKst - lastMs) / 86400000;
+  return diffDays > thresholdDays;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -417,12 +502,107 @@ export async function GET(request: Request) {
     await delay(180);
     const oil = await fetchYahooData(YAHOO_SYMBOLS['국제 유가']);
 
+    // ── Naver 폴백: Yahoo 한국 지수 데이터가 비어 있거나 stale(1거래일 이상 오래됨)인 경우 ──
+    // Yahoo는 장 개장 직후나 선물 롤오버 시 한국 지수 일봉을 null로 반환하는 경우가 있음.
+    // Naver Finance API는 지연 없이 정확한 한국 거래일 종가를 제공.
+    let resolvedKospi = kospi;
+    let resolvedKosdaq = kosdaq;
+    let resolvedUsdkrw = usdkrw;
+
+    // KOSPI: stale 여부 확인 (마지막 포인트가 어제보다 오래됨)
+    if (isDataStale(kospi?.points ?? [])) {
+      console.log('[Market Daily] KOSPI stale, fetching from Naver...');
+      const naverKospi = await fetchNaverIndex('KOSPI');
+      if (naverKospi && kospi && naverKospi.date > (kospi.points.slice(-1)[0]?.date ?? '')) {
+        // Naver가 더 최신 날짜라면 해당 포인트를 points에 추가하고 current 갱신
+        const updatedPoints = [...kospi.points, { date: naverKospi.date, value: naverKospi.value }];
+        resolvedKospi = { ...kospi, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverKospi.value, change: naverKospi.change, changePercent: naverKospi.changePercent };
+        console.log(`[Market Daily] KOSPI updated via Naver: ${naverKospi.date} = ${naverKospi.value}`);
+      } else if (naverKospi && !kospi) {
+        // Yahoo 자체가 실패한 경우 Naver 단독 사용
+        resolvedKospi = { points: [{ date: naverKospi.date, value: naverKospi.value }], history: [naverKospi.value], current: naverKospi.value, change: naverKospi.change, changePercent: naverKospi.changePercent };
+        console.log(`[Market Daily] KOSPI from Naver only: ${naverKospi.value}`);
+      }
+    }
+
+    // KOSDAQ
+    if (isDataStale(kosdaq?.points ?? [])) {
+      console.log('[Market Daily] KOSDAQ stale, fetching from Naver...');
+      const naverKosdaq = await fetchNaverIndex('KOSDAQ');
+      if (naverKosdaq && kosdaq && naverKosdaq.date > (kosdaq.points.slice(-1)[0]?.date ?? '')) {
+        const updatedPoints = [...kosdaq.points, { date: naverKosdaq.date, value: naverKosdaq.value }];
+        resolvedKosdaq = { ...kosdaq, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverKosdaq.value, change: naverKosdaq.change, changePercent: naverKosdaq.changePercent };
+        console.log(`[Market Daily] KOSDAQ updated via Naver: ${naverKosdaq.date} = ${naverKosdaq.value}`);
+      } else if (naverKosdaq && !kosdaq) {
+        resolvedKosdaq = { points: [{ date: naverKosdaq.date, value: naverKosdaq.value }], history: [naverKosdaq.value], current: naverKosdaq.value, change: naverKosdaq.change, changePercent: naverKosdaq.changePercent };
+      }
+    }
+
+    // USDKRW
+    if (isDataStale(usdkrw?.points ?? [])) {
+      console.log('[Market Daily] USDKRW stale, fetching from Naver...');
+      const naverUsd = await fetchNaverUsdKrw();
+      if (naverUsd && usdkrw && naverUsd.date > (usdkrw.points.slice(-1)[0]?.date ?? '')) {
+        const updatedPoints = [...usdkrw.points, { date: naverUsd.date, value: naverUsd.value }];
+        resolvedUsdkrw = { ...usdkrw, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
+        console.log(`[Market Daily] USDKRW updated via Naver: ${naverUsd.date} = ${naverUsd.value}`);
+      } else if (naverUsd && !usdkrw) {
+        resolvedUsdkrw = { points: [{ date: naverUsd.date, value: naverUsd.value }], history: [naverUsd.value], current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
+      }
+    }
+
+    // ── 선물 롤오버 보완: Gold/Oil 일봉이 2일 이상 비어 있을 경우 meta.regularMarketPrice로 당일 포인트 추가 ──
+    // GC=F, CL=F는 계약 롤오버(Sep → Dec) 시기에 Yahoo 일봉이 며칠간 누락될 수 있음.
+    let resolvedGold = gold;
+    let resolvedOil = oil;
+
+    if (isDataStale(gold?.points ?? [], 2)) {
+      // Yahoo 메타에서 현재가 직접 추출
+      const goldUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(YAHOO_SYMBOLS['국제 금'])}?range=1d&interval=1d`;
+      try {
+        const goldMeta = await fetch(goldUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, cache: 'no-store' });
+        if (goldMeta.ok) {
+          const gj = await goldMeta.json();
+          const gMeta = gj?.chart?.result?.[0]?.meta;
+          if (gMeta?.regularMarketPrice) {
+            const todayStr = toKstDateStr(new Date());
+            const updatedPoints = [...(gold?.points ?? []), { date: todayStr, value: Number(gMeta.regularMarketPrice.toFixed(2)) }];
+            const prevClose = gMeta.chartPreviousClose ?? (gold?.points?.slice(-1)[0]?.value ?? gMeta.regularMarketPrice);
+            const chg = Number((gMeta.regularMarketPrice - prevClose).toFixed(2));
+            const chgPct = Number(((chg / prevClose) * 100).toFixed(2));
+            resolvedGold = { points: updatedPoints, history: updatedPoints.map(p => p.value), current: gMeta.regularMarketPrice, change: chg, changePercent: chgPct };
+            console.log(`[Market Daily] Gold updated via meta.regularMarketPrice: ${todayStr} = ${gMeta.regularMarketPrice}`);
+          }
+        }
+      } catch (e) { console.warn('[Market Daily] Gold meta fallback failed:', e); }
+    }
+
+    if (isDataStale(oil?.points ?? [], 2)) {
+      const oilUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(YAHOO_SYMBOLS['국제 유가'])}?range=1d&interval=1d`;
+      try {
+        const oilMeta = await fetch(oilUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, cache: 'no-store' });
+        if (oilMeta.ok) {
+          const oj = await oilMeta.json();
+          const oMeta = oj?.chart?.result?.[0]?.meta;
+          if (oMeta?.regularMarketPrice) {
+            const todayStr = toKstDateStr(new Date());
+            const updatedPoints = [...(oil?.points ?? []), { date: todayStr, value: Number(oMeta.regularMarketPrice.toFixed(2)) }];
+            const prevClose = oMeta.chartPreviousClose ?? (oil?.points?.slice(-1)[0]?.value ?? oMeta.regularMarketPrice);
+            const chg = Number((oMeta.regularMarketPrice - prevClose).toFixed(2));
+            const chgPct = Number(((chg / prevClose) * 100).toFixed(2));
+            resolvedOil = { points: updatedPoints, history: updatedPoints.map(p => p.value), current: oMeta.regularMarketPrice, change: chg, changePercent: chgPct };
+            console.log(`[Market Daily] Oil updated via meta.regularMarketPrice: ${todayStr} = ${oMeta.regularMarketPrice}`);
+          }
+        }
+      } catch (e) { console.warn('[Market Daily] Oil meta fallback failed:', e); }
+    }
+
     // 공탐지수 계산
     const fgScore = fgData?.score ?? MARKET_SNAPSHOT.fearGreedIndex;
     const weather = mapRatingToWeather(fgScore);
 
     // 날짜 포맷팅: 전체 수집 자산 중 가장 최근에 공식 마감된 실제 거래일 산출 (미국 휴장 시 한국 마감일 자동 반영)
-    const allFetchedAssets = [spx, ndx, kospi, kosdaq, usdkrw, us10y, gold, oil];
+    const allFetchedAssets = [spx, ndx, resolvedKospi, resolvedKosdaq, resolvedUsdkrw, us10y, resolvedGold, resolvedOil];
     const latestDates = allFetchedAssets
       .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
       .filter((d): d is string => Boolean(d));
@@ -439,6 +619,7 @@ export async function GET(request: Request) {
         dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
       }
     }
+
 
     // 인덱스 4종 (전일 하루 대비 변동)
     const indices = [
@@ -461,18 +642,18 @@ export async function GET(request: Request) {
       {
         name: '코스피',
         code: 'KOSPI',
-        value: kospi ? kospi.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[2].value,
-        change: kospi ? `${kospi.change >= 0 ? '+' : ''}${kospi.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].change,
-        changePercent: kospi ? `${kospi.changePercent >= 0 ? '+' : ''}${kospi.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].changePercent,
-        isPositive: kospi ? kospi.changePercent >= 0 : MARKET_SNAPSHOT.indices[2].isPositive,
+        value: resolvedKospi ? resolvedKospi.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[2].value,
+        change: resolvedKospi ? `${resolvedKospi.change >= 0 ? '+' : ''}${resolvedKospi.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].change,
+        changePercent: resolvedKospi ? `${resolvedKospi.changePercent >= 0 ? '+' : ''}${resolvedKospi.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].changePercent,
+        isPositive: resolvedKospi ? resolvedKospi.changePercent >= 0 : MARKET_SNAPSHOT.indices[2].isPositive,
       },
       {
         name: '코스닥',
         code: 'KOSDAQ',
-        value: kosdaq ? kosdaq.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[3].value,
-        change: kosdaq ? `${kosdaq.change >= 0 ? '+' : ''}${kosdaq.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].change,
-        changePercent: kosdaq ? `${kosdaq.changePercent >= 0 ? '+' : ''}${kosdaq.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].changePercent,
-        isPositive: kosdaq ? kosdaq.changePercent >= 0 : MARKET_SNAPSHOT.indices[3].isPositive,
+        value: resolvedKosdaq ? resolvedKosdaq.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[3].value,
+        change: resolvedKosdaq ? `${resolvedKosdaq.change >= 0 ? '+' : ''}${resolvedKosdaq.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].change,
+        changePercent: resolvedKosdaq ? `${resolvedKosdaq.changePercent >= 0 ? '+' : ''}${resolvedKosdaq.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].changePercent,
+        isPositive: resolvedKosdaq ? resolvedKosdaq.changePercent >= 0 : MARKET_SNAPSHOT.indices[3].isPositive,
       },
     ];
 
@@ -480,8 +661,8 @@ export async function GET(request: Request) {
     const auxiliary = [
       {
         label: '달러 환율',
-        value: usdkrw ? `${Math.round(usdkrw.current).toLocaleString('ko-KR')}원` : MARKET_SNAPSHOT.auxiliary[0].value,
-        isPositive: usdkrw ? usdkrw.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[0].isPositive,
+        value: resolvedUsdkrw ? `${Math.round(resolvedUsdkrw.current).toLocaleString('ko-KR')}원` : MARKET_SNAPSHOT.auxiliary[0].value,
+        isPositive: resolvedUsdkrw ? resolvedUsdkrw.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[0].isPositive,
       },
       {
         label: '미국채 10년',
@@ -490,13 +671,13 @@ export async function GET(request: Request) {
       },
       {
         label: '국제 금',
-        value: gold ? `$${Math.round(gold.current).toLocaleString('en-US')}` : MARKET_SNAPSHOT.auxiliary[2].value,
-        isPositive: gold ? gold.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[2].isPositive,
+        value: resolvedGold ? `$${Math.round(resolvedGold.current).toLocaleString('en-US')}` : MARKET_SNAPSHOT.auxiliary[2].value,
+        isPositive: resolvedGold ? resolvedGold.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[2].isPositive,
       },
       {
         label: '국제 유가',
-        value: oil ? `$${oil.current.toFixed(1)}` : MARKET_SNAPSHOT.auxiliary[3].value,
-        isPositive: oil ? oil.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[3].isPositive,
+        value: resolvedOil ? `$${resolvedOil.current.toFixed(1)}` : MARKET_SNAPSHOT.auxiliary[3].value,
+        isPositive: resolvedOil ? resolvedOil.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[3].isPositive,
       },
     ];
 
@@ -515,12 +696,13 @@ export async function GET(request: Request) {
 
     const spx1y = calc1YearReturn(spx?.history, { change: '+19.1%', isPositive: true });
     const ndx1y = calc1YearReturn(ndx?.history, { change: '+24.9%', isPositive: true });
-    const kospi1y = calc1YearReturn(kospi?.history, { change: '+108.6%', isPositive: true });
-    const kosdaq1y = calc1YearReturn(kosdaq?.history, { change: '+0.3%', isPositive: true });
-    const usdkrw1y = calc1YearReturn(usdkrw?.history, { change: '-2.5%', isPositive: false });
+    const kospi1y = calc1YearReturn(resolvedKospi?.history, { change: '+108.6%', isPositive: true });
+    const kosdaq1y = calc1YearReturn(resolvedKosdaq?.history, { change: '+0.3%', isPositive: true });
+    const usdkrw1y = calc1YearReturn(resolvedUsdkrw?.history, { change: '-2.5%', isPositive: false });
     const us10y1y = calc1YearReturn(us10y?.history, { change: '+16.9%', isPositive: true });
-    const gold1y = calc1YearReturn(gold?.history, { change: '+23.9%', isPositive: true });
-    const oil1y = calc1YearReturn(oil?.history, { change: '+47.4%', isPositive: true });
+    const gold1y = calc1YearReturn(resolvedGold?.history, { change: '+23.9%', isPositive: true });
+    const oil1y = calc1YearReturn(resolvedOil?.history, { change: '+47.4%', isPositive: true });
+
 
     // 1년치 차트 데이터 동적 구성 (정확한 1년치 일간 종가 및 1년 수익률)
     const assetCharts: Record<string, {
@@ -552,24 +734,24 @@ export async function GET(request: Request) {
         current: indices[2].value,
         change: kospi1y.change,
         isPositive: kospi1y.isPositive,
-        data: (kospi && kospi.history.length >= 20) ? kospi.history : (ASSET_CHARTS.KOSPI?.data ?? []),
-        points: kospi?.points,
+        data: (resolvedKospi && resolvedKospi.history.length >= 20) ? resolvedKospi.history : (ASSET_CHARTS.KOSPI?.data ?? []),
+        points: resolvedKospi?.points,
       },
       KOSDAQ: {
         label: '코스닥 (KOSDAQ)',
         current: indices[3].value,
         change: kosdaq1y.change,
         isPositive: kosdaq1y.isPositive,
-        data: (kosdaq && kosdaq.history.length >= 20) ? kosdaq.history : (ASSET_CHARTS.KOSDAQ?.data ?? []),
-        points: kosdaq?.points,
+        data: (resolvedKosdaq && resolvedKosdaq.history.length >= 20) ? resolvedKosdaq.history : (ASSET_CHARTS.KOSDAQ?.data ?? []),
+        points: resolvedKosdaq?.points,
       },
       '달러 환율': {
         label: '달러 환율 (USDKRW)',
         current: auxiliary[0].value,
         change: usdkrw1y.change,
         isPositive: usdkrw1y.isPositive,
-        data: (usdkrw && usdkrw.history.length >= 20) ? usdkrw.history : (ASSET_CHARTS['달러 환율']?.data ?? []),
-        points: usdkrw?.points,
+        data: (resolvedUsdkrw && resolvedUsdkrw.history.length >= 20) ? resolvedUsdkrw.history : (ASSET_CHARTS['달러 환율']?.data ?? []),
+        points: resolvedUsdkrw?.points,
       },
       '미국채 10년': {
         label: '미국채 10년물 금리 (US10Y)',
@@ -584,18 +766,19 @@ export async function GET(request: Request) {
         current: auxiliary[2].value,
         change: gold1y.change,
         isPositive: gold1y.isPositive,
-        data: (gold && gold.history.length >= 20) ? gold.history : (ASSET_CHARTS['국제 금']?.data ?? []),
-        points: gold?.points,
+        data: (resolvedGold && resolvedGold.history.length >= 20) ? resolvedGold.history : (ASSET_CHARTS['국제 금']?.data ?? []),
+        points: resolvedGold?.points,
       },
       '국제 유가': {
         label: 'WTI 국제 유가 (Oil)',
         current: auxiliary[3].value,
         change: oil1y.change,
         isPositive: oil1y.isPositive,
-        data: (oil && oil.history.length >= 20) ? oil.history : (ASSET_CHARTS['국제 유가']?.data ?? []),
-        points: oil?.points,
+        data: (resolvedOil && resolvedOil.history.length >= 20) ? resolvedOil.history : (ASSET_CHARTS['국제 유가']?.data ?? []),
+        points: resolvedOil?.points,
       },
     };
+
 
     // 5. 데이터 수집 정합성 검증 및 이상 감지 텔레그램 알림
     const dataIssues: string[] = [];
