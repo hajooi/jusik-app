@@ -667,14 +667,14 @@ function TermsQuizContent() {
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`w-6 h-6 rounded-full flex items-center justify-center font-mono font-extrabold text-xs ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs select-none shrink-0 transition-all ${
                             idx === 0
-                              ? 'bg-[var(--accent-orange)] text-white shadow-xs'
+                              ? 'bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.2)] backdrop-blur-xs font-black'
                               : idx === 1
-                              ? 'bg-[var(--card-hover)] text-[var(--text-primary)]'
+                              ? 'bg-slate-400/15 text-slate-700 dark:text-slate-300 border border-slate-400/35 shadow-2xs backdrop-blur-xs font-black'
                               : idx === 2
-                              ? 'bg-[var(--card-surface)] text-[var(--text-secondary)] border border-[var(--border-color)]'
-                              : 'text-[var(--text-secondary)] font-medium'
+                              ? 'bg-amber-800/15 text-amber-700 dark:text-amber-500 border border-amber-700/35 shadow-2xs backdrop-blur-xs font-black'
+                              : 'text-[var(--text-secondary)]/70 font-semibold'
                           }`}
                         >
                           {idx + 1}
