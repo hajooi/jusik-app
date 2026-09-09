@@ -326,7 +326,7 @@ interface NaverIndexPoint { date: string; value: number; change: number; changeP
 async function fetchNaverIndex(indexCode: 'KOSPI' | 'KOSDAQ'): Promise<NaverIndexPoint | null> {
   try {
     const res = await fetch(
-      `https://m.stock.naver.com/api/index/${indexCode}/price?pageSize=2&page=1`,
+      `https://m.stock.naver.com/api/index/${indexCode}/price?pageSize=5&page=1`,
       { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' }
     );
     if (!res.ok) return null;
@@ -338,13 +338,28 @@ async function fetchNaverIndex(indexCode: 'KOSPI' | 'KOSDAQ'): Promise<NaverInde
       compareToPreviousPrice?: { code: string };
     }> = await res.json();
     if (!data || data.length < 1) return null;
-    const latest = data[0];
-    const closeNum = parseFloat(latest.closePrice.replace(/,/g, ''));
-    const changeNum = parseFloat(latest.compareToPreviousClosePrice.replace(/,/g, ''));
-    const pctNum = parseFloat(latest.fluctuationsRatio);
+
+    // 현재 한국 시간(KST) 기준 오늘 15:30(정규장 마감) 이전인지 판별
+    const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const kstHour = nowKst.getUTCHours();
+    const kstMinute = nowKst.getUTCMinutes();
+    const isAfterKoreanMarketClose = (kstHour > 15) || (kstHour === 15 && kstMinute >= 30);
+    const todayKstStr = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, '0')}-${String(nowKst.getUTCDate()).padStart(2, '0')}`;
+
+    // 15:30 이전이고 0번째가 '오늘' 데이터라면, 이는 아직 마감되지 않은 장중 실시간 틱임!
+    // 따라서 공식 '마감 종가'는 data[1](직전 거래일 마감 종가)을 확정 선택함.
+    let target = data[0];
+    if (!isAfterKoreanMarketClose && target.localTradedAt === todayKstStr && data.length >= 2) {
+      target = data[1];
+      console.log(`[Naver ${indexCode}] Ongoing session detected before 15:30 KST. Selected previous closed bar (${target.localTradedAt}: ${target.closePrice})`);
+    }
+
+    const closeNum = parseFloat(target.closePrice.replace(/,/g, ''));
+    const changeNum = parseFloat(target.compareToPreviousClosePrice.replace(/,/g, ''));
+    const pctNum = parseFloat(target.fluctuationsRatio);
     const isPos = changeNum >= 0;
     // YYYY-MM-DD → YYYY.MM.DD
-    const date = latest.localTradedAt.replace(/-/g, '.');
+    const date = target.localTradedAt.replace(/-/g, '.');
     return { date, value: closeNum, change: changeNum, changePercent: pctNum, isPositive: isPos };
   } catch (e) {
     console.warn(`[Naver ${indexCode} fetch failed]`, e);
@@ -368,12 +383,24 @@ async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
       fluctuationsType?: { code: string };
     }> = json.result;
     if (!data || data.length < 1) return null;
-    const latest = data[0];
-    const closeNum = parseFloat(latest.closePrice.replace(/,/g, ''));
-    const changeNum = parseFloat(latest.fluctuations.replace(/,/g, ''));
-    const pctNum = parseFloat(latest.fluctuationsRatio);
+
+    const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const kstHour = nowKst.getUTCHours();
+    const kstMinute = nowKst.getUTCMinutes();
+    const isAfterKoreanMarketClose = (kstHour > 15) || (kstHour === 15 && kstMinute >= 30);
+    const todayKstStr = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, '0')}-${String(nowKst.getUTCDate()).padStart(2, '0')}`;
+
+    let target = data[0];
+    if (!isAfterKoreanMarketClose && target.localTradedAt === todayKstStr && data.length >= 2) {
+      target = data[1];
+      console.log(`[Naver USDKRW] Ongoing session detected before 15:30 KST. Selected previous closed bar (${target.localTradedAt}: ${target.closePrice})`);
+    }
+
+    const closeNum = parseFloat(target.closePrice.replace(/,/g, ''));
+    const changeNum = parseFloat(target.fluctuations.replace(/,/g, ''));
+    const pctNum = parseFloat(target.fluctuationsRatio);
     const isPos = changeNum >= 0;
-    const date = latest.localTradedAt.replace(/-/g, '.');
+    const date = target.localTradedAt.replace(/-/g, '.');
     return { date, value: closeNum, change: changeNum, changePercent: pctNum, isPositive: isPos };
   } catch (e) {
     console.warn('[Naver USDKRW fetch failed]', e);
@@ -790,28 +817,59 @@ export async function GET(request: Request) {
     }
     const resolvedNews = (autoNews && autoNews.length >= 4) ? autoNews : TODAY_MARKET_NEWS;
 
-    // 2) 8대 핵심 자산 시계열 수집 실패 감지
+    // 2) 8대 핵심 자산 시계열 수집 실패 및 최신 거래일 누락(Stale) 정밀 감지
     const assetChecks: Array<{ name: string; data: any }> = [
       { name: 'S&P 500', data: spx },
       { name: '나스닥 100', data: ndx },
-      { name: '코스피', data: kospi },
-      { name: '코스닥', data: kosdaq },
-      { name: '달러 환율', data: usdkrw },
+      { name: '코스피', data: resolvedKospi },
+      { name: '코스닥', data: resolvedKosdaq },
+      { name: '달러 환율', data: resolvedUsdkrw },
       { name: '미국채 10년', data: us10y },
-      { name: '국제 금', data: gold },
-      { name: '국제 유가', data: oil },
+      { name: '국제 금', data: resolvedGold },
+      { name: '국제 유가', data: resolvedOil },
     ];
 
     const failedAssets = assetChecks.filter((a) => !a.data || !a.data.points || a.data.points.length === 0);
     if (failedAssets.length > 0) {
-      dataIssues.push(`자산 데이터 수집 누락: ${failedAssets.map((f) => f.name).join(', ')}`);
+      dataIssues.push(`❌ 시계열 데이터 수집 실패: ${failedAssets.map((f) => f.name).join(', ')}`);
+    }
+
+    // 최신 마감 거래일(latestClosedDate) 대비 날짜 뒤처짐(Stale) 감지
+    // 예: SPX는 09.08인데 KOSPI가 09.07에 멈춰있는 경우 이상 감지
+    if (latestClosedDate) {
+      const staleAssets: string[] = [];
+      const [ly, lm, ld] = latestClosedDate.split('.').map(Number);
+      const latestMs = Date.UTC(ly, lm - 1, ld);
+
+      for (const check of assetChecks) {
+        const pts = check.data?.points;
+        const lastPtDate = (pts && pts.length > 0) ? pts[pts.length - 1].date : null;
+        if (!lastPtDate) continue;
+
+        const [py, pm, pd] = lastPtDate.split('.').map(Number);
+        const pointMs = Date.UTC(py, pm - 1, pd);
+        const diffDays = Math.round((latestMs - pointMs) / (1000 * 60 * 60 * 24));
+
+        // 기준 거래일보다 1일 이상 오래된 경우 (금요일~월요일 주말 제외)
+        // 만약 미국/한국 공휴일 차이가 아닌 일반 거래일 누락이면 경고
+        if (diffDays > 0 && lastPtDate < latestClosedDate) {
+          // 1일 초과 차이이거나, 또는 평일 간격 누락인 경우
+          if (diffDays > 1 || (diffDays === 1 && !['SPX', 'NDX', '미국채 10년'].includes(check.name))) {
+            staleAssets.push(`${check.name} (마지막: ${lastPtDate}, 기준일: ${latestClosedDate}, ${diffDays}일 지연)`);
+          }
+        }
+      }
+
+      if (staleAssets.length > 0) {
+        dataIssues.push(`⚠️ 최신 마감일(${latestClosedDate}) 데이터 미반영:\n• ${staleAssets.join('\n• ')}`);
+      }
     }
 
     // 이슈 발견 시 텔레그램 즉시 통보
     if (dataIssues.length > 0) {
       console.warn('[Market Daily Data Issues]:', dataIssues);
       try {
-        await sendTelegramErrorAlert('일일 증시 데이터 수집 점검', dataIssues.join('\n'));
+        await sendTelegramErrorAlert('🚨 [jusik.app 마켓 데이터 이상 감지]', dataIssues.join('\n\n'));
       } catch (alertErr) {
         console.warn('Telegram issue alert failed:', alertErr);
       }
@@ -891,7 +949,8 @@ export async function GET(request: Request) {
 
     // 텔레그램 일일 브리핑 리포트 발송 (forceRefresh=true 전용)
     try {
-      await sendTelegramDailyReport(snapshot, newlyPublished);
+      const warningMessage = dataIssues.length > 0 ? dataIssues.join('\n') : undefined;
+      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage);
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);
     }
