@@ -119,13 +119,22 @@ export default function ToolsPage() {
     setDisplayTools(sortToolsWithFavorites(RAW_TOOLS, favoriteTools));
   }, [favoriteTools]);
 
+  // 전역 쿨다운 락: 어떤 도구든 즐겨찾기 버튼이 눌리면 애니메이션과 재정렬이 끝날 때까지 추가 클릭 차단
+  const globalFavLockRef = useRef(false);
+
   const handleStarClick = (e: React.MouseEvent, toolId: string) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (globalFavLockRef.current) return;
+    globalFavLockRef.current = true;
+
     setAnimatingId(toolId);
     toggleFavoriteTool(toolId);
+
     setTimeout(() => {
       setAnimatingId((prev) => (prev === toolId ? null : prev));
+      globalFavLockRef.current = false;
     }, 500);
   };
 

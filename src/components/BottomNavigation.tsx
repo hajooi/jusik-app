@@ -147,13 +147,22 @@ export default function BottomNavigation() {
     }
   }, [isExpanded, favoriteTools]);
 
+  // 전역 쿨다운 락: 애니메이션 및 재정렬 중 추가 클릭 차단
+  const globalNavFavLockRef = useRef(false);
+
   const handleNavStarClick = (e: React.MouseEvent, toolId: string) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (globalNavFavLockRef.current) return;
+    globalNavFavLockRef.current = true;
+
     setAnimatingToolId(toolId);
     toggleFavoriteTool(toolId);
+
     setTimeout(() => {
       setAnimatingToolId((prev) => (prev === toolId ? null : prev));
+      globalNavFavLockRef.current = false;
     }, 500);
   };
 

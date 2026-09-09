@@ -175,7 +175,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
 
   return (
     <div 
-      className={`w-[300px] sm:w-[330px] p-5 rounded-2xl bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-xl shadow-2xl space-y-4 border border-[var(--border-color)] text-left ${
+      className={`w-[300px] sm:w-[330px] max-h-[calc(100dvh-6.5rem)] overflow-y-auto overscroll-contain no-scrollbar p-5 rounded-2xl bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-xl shadow-2xl space-y-4 border border-[var(--border-color)] text-left ${
         isAuthPopoverClosing ? 'animate-popover-shrink' : 'animate-popover-expand'
       }`}
     >
