@@ -924,7 +924,31 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
-    return all.map((entry) => attachUserMetadata(entry, userDb));
+    const totalParticipants = Math.max(1, all.length);
+
+    return all.map((entry, idx) => {
+      const dynamicRank = idx + 1;
+      const dynamicPercentile = dynamicRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((dynamicRank / totalParticipants) * 100)));
+      const dynamicBadgeName = `상위 ${dynamicPercentile}%`;
+
+      const withMeta = attachUserMetadata(entry, userDb);
+      return {
+        ...withMeta,
+        percentile: dynamicPercentile,
+        termsQuizBest: withMeta.termsQuizBest ? {
+          ...withMeta.termsQuizBest,
+          percentile: dynamicPercentile,
+          badgeName: dynamicBadgeName,
+        } : {
+          level: entry.level,
+          score: entry.score,
+          correctCount: entry.correctCount,
+          timeSpentSec: entry.timeSpentSec,
+          percentile: dynamicPercentile,
+          badgeName: dynamicBadgeName,
+        },
+      };
+    });
   } catch (e) {
     console.error('Failed to get quiz entries from Supabase:', e);
     return [];

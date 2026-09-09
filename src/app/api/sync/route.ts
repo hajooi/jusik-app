@@ -233,7 +233,13 @@ export async function POST(request: Request) {
           const newScore = termsQuizBest.score || 0;
           const newTime = termsQuizBest.timeSpentSec || 999;
           if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
-            existing.termsQuizBest = termsQuizBest;
+            // percentile과 badgeName의 무결성 보정 (예: percentile이 60인데 badgeName이 상위 1%로 오염되는 것 방지)
+            const safePercentile = termsQuizBest.percentile || existing.termsQuizBest?.percentile;
+            const safeBadgeName = safePercentile ? `상위 ${safePercentile}%` : termsQuizBest.badgeName;
+            existing.termsQuizBest = {
+              ...termsQuizBest,
+              ...(safePercentile ? { percentile: safePercentile, badgeName: safeBadgeName } : {}),
+            };
           }
         }
 

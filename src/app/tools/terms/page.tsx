@@ -409,13 +409,17 @@ function TermsQuizContent() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
+            const serverPercentile = data.percentile || finalResult.percentile;
+            const serverBadgeName = `상위 ${serverPercentile}%`;
+
             setFinalResult((prev) =>
               prev
                 ? {
                     ...prev,
-                    percentile: data.percentile || prev.percentile,
+                    percentile: serverPercentile,
                     rank: data.rank || prev.rank,
                     totalParticipants: data.totalParticipants || prev.totalParticipants,
+                    badgeName: serverBadgeName,
                   }
                 : null
             );
@@ -424,8 +428,8 @@ function TermsQuizContent() {
               score: finalResult.score,
               correctCount: finalResult.correctCount,
               timeSpentSec: finalResult.timeSpentSec,
-              percentile: data.percentile || finalResult.percentile,
-              badgeName: finalResult.badgeName,
+              percentile: serverPercentile,
+              badgeName: serverBadgeName,
             });
             fetchLeaderboard(selectedLevel);
           }
