@@ -13,16 +13,20 @@ interface ToolItem {
   href: string;
   icon: any;
   isComingSoon: boolean;
+  hasEvent?: boolean;
+  eventBadge?: string;
 }
 
 const RAW_TOOLS: ToolItem[] = [
   {
     id: 'terms',
     title: '주식 용어 퀴즈',
-    description: '주식 시장 필수 기초 용어 퀴즈',
+    description: '주식 필수 기초 용어 퀴즈 (커피 30잔 이벤트)',
     href: '/tools/terms',
     icon: HelpCircle,
     isComingSoon: false,
+    hasEvent: true,
+    eventBadge: 'EVENT ☕',
   },
   {
     id: 'type',
@@ -223,15 +227,22 @@ export default function ToolsPage() {
                     <Icon className="w-5 h-5 stroke-[1.8]" />
                   </div>
                   <div className="min-w-0 space-y-0.5">
-                    <h3
-                      className={`text-sm sm:text-base font-bold transition-colors ${
-                        isFav
-                          ? 'text-[var(--accent-orange)]'
-                          : 'text-[var(--text-primary)] group-hover:text-[var(--accent-orange)]'
-                      }`}
-                    >
-                      {tool.title}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3
+                        className={`text-sm sm:text-base font-bold transition-colors ${
+                          isFav
+                            ? 'text-[var(--accent-orange)]'
+                            : 'text-[var(--text-primary)] group-hover:text-[var(--accent-orange)]'
+                        }`}
+                      >
+                        {tool.title}
+                      </h3>
+                      {tool.hasEvent && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/40 shadow-[0_0_10px_rgba(241,143,1,0.2)] animate-pulse">
+                          {tool.eventBadge || 'EVENT'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
                       {tool.description}
                     </p>

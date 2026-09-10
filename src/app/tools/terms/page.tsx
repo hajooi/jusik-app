@@ -19,6 +19,10 @@ import {
   LogIn,
   Award,
   Crown,
+  Gift,
+  ExternalLink,
+  Coffee,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { TERMS_QUIZ_DATA, QUIZ_LEVELS, QuizQuestion } from '@/data/termsQuizData';
@@ -69,11 +73,17 @@ function TermsQuizContent() {
   const searchParams = useSearchParams();
   const { user, openAuthPopover, updateTermsQuizResult } = useAuth();
 
-  // 1:1 Challenge Battle URL Query Params
-  const challengerNick = searchParams.get('challenger');
-  const challengerLevel = searchParams.get('level') ? Number(searchParams.get('level')) as 1 | 2 | 3 | 4 : null;
-  const challengerScore = searchParams.get('score') ? Number(searchParams.get('score')) : null;
-  const challengerTime = searchParams.get('time') ? Number(searchParams.get('time')) : null;
+  // 1:1 Challenge Battle States (Initialized from URL Query Params or Event CTA)
+  const [challengerNick, setChallengerNick] = useState<string | null>(() => searchParams.get('challenger'));
+  const [challengerLevel, setChallengerLevel] = useState<1 | 2 | 3 | 4 | null>(() => 
+    searchParams.get('level') ? (Number(searchParams.get('level')) as 1 | 2 | 3 | 4) : null
+  );
+  const [challengerScore, setChallengerScore] = useState<number | null>(() => 
+    searchParams.get('score') ? Number(searchParams.get('score')) : null
+  );
+  const [challengerTime, setChallengerTime] = useState<number | null>(() => 
+    searchParams.get('time') ? Number(searchParams.get('time')) : null
+  );
 
   // Level & Leaderboard selection (Bidirectionally synced)
   const [selectedLevel, setSelectedLevel] = useState<1 | 2 | 3 | 4>(challengerLevel || 1);
@@ -209,6 +219,15 @@ function TermsQuizContent() {
     setIsSubmitting(false);
     isAdvancingRef.current = false;
     setQuizState('playing');
+  };
+
+  // Start 1:1 Battle with 주식부엉 for Event
+  const startEventBattle = () => {
+    setChallengerNick('주식부엉');
+    setChallengerLevel(1);
+    setChallengerScore(15);
+    setChallengerTime(90);
+    startQuiz(1);
   };
 
   // Select Option during Sprint
@@ -531,6 +550,110 @@ function TermsQuizContent() {
       {/* ======================================================== */}
       {quizState === 'intro' && (
         <div className="space-y-6">
+          {/* Open Event Hero Announcement Card */}
+          <RevealOnScroll delayIndex={1}>
+            <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-amber-500/10 via-[var(--card-surface)] to-[var(--accent-orange)]/10 border border-amber-500/35 shadow-[0_0_24px_rgba(241,143,1,0.12)] space-y-4 text-left">
+              {/* Header Badge Row */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[var(--accent-orange)]/20 text-[var(--accent-orange)] border border-[var(--accent-orange)]/40">
+                    <Coffee className="w-3.5 h-3.5" />
+                    <span>오픈 기념 이벤트</span>
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30">
+                    9/9(수) ~ 9/21(월) 00:00
+                  </span>
+                </div>
+                <span className="text-xs font-extrabold text-[var(--accent-orange)] font-mono">
+                  총 32명 당첨 🎁
+                </span>
+              </div>
+
+              {/* Title & Description */}
+              <div className="space-y-1.5">
+                <h2 className="text-lg sm:text-xl font-black tracking-tight text-[var(--text-primary)] flex items-center gap-2">
+                  <span>☕ 커피 30잔 쏩니다! &ldquo;주식부엉을 이겨라!&rdquo;</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                  주식부엉이 먼저 기록한 <strong className="text-[var(--text-primary)] font-bold">[초급 1단계 15문제 만점 / 1분 30초]</strong>에 도전하세요! 못 이기거나 점수가 낮아도 완주 후 인증만 하면 참가상 추첨 기회가 주어집니다.
+                </p>
+              </div>
+
+              {/* Rewards Grid (4 Items) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 pt-1">
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--border-color)] space-y-0.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                    <span className="flex items-center gap-1.5">
+                      <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                      <span>초급 리더보드 TOP 10</span>
+                    </span>
+                    <span className="font-mono text-[var(--accent-orange)]">10명</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)]">리더보드 최고 기록 상위 10명 커피 증정</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--border-color)] space-y-0.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                    <span className="flex items-center gap-1.5">
+                      <Swords className="w-3.5 h-3.5 text-rose-500" />
+                      <span>주식부엉 격파왕 추첨</span>
+                    </span>
+                    <span className="font-mono text-[var(--accent-orange)]">10명</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)]">만점 & 1분 30초 돌파자 중 추첨</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--border-color)] space-y-0.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>열정 참가상 추첨</span>
+                    </span>
+                    <span className="font-mono text-[var(--accent-orange)]">10명</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)]">못 이겨도 OK! 완주 인증자 전원 추첨</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--border-color)] space-y-0.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--text-primary)]">
+                    <span className="flex items-center gap-1.5">
+                      <Gift className="w-3.5 h-3.5 text-amber-600" />
+                      <span>특별 피드백상</span>
+                    </span>
+                    <span className="font-mono text-[var(--accent-orange)]">2명</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)]">정성스러운 피드백 제출자 (뿌링클+콜라)</p>
+                </div>
+              </div>
+
+              {/* Action Buttons Row */}
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={startEventBattle}
+                  className="btn-primary !py-2.5 !px-5 !text-xs sm:!text-sm font-bold flex items-center justify-center gap-2 shadow-md active:scale-98 !w-full sm:!w-auto cursor-pointer"
+                >
+                  <Swords className="w-4 h-4" />
+                  <span>주식부엉에게 1:1 대결 도전하기</span>
+                </button>
+
+                <a
+                  href="https://forms.gle/VaLGYDv42q8UH19LA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary !py-2.5 !px-4 !text-xs font-bold inline-flex items-center justify-center gap-1.5 !w-full sm:!w-auto cursor-pointer hover:text-[var(--accent-orange)]"
+                >
+                  <span>구글 폼 제출하기</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                </a>
+
+                <span className="text-[11px] text-[var(--text-secondary)] font-medium text-center sm:text-left sm:ml-auto">
+                  ※ 퀴즈 완주 후 결과 화면을 캡처하여 구글 폼에 제출해주세요.
+                </span>
+              </div>
+            </div>
+          </RevealOnScroll>
+
           {/* Level Cards Grid */}
           <RevealOnScroll delayIndex={2}>
             <div className="space-y-3">
@@ -1046,6 +1169,40 @@ function TermsQuizContent() {
                   </p>
                 </div>
               )}
+
+              {/* Open Event Google Form Verification Banner */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-[var(--card-surface)] to-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/45 shadow-[0_0_20px_rgba(241,143,1,0.18)] space-y-3 text-center animate-fadeIn">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-black text-[var(--accent-orange)]">
+                  <Gift className="w-4 h-4 text-[var(--accent-orange)] animate-bounce" />
+                  <span>오픈 기념 이벤트 참여 인증 (커피 30잔 + 치킨 2명)</span>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                    지금 이 결과 화면(점수와 소요 시간)을 캡처하여 구글 폼에 제출해주세요!
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] font-medium">
+                    주식부엉을 못 이겨도, 점수가 낮아도 완주 인증만 하면 참가상 추첨 대상에 자동 포함됩니다. (~9/21 00:00까지)
+                  </p>
+                </div>
+
+                <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-2">
+                  <a
+                    href="https://forms.gle/VaLGYDv42q8UH19LA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary !py-2.5 !px-6 !text-xs sm:!text-sm font-extrabold inline-flex items-center justify-center shadow-md active:scale-98 !w-full sm:!w-auto cursor-pointer"
+                  >
+                    구글 폼 제출하기
+                  </a>
+                </div>
+
+                {!user && (
+                  <p className="text-[10.5px] text-amber-600 dark:text-amber-400 font-semibold">
+                    ※ 리더보드 공식 기록 등록을 위해 위의 [내 기록 등록하기 (로그인)]을 먼저 완료해 주세요!
+                  </p>
+                )}
+              </div>
 
               {/* Action Buttons */}
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
