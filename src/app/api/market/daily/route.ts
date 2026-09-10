@@ -408,6 +408,45 @@ async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
   }
 }
 
+// ─── Naver Finance 원자재(국제 금, WTI 유가) 폴백 ──────────────────────────────
+// 선물 롤오버 기간 등으로 Yahoo GC=F, CL=F 일봉이 누락되었을 때의 2차 공식 대비책.
+// 네이버 증권의 해외 마감 정산 시세 테이블에서 당일 공식 마감 종가를 추출합니다.
+async function fetchNaverCommodity(code: 'OIL_CL' | 'CMDT_GC'): Promise<NaverIndexPoint | null> {
+  try {
+    const res = await fetch(
+      `https://finance.naver.com/marketindex/worldDailyQuote.naver?marketindexCd=${code}&fdtc=2&page=1`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const text = new TextDecoder('euc-kr').decode(buf);
+    const m = text.match(/<tbody[^>]*>[\s\S]*?<tr[^>]*>([\s\S]*?)<\/tr>/);
+    if (!m) return null;
+    const tr = m[1];
+    const dateM = tr.match(/<td class=\"date\">[\s\S]*?([0-9\.]+)[\s\S]*?<\/td>/);
+    const tds = [...tr.matchAll(/<td class=\"num\">([\s\S]*?)<\/td>/g)].map((x) => x[1].trim());
+    if (!dateM || tds.length < 3) return null;
+
+    const price = parseFloat(tds[0].replace(/<[^>]*>/g, '').replace(/,/g, '').trim());
+    const isDown = tds[1].includes('하락');
+    const chgStr = tds[1].replace(/<[^>]*>/g, '').replace(/,/g, '').trim();
+    const change = (parseFloat(chgStr) || 0) * (isDown ? -1 : 1);
+    const pctStr = tds[2].replace(/<[^>]*>/g, '').replace(/%/g, '').trim();
+    const changePercent = parseFloat(pctStr) || 0;
+
+    return {
+      date: dateM[1].trim(),
+      value: price,
+      change,
+      changePercent,
+      isPositive: !isDown,
+    };
+  } catch (e) {
+    console.warn(`[Naver ${code} fetch failed]`, e);
+    return null;
+  }
+}
+
 // Yahoo 데이터의 최신 포인트가 오늘 기준 N일 이상 오래됐는지 확인
 function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
   if (!points || points.length === 0) return true;
@@ -529,9 +568,8 @@ export async function GET(request: Request) {
     await delay(180);
     const oil = await fetchYahooData(YAHOO_SYMBOLS['국제 유가']);
 
-    // ── Naver 폴백: Yahoo 한국 지수 데이터가 비어 있거나 stale(1거래일 이상 오래됨)인 경우 ──
-    // Yahoo는 장 개장 직후나 선물 롤오버 시 한국 지수 일봉을 null로 반환하는 경우가 있음.
-    // Naver Finance API는 지연 없이 정확한 한국 거래일 종가를 제공.
+    // ── Naver 폴백: Yahoo 데이터가 비어 있거나 stale(1거래일 이상 오래됨)인 경우의 2차 공식 대비책 ──
+    const fallbackNotices: string[] = [];
     let resolvedKospi = kospi;
     let resolvedKosdaq = kosdaq;
     let resolvedUsdkrw = usdkrw;
@@ -541,14 +579,13 @@ export async function GET(request: Request) {
       console.log('[Market Daily] KOSPI stale, fetching from Naver...');
       const naverKospi = await fetchNaverIndex('KOSPI');
       if (naverKospi && kospi && naverKospi.date > (kospi.points.slice(-1)[0]?.date ?? '')) {
-        // Naver가 더 최신 날짜라면 해당 포인트를 points에 추가하고 current 갱신
         const updatedPoints = [...kospi.points, { date: naverKospi.date, value: naverKospi.value }];
         resolvedKospi = { ...kospi, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverKospi.value, change: naverKospi.change, changePercent: naverKospi.changePercent };
+        fallbackNotices.push(`코스피: 네이버 증권 마감가(${naverKospi.date} ${naverKospi.value}) 대체 반영`);
         console.log(`[Market Daily] KOSPI updated via Naver: ${naverKospi.date} = ${naverKospi.value}`);
       } else if (naverKospi && !kospi) {
-        // Yahoo 자체가 실패한 경우 Naver 단독 사용
         resolvedKospi = { points: [{ date: naverKospi.date, value: naverKospi.value }], history: [naverKospi.value], current: naverKospi.value, change: naverKospi.change, changePercent: naverKospi.changePercent };
-        console.log(`[Market Daily] KOSPI from Naver only: ${naverKospi.value}`);
+        fallbackNotices.push(`코스피: 네이버 증권 단독 수집(${naverKospi.date} ${naverKospi.value}) 대체 반영`);
       }
     }
 
@@ -559,9 +596,11 @@ export async function GET(request: Request) {
       if (naverKosdaq && kosdaq && naverKosdaq.date > (kosdaq.points.slice(-1)[0]?.date ?? '')) {
         const updatedPoints = [...kosdaq.points, { date: naverKosdaq.date, value: naverKosdaq.value }];
         resolvedKosdaq = { ...kosdaq, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverKosdaq.value, change: naverKosdaq.change, changePercent: naverKosdaq.changePercent };
+        fallbackNotices.push(`코스닥: 네이버 증권 마감가(${naverKosdaq.date} ${naverKosdaq.value}) 대체 반영`);
         console.log(`[Market Daily] KOSDAQ updated via Naver: ${naverKosdaq.date} = ${naverKosdaq.value}`);
       } else if (naverKosdaq && !kosdaq) {
         resolvedKosdaq = { points: [{ date: naverKosdaq.date, value: naverKosdaq.value }], history: [naverKosdaq.value], current: naverKosdaq.value, change: naverKosdaq.change, changePercent: naverKosdaq.changePercent };
+        fallbackNotices.push(`코스닥: 네이버 증권 단독 수집(${naverKosdaq.date} ${naverKosdaq.value}) 대체 반영`);
       }
     }
 
@@ -572,71 +611,124 @@ export async function GET(request: Request) {
       if (naverUsd && usdkrw && naverUsd.date > (usdkrw.points.slice(-1)[0]?.date ?? '')) {
         const updatedPoints = [...usdkrw.points, { date: naverUsd.date, value: naverUsd.value }];
         resolvedUsdkrw = { ...usdkrw, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
+        fallbackNotices.push(`달러 환율: 네이버 환율 마감가(${naverUsd.date} ${naverUsd.value}원) 대체 반영`);
         console.log(`[Market Daily] USDKRW updated via Naver: ${naverUsd.date} = ${naverUsd.value}`);
       } else if (naverUsd && !usdkrw) {
         resolvedUsdkrw = { points: [{ date: naverUsd.date, value: naverUsd.value }], history: [naverUsd.value], current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
+        fallbackNotices.push(`달러 환율: 네이버 환율 단독 수집(${naverUsd.date} ${naverUsd.value}원) 대체 반영`);
       }
     }
 
-    // ── 선물 롤오버 보완: Gold/Oil 일봉이 2일 이상 비어 있을 경우 meta.regularMarketPrice로 당일 포인트 추가 ──
-    // GC=F, CL=F는 계약 롤오버(Sep → Dec) 시기에 Yahoo 일봉이 며칠간 누락될 수 있음.
+    // ── 국제 금(GC=F) & 국제 유가(CL=F) 2차 대비책: 네이버 증권 공식 마감 정산가 ──
+    // 미국 대표 주가지수(SPX 또는 NDX)의 최신 확정 거래일을 기준 목표일로 설정
+    const targetUsDate = spx?.points?.slice(-1)[0]?.date || ndx?.points?.slice(-1)[0]?.date || '';
     let resolvedGold = gold;
     let resolvedOil = oil;
 
-    if (isDataStale(gold?.points ?? [], 2)) {
-      // Yahoo 메타에서 현재가 직접 추출
-      const goldUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(YAHOO_SYMBOLS['국제 금'])}?range=1d&interval=1d`;
-      try {
-        const goldMeta = await fetch(goldUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, cache: 'no-store' });
-        if (goldMeta.ok) {
-          const gj = await goldMeta.json();
-          const gMeta = gj?.chart?.result?.[0]?.meta;
-          if (gMeta?.regularMarketPrice) {
-            const todayStr = toKstDateStr(new Date());
-            const updatedPoints = [...(gold?.points ?? []), { date: todayStr, value: Number(gMeta.regularMarketPrice.toFixed(2)) }];
-            const prevClose = gMeta.chartPreviousClose ?? (gold?.points?.slice(-1)[0]?.value ?? gMeta.regularMarketPrice);
-            const chg = Number((gMeta.regularMarketPrice - prevClose).toFixed(2));
-            const chgPct = Number(((chg / prevClose) * 100).toFixed(2));
-            resolvedGold = { points: updatedPoints, history: updatedPoints.map(p => p.value), current: gMeta.regularMarketPrice, change: chg, changePercent: chgPct };
-            console.log(`[Market Daily] Gold updated via meta.regularMarketPrice: ${todayStr} = ${gMeta.regularMarketPrice}`);
-          }
+    // 1) 국제 금 (CMDT_GC)
+    const goldLastDate = gold?.points?.slice(-1)[0]?.date ?? '';
+    const isGoldStale = !gold || gold.points.length === 0 || isDataStale(gold.points, 1) || (Boolean(targetUsDate) && goldLastDate < targetUsDate);
+
+    if (isGoldStale) {
+      console.log(`[Market Daily] Gold stale or missing (last: ${goldLastDate}, target: ${targetUsDate}). Triggering Naver CMDT_GC fallback...`);
+      const naverGold = await fetchNaverCommodity('CMDT_GC');
+      if (naverGold) {
+        if (gold && naverGold.date > goldLastDate) {
+          const updatedPoints = [...gold.points, { date: naverGold.date, value: naverGold.value }];
+          resolvedGold = {
+            ...gold,
+            points: updatedPoints,
+            history: updatedPoints.map((p) => p.value),
+            current: naverGold.value,
+            change: naverGold.change,
+            changePercent: naverGold.changePercent,
+          };
+        } else if (!gold || gold.points.length === 0) {
+          resolvedGold = {
+            points: [{ date: naverGold.date, value: naverGold.value }],
+            history: [naverGold.value],
+            current: naverGold.value,
+            change: naverGold.change,
+            changePercent: naverGold.changePercent,
+          };
         }
-      } catch (e) { console.warn('[Market Daily] Gold meta fallback failed:', e); }
+        fallbackNotices.push(`국제 금: 야후 일봉 지연으로 네이버 증권 마감가(${naverGold.date} $${naverGold.value.toLocaleString()}) 대체 반영`);
+        console.log(`[Market Daily] Gold updated via Naver CMDT_GC: ${naverGold.date} = ${naverGold.value}`);
+      }
     }
 
-    if (isDataStale(oil?.points ?? [], 2)) {
-      const oilUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(YAHOO_SYMBOLS['국제 유가'])}?range=1d&interval=1d`;
-      try {
-        const oilMeta = await fetch(oilUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, cache: 'no-store' });
-        if (oilMeta.ok) {
-          const oj = await oilMeta.json();
-          const oMeta = oj?.chart?.result?.[0]?.meta;
-          if (oMeta?.regularMarketPrice) {
-            const todayStr = toKstDateStr(new Date());
-            const updatedPoints = [...(oil?.points ?? []), { date: todayStr, value: Number(oMeta.regularMarketPrice.toFixed(2)) }];
-            const prevClose = oMeta.chartPreviousClose ?? (oil?.points?.slice(-1)[0]?.value ?? oMeta.regularMarketPrice);
-            const chg = Number((oMeta.regularMarketPrice - prevClose).toFixed(2));
-            const chgPct = Number(((chg / prevClose) * 100).toFixed(2));
-            resolvedOil = { points: updatedPoints, history: updatedPoints.map(p => p.value), current: oMeta.regularMarketPrice, change: chg, changePercent: chgPct };
-            console.log(`[Market Daily] Oil updated via meta.regularMarketPrice: ${todayStr} = ${oMeta.regularMarketPrice}`);
-          }
+    // 2) 국제 유가 (OIL_CL)
+    const oilLastDate = oil?.points?.slice(-1)[0]?.date ?? '';
+    const isOilStale = !oil || oil.points.length === 0 || isDataStale(oil.points, 1) || (Boolean(targetUsDate) && oilLastDate < targetUsDate);
+
+    if (isOilStale) {
+      console.log(`[Market Daily] Oil stale or missing (last: ${oilLastDate}, target: ${targetUsDate}). Triggering Naver OIL_CL fallback...`);
+      const naverOil = await fetchNaverCommodity('OIL_CL');
+      if (naverOil) {
+        if (oil && naverOil.date > oilLastDate) {
+          const updatedPoints = [...oil.points, { date: naverOil.date, value: naverOil.value }];
+          resolvedOil = {
+            ...oil,
+            points: updatedPoints,
+            history: updatedPoints.map((p) => p.value),
+            current: naverOil.value,
+            change: naverOil.change,
+            changePercent: naverOil.changePercent,
+          };
+        } else if (!oil || oil.points.length === 0) {
+          resolvedOil = {
+            points: [{ date: naverOil.date, value: naverOil.value }],
+            history: [naverOil.value],
+            current: naverOil.value,
+            change: naverOil.change,
+            changePercent: naverOil.changePercent,
+          };
         }
-      } catch (e) { console.warn('[Market Daily] Oil meta fallback failed:', e); }
+        fallbackNotices.push(`국제 유가: 야후 일봉 지연으로 네이버 증권 마감가(${naverOil.date} $${naverOil.value.toFixed(2)}) 대체 반영`);
+        console.log(`[Market Daily] Oil updated via Naver OIL_CL: ${naverOil.date} = ${naverOil.value}`);
+      }
     }
 
     // 공탐지수 계산
     const fgScore = fgData?.score ?? MARKET_SNAPSHOT.fearGreedIndex;
     const weather = mapRatingToWeather(fgScore);
 
-    // 날짜 포맷팅: 전체 수집 자산 중 가장 최근에 공식 마감된 실제 거래일 산출 (미국 휴장 시 한국 마감일 자동 반영)
-    const allFetchedAssets = [spx, ndx, resolvedKospi, resolvedKosdaq, resolvedUsdkrw, us10y, resolvedGold, resolvedOil];
-    const latestDates = allFetchedAssets
+    // 날짜 포맷팅: 핵심 주가지수(SPX, NDX, KOSPI, KOSDAQ) 중 공식 마감된 최신 거래일을 단일 진실 공급원(Single Source of Truth)으로 확정
+    // 원자재/환율 등 24시간 거래 자산이 오늘(진행 중인 미마감일) 날짜로 앞서나가 전체 마감일을 왜곡하는 것을 원천 방지!
+    const stockAssets = [spx, ndx, resolvedKospi, resolvedKosdaq];
+    const stockDates = stockAssets
       .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
       .filter((d): d is string => Boolean(d));
 
-    // 최신 날짜 정렬 (YYYY.MM.DD 포맷이므로 사전순 비교로 정확히 최신일 도출)
-    latestDates.sort();
-    const latestClosedDate = latestDates.length > 0 ? latestDates[latestDates.length - 1] : null;
+    stockDates.sort();
+    const latestClosedDate = stockDates.length > 0 ? stockDates[stockDates.length - 1] : null;
+
+    // 모든 자산의 포인트가 공식 마감일(latestClosedDate)을 초과하지 않도록 정렬 (장중 진행 캔들 혼입 방지)
+    const alignAssetToClosedDate = (asset: any) => {
+      if (!asset || !asset.points || !latestClosedDate) return asset;
+      const validPoints = asset.points.filter((p: DailyPoint) => p.date <= latestClosedDate);
+      if (validPoints.length === 0) return asset;
+      const lastPt = validPoints[validPoints.length - 1];
+      const prevPt = validPoints.length >= 2 ? validPoints[validPoints.length - 2] : null;
+      let change = 0;
+      let changePercent = 0;
+      if (prevPt && prevPt.value > 0) {
+        change = Number((lastPt.value - prevPt.value).toFixed(2));
+        changePercent = Number(((change / prevPt.value) * 100).toFixed(2));
+      }
+      return {
+        ...asset,
+        points: validPoints,
+        history: validPoints.map((p: DailyPoint) => p.value),
+        current: lastPt.value,
+        change,
+        changePercent,
+      };
+    };
+
+    resolvedGold = alignAssetToClosedDate(resolvedGold);
+    resolvedOil = alignAssetToClosedDate(resolvedOil);
+    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
@@ -950,7 +1042,8 @@ export async function GET(request: Request) {
     // 텔레그램 일일 브리핑 리포트 발송 (forceRefresh=true 전용)
     try {
       const warningMessage = dataIssues.length > 0 ? dataIssues.join('\n') : undefined;
-      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage);
+      const fallbackNotice = fallbackNotices.length > 0 ? fallbackNotices.map((n) => `• ${n}`).join('\n') : undefined;
+      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage, fallbackNotice);
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);
     }

@@ -53,7 +53,8 @@ export async function sendTelegramDailyReport(
     expected?: string;
     summary: string;
   }>,
-  warningMessage?: string
+  warningMessage?: string,
+  fallbackNotice?: string
 ): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
@@ -61,6 +62,12 @@ export async function sendTelegramDailyReport(
     `🦉 <b>[jusik.app 일일 증시 브리핑]</b>`,
     `📅 ${snapshot.updatedAt}`,
   ];
+
+  if (fallbackNotice) {
+    lines.push(``);
+    lines.push(`ℹ️ <b>[데이터 소스 대체 안내]</b>`);
+    lines.push(`<i>${fallbackNotice}</i>`);
+  }
 
   if (warningMessage) {
     lines.push(``);
