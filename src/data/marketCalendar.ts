@@ -11226,11 +11226,12 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 8월 생산자물가지수 (PPI YoY) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "공장과 생산자들의 출하 가격 변동을 보여주는 도매물가 지표예요.\n이 지표가 안정되면 1~2개월 뒤 소비자물가 추가 안정으로 이어집니다.",
+    "simpleSummary": "공장과 생산자들의 출하 가격 변동을 보여주는 도매물가 지표예요.\n전년 대비 5.4%로 발표되어 시장 예상치(5.3%)와 유사한 흐름을 기록했어요.",
     "impactTag": "관망",
     "importance": 2,
-    "expected": "4.4%",
-    "previous": "4.7%"
+    "actual": "5.4%",
+    "expected": "5.3%",
+    "previous": "4.8%"
   },
   {
     "id": "sep-us-cpi",

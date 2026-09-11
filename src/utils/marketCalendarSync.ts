@@ -142,16 +142,32 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
   // 지표 매핑 헬퍼 함수
   const matchIndicator = (title: string, date: string): EconomicIndicator | undefined => {
     const t = title.toLowerCase();
+    const isEventYoY = t.includes('yoy') || t.includes('전년');
+    const isEventMoM = t.includes('mom') || t.includes('전월');
+    const isEventCore = t.includes('근원') || t.includes('core');
+
     return liveIndicators.find((ind) => {
       const indName = ind.name.toLowerCase();
       // 날짜 오차 1일 허용 (시차 감안)
       const dateMatch = ind.date === date || Math.abs(new Date(ind.date).getTime() - new Date(date).getTime()) <= 86400000;
       if (!dateMatch) return false;
 
+      const isIndYoY = indName.includes('yoy') || indName.includes('year on year') || indName.includes('change');
+      const isIndMoM = indName.includes('mom') || indName.includes('month on month');
+      const isIndCore = indName.includes('core');
+      const isIndExSub = indName.includes('ex '); // 'ex food', 'ex trade' 등 세부 제외 지표
+
+      // YoY / MoM 주기 일치 여부 엄격 검증
+      if (isEventYoY && !isIndYoY) return false;
+      if (isEventMoM && !isIndMoM) return false;
+
+      // Core(근원) 지표와 Headline 지표 상호 침범 방지
+      if (isEventCore && !isIndCore) return false;
+      if (!isEventCore && (isIndCore || isIndExSub)) return false;
+
       if ((t.includes('nfib') || t.includes('소기업')) && (indName.includes('nfib') || indName.includes('optimism'))) return true;
-      if (t.includes('근원 소비자물가') && (indName.includes('core inflation') || indName.includes('core cpi'))) return true;
-      if (t.includes('소비자물가지수') && !t.includes('근원') && (indName.includes('inflation rate') || (indName.includes('cpi') && !indName.includes('core')))) return true;
-      if (t.includes('생산자물가') && indName.includes('ppi')) return true;
+      if (t.includes('소비자물가') && (indName.includes('inflation rate') || indName.includes('cpi'))) return true;
+      if (t.includes('생산자물가') && (indName.includes('ppi') || indName.includes('producer prices'))) return true;
       if (t.includes('소매판매') && indName.includes('retail sales')) return true;
       if ((t.includes('fomc') || t.includes('기준금리')) && (indName.includes('interest rate') || indName.includes('fed'))) return true;
       if (t.includes('비농업') && (indName.includes('non farm') || indName.includes('payroll'))) return true;

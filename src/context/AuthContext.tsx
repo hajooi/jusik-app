@@ -18,6 +18,7 @@ export interface UserAccount {
   isPro?: boolean;
   proExpiresAt?: string;
   hasCompletedCourse?: boolean; // 전 강좌 수강 완료 영구 업적 플래그 (우등생 뱃지 해금)
+  maxCompletedLessonsCount?: number;
   termsQuizBest?: {
     level: number;
     score: number;
@@ -193,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     avatarUrl: parsedUser.avatarUrl || undefined,
                     activeBadge: parsedUser.activeBadge || undefined,
                     termsQuizBest: parsedUser.termsQuizBest || undefined,
+                    hasCompletedCourse: parsedUser.hasCompletedCourse || undefined,
                     favoriteTools: parsedUser.favoriteTools || initialFavorites,
                   })
                 })
@@ -250,12 +252,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userPin = user.pin || '';
       // 영구 업적 달성형: 한 번 달성되었거나 지금 달성되면 영구 true 유지
       const nextHasCompletedCourse = Boolean(user.hasCompletedCourse || isNowAllDone);
+      const nextMaxCount = Math.max(
+        user.maxCompletedLessonsCount || 0,
+        newCompletedList.length
+      );
 
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
         completedLessons: newCompletedList,
         hasCompletedCourse: nextHasCompletedCourse,
+        maxCompletedLessonsCount: nextMaxCount,
         lastLoginAt: new Date().toISOString()
       };
       setUser(updatedUser);
@@ -271,6 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pin: userPin,
             completedLessons: newCompletedList,
             hasCompletedCourse: nextHasCompletedCourse,
+            maxCompletedLessonsCount: nextMaxCount,
             investmentType,
             typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings

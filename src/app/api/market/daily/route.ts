@@ -996,10 +996,12 @@ export async function GET(request: Request) {
           dbEvents.forEach((e: CalendarEvent) => { if (e?.id) dbEventMap.set(e.id, e); });
           currentCalendarEvents = CALENDAR_EVENTS.map((baseEvent) => {
             const cached = dbEventMap.get(baseEvent.id);
-            if (cached && (cached.actual || cached.simpleSummary)) {
+            if (cached && (cached.actual || cached.simpleSummary || cached.expected)) {
               return {
                 ...baseEvent,
                 ...(cached.actual ? { actual: cached.actual } : {}),
+                ...(cached.expected ? { expected: cached.expected } : {}),
+                ...(cached.previous ? { previous: cached.previous } : {}),
                 ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
               };
             }

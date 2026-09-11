@@ -95,14 +95,14 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
         .then((data) => {
           if (data.success && data.percentages) {
             const pct = data.percentages[targetCode!];
-            setTypePercentage(pct !== undefined && pct > 0 ? pct : 6.3);
+            setTypePercentage(pct !== undefined && pct > 0 ? pct : undefined);
           } else {
-            setTypePercentage(6.3);
+            setTypePercentage(undefined);
           }
         })
         .catch((err) => {
           console.error('Survey stats API error:', err);
-          setTypePercentage(6.3);
+          setTypePercentage(undefined);
         });
     }
   }, [isCompleted, answers, sharedProfile]);
@@ -159,7 +159,8 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           .then((res) => res.json())
           .then((data) => {
             if (data.success && data.percentages) {
-              setTypePercentage(data.percentages[resultData.typeCode] || 0);
+              const pct = data.percentages[resultData.typeCode];
+              setTypePercentage(pct !== undefined && pct > 0 ? pct : undefined);
             }
           })
           .catch((e) => console.error(e));

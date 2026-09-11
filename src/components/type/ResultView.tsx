@@ -6,6 +6,7 @@ import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { getPersonalityDynamicPreviewStats } from '@/utils/personalitySimulatorMapping';
 import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
+import SmoothHeight from '@/components/SmoothHeight';
 
 interface ResultViewProps {
   profile: PersonalityProfile;
@@ -534,22 +535,18 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             </div>
 
             <div className="space-y-3 flex-1">
-              <div className="space-y-2">
-                <div className="min-h-[26px] flex items-center justify-center sm:justify-start">
+              <div className="flex flex-col">
+                <SmoothHeight duration={450}>
                   {percentage !== undefined && percentage > 0 ? (
-                    <div className="animate-in fade-in duration-300">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
-                        🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
-                      </span>
+                    <div className="pb-2 flex items-center justify-center sm:justify-start">
+                      <div className="animate-in fade-in slide-in-from-top-1 duration-500">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
+                          🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">{percentage}%</span>가 이 유형이에요!
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="animate-in fade-in duration-300">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--accent-orange)] text-white text-[11px] font-extrabold shadow-sm border border-[var(--accent-orange)]">
-                        🔥 전체 참여자 중 <span className="font-mono text-xs underline underline-offset-2">6.3%</span>가 이 유형이에요!
-                      </span>
-                    </div>
-                  )}
-                </div>
+                  ) : null}
+                </SmoothHeight>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                   {profile.badges.map((b, i) => (
                     <span key={i} className="px-2.5 py-1 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] text-[11px] font-bold border border-[var(--border-color)] transition-all">

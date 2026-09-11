@@ -77,6 +77,7 @@ export async function GET(request: Request) {
           isPro: effectiveIsPro,
           proExpiresAt: userRecord.proExpiresAt,
           hasCompletedCourse: userRecord.hasCompletedCourse,
+          maxCompletedLessonsCount: userRecord.maxCompletedLessonsCount || (userRecord.completedLessons || []).length,
           rankPercentile
         }
       },
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools, hasCompletedCourse } = body;
+    const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools, hasCompletedCourse, maxCompletedLessonsCount } = body;
 
     const trimmedNickname = nickname?.trim();
     if (!trimmedNickname) {
@@ -226,6 +227,13 @@ export async function POST(request: Request) {
           existing.hasCompletedCourse = true;
         }
 
+        const incomingMax = maxCompletedLessonsCount || (completedLessons || []).length;
+        existing.maxCompletedLessonsCount = Math.max(
+          existing.maxCompletedLessonsCount || 0,
+          incomingMax,
+          existing.completedLessons.length
+        );
+
         // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존
         if (termsQuizBest) {
           const prevScore = existing.termsQuizBest?.score || 0;
@@ -281,6 +289,7 @@ export async function POST(request: Request) {
             isPro: effectiveIsPro,
             proExpiresAt: existing.proExpiresAt,
             hasCompletedCourse: existing.hasCompletedCourse,
+            maxCompletedLessonsCount: existing.maxCompletedLessonsCount,
             rankPercentile
           }
         });
@@ -383,6 +392,14 @@ export async function POST(request: Request) {
         existing.hasCompletedCourse = true;
       }
 
+      const currentCount = Array.isArray(existing.completedLessons) ? existing.completedLessons.length : 0;
+      const incomingMax = maxCompletedLessonsCount || currentCount;
+      existing.maxCompletedLessonsCount = Math.max(
+        existing.maxCompletedLessonsCount || 0,
+        incomingMax,
+        currentCount
+      );
+
       // 만료된 PRO 권한 자동 회수 및 DB 반영
       const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
       if (existing.isPro && !effectiveIsPro) {
@@ -416,6 +433,7 @@ export async function POST(request: Request) {
           isPro: effectiveIsPro,
           proExpiresAt: existing.proExpiresAt,
           hasCompletedCourse: existing.hasCompletedCourse,
+          maxCompletedLessonsCount: existing.maxCompletedLessonsCount,
           rankPercentile
         }
       });

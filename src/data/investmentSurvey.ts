@@ -804,7 +804,7 @@ export const PERSONALITY_PROFILES: Record<string, PersonalityProfile> = {
       marketCaution: '하지만 주변에서 테마주나 코인으로 벼락부자가 되었다는 자극적인 무용담이 들려올 때, 나의 안전한 자산 배분이 너무 느리게 느껴져 순간적으로 조급해질 수 있습니다. 결국 토끼를 이기고 긴 여정에서 최후의 승자가 되는 것은 멈추지 않는 거북이의 장기 복리라는 사실을 굳게 믿으세요.',
     },
     recommendedPortfolioPreview: {
-      title: '글로벌 밸런스 60/40 안심 조합',
+      title: '글로벌 밸런스 안심 조합',
       targetCAGR: '6~8%',
       targetMDD: '26~36%',
       isDynamicTrend: false,

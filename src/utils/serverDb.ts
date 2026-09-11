@@ -41,6 +41,7 @@ export interface ServerUserRecord {
   isPro?: boolean;
   proExpiresAt?: string;
   hasCompletedCourse?: boolean;
+  maxCompletedLessonsCount?: number;
   favoriteTools?: string[];
   termsQuizBest?: {
     level?: number;
@@ -64,6 +65,8 @@ export interface CommentRecord {
   typeScores?: { g: number; a: number; l: number; r: number };
   activeBadge?: string;
   isPro?: boolean;
+  hasCompletedCourse?: boolean;
+  completedLessonsCount?: number;
   termsQuiz?: {
     level?: number;
     score?: number;
@@ -255,6 +258,12 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
           const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || undefined;
           const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? false;
           const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || undefined;
+          const effectiveHasCompletedCourse = Boolean(rowSettings.hasCompletedCourse || row.has_completed_course);
+          const rawCompletedList = Array.isArray(row.completed_lessons) ? row.completed_lessons : [];
+          const effectiveMaxCompleted = Math.max(
+            rowSettings.maxCompletedLessonsCount || 0,
+            rawCompletedList.length
+          );
           const effectiveFavoriteTools = Array.isArray(rowSettings.favoriteTools)
             ? rowSettings.favoriteTools
             : Array.isArray(row.favorite_tools)
@@ -266,7 +275,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             pin: row.pin,
             createdAt: row.created_at || new Date().toISOString(),
             lastActiveAt: row.last_active_at || new Date().toISOString(),
-            completedLessons: Array.isArray(row.completed_lessons) ? row.completed_lessons : [],
+            completedLessons: rawCompletedList,
             investmentType: validatedInvestmentType,
             typeAnswers: validatedTypeAnswers,
             simulatorSettings: cleanSimulatorSettings,
@@ -276,6 +285,8 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             termsQuizEntries: effectiveTermsQuizEntries,
             isPro: effectiveIsPro,
             proExpiresAt: effectiveProExpiresAt,
+            hasCompletedCourse: effectiveHasCompletedCourse,
+            maxCompletedLessonsCount: effectiveMaxCompleted,
             favoriteTools: effectiveFavoriteTools,
           };
         });
@@ -317,7 +328,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           pureSimulatorSettings = pureSim;
         }
 
-        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태, 즐겨찾기 데이터를 함께 안전하게 Pack
+        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태, 즐겨찾기, 우등생 달성 여부, 최고 수강 수를 함께 안전하게 Pack
         const packedSettings = {
           ...pureSimulatorSettings,
           activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
@@ -326,6 +337,8 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           isPro: u.isPro || false,
           proExpiresAt: u.proExpiresAt || null,
           favoriteTools: u.favoriteTools || null,
+          hasCompletedCourse: u.hasCompletedCourse || false,
+          maxCompletedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length),
         };
 
         return {
@@ -611,6 +624,8 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
           typeScores,
           activeBadge: u.activeBadge || c.activeBadge || 'investmentType',
           termsQuiz: u.termsQuizBest || c.termsQuiz,
+          hasCompletedCourse: u.hasCompletedCourse ?? c.hasCompletedCourse,
+          completedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length, c.completedLessonsCount || 0),
         };
       }
       return c;

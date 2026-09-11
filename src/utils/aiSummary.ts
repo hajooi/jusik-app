@@ -125,7 +125,7 @@ ${previous ? `- 이전 발표치: ${previous}` : ''}
         ],
         generationConfig: {
           temperature: 0.4,
-          maxOutputTokens: 250,
+          maxOutputTokens: 1000,
         },
       }),
       cache: 'no-store',
@@ -137,12 +137,29 @@ ${previous ? `- 이전 발표치: ${previous}` : ''}
     }
 
     const data = await response.json();
-    const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const candidate = data?.candidates?.[0];
+    
+    // MAX_TOKENS 도달로 중간에 잘린 경우 안전하게 폴백
+    if (candidate?.finishReason === 'MAX_TOKENS') {
+      console.warn('[Gemini API] Generation stopped prematurely due to MAX_TOKENS limit. Falling back to rule-based summary.');
+      return generateFallbackSummary(params);
+    }
 
-    if (generatedText && generatedText.length > 10) {
+    // Thinking 모델 대응: thought 파트를 제외하고 실제 text 파트만 결합
+    const parts = candidate?.content?.parts || [];
+    const textParts = parts
+      .filter((p: any) => p.text && !p.thought)
+      .map((p: any) => p.text);
+    const generatedText = (textParts.length > 0 ? textParts.join('') : (parts[0]?.text || '')).trim();
+
+    // 완결된 문장 검증: 25자 이상이며 문장 종결 부호(., !, ?, ")로 끝맺음되어야 함
+    const isCompletedSentence = /[.!?~'"]\s*$/.test(generatedText);
+
+    if (generatedText && generatedText.length >= 25 && isCompletedSentence) {
       return sanitizeTerms(generatedText);
     }
 
+    console.warn(`[Gemini API] Incomplete or short output detected ("${generatedText}"). Falling back to rule-based summary.`);
     return generateFallbackSummary(params);
   } catch (err) {
     console.warn('[Gemini API] Request error fallback to rule-based:', err);

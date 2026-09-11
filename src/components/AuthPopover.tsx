@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import SmoothHeight from '@/components/SmoothHeight';
 import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw, KeyRound, Crown, Gift, Sparkles, GraduationCap } from 'lucide-react';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
-import { CURRICULUM_DATA } from '@/data/curriculum';
+import { getCourseBadgeInfo } from '@/utils/courseBadge';
 
 interface AuthPopoverProps {
   onClose: () => void;
@@ -16,6 +16,13 @@ interface AuthPopoverProps {
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
   const { login, user, logout, changePin, redeemPromoCode, isPro, proExpiresAt, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 수강 뱃지 정보 (1~5개: 입문생, 6~10개: 수강생, 11개 이상: 우등생)
+  const completedLessonsCount = Math.max(
+    user?.maxCompletedLessonsCount || 0,
+    user?.completedLessons?.length || 0
+  );
+  const courseBadge = getCourseBadgeInfo(completedLessonsCount);
   
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
@@ -189,7 +196,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
           </div>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
             {user 
-              ? '학습 진도와 진단·분석 결과가 안전하게 보관 중입니다.' 
+              ? '학습 진도와 진단·분석 결과를 안전하게 보관 중입니다.' 
               : '로그인하고 학습 진도와 진단·분석 결과를 보관하세요.'}
           </p>
         </div>
@@ -270,13 +277,13 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
                     <span className="tracking-wide">PRO</span>
                   </span>
-                ) : user.activeBadge === 'honor_student' && (user.hasCompletedCourse || (CURRICULUM_DATA.flatMap(l => l.lessons).every(l => user.completedLessons?.includes(l.id)))) ? (
+                ) : user.activeBadge === 'honor_student' && courseBadge ? (
                   <span 
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 leading-none select-none shadow-2xs"
-                    title="전 강좌 수강 완료 우등생 뱃지"
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono leading-none select-none shadow-2xs ${courseBadge.badgeContainerClass}`}
+                    title={courseBadge.tooltip}
                   >
-                    <GraduationCap className="w-3 h-3 stroke-[2.2]" />
-                    <span>우등생</span>
+                    <courseBadge.icon className="w-2.5 h-2.5 stroke-[2.2]" />
+                    <span>{courseBadge.label}</span>
                   </span>
                 ) : user.activeBadge === 'terms_percentile' && user.termsQuizBest?.badgeName ? (
                   <span 
@@ -320,20 +327,17 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
 
           {/* Badge Selection Cards (Visible if at least one badge is earned or user is PRO) */}
           {(() => {
-            const allLessonIds = CURRICULUM_DATA.flatMap((l) => l.lessons).map((l) => l.id);
-            const isCurrentlyAllCompleted = allLessonIds.length > 0 && allLessonIds.every((id) => user.completedLessons?.includes(id));
-            const hasHonorBadge = Boolean(user.hasCompletedCourse || isCurrentlyAllCompleted);
-
             const hasInvestmentType = !!(user.investmentType && user.investmentType !== '미진단');
             const hasTermsQuizBest = !!user.termsQuizBest;
             const hasProBadge = isPro;
+            const hasCourseBadge = !!courseBadge;
 
-            if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge && !hasHonorBadge) return null;
+            if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge && !hasCourseBadge) return null;
 
             const isTypeActive = user.activeBadge === 'investmentType';
             const isQuizActive = user.activeBadge === 'terms_percentile';
             const isProActive = user.activeBadge === 'pro';
-            const isHonorActive = user.activeBadge === 'honor_student';
+            const isCourseActive = user.activeBadge === 'honor_student';
 
             return (
               <div className="space-y-1.5">
@@ -368,27 +372,27 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     </button>
                   )}
 
-                  {/* Option 2: '우등생' Badge (Second - Right after Membership) */}
-                  {hasHonorBadge && (
+                  {/* Option 2: Course Badge (입문생 / 수강생 / 우등생) */}
+                  {courseBadge && (
                     <button
                       type="button"
-                      onClick={() => updateActiveBadge?.(isHonorActive ? 'none' : 'honor_student')}
+                      onClick={() => updateActiveBadge?.(isCourseActive ? 'none' : 'honor_student')}
                       className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
-                        isHonorActive
-                          ? 'bg-[var(--card-surface)] border-emerald-500 shadow-xs'
+                        isCourseActive
+                          ? `bg-[var(--card-surface)] ${courseBadge.activeBorderClass} shadow-xs`
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">수강</span>
-                        {isHonorActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                        {isCourseActive && (
+                          <span className={`w-1.5 h-1.5 rounded-full ${courseBadge.activeDotClass} shrink-0`} />
                         )}
                       </div>
                       <div className="flex items-center justify-center pt-0.5">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 leading-none select-none">
-                          <GraduationCap className="w-2.5 h-2.5 stroke-[2.2]" />
-                          <span>우등생</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${courseBadge.badgeContainerClass} leading-none select-none`}>
+                          <courseBadge.icon className="w-2.5 h-2.5 stroke-[2.2]" />
+                          <span>{courseBadge.label}</span>
                         </span>
                       </div>
                     </button>

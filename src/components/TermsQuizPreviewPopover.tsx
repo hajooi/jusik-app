@@ -84,7 +84,8 @@ export default function TermsQuizPreviewPopover({
   };
 
   // Position calculations identical to TypePreviewPopover
-  const popoverWidth = typeof window !== 'undefined' && window.innerWidth < 640 ? 290 : 320;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const popoverWidth = isMobile ? 290 : 320;
   let topStyle: number | undefined = undefined;
   let bottomStyle: number | undefined = undefined;
   let leftStyle = 16;
@@ -119,7 +120,9 @@ export default function TermsQuizPreviewPopover({
           top: topStyle !== undefined ? `${topStyle}px` : undefined,
           bottom: bottomStyle !== undefined ? `${bottomStyle}px` : undefined,
           left: `${leftStyle}px`,
-          transformOrigin: bottomStyle !== undefined ? 'bottom left' : 'top left',
+          transformOrigin: bottomStyle !== undefined
+            ? (isMobile ? 'bottom right' : 'bottom left')
+            : (isMobile ? 'top right' : 'top left'),
         }}
         onClick={(e) => e.stopPropagation()}
       >
