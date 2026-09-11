@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
+import { QUESTIONS, calculateSurveyResult, PERSONALITY_PROFILES, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import ResultView from '@/components/type/ResultView';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import ResultCompareAccordion from '@/components/type/ResultCompareAccordion';
@@ -415,13 +415,13 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
       {/* Shared Result Invite Card (Shown when arriving via shared link ?result=CODE) */}
       {sharedProfile && !isCompleted && answeredCount === 0 && (
         <div className="glass-card p-6 rounded-3xl space-y-4 border border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.18)] bg-[var(--card-hover)]/40 relative overflow-hidden flex flex-col sm:flex-row items-center gap-5">
-          <div className="relative shrink-0 py-1">
+          <div className="relative shrink-0 py-1 flex items-center justify-center">
             <div className="absolute inset-0 bg-[var(--accent-orange)]/20 rounded-full blur-xl pointer-events-none" />
-            <img
-              src={`/types/${sharedProfile.code}.png`}
-              alt={`${sharedProfile.name} 3D 아이콘`}
-              className="w-24 h-24 sm:w-28 sm:h-28 object-contain animate-float-y filter drop-shadow-[0_8px_16px_rgba(241,143,1,0.25)] relative z-10"
-            />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center relative z-10 animate-float-y">
+              <span className="text-5xl sm:text-6xl select-none filter drop-shadow-[0_8px_16px_rgba(241,143,1,0.25)] leading-none">
+                {TYPE_EMOJIS[sharedProfile.code] || '🦉'}
+              </span>
+            </div>
           </div>
 
           <div className="space-y-2 flex-1 text-center sm:text-left">
