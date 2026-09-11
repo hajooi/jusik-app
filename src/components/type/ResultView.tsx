@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { PersonalityProfile, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { getPersonalityDynamicPreviewStats } from '@/utils/personalitySimulatorMapping';
-import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Sparkles, Share2, RefreshCw, Compass, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
 
@@ -669,7 +669,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
       {/* Strengths & Weaknesses Cards */}
       {(profile.strengths || profile.weaknesses) && (
-        <RevealOnScroll delayIndex={3}>
+        <RevealOnScroll delayIndex={2}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {profile.strengths && (
               <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
@@ -708,6 +708,89 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                 </ul>
               </div>
             )}
+          </div>
+        </RevealOnScroll>
+      )}
+
+      {/* 🚨 현실 고증: 이 유형이 돈 날리는 흔한 코스 */}
+      {profile.realWorldTrap && (
+        <RevealOnScroll delayIndex={3}>
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--accent-orange)]/40 transition-all duration-300">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
+              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+                이 유형이 주식으로 돈 날리는 흔한 코스
+              </h3>
+            </div>
+
+            {/* 뼈 때리는 한 줄 요약 박스 */}
+            <div className="bg-[var(--accent-orange)]/10 p-4 sm:p-5 rounded-2xl border border-[var(--accent-orange)]/30 space-y-1">
+              <p className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] leading-relaxed flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                <span>"{profile.realWorldTrap.summary}"</span>
+              </p>
+            </div>
+
+            {/* 4단계 현실 시나리오 흐름도 (Step 1 ➔ Step 2 ➔ Step 3 ➔ Step 4) */}
+            <div className="space-y-2 pt-1">
+              <div className="text-[11px] font-bold text-[var(--text-secondary)]">
+                이 유형이 겪는 전형적인 4단계 시나리오
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 items-stretch">
+                {profile.realWorldTrap.steps.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-2 flex flex-col justify-start"
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono font-extrabold text-[var(--text-secondary)]">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--card-hover)] border border-[var(--border-color)]">
+                        STEP {idx + 1}
+                      </span>
+                      {idx < 3 && <ArrowRight className="hidden lg:inline w-3 h-3 text-[var(--text-secondary)]/40" />}
+                    </div>
+                    <p className="text-xs font-bold text-[var(--text-primary)] leading-relaxed">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </RevealOnScroll>
+      )}
+
+      {/* 💊 물리지 않는 계좌 심폐소생 3대 처방전 */}
+      {profile.actionPrescriptions && profile.actionPrescriptions.length > 0 && (
+        <RevealOnScroll delayIndex={3}>
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5 transition-all duration-300">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+                물리지 않는 3대 실전 처방전
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 items-stretch">
+              {profile.actionPrescriptions.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-main)]/80 border border-[var(--border-color)] space-y-2 flex flex-col justify-start shadow-2xs"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-xs font-mono font-black text-[var(--accent-green)]">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>수칙 {idx + 1}</span>
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-black text-[var(--text-primary)] leading-snug">
+                      {item.rule}
+                    </h4>
+                  </div>
+                  <p className="text-xs font-medium text-[var(--text-secondary)] leading-relaxed pt-1">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </RevealOnScroll>
       )}
