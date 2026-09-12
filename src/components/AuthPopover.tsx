@@ -17,11 +17,8 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
   const { login, user, logout, changePin, redeemPromoCode, isPro, proExpiresAt, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 수강 뱃지 정보 (1~5개: 입문생, 6~10개: 수강생, 11개 이상: 우등생)
-  const completedLessonsCount = Math.max(
-    user?.maxCompletedLessonsCount || 0,
-    user?.completedLessons?.length || 0
-  );
+  // 수강 뱃지 정보 (1~5개: 입문생, 6~10개: 수강생, 11개 이상: 우등생) - 현재 실제 수강 완료 강의 수 기준
+  const completedLessonsCount = user?.completedLessons?.length || 0;
   const courseBadge = getCourseBadgeInfo(completedLessonsCount);
   
   const [nickname, setNickname] = useState('');
@@ -379,14 +376,14 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                       onClick={() => updateActiveBadge?.(isCourseActive ? 'none' : 'honor_student')}
                       className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
                         isCourseActive
-                          ? `bg-[var(--card-surface)] ${courseBadge.activeBorderClass} shadow-xs`
+                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">수강</span>
                         {isCourseActive && (
-                          <span className={`w-1.5 h-1.5 rounded-full ${courseBadge.activeDotClass} shrink-0`} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
                         )}
                       </div>
                       <div className="flex items-center justify-center pt-0.5">

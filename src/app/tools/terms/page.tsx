@@ -32,6 +32,8 @@ import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 import { triggerConfetti } from '@/utils/confetti';
 
+import { getCourseBadgeInfo } from '@/utils/courseBadge';
+
 type QuizState = 'intro' | 'playing' | 'summary';
 
 interface LeaderboardItem {
@@ -49,6 +51,7 @@ interface LeaderboardItem {
   percentile?: number;
   createdAt?: string;
   activeBadge?: string;
+  completedLessonsCount?: number;
   termsQuizBest?: {
     level?: number;
     score?: number;
@@ -832,7 +835,7 @@ function TermsQuizContent() {
                             </span>
                           )}
 
-                          {/* Dynamic Active Badge: PRO / termsQuizBest / investmentType */}
+                          {/* Dynamic Active Badge: PRO / honor_student / termsQuizBest / investmentType */}
                           {effectiveActiveBadge === 'none' ? null : effectiveActiveBadge === 'pro' ? (
                             <span 
                               className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
@@ -841,7 +844,23 @@ function TermsQuizContent() {
                               <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
                               <span className="tracking-wide">PRO</span>
                             </span>
-                          ) : effectiveActiveBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
+                          ) : effectiveActiveBadge === 'honor_student' ? (() => {
+                            const badgeCount = isCurrentUser 
+                              ? (user?.completedLessons?.length || 0)
+                              : (item.completedLessonsCount || 0);
+                            const badgeInfo = getCourseBadgeInfo(badgeCount);
+                            if (!badgeInfo) return null;
+                            const BadgeIcon = badgeInfo.icon;
+                            return (
+                              <span 
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono ${badgeInfo.badgeContainerClass} select-none leading-none shadow-2xs`}
+                                title={`${item.nickname}님의 ${badgeInfo.tooltip}`}
+                              >
+                                <BadgeIcon className="w-3 h-3 stroke-[2.2]" />
+                                <span>{badgeInfo.label}</span>
+                              </span>
+                            );
+                          })() : effectiveActiveBadge === 'terms_percentile' && (item.termsQuizBest?.badgeName || item.percentile) ? (
                             <button
                               type="button"
                               onClick={(e) => {

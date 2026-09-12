@@ -169,7 +169,7 @@ export default function CommentSection({
           isPro: true,
           termsQuiz: user.termsQuizBest,
           hasCompletedCourse: user.hasCompletedCourse,
-          completedLessonsCount: Math.max(user.maxCompletedLessonsCount || 0, user.completedLessons?.length || 0),
+          completedLessonsCount: user.completedLessons?.length || 0,
         }),
       });
       const data = await res.json();
@@ -226,7 +226,7 @@ export default function CommentSection({
           isPro: true,
           termsQuiz: user.termsQuizBest,
           hasCompletedCourse: user.hasCompletedCourse,
-          completedLessonsCount: Math.max(user.maxCompletedLessonsCount || 0, user.completedLessons?.length || 0),
+          completedLessonsCount: user.completedLessons?.length || 0,
         }),
       });
       const data = await res.json();
@@ -470,7 +470,7 @@ export default function CommentSection({
                     ) : rootActiveBadge === 'honor_student' ? (() => {
                       const badgeInfo = getCourseBadgeInfo(
                         isCurrentUser
-                          ? Math.max(user?.maxCompletedLessonsCount || 0, user?.completedLessons?.length || 0)
+                          ? (user?.completedLessons?.length || 0)
                           : (root.completedLessonsCount || 0)
                       );
                       if (!badgeInfo) return null;
@@ -698,7 +698,7 @@ export default function CommentSection({
                               ) : replyActiveBadge === 'honor_student' ? (() => {
                                 const badgeInfo = getCourseBadgeInfo(
                                   isCurrentReplyUser
-                                    ? Math.max(user?.maxCompletedLessonsCount || 0, user?.completedLessons?.length || 0)
+                                    ? (user?.completedLessons?.length || 0)
                                     : (reply.completedLessonsCount || 0)
                                 );
                                 if (!badgeInfo) return null;

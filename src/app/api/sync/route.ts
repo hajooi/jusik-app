@@ -196,9 +196,10 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 200 });
         }
 
-        // 1. 수강 완료 목록: 절대 줄어들지 않도록 Union 병합
-        const mergedCompleted = Array.from(new Set([...(existing.completedLessons || []), ...(completedLessons || [])]));
-        existing.completedLessons = mergedCompleted;
+        // 1. 수강 완료 목록: 클라이언트가 체크/해제한 실제 목록 그대로 반영
+        if (Array.isArray(completedLessons)) {
+          existing.completedLessons = completedLessons;
+        }
 
         // 2. 투자 성향 및 40문항 답변 보호: 완전한 데이터가 이미 있으면 미진단/불완전 데이터로 덮어쓰지 않음
         if (!existing.investmentType && investmentType && investmentType !== '미진단') {
@@ -226,12 +227,7 @@ export async function POST(request: Request) {
           existing.hasCompletedCourse = true;
         }
 
-        const incomingMax = maxCompletedLessonsCount || (completedLessons || []).length;
-        existing.maxCompletedLessonsCount = Math.max(
-          existing.maxCompletedLessonsCount || 0,
-          incomingMax,
-          existing.completedLessons.length
-        );
+        existing.maxCompletedLessonsCount = (existing.completedLessons || []).length;
 
         // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존 (High-Water Mark 성취 보존 원칙)
         if (termsQuizBest) {

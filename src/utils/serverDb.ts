@@ -17,6 +17,7 @@ export interface TermsQuizLeaderboardEntry {
   typeScores?: { g: number; a: number; l: number; r: number };
   percentile?: number;
   activeBadge?: string;
+  completedLessonsCount?: number;
   termsQuizBest?: {
     level?: number;
     score?: number;
@@ -531,7 +532,7 @@ export async function getCommentsAsync(targetKey?: string): Promise<CommentRecor
           activeBadge: u.activeBadge || c.activeBadge || 'investmentType',
           termsQuiz: u.termsQuizBest || c.termsQuiz,
           hasCompletedCourse: u.hasCompletedCourse ?? c.hasCompletedCourse,
-          completedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length, c.completedLessonsCount || 0),
+          completedLessonsCount: (u.completedLessons || []).length,
         };
       }
       return c;
@@ -993,6 +994,7 @@ function attachUserMetadata(entry: TermsQuizLeaderboardEntry, userDb: Record<str
     investmentType: effectiveType,
     typeScores,
     activeBadge,
+    completedLessonsCount: u ? (u.completedLessons || []).length : entry.completedLessonsCount,
     termsQuizBest,
   };
 }

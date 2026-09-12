@@ -250,19 +250,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (user && user.nickname) {
       const userPin = user.pin || '';
-      // 영구 업적 달성형: 한 번 달성되었거나 지금 달성되면 영구 true 유지
       const nextHasCompletedCourse = Boolean(user.hasCompletedCourse || isNowAllDone);
-      const nextMaxCount = Math.max(
-        user.maxCompletedLessonsCount || 0,
-        newCompletedList.length
-      );
+      const nextCount = newCompletedList.length;
 
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
         completedLessons: newCompletedList,
         hasCompletedCourse: nextHasCompletedCourse,
-        maxCompletedLessonsCount: nextMaxCount,
+        maxCompletedLessonsCount: nextCount,
         lastLoginAt: new Date().toISOString()
       };
       setUser(updatedUser);
@@ -278,7 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pin: userPin,
             completedLessons: newCompletedList,
             hasCompletedCourse: nextHasCompletedCourse,
-            maxCompletedLessonsCount: nextMaxCount,
+            maxCompletedLessonsCount: nextCount,
             investmentType,
             typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings

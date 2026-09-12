@@ -778,7 +778,6 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "투자 자동화",
     iconName: "Bot",
     isComingSoon: true,
-    isProOnly: true,
     lessons: []
   }
 ];
