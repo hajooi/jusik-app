@@ -234,15 +234,27 @@ export async function POST(request: Request) {
           existing.completedLessons.length
         );
 
-        // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존
+        // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존 (High-Water Mark 성취 보존 원칙)
         if (termsQuizBest) {
           const prevScore = existing.termsQuizBest?.score || 0;
           const prevTime = existing.termsQuizBest?.timeSpentSec || 999;
           const newScore = termsQuizBest.score || 0;
           const newTime = termsQuizBest.timeSpentSec || 999;
           if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
-            // percentile과 badgeName의 무결성 보정 (예: percentile이 60인데 badgeName이 상위 1%로 오염되는 것 방지)
-            const safePercentile = termsQuizBest.percentile || existing.termsQuizBest?.percentile;
+            // 만점 미달자(14개 이하)의 상위 1% 오염 데이터 차단 (최소 15% 이상 가드)
+            let safePercentile = termsQuizBest.percentile || existing.termsQuizBest?.percentile;
+            const isCorrupted = (termsQuizBest.correctCount || 0) < 15 && safePercentile === 1;
+            if (isCorrupted) {
+              safePercentile = 75;
+            }
+
+            // High-Water Mark: 과거 정당한 최고 백분위가 더 우수하면 유지
+            const prevValid = existing.termsQuizBest?.percentile;
+            const isPrevCorrupted = (existing.termsQuizBest?.correctCount || 0) < 15 && prevValid === 1;
+            if (typeof prevValid === 'number' && prevValid > 0 && !isPrevCorrupted && typeof safePercentile === 'number') {
+              safePercentile = Math.min(prevValid, safePercentile);
+            }
+
             const safeBadgeName = safePercentile ? `상위 ${safePercentile}%` : termsQuizBest.badgeName;
             existing.termsQuizBest = {
               ...termsQuizBest,
@@ -371,14 +383,32 @@ export async function POST(request: Request) {
         existing.activeBadge = activeBadge;
       }
 
-      // 5. 퀴즈 최고 기록 보존 및 최고점 갱신
+      // 5. 퀴즈 최고 기록 보존 및 최고점 갱신 (High-Water Mark 성취 보존 원칙)
       if (termsQuizBest !== undefined && termsQuizBest) {
         const prevScore = existing.termsQuizBest?.score || 0;
         const prevTime = existing.termsQuizBest?.timeSpentSec || 999;
         const newScore = termsQuizBest.score || 0;
         const newTime = termsQuizBest.timeSpentSec || 999;
         if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
-          existing.termsQuizBest = termsQuizBest;
+          // 만점 미달자(14개 이하)의 상위 1% 오염 데이터 차단 (최소 15% 이상 가드)
+          let safePercentile = termsQuizBest.percentile || existing.termsQuizBest?.percentile;
+          const isCorrupted = (termsQuizBest.correctCount || 0) < 15 && safePercentile === 1;
+          if (isCorrupted) {
+            safePercentile = 75;
+          }
+
+          // High-Water Mark: 과거 정당한 최고 백분위가 더 우수하면 유지
+          const prevValid = existing.termsQuizBest?.percentile;
+          const isPrevCorrupted = (existing.termsQuizBest?.correctCount || 0) < 15 && prevValid === 1;
+          if (typeof prevValid === 'number' && prevValid > 0 && !isPrevCorrupted && typeof safePercentile === 'number') {
+            safePercentile = Math.min(prevValid, safePercentile);
+          }
+
+          const safeBadgeName = safePercentile ? `상위 ${safePercentile}%` : termsQuizBest.badgeName;
+          existing.termsQuizBest = {
+            ...termsQuizBest,
+            ...(safePercentile ? { percentile: safePercentile, badgeName: safeBadgeName } : {}),
+          };
         }
       }
 

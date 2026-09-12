@@ -290,7 +290,19 @@ function TermsQuizContent() {
 
     const totalParticipants = otherLeaderboard.length + 1;
     // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
-    const percentile = virtualRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((virtualRank / totalParticipants) * 100)));
+    let rawPercentile = virtualRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((virtualRank / totalParticipants) * 100)));
+    // 15/15 만점 미달인 경우 (14개 이하), 상위 1% 발급 불가 가드 (최소 상위 15% 이상)
+    if (correctAnswers < totalQ && rawPercentile < 15) {
+      rawPercentile = Math.max(15, rawPercentile);
+    }
+
+    // 성취 보존(High-Water Mark) 원칙: 기존 최고 획득 백분위 보존
+    const prevBestPercentile = user?.termsQuizBest?.percentile;
+    const isCorruptedPrev = user?.termsQuizBest && (user.termsQuizBest.correctCount || 0) < totalQ && prevBestPercentile === 1;
+    const percentile = (typeof prevBestPercentile === 'number' && prevBestPercentile > 0 && !isCorruptedPrev)
+      ? Math.min(prevBestPercentile, rawPercentile)
+      : rawPercentile;
+
     const rank = virtualRank;
     const badgeName = `상위 ${percentile}%`;
 
@@ -368,7 +380,10 @@ function TermsQuizContent() {
       });
       const data = await res.json();
       if (data.success) {
-        const serverPercentile = data.percentile || percentile;
+        const serverRaw = data.percentile || rawPercentile;
+        const serverPercentile = (typeof prevBestPercentile === 'number' && prevBestPercentile > 0 && !isCorruptedPrev)
+          ? Math.min(prevBestPercentile, serverRaw)
+          : serverRaw;
         const serverRank = data.rank || rank;
         const serverTotal = data.totalParticipants || totalParticipants;
         const serverBadgeName = `상위 ${serverPercentile}%`;
@@ -428,7 +443,10 @@ function TermsQuizContent() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            const serverPercentile = data.percentile || finalResult.percentile;
+            let serverPercentile = data.percentile || finalResult.percentile;
+            if (finalResult.correctCount < (finalResult.totalQuestions || 15) && serverPercentile < 15) {
+              serverPercentile = Math.max(15, serverPercentile);
+            }
             const serverBadgeName = `상위 ${serverPercentile}%`;
 
             setFinalResult((prev) =>

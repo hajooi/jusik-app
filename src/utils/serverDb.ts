@@ -876,8 +876,52 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
+    const totalParticipants = Math.max(1, all.length);
     const userDb = getServerDb();
-    return all.map((entry) => attachUserMetadata(entry, userDb));
+
+    return all.map((entry, idx) => {
+      const dynamicRank = idx + 1;
+      let rawDynamicPercentile = dynamicRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((dynamicRank / totalParticipants) * 100)));
+
+      // 15/15 만점 미달인 경우(14개 이하), 상위 1% 발급 불가 가드 (최소 상위 15% 이상)
+      if (entry.correctCount < (entry.totalQuestions || 15) && rawDynamicPercentile < 15) {
+        rawDynamicPercentile = Math.max(15, rawDynamicPercentile);
+      }
+
+      const uMeta = attachUserMetadata(entry, userDb);
+      const pastPercentile = entry.percentile ?? uMeta.termsQuizBest?.percentile;
+
+      // 성취 보존(High-Water Mark) 원칙:
+      // 과거 정당하게 획득한 최고 백분위(pastPercentile)와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
+      // 단, 만점 미달자(14개 이하)인데 1%로 오염되었던 비정상 기록은 배제
+      let effectivePercentile = rawDynamicPercentile;
+      if (typeof pastPercentile === 'number' && pastPercentile > 0) {
+        const isCorruptedTop1 = entry.correctCount < (entry.totalQuestions || 15) && pastPercentile === 1;
+        if (!isCorruptedTop1) {
+          effectivePercentile = Math.min(pastPercentile, rawDynamicPercentile);
+        }
+      }
+
+      const effectiveBadgeName = `상위 ${effectivePercentile}%`;
+
+      return {
+        ...uMeta,
+        rank: dynamicRank,
+        percentile: effectivePercentile,
+        termsQuizBest: uMeta.termsQuizBest ? {
+          ...uMeta.termsQuizBest,
+          percentile: effectivePercentile,
+          badgeName: effectiveBadgeName,
+        } : {
+          level: entry.level,
+          score: entry.score,
+          correctCount: entry.correctCount,
+          timeSpentSec: entry.timeSpentSec,
+          percentile: effectivePercentile,
+          badgeName: effectiveBadgeName,
+        },
+      };
+    });
   }
 
   // 2. 운영 환경: Supabase users DB 기반 영구 리더보드 조회 (로컬 파일 완전 배제)
@@ -939,7 +983,51 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
 
-    return all.map((entry) => attachUserMetadata(entry, userDb));
+    const totalParticipants = Math.max(1, all.length);
+
+    return all.map((entry, idx) => {
+      const dynamicRank = idx + 1;
+      let rawDynamicPercentile = dynamicRank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((dynamicRank / totalParticipants) * 100)));
+
+      // 15/15 만점 미달인 경우(14개 이하), 상위 1% 발급 불가 가드 (최소 상위 15% 이상)
+      if (entry.correctCount < (entry.totalQuestions || 15) && rawDynamicPercentile < 15) {
+        rawDynamicPercentile = Math.max(15, rawDynamicPercentile);
+      }
+
+      const uMeta = attachUserMetadata(entry, userDb);
+      const pastPercentile = entry.percentile ?? uMeta.termsQuizBest?.percentile;
+
+      // 성취 보존(High-Water Mark) 원칙:
+      // 과거 정당하게 획득한 최고 백분위(pastPercentile)와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
+      // 단, 만점 미달자(14개 이하)인데 1%로 오염되었던 비정상 기록은 배제
+      let effectivePercentile = rawDynamicPercentile;
+      if (typeof pastPercentile === 'number' && pastPercentile > 0) {
+        const isCorruptedTop1 = entry.correctCount < (entry.totalQuestions || 15) && pastPercentile === 1;
+        if (!isCorruptedTop1) {
+          effectivePercentile = Math.min(pastPercentile, rawDynamicPercentile);
+        }
+      }
+
+      const effectiveBadgeName = `상위 ${effectivePercentile}%`;
+
+      return {
+        ...uMeta,
+        rank: dynamicRank,
+        percentile: effectivePercentile,
+        termsQuizBest: uMeta.termsQuizBest ? {
+          ...uMeta.termsQuizBest,
+          percentile: effectivePercentile,
+          badgeName: effectiveBadgeName,
+        } : {
+          level: entry.level,
+          score: entry.score,
+          correctCount: entry.correctCount,
+          timeSpentSec: entry.timeSpentSec,
+          percentile: effectivePercentile,
+          badgeName: effectiveBadgeName,
+        },
+      };
+    });
   } catch (e) {
     console.error('Failed to get quiz entries from Supabase:', e);
     return [];
@@ -1079,9 +1167,24 @@ export async function saveTermsQuizEntryAsync(
   const allEntries = await getTermsQuizEntriesAsync(entry.level);
   const totalParticipants = Math.max(1, allEntries.length);
   const userRankIndex = allEntries.findIndex((e) => e.nickname === entry.nickname);
-  const rank = userRankIndex >= 0 ? userRankIndex + 1 : 1;
+  // 탐색 실패 시 1위가 아닌 최하위로 안전 배정
+  const rank = userRankIndex >= 0 ? userRankIndex + 1 : totalParticipants;
+
   // 1위만 상위 1%, 나머지는 산출 공식 적용 (2% ~ 99%)
-  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+  let rawPercentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+
+  // 15/15 만점 미달인 경우 (14개 이하), 상위 1% 발급 불가 가드 (최소 상위 15% 이상)
+  if (entry.correctCount < (entry.totalQuestions || 15) && rawPercentile < 15) {
+    rawPercentile = Math.max(15, rawPercentile);
+  }
+
+  // 성취 보존(High-Water Mark) 원칙: 기존에 정당하게 획득한 최고 백분위가 더 우수하면 유지
+  const prevBestPercentile = userRecord?.termsQuizBest?.percentile;
+  const isCorruptedPrev = userRecord?.termsQuizBest && (userRecord.termsQuizBest.correctCount || 0) < 15 && prevBestPercentile === 1;
+  const percentile = (typeof prevBestPercentile === 'number' && prevBestPercentile > 0 && !isCorruptedPrev)
+    ? Math.min(prevBestPercentile, rawPercentile)
+    : rawPercentile;
+
   const badgeName = `상위 ${percentile}%`;
 
   newEntry.percentile = percentile;
@@ -1177,7 +1280,11 @@ export async function calculateTermsQuizPercentileAsync(
 
   const totalParticipants = Math.max(1, levelEntries.length + 1);
   // 1위만 상위 1%, 나머지는 공식 적용
-  const percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+  let percentile = rank === 1 ? 1 : Math.max(2, Math.min(99, Math.round((rank / totalParticipants) * 100)));
+  // 15/15 만점 미달인 경우(14개 이하), 상위 1% 발급 불가 가드 (최소 상위 15% 이상)
+  if (correctCount < 15 && percentile < 15) {
+    percentile = Math.max(15, percentile);
+  }
 
   return {
     success: true,
