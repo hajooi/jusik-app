@@ -168,6 +168,8 @@ export default function CommentSection({
           activeBadge: user.activeBadge,
           isPro: true,
           termsQuiz: user.termsQuizBest,
+          hasCompletedCourse: user.hasCompletedCourse,
+          completedLessonsCount: Math.max(user.maxCompletedLessonsCount || 0, user.completedLessons?.length || 0),
         }),
       });
       const data = await res.json();
@@ -223,6 +225,8 @@ export default function CommentSection({
           activeBadge: user.activeBadge,
           isPro: true,
           termsQuiz: user.termsQuizBest,
+          hasCompletedCourse: user.hasCompletedCourse,
+          completedLessonsCount: Math.max(user.maxCompletedLessonsCount || 0, user.completedLessons?.length || 0),
         }),
       });
       const data = await res.json();

@@ -160,9 +160,8 @@ export async function POST(request: Request) {
         }, { status: 200 });
       }
 
-      // Calculate October 31st 23:59:59 KST
-      const oct31Date = new Date(2026, 9, 31, 23, 59, 59, 999);
-      const endOfMonthIso = oct31Date.toISOString();
+      // Calculate October 31st 23:59:59 KST (2026-10-31 14:59:59.999 UTC)
+      const endOfMonthIso = new Date(Date.UTC(2026, 9, 31, 14, 59, 59, 999)).toISOString();
 
       existing.isPro = true;
       existing.proExpiresAt = endOfMonthIso;

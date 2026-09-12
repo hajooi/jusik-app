@@ -59,11 +59,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, comments: sanitized });
     }
 
-    // 2. Create / Reply Action
     const trimmedNick = nickname?.trim();
     const trimmedPin = pin?.trim();
     const trimmedContent = content?.trim();
-    const { typeScores } = body;
+    const { typeScores, completedLessonsCount, hasCompletedCourse } = body;
 
     if (!trimmedNick || !trimmedPin || !trimmedContent || !targetKey) {
       return NextResponse.json({ success: false, error: '모든 필수 항목을 입력해 주세요.' }, { status: 400 });
@@ -84,6 +83,8 @@ export async function POST(request: Request) {
       typeScores: typeScores && typeof typeScores === 'object' ? typeScores : undefined,
       activeBadge: activeBadge || undefined,
       termsQuiz: termsQuiz && typeof termsQuiz === 'object' ? termsQuiz : undefined,
+      hasCompletedCourse: typeof hasCompletedCourse === 'boolean' ? hasCompletedCourse : undefined,
+      completedLessonsCount: typeof completedLessonsCount === 'number' ? completedLessonsCount : undefined,
       createdAt: new Date().toISOString(),
       parentId: parentId || null,
     };

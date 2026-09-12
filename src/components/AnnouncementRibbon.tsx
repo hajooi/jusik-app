@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { X, Check, ArrowRight } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { X, ArrowRight } from 'lucide-react';
 
-const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_oct26';
+const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_quiz_sep26';
 
 export default function AnnouncementRibbon() {
-  const { isPro } = useAuth();
-
   // Synchronously determine if ribbon was explicitly dismissed in this session
   const [isDismissed, setIsDismissed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
@@ -22,9 +19,7 @@ export default function AnnouncementRibbon() {
   });
 
   const [isScrolledDown, setIsScrolledDown] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState<0 | 1>(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,20 +31,6 @@ export default function AnnouncementRibbon() {
       // ignore
     }
   }, []);
-
-  // 4.5s automatic slide rotation (If PRO, stay on slide 1 - event banner)
-  useEffect(() => {
-    if (isPro) {
-      setCurrentSlide(1);
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
-    }, 4500);
-
-    return () => clearInterval(timer);
-  }, [isPro]);
 
   // Scroll detection: collapse ribbon when scrolling down (scrollY > 15), restore when at the very top (scrollY <= 5)
   useEffect(() => {
@@ -77,19 +58,6 @@ export default function AnnouncementRibbon() {
     }
   };
 
-  const handleCopyCode = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText('JU26');
-      setIsCopied(true);
-      setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy promo code:', err);
-    }
-  };
-
   if (!isMounted || isDismissed) return null;
 
   const isVisible = !isScrolledDown;
@@ -105,72 +73,24 @@ export default function AnnouncementRibbon() {
       className="relative z-50 overflow-hidden bg-gradient-to-r from-[var(--accent-orange)]/10 via-amber-500/5 to-[var(--accent-orange)]/10 border-b border-[var(--border-color)]/80 backdrop-blur-md select-none"
     >
       <div className="relative max-w-4xl mx-auto px-8 sm:px-12 h-9 sm:h-9 flex items-center justify-center text-xs font-sans">
-        {/* Optical Center: Dual Animated Announcement Slides */}
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-          {/* SLIDE 0: PRO Promo Code (Shown for non-pro users) */}
-          {!isPro && (
-            <div
-              className={`absolute inset-0 flex items-center justify-center gap-1.5 sm:gap-2 min-w-0 transition-all duration-500 ease-out ${
-                currentSlide === 0
-                  ? 'opacity-100 translate-y-0 pointer-events-auto'
-                  : 'opacity-0 -translate-y-3 pointer-events-none'
-              }`}
-            >
-              <span className="px-2 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--text-secondary)] font-bold text-[10px] sm:text-[10.5px] border border-[var(--border-color)] tracking-tight shrink-0">
-                ~10/31
-              </span>
-              
-              <span className="text-[var(--text-secondary)] font-medium text-[11px] sm:text-xs whitespace-nowrap">
-                PRO 멤버십 무료 코드:
-              </span>
+        {/* Optical Center: Single Quiz Event Banner */}
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 font-bold text-[10px] sm:text-[10.5px] border border-amber-500/30 tracking-tight shrink-0">
+            ~9/21
+          </span>
 
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                className={`inline-flex items-center font-mono font-black text-xs px-2.5 py-0.5 rounded-lg border transition-all cursor-pointer active:scale-95 shadow-2xs shrink-0 ${
-                  isCopied
-                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                    : 'bg-[var(--accent-orange)]/15 hover:bg-[var(--accent-orange)]/25 border-[var(--accent-orange)]/40 text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.25)]'
-                }`}
-                title="클릭하여 프로모션 코드 복사하기"
-              >
-                {isCopied ? (
-                  <span className="inline-flex items-center gap-0.5 text-xs text-emerald-400 font-bold">
-                    <Check className="w-3 h-3 stroke-[3]" />
-                    <span>JU26</span>
-                  </span>
-                ) : (
-                  <span>JU26</span>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* SLIDE 1: 주식부엉을 이겨라 Event Banner */}
-          <div
-            className={`absolute inset-0 flex items-center justify-center gap-1.5 sm:gap-2 min-w-0 transition-all duration-500 ease-out ${
-              currentSlide === 1 || isPro
-                ? 'opacity-100 translate-y-0 pointer-events-auto'
-                : 'opacity-0 translate-y-3 pointer-events-none'
-            }`}
+          <Link
+            href="/tools/terms?challenger=%EC%A3%BC%EC%8B%9D%EB%B6%80%EC%97%89&level=1&score=15&time=90"
+            className="inline-flex items-center gap-1 text-[var(--text-primary)] hover:text-[var(--accent-orange)] font-medium text-[11px] sm:text-xs transition-colors group truncate"
           >
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 font-bold text-[10px] sm:text-[10.5px] border border-amber-500/30 tracking-tight shrink-0">
-              ~9/21
+            <span className="truncate">
+              ☕ <strong>커피 30잔!</strong> 주식부엉을 이겨라 퀴즈 배틀
             </span>
-
-            <Link
-              href="/tools/terms?challenger=%EC%A3%BC%EC%8B%9D%EB%B6%80%EC%97%89&level=1&score=15&time=90"
-              className="inline-flex items-center gap-1 text-[var(--text-primary)] hover:text-[var(--accent-orange)] font-medium text-[11px] sm:text-xs transition-colors group truncate"
-            >
-              <span className="truncate">
-                ☕ <strong>커피 30잔!</strong> 주식부엉을 이겨라 퀴즈 배틀
-              </span>
-              <span className="inline-flex items-center font-bold text-[var(--accent-orange)] shrink-0 group-hover:translate-x-0.5 transition-transform text-[11px]">
-                도전하기
-                <ArrowRight className="w-3 h-3 ml-0.5" />
-              </span>
-            </Link>
-          </div>
+            <span className="inline-flex items-center font-bold text-[var(--accent-orange)] shrink-0 group-hover:translate-x-0.5 transition-transform text-[11px]">
+              도전하기
+              <ArrowRight className="w-3 h-3 ml-0.5" />
+            </span>
+          </Link>
         </div>
 
         {/* Right Fixed Dismiss Button */}

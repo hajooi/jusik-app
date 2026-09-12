@@ -97,100 +97,6 @@ const isLocalDevMode = (): boolean => {
   return process.env.NODE_ENV === 'development' && process.env.USE_PROD_DB !== 'true';
 };
 
-// 기본 마스터 계정 초기 데이터 (자가 치유 Self-Healing 기준값)
-const DEFAULT_MASTER_USERS: Record<string, ServerUserRecord> = {
-  '주식부엉': {
-    nickname: '주식부엉',
-    pin: '418019',
-    createdAt: '2026-08-04T00:00:00.000Z',
-    lastActiveAt: new Date().toISOString(),
-    completedLessons: ['lv0-1', 'lv0-2', 'lv0-3', 'lv1-1', 'lv1-2', 'lv1-3'],
-    investmentType: 'GATR',
-    typeAnswers: {
-      1: 2, 2: 3, 3: 2, 4: 3, 5: 2, 6: 3, 7: 2, 8: 3, 9: 2, 10: 2, // G 60%
-      11: 2, 12: 4, 13: 2, 14: 4, 15: 2, 16: 4, 17: 2, 18: 4, 19: 2, 20: 3, // A 73%
-      21: 4, 22: 3, 23: 4, 24: 3, 25: 4, 26: 3, 27: 4, 28: 3, 29: 4, 30: 3, // L 38% (T 62%)
-      31: 1, 32: 5, 33: 1, 34: 5, 35: 1, 36: 5, 37: 1, 38: 4, 39: 1, 40: 3  // R 93%
-    },
-    activeBadge: 'terms_percentile',
-    termsQuizBest: {
-      level: 1,
-      score: 15000,
-      correctCount: 15,
-      timeSpentSec: 90.0,
-      percentile: 1,
-      badgeName: '상위 1%'
-    },
-    termsQuizEntries: [
-      {
-        id: 'quiz_user_주식부엉_1',
-        nickname: '주식부엉',
-        level: 1,
-        score: 15000,
-        correctCount: 15,
-        totalQuestions: 15,
-        timeSpentSec: 90.0,
-        createdAt: '2026-08-21T10:56:55.318Z',
-        investmentType: 'GATR',
-        percentile: 1,
-        termsQuizBest: {
-          level: 1,
-          score: 15000,
-          correctCount: 15,
-          timeSpentSec: 90.0,
-          percentile: 1,
-          badgeName: '상위 1%'
-        }
-      }
-    ],
-    simulatorSettings: {
-      strategyCount: 1,
-      targetCAGR: 13,
-      maxTolerableMDD: 31,
-      portfolioA: [
-        {
-          assetId: 'XOM',
-          weight: 100,
-          enableDefense: false
-        }
-      ],
-      strategyPeriodA: 0,
-      portfolioB: [
-        {
-          assetId: 'SPY',
-          weight: 60,
-          enableDefense: false
-        },
-        {
-          assetId: 'TLT',
-          weight: 40,
-          enableDefense: false
-        }
-      ],
-      strategyPeriodB: 0,
-      portfolioC: [
-        {
-          assetId: 'QQQ',
-          weight: 60,
-          enableDefense: false
-        },
-        {
-          assetId: 'GLD',
-          weight: 40,
-          enableDefense: false
-        }
-      ],
-      strategyPeriodC: 0,
-      initialCapital: 100,
-      depositAmount: 0,
-      durationYears: 30,
-      depositFrequency: 'monthly',
-      chartScale: 'linear',
-      activePresetA: null
-    }
-  }
-};
-
 const DB_FILE_PATH = path.join(process.cwd(), '.data', 'users.json');
 const SURVEY_STATS_FILE_PATH = path.join(process.cwd(), '.data', 'survey_stats.json');
 const COMMENTS_FILE_PATH = path.join(process.cwd(), '.data', 'comments.json');
@@ -201,13 +107,13 @@ function loadDbFromFile(): Record<string, ServerUserRecord> {
       const data = fs.readFileSync(DB_FILE_PATH, 'utf-8');
       const parsed = JSON.parse(data);
       if (parsed && typeof parsed === 'object') {
-        return { ...DEFAULT_MASTER_USERS, ...parsed };
+        return parsed || {};
       }
     }
   } catch (e) {
     console.error('Failed to load server db from file:', e);
   }
-  return { ...DEFAULT_MASTER_USERS };
+  return {};
 }
 
 function saveDbToFile(db: Record<string, ServerUserRecord>) {
@@ -236,7 +142,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
     try {
       const { data, error } = await supabase.from('users').select('*');
       if (!error && data) {
-        const db: Record<string, ServerUserRecord> = { ...DEFAULT_MASTER_USERS };
+        const db: Record<string, ServerUserRecord> = {};
         data.forEach((row: any) => {
           const isFull = row.type_answers && typeof row.type_answers === 'object' && Object.keys(row.type_answers).length === 40;
           
