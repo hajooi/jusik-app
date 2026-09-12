@@ -149,7 +149,7 @@ export default function ToolsPage() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
           투자도구
         </h1>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+        <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
           투자를 쉽고 똑똑하게 시작하는 실전 도구 모음입니다.
         </p>
       </div>

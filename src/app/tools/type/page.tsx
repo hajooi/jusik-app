@@ -264,7 +264,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
               1:1 투자 성향 궁합
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
               두 사람의 투자 성향을 비교 분석하고, 서로의 장단점과 맞춤형 시너지 조언을 확인해보세요.
             </p>
           </div>
@@ -305,7 +305,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
             1:1 투자 성향 궁합
           </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
             두 사람의 투자 성향을 비교 분석하고, 서로의 장단점과 맞춤형 시너지 조언을 확인해보세요.
           </p>
         </div>
@@ -370,14 +370,14 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
               <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)]">
                 나는 어떤 투자 유형일까? 지금 3분 만에 진단해보세요!
               </h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
                 40문항 테스트를 완료하면 {attachJosa(friendWithSuffix, '과/와')}의 투자 궁합 리포트가 제공됩니다!
               </p>
             </div>
             <div className="pt-2">
               <button
                 onClick={handleStartNewTest}
-                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-full bg-[var(--accent-orange)] text-white font-bold text-xs sm:text-sm hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 transition-all shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-full bg-[var(--accent-orange)] text-white font-bold text-sm sm:text-base hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 stroke-[1.7]" />
                 나도 내 성향 진단하기 ➔
@@ -498,7 +498,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
                 )}
               </div>
 
-              <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-snug tracking-tight">
+              <h2 className="text-base sm:text-xl font-bold text-[var(--text-primary)] leading-snug tracking-tight">
                 {q.question}
               </h2>
 
@@ -537,12 +537,12 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
                   })}
                 </div>
 
-                {/* Left/Right Scale Labels (그렇다 vs 그렇지 않다) */}
-                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)]">
-                  <div className="text-left">
+                {/* Left/Right Scale Labels (그렇다 vs 그렇지 않다) - 방어 코드(max-w-[48%] break-keep) 적용으로 중앙 겹침 방지 */}
+                <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[var(--text-secondary)] pt-3 border-t border-[var(--border-color)] gap-3">
+                  <div className="text-left max-w-[48%] break-keep leading-tight">
                     {q.leftLabel}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right max-w-[48%] break-keep leading-tight">
                     {q.rightLabel}
                   </div>
                 </div>
@@ -558,7 +558,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
         <button
           onClick={handlePrevPage}
           disabled={currentPage === 0}
-          className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all border ${
+          className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${
             currentPage === 0
               ? 'opacity-30 cursor-not-allowed text-[var(--text-secondary)] border-transparent'
               : 'glass-card hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_12px_rgba(241,143,1,0.2)] text-[var(--text-primary)] border-[var(--border-color)] active:scale-95 shadow-2xs'
@@ -571,7 +571,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
         <button
           onClick={handleNextPage}
           disabled={!isCurrentPageComplete}
-          className={`inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 border ${
+          className={`inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 border ${
             isCurrentPageComplete
               ? 'bg-[var(--accent-orange)] text-white border-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] shadow-2xs'
               : 'bg-[var(--bg-main)] text-[var(--text-secondary)]/50 border-[var(--border-color)] cursor-not-allowed'

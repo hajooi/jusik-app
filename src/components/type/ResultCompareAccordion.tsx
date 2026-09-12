@@ -274,7 +274,7 @@ export default function ResultCompareAccordion({
           <h4 className="text-xs sm:text-sm font-extrabold text-[var(--accent-orange)]">
             {chemistryTitle}
           </h4>
-          <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
             {chemistryDesc}
           </p>
         </div>
@@ -354,7 +354,7 @@ export default function ResultCompareAccordion({
               <Sparkles className="w-4 h-4 shrink-0" />
               <span>함께 나눌 때 시너지 포인트</span>
             </div>
-            <ul className="text-xs text-[var(--text-secondary)] space-y-2 leading-relaxed">
+            <ul className="text-xs sm:text-sm text-[var(--text-secondary)] space-y-2 leading-relaxed">
               {diffGS > 30 ? (
                 <li>
                   • <strong>위험 & 자산 배분:</strong> 한 사람은 공격적인 성장 기회를 찾고, 한 사람은 안정적인 방어선을 지켜줍니다. 서로의 관점을 합치면 극단으로 치우치지 않는 황금비율 포트폴리오를 설계할 수 있어요.
@@ -382,7 +382,7 @@ export default function ResultCompareAccordion({
               <Zap className="w-4 h-4 shrink-0" />
               <span>서로 배려해야 할 핵심 포인트</span>
             </div>
-            <ul className="text-xs text-[var(--text-secondary)] space-y-2 leading-relaxed">
+            <ul className="text-xs sm:text-sm text-[var(--text-secondary)] space-y-2 leading-relaxed">
               {diffAP > 30 ? (
                 <li>
                   • <strong>정보 탐색 방식:</strong> 직접 발굴 및 분석을 즐기는 스타일과 ETF나 기본 흐름을 편안하게 추종하는 스타일의 차이를 존중해 주세요. 자신의 투자 공부 방식을 무리하게 권유하지 않는 것이 좋습니다.

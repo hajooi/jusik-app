@@ -10,7 +10,7 @@ export default function HomePage() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
           커리큘럼
         </h1>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+        <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
           초보자도 쉽게 따라 하는 단계별 주식 강의입니다.
         </p>
       </div>

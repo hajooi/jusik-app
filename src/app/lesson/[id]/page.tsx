@@ -222,7 +222,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 
                     {/* Book Paragraphs */}
                     {section.paragraphs && section.paragraphs.length > 0 && (
-                      <div className="space-y-4 text-xs sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
+                      <div className="space-y-4 text-sm sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
                         {section.paragraphs.map((para, pIdx) => {
                           const isQuote = para.startsWith('"') && para.endsWith('"');
                           if (isQuote) {
@@ -243,7 +243,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                               return (
                                 <div key={pIdx} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-3 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
                                   <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
-                                  <div className="text-xs sm:text-base leading-relaxed">
+                                  <div className="text-sm sm:text-base leading-relaxed">
                                     <strong className="text-[var(--text-primary)] font-extrabold">{label}:</strong>
                                     <span className="text-[var(--text-secondary)] ml-1.5 font-medium">{desc}</span>
                                   </div>
@@ -253,7 +253,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                             return (
                               <div key={pIdx} className="p-3 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
                                 <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
-                                <p className="text-xs sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">{content}</p>
+                                <p className="text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">{content}</p>
                               </div>
                             );
                           }
@@ -286,7 +286,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                 </div>
                 <ul className="space-y-3">
                   {lesson.summary.map((point, index) => (
-                    <li key={index} className="flex items-start gap-3 text-xs sm:text-sm font-medium leading-relaxed">
+                    <li key={index} className="flex items-start gap-3 text-sm font-medium leading-relaxed">
                       <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 flex items-center justify-center text-[11px] font-extrabold shrink-0 font-mono mt-0.5 shadow-2xs">
                         {index + 1}
                       </span>

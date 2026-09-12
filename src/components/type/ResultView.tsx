@@ -568,7 +568,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)]">
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium leading-relaxed bg-[var(--bg-main)]/60 p-4 rounded-2xl border border-[var(--border-color)]">
             {profile.description}
           </p>
 
@@ -641,12 +641,12 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
                 투자를 대하는 {profile.name}의 내면과 시선
               </h3>
             </div>
             
-            <div className="space-y-3.5 text-xs sm:text-sm leading-relaxed">
+            <div className="space-y-3.5 text-sm sm:text-base leading-relaxed">
               <div className="bg-[var(--bg-main)]/50 p-4 sm:p-6 rounded-2xl border border-[var(--border-color)] font-medium text-[var(--text-primary)] leading-relaxed">
                 <p className="whitespace-pre-line">{profile.storyNarrative.overview}</p>
               </div>
@@ -657,7 +657,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                     <span>시장이 흔들릴 때 주의할 점</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium leading-relaxed">
                     {profile.storyNarrative.marketCaution}
                   </p>
                 </div>
@@ -675,14 +675,14 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(104,166,125,0.6)]" />
-                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">
                     {profile.name}의 핵심 강점
                   </h3>
                 </div>
-                <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-primary)] font-medium">
+                <ul className="space-y-2 text-sm sm:text-base text-[var(--text-primary)] font-medium">
                   {profile.strengths.map((str, idx) => (
                     <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                      <span className="text-[var(--accent-green)] font-black text-xs shrink-0 mt-0.5">✓</span>
+                      <span className="text-[var(--accent-green)] font-black text-xs shrink-0 mt-1">✓</span>
                       <span>{str}</span>
                     </li>
                   ))}
@@ -694,14 +694,14 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
               <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3.5 border border-[var(--border-color)] shadow-2xs">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] tracking-tight">
+                  <h3 className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">
                     투자 시 주의할 점
                   </h3>
                 </div>
-                <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+                <ul className="space-y-2 text-sm sm:text-base text-[var(--text-secondary)] font-medium">
                   {profile.weaknesses.map((weak, idx) => (
                     <li key={idx} className="flex items-start gap-2 leading-relaxed">
-                      <span className="text-[var(--accent-orange)] font-black text-xs shrink-0 mt-0.5">!</span>
+                      <span className="text-[var(--accent-orange)] font-black text-xs shrink-0 mt-1">!</span>
                       <span>{weak}</span>
                     </li>
                   ))}
@@ -718,14 +718,14 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--accent-orange)]/40 transition-all duration-300">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)]" />
-              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
                 이 유형이 주식으로 돈 날리는 흔한 코스
               </h3>
             </div>
 
             {/* 뼈 때리는 한 줄 요약 박스 */}
             <div className="bg-[var(--accent-orange)]/10 p-4 sm:p-5 rounded-2xl border border-[var(--accent-orange)]/30 space-y-1">
-              <p className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] leading-relaxed flex items-start gap-2">
+              <p className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] leading-relaxed flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-[var(--accent-orange)] shrink-0 mt-0.5" />
                 <span>"{profile.realWorldTrap.summary}"</span>
               </p>
@@ -748,7 +748,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                       </span>
                       {idx < 3 && <ArrowRight className="hidden lg:inline w-3 h-3 text-[var(--text-secondary)]/40" />}
                     </div>
-                    <p className="text-xs font-bold text-[var(--text-primary)] leading-relaxed">
+                    <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)] leading-relaxed">
                       {step}
                     </p>
                   </div>
@@ -765,7 +765,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 shadow-2xs border border-[var(--accent-green)]/40 bg-[var(--accent-green)]/5 transition-all duration-300">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-green)] shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
                 물리지 않는 3대 실전 처방전
               </h3>
             </div>
@@ -781,11 +781,11 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>수칙 {idx + 1}</span>
                     </div>
-                    <h4 className="text-xs sm:text-sm font-black text-[var(--text-primary)] leading-snug">
+                    <h4 className="text-sm sm:text-base font-black text-[var(--text-primary)] leading-snug">
                       {item.rule}
                     </h4>
                   </div>
-                  <p className="text-xs font-medium text-[var(--text-secondary)] leading-relaxed pt-1">
+                  <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] leading-relaxed pt-1">
                     {item.detail}
                   </p>
                 </div>
@@ -801,7 +801,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="glass-card p-5 sm:p-7 rounded-3xl space-y-4 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" />
-              <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
                 감정을 이기는 원칙 & 추천 가이드
               </h3>
             </div>
@@ -812,7 +812,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>원칙 지침</span>
                 </div>
-                <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                <p className="text-sm sm:text-base text-[var(--text-primary)] font-bold leading-relaxed">
                   {profile.guidelines.recommendation}
                 </p>
               </div>
@@ -822,7 +822,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span>경고 수칙</span>
                 </div>
-                <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold leading-relaxed">
+                <p className="text-sm sm:text-base text-[var(--text-primary)] font-bold leading-relaxed">
                   {profile.guidelines.warning}
                 </p>
               </div>
@@ -844,7 +844,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
             <button
               onClick={handleShare}
-              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
             >
               <Share2 className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
               <span>{copied ? '궁합 링크 복사 완료!' : '친구에게 공유하고 투자 궁합 확인'}</span>
@@ -852,7 +852,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
             <button
               onClick={onRestart}
-              className="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-xs sm:text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              className="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
             >
               <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />
               <span>다시 진단하기</span>
