@@ -98,27 +98,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 로드 시 로컬 및 서버 상태 복원
   useEffect(() => {
     try {
-      const localCompletedJson = localStorage.getItem(LOCAL_COMPLETED_LESSONS_KEY);
-      const initialCompleted: string[] = localCompletedJson ? JSON.parse(localCompletedJson) : [];
-      setCompletedLessons(initialCompleted);
-
-      const localFavJson = localStorage.getItem(LOCAL_FAVORITE_TOOLS_KEY);
-      const initialFavorites: string[] = localFavJson ? JSON.parse(localFavJson) : [];
-      setFavoriteTools(initialFavorites);
-
       const savedUserJson = localStorage.getItem(USER_STORAGE_KEY);
       if (savedUserJson) {
         const parsedUser: UserAccount = JSON.parse(savedUserJson);
         setUser(parsedUser);
 
-        if (parsedUser.completedLessons && parsedUser.completedLessons.length > 0) {
-          const merged = Array.from(new Set([...initialCompleted, ...parsedUser.completedLessons]));
-          setCompletedLessons(merged);
-        }
-        if (parsedUser.favoriteTools && parsedUser.favoriteTools.length > 0) {
-          const mergedFavs = Array.from(new Set([...initialFavorites, ...parsedUser.favoriteTools]));
-          setFavoriteTools(mergedFavs);
-        }
+        // 수강 완료 내역: 로그인된 계정 데이터만 불러옴
+        const userCompleted = Array.isArray(parsedUser.completedLessons) ? parsedUser.completedLessons : [];
+        setCompletedLessons(userCompleted);
+
+        // 즐겨찾기 도구: 로그인된 계정 데이터 로드
+        const userFavorites = Array.isArray(parsedUser.favoriteTools) ? parsedUser.favoriteTools : [];
+        setFavoriteTools(userFavorites);
+
         if (parsedUser.investmentType) setInvestmentType(parsedUser.investmentType);
         if (parsedUser.typeAnswers && isFullSurveyAnswers(parsedUser.typeAnswers)) {
           setTypeAnswers(parsedUser.typeAnswers);
@@ -187,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     action: 'login',
                     nickname: parsedUser.nickname,
                     pin: userPin,
-                    completedLessons: parsedUser.completedLessons || initialCompleted,
+                    completedLessons: parsedUser.completedLessons || [],
                     investmentType: parsedUser.investmentType || localStorage.getItem(LOCAL_TYPE_CODE_KEY) || undefined,
                     typeAnswers: validAnswers,
                     simulatorSettings: parsedUser.simulatorSettings || undefined,
@@ -195,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     activeBadge: parsedUser.activeBadge || undefined,
                     termsQuizBest: parsedUser.termsQuizBest || undefined,
                     hasCompletedCourse: parsedUser.hasCompletedCourse || undefined,
-                    favoriteTools: parsedUser.favoriteTools || initialFavorites,
+                    favoriteTools: parsedUser.favoriteTools || [],
                   })
                 })
                   .then((r) => r.json())
@@ -553,7 +545,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return favoriteTools.includes(toolId);
   };
 
-  // 서버 로그인 처리
+  // 서버 로그인 처리 (단일 진실의 원천: 아이디/핀으로 서버 DB 데이터 온전히 로드)
   const login = async (nickname: string, pin: string) => {
     try {
       const res = await fetch('/api/sync', {
@@ -563,11 +555,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           action: 'login',
           nickname,
           pin,
-          completedLessons,
-          investmentType,
-          typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
-          simulatorSettings,
-          favoriteTools,
         })
       });
 
@@ -585,61 +572,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(serverUser);
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(serverUser));
 
-      const serverCompleted: string[] = data.user.completedLessons || [];
+      // 서버 DB에 보존된 소중한 수강 기록을 그대로 클라이언트에 세팅
+      const serverCompleted: string[] = Array.isArray(data.user.completedLessons) ? data.user.completedLessons : [];
       setCompletedLessons(serverCompleted);
       localStorage.setItem(LOCAL_COMPLETED_LESSONS_KEY, JSON.stringify(serverCompleted));
 
       if (data.user.favoriteTools) {
-        const mergedFavs = Array.from(new Set([...favoriteTools, ...data.user.favoriteTools]));
-        setFavoriteTools(mergedFavs);
-        localStorage.setItem(LOCAL_FAVORITE_TOOLS_KEY, JSON.stringify(mergedFavs));
+        setFavoriteTools(data.user.favoriteTools);
+        localStorage.setItem(LOCAL_FAVORITE_TOOLS_KEY, JSON.stringify(data.user.favoriteTools));
       }
 
       if (data.user.investmentType && data.user.investmentType !== '미진단') {
         setInvestmentType(data.user.investmentType);
         localStorage.setItem(LOCAL_TYPE_CODE_KEY, data.user.investmentType);
-      } else if (investmentType && investmentType !== '미진단') {
-        // Keep existing client investmentType if server has none
-        localStorage.setItem(LOCAL_TYPE_CODE_KEY, investmentType);
       }
 
       if (data.user.typeAnswers && isFullSurveyAnswers(data.user.typeAnswers)) {
         setTypeAnswers(data.user.typeAnswers);
         localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(data.user.typeAnswers));
         localStorage.setItem('jusik_type_completed', 'true');
-      } else if (typeAnswers && Object.keys(typeAnswers).length > 0) {
-        // Keep existing client typeAnswers if server has none
-        localStorage.setItem(LOCAL_TYPE_ANSWERS_KEY, JSON.stringify(typeAnswers));
-        localStorage.setItem('jusik_type_completed', 'true');
       }
 
       if (data.user.simulatorSettings) {
         setSimulatorSettings(data.user.simulatorSettings);
         localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(data.user.simulatorSettings));
-      } else if (simulatorSettings) {
-        // Keep existing client simulatorSettings if server has none
-        localStorage.setItem(LOCAL_SIMULATOR_SETTINGS_KEY, JSON.stringify(simulatorSettings));
-      }
-
-      // If client had data that server didn't have, push updated client data back to server
-      const finalInvestmentType = data.user.investmentType || investmentType;
-      const finalTypeAnswers = data.user.typeAnswers || typeAnswers;
-      const finalSimulatorSettings = data.user.simulatorSettings || simulatorSettings;
-
-      if (!data.user.investmentType || !data.user.simulatorSettings || !data.user.typeAnswers) {
-        fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'syncData',
-            nickname,
-            pin,
-            completedLessons: serverCompleted,
-            investmentType: finalInvestmentType,
-            typeAnswers: finalTypeAnswers,
-            simulatorSettings: finalSimulatorSettings
-          })
-        }).catch((e) => console.error('Post-login sync error:', e));
       }
 
       return { success: true };

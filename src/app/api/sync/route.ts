@@ -196,72 +196,8 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: '입력하신 핀번호가 일치하지 않습니다.' }, { status: 200 });
         }
 
-        // 1. 수강 완료 목록: 클라이언트가 체크/해제한 실제 목록 그대로 반영
-        if (Array.isArray(completedLessons)) {
-          existing.completedLessons = completedLessons;
-        }
-
-        // 2. 투자 성향 및 40문항 답변 보호: 완전한 데이터가 이미 있으면 미진단/불완전 데이터로 덮어쓰지 않음
-        if (!existing.investmentType && investmentType && investmentType !== '미진단') {
-          existing.investmentType = investmentType;
-        }
-        if (typeAnswers && isFullSurveyAnswers(typeAnswers)) {
-          if (!existing.typeAnswers || Object.keys(existing.typeAnswers).length < 40) {
-            existing.typeAnswers = typeAnswers;
-          }
-        }
-
-        // 3. 순수 시뮬레이터 설정 보존
-        if (simulatorSettings) {
-          existing.simulatorSettings = simulatorSettings;
-        }
-
-        // 4. 아바타 및 뱃지 보호
-        if (!existing.avatarUrl && avatarUrl) {
-          existing.avatarUrl = avatarUrl;
-        }
-        if (activeBadge !== undefined) {
-          existing.activeBadge = activeBadge;
-        }
-        if (hasCompletedCourse || existing.hasCompletedCourse) {
-          existing.hasCompletedCourse = true;
-        }
-
-        existing.maxCompletedLessonsCount = (existing.completedLessons || []).length;
-
-        // 5. 퀴즈 최고 기록: 더 높은 점수 또는 기존 기록 안전 보존 (High-Water Mark 성취 보존 원칙)
-        if (termsQuizBest) {
-          const prevScore = existing.termsQuizBest?.score || 0;
-          const prevTime = existing.termsQuizBest?.timeSpentSec || 999;
-          const newScore = termsQuizBest.score || 0;
-          const newTime = termsQuizBest.timeSpentSec || 999;
-          if (!existing.termsQuizBest || newScore > prevScore || (newScore === prevScore && newTime < prevTime)) {
-            // 만점 미달자(14개 이하)의 상위 1% 오염 데이터 차단 (최소 15% 이상 가드)
-            let safePercentile = termsQuizBest.percentile || existing.termsQuizBest?.percentile;
-            const isCorrupted = (termsQuizBest.correctCount || 0) < 15 && safePercentile === 1;
-            if (isCorrupted) {
-              safePercentile = 75;
-            }
-
-            // High-Water Mark: 과거 정당한 최고 백분위가 더 우수하면 유지
-            const prevValid = existing.termsQuizBest?.percentile;
-            const isPrevCorrupted = (existing.termsQuizBest?.correctCount || 0) < 15 && prevValid === 1;
-            if (typeof prevValid === 'number' && prevValid > 0 && !isPrevCorrupted && typeof safePercentile === 'number') {
-              safePercentile = Math.min(prevValid, safePercentile);
-            }
-
-            const safeBadgeName = safePercentile ? `상위 ${safePercentile}%` : termsQuizBest.badgeName;
-            existing.termsQuizBest = {
-              ...termsQuizBest,
-              ...(safePercentile ? { percentile: safePercentile, badgeName: safeBadgeName } : {}),
-            };
-          }
-        }
-
-        // 6. 즐겨찾기 도구: Union 병합
-        if (favoriteTools && Array.isArray(favoriteTools)) {
-          existing.favoriteTools = Array.from(new Set([...(existing.favoriteTools || []), ...favoriteTools]));
-        }
+        // 로그인 시: 기존 서버 DB의 수강 진도 및 설정은 100% 보존하며 절대로 클라이언트 상태로 덮어쓰지 않음
+        // (단일 진실의 원천: Single Source of Truth 원칙)
 
         // 만료된 PRO 권한 자동 회수 및 DB 반영
         const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
@@ -286,7 +222,7 @@ export async function POST(request: Request) {
             avatarUrl: existing.avatarUrl,
             createdAt: existing.createdAt,
             lastLoginAt: existing.lastActiveAt,
-            completedLessons: existing.completedLessons,
+            completedLessons: existing.completedLessons || [],
             investmentType: existing.investmentType,
             typeAnswers: existing.typeAnswers,
             simulatorSettings: existing.simulatorSettings,
@@ -296,7 +232,7 @@ export async function POST(request: Request) {
             isPro: effectiveIsPro,
             proExpiresAt: existing.proExpiresAt,
             hasCompletedCourse: existing.hasCompletedCourse,
-            maxCompletedLessonsCount: existing.maxCompletedLessonsCount,
+            maxCompletedLessonsCount: existing.maxCompletedLessonsCount || (existing.completedLessons || []).length,
             rankPercentile
           }
         });
@@ -307,14 +243,14 @@ export async function POST(request: Request) {
           avatarUrl,
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
-          completedLessons: completedLessons || [],
+          completedLessons: [], // 신규 회원은 0개로 시작
           investmentType: investmentType && investmentType !== '미진단' ? investmentType : undefined,
           typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
           simulatorSettings: simulatorSettings || undefined,
           activeBadge,
           termsQuizBest,
           favoriteTools: favoriteTools || [],
-          hasCompletedCourse: Boolean(hasCompletedCourse),
+          hasCompletedCourse: false,
         };
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
