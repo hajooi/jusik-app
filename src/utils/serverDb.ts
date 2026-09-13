@@ -348,25 +348,61 @@ export async function recordSurveyResultAsync(typeCode: string): Promise<SurveyS
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
-      const { data: existing } = await supabase
+      // 1. 기존 카운트 엄격 조회 (에러 체크 필수, 실패 시 절대 덮어쓰지 않음)
+      const { data: existing, error: selectErr } = await supabase
         .from('survey_stats')
         .select('count')
         .eq('type_code', typeCode)
         .maybeSingle();
 
-      const newCount = (existing?.count ? Number(existing.count) : 0) + 1;
-      const { error } = await supabase.from('survey_stats').upsert({
-        type_code: typeCode,
-        count: newCount,
-      }, { onConflict: 'type_code' });
-
-      if (error) {
-        console.error('Supabase survey_stats upsert error:', error.message);
-      } else {
+      if (selectErr) {
+        console.error('[recordSurveyResultAsync] Supabase survey_stats select error, aborting update to protect data:', selectErr.message);
         return await getSurveyStatsAsync();
       }
+
+      if (existing && typeof existing.count === 'number') {
+        const currentCount = Number(existing.count);
+        if (isNaN(currentCount) || currentCount < 0) {
+          console.error('[recordSurveyResultAsync] Corrupted count detected in DB, aborting update:', existing);
+          return await getSurveyStatsAsync();
+        }
+
+        const newCount = currentCount + 1;
+
+        // 2. Sanity Guard: 새 카운트가 기존보다 작거나 같으면 업데이트 차단 (카운트 감소/초기화 불가)
+        if (newCount <= currentCount) {
+          console.error('[recordSurveyResultAsync] Decrement/reset attempt prevented:', { currentCount, newCount });
+          return await getSurveyStatsAsync();
+        }
+
+        // 3. 안전 업데이트 (UPDATE)
+        const { error: updateErr } = await supabase
+          .from('survey_stats')
+          .update({ count: newCount })
+          .eq('type_code', typeCode);
+
+        if (updateErr) {
+          console.error('[recordSurveyResultAsync] Supabase survey_stats update error:', updateErr.message);
+        } else {
+          // 로컬 캐시 및 파일도 동기화
+          recordSurveyResult(typeCode);
+          return await getSurveyStatsAsync();
+        }
+      } else {
+        // 기존 레코드가 아예 없는 초기 1회 생성 시에만 1로 안전 삽입
+        const { error: insertErr } = await supabase
+          .from('survey_stats')
+          .insert({ type_code: typeCode, count: 1 });
+
+        if (insertErr) {
+          console.error('[recordSurveyResultAsync] Supabase survey_stats insert error:', insertErr.message);
+        } else {
+          recordSurveyResult(typeCode);
+          return await getSurveyStatsAsync();
+        }
+      }
     } catch (e) {
-      console.error('Failed to record survey result to Supabase:', e);
+      console.error('[recordSurveyResultAsync] Unexpected error:', e);
     }
   }
 
