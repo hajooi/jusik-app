@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS, CalendarEvent } from '@/data/marketCalendar';
 import { sendTelegramDailyReport, sendTelegramErrorAlert } from '@/utils/telegram';
+import { runSiteHealthAudit } from '@/lib/observability/audit';
 import { syncMarketCalendarEvents } from '@/utils/marketCalendarSync';
 
 export const dynamic = 'force-dynamic';
@@ -1049,6 +1050,13 @@ export async function GET(request: Request) {
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);
     }
+
+    // 🩺 사이트 전역 백그라운드 무결성 자동 감사 (Zero Noise: 정상 시 100% 침묵, 이상 시 텔레그램 직보)
+    try {
+      runSiteHealthAudit(snapshot).catch((auditErr) => {
+        console.warn('[SiteHealthAudit] Background audit execution error:', auditErr);
+      });
+    } catch (e) {}
 
     return NextResponse.json(responseData, {
       headers: {

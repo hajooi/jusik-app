@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCommentsAsync, addCommentAsync, deleteCommentAsync, CommentRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
 import { sendCommentNotification } from '@/utils/notifier';
+import { withApiGuard } from '@/lib/observability/guard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,7 +12,7 @@ const ZERO_CACHE_HEADERS = {
 };
 
 // GET /api/comments?targetKey=...
-export async function GET(request: Request) {
+export const GET = withApiGuard('댓글 목록 조회 (/api/comments GET)', async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const targetKey = searchParams.get('targetKey')?.trim();
@@ -35,10 +36,10 @@ export async function GET(request: Request) {
       { status: 500, headers: ZERO_CACHE_HEADERS }
     );
   }
-}
+});
 
 // POST /api/comments
-export async function POST(request: Request) {
+export const POST = withApiGuard('댓글 등록 및 삭제 (/api/comments POST)', async (request: Request) => {
   try {
     const body = await request.json();
     const { action, targetKey, nickname, pin, content, investmentType, parentId, commentId, avatarUrl, activeBadge, termsQuiz } = body;
@@ -102,4 +103,4 @@ export async function POST(request: Request) {
     console.error('API POST comments error:', error);
     return NextResponse.json({ success: false, error: '댓글 저장 중 오류가 발생했습니다.' }, { status: 500 });
   }
-}
+});

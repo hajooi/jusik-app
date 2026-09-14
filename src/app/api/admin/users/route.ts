@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerDbAsync } from '@/utils/serverDb';
+import { withApiGuard } from '@/lib/observability/guard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // GET /api/admin/users?nickname=...&pin=...
-export async function GET(request: Request) {
+export const GET = withApiGuard('관리자 회원 목록 조회 (/api/admin/users)', async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const nickname = searchParams.get('nickname')?.trim();
@@ -79,4 +80,4 @@ export async function GET(request: Request) {
       }
     );
   }
-}
+});

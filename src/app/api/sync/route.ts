@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerDbAsync, saveServerDbAsync, updateCommentsForUserAsync, ServerUserRecord } from '@/utils/serverDb';
 import { validateNickname } from '@/utils/badWordsFilter';
+import { withApiGuard } from '@/lib/observability/guard';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -23,7 +24,7 @@ const isFullSurveyAnswers = (answers?: any): boolean => {
 };
 
 // GET /api/sync?nickname=...&pin=...
-export async function GET(request: Request) {
+export const GET = withApiGuard('회원 동기화 및 로그인 (/api/sync GET)', async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const nickname = searchParams.get('nickname')?.trim();
@@ -87,10 +88,10 @@ export async function GET(request: Request) {
     console.error('API GET sync error:', error);
     return NextResponse.json({ success: false, error: '서버 연동 오류가 발생했습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
   }
-}
+});
 
 // POST /api/sync
-export async function POST(request: Request) {
+export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (/api/sync POST)', async (request: Request) => {
   try {
     const body = await request.json();
     const { action, nickname, pin, completedLessons, investmentType, typeAnswers, simulatorSettings, avatarUrl, activeBadge, termsQuizBest, favoriteTools, hasCompletedCourse, maxCompletedLessonsCount } = body;
@@ -405,4 +406,4 @@ export async function POST(request: Request) {
     console.error('API POST sync error:', error);
     return NextResponse.json({ success: false, error: '서버 저장 중 오류가 발생했습니다.' }, { status: 200 });
   }
-}
+});
