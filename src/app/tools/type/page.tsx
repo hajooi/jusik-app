@@ -585,7 +585,7 @@ function SurveyContent({ initialCode }: { initialCode?: string }) {
   );
 }
 
-export function InvestmentSurveyView({ initialCode }: { initialCode?: string }) {
+function InvestmentSurveyView({ initialCode }: { initialCode?: string }) {
   return (
     <React.Suspense fallback={<div className="max-w-4xl mx-auto p-8 text-center text-sm font-bold">로딩 중...</div>}>
       <SurveyContent initialCode={initialCode} />
@@ -593,6 +593,6 @@ export function InvestmentSurveyView({ initialCode }: { initialCode?: string }) 
   );
 }
 
-export default function InvestmentSurveyPage() {
-  return <InvestmentSurveyView />;
+export default function InvestmentSurveyPage({ searchParams }: { searchParams?: { code?: string; result?: string } }) {
+  return <InvestmentSurveyView initialCode={searchParams?.code || searchParams?.result} />;
 }

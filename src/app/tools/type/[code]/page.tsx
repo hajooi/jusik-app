@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
-import { InvestmentSurveyView } from '@/app/tools/type/page';
+import InvestmentSurveyPage from '@/app/tools/type/page';
 
 type Props = {
   params: { code: string };
@@ -65,6 +65,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function DynamicTypePage({ params }: Props) {
   const code = params.code?.toUpperCase();
-  return <InvestmentSurveyView initialCode={code} />;
+  return <InvestmentSurveyPage searchParams={{ code }} />;
 }
 

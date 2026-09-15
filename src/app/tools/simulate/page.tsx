@@ -1210,9 +1210,71 @@ function SimulatorContent() {
   const maxVal = Math.max(...valsA, ...valsB, ...valsC, ...investedVals, 10);
   const minVal = Math.min(...valsA, ...valsB, ...investedVals, initialCapital);
 
+  // ── Y축 스케일 Lerp 애니메이션 ─────────────────────────────────────────
+  // 전략 2/3 추가·제거 또는 포트폴리오 변경 시 maxVal/minVal이 즉시 바뀌면서
+  // 기존 차트 선이 툭 낮아지는 현상 방지.
+  // rAF 루프로 550ms Apple-smooth easeOutCubic 보간하여 Y스케일을 서서히 전환.
+  const animatedMaxValRef = useRef<number>(maxVal);
+  const animatedMinValRef = useRef<number>(minVal);
+  const [renderMaxVal, setRenderMaxVal] = useState<number>(maxVal);
+  const [renderMinVal, setRenderMinVal] = useState<number>(minVal);
+  const scaleAnimRafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const targetMax = maxVal;
+    const targetMin = minVal;
+    const startMax = animatedMaxValRef.current;
+    const startMin = animatedMinValRef.current;
+
+    // 변화량이 미미하면 즉시 교체 (초기 로드 포함)
+    if (Math.abs(targetMax - startMax) < 1 && Math.abs(targetMin - startMin) < 1) {
+      animatedMaxValRef.current = targetMax;
+      animatedMinValRef.current = targetMin;
+      setRenderMaxVal(targetMax);
+      setRenderMinVal(targetMin);
+      return;
+    }
+
+    const duration = 550; // ms — var(--motion-apple-smooth)
+    const startTime = performance.now();
+
+    if (scaleAnimRafRef.current !== null) cancelAnimationFrame(scaleAnimRafRef.current);
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      // easeOutCubic (Apple 물리 근사)
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      const curMax = startMax + (targetMax - startMax) * ease;
+      const curMin = startMin + (targetMin - startMin) * ease;
+
+      animatedMaxValRef.current = curMax;
+      animatedMinValRef.current = curMin;
+      setRenderMaxVal(curMax);
+      setRenderMinVal(curMin);
+
+      if (t < 1) {
+        scaleAnimRafRef.current = requestAnimationFrame(step);
+      } else {
+        scaleAnimRafRef.current = null;
+      }
+    };
+    scaleAnimRafRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (scaleAnimRafRef.current !== null) {
+        cancelAnimationFrame(scaleAnimRafRef.current);
+        scaleAnimRafRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxVal, minVal]);
+  // ────────────────────────────────────────────────────────────────────────
+
   // Precompute Log Bounds: Starts exactly at bottom
-  const safeLogMin = Math.max(1, minVal * 0.95);
-  const safeLogMax = Math.max(maxVal * 1.02, safeLogMin * 1.05);
+  const safeLogMin = Math.max(1, renderMinVal * 0.95);
+  const safeLogMax = Math.max(renderMaxVal * 1.02, safeLogMin * 1.05);
   const logMin = Math.log10(safeLogMin);
   const logMax = Math.log10(safeLogMax);
 
@@ -1228,7 +1290,7 @@ function SimulatorContent() {
       const ratio = (Math.log10(safeVal) - logMin) / (logMax - logMin || 1);
       return chartHeight - 8 - ratio * (chartHeight - 16);
     }
-    return chartHeight - 8 - ((val - minVal) / (maxVal - minVal || 1)) * (chartHeight - 16);
+    return chartHeight - 8 - ((val - renderMinVal) / (renderMaxVal - renderMinVal || 1)) * (chartHeight - 16);
   };
 
   const getSvgPath = (values: number[]) => {
@@ -1458,7 +1520,7 @@ function SimulatorContent() {
             <input
               type="range"
               min={5}
-              max={60}
+              max={80}
               step={1}
               value={maxTolerableMDD}
               onChange={(e) => {
@@ -2181,6 +2243,7 @@ function SimulatorContent() {
                             setPortfolioA(personalityPresets.balanced.portfolio);
                             setStrategyPeriodA(personalityPresets.balanced.strategyPeriod);
                             setActivePresetA('balanced');
+                            setChartBaseAnimKey((k) => k + 1);
                           }}
                           className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'balanced'
@@ -2196,6 +2259,7 @@ function SimulatorContent() {
                             setPortfolioA(personalityPresets.growth.portfolio);
                             setStrategyPeriodA(personalityPresets.growth.strategyPeriod);
                             setActivePresetA('growth');
+                            setChartBaseAnimKey((k) => k + 1);
                           }}
                           className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'growth'
@@ -2211,6 +2275,7 @@ function SimulatorContent() {
                             setPortfolioA(personalityPresets.defensive.portfolio);
                             setStrategyPeriodA(personalityPresets.defensive.strategyPeriod);
                             setActivePresetA('defensive');
+                            setChartBaseAnimKey((k) => k + 1);
                           }}
                           className={`relative z-10 py-1 px-1.5 sm:px-2 rounded-full text-[10.5px] sm:text-[11px] text-center truncate transition-colors duration-200 active:scale-95 cursor-pointer ${
                             activePresetA === 'defensive'

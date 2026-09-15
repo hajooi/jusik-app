@@ -398,37 +398,23 @@ export function calculatePersonalitySimulatorConfig(
   const presets = getPersonality3Presets(typeCode, activeScores);
   const isG = typeCode.includes('G');
 
-  // S&P 500 벤치마크 및 4축 성향 점수 기반 목표치 산출
-  let recommendedTargetCAGR = is30 ? 7 : 10;
-  let recommendedMaxMDD = is30 ? 45 : 30;
 
-  if (isG) {
-    if (typeCode === 'GALI' || typeCode === 'GATI') {
-      recommendedTargetCAGR = is30 ? 12 : 16;
-      recommendedMaxMDD = is30 ? 60 : 45;
-    } else if (typeCode === 'GPLI' || typeCode === 'GATR' || typeCode === 'GALR') {
-      recommendedTargetCAGR = is30 ? 9 : 13;
-      recommendedMaxMDD = is30 ? 55 : 38;
-    } else {
-      recommendedTargetCAGR = is30 ? 8 : 11;
-      recommendedMaxMDD = is30 ? 50 : 35;
-    }
-  } else {
-    if (typeCode === 'SATR' || typeCode === 'SATI') {
-      recommendedTargetCAGR = is30 ? 5 : 7;
-      recommendedMaxMDD = is30 ? 16 : 12;
-    } else if (typeCode === 'SPTR') {
-      recommendedTargetCAGR = is30 ? 5 : 7;
-      recommendedMaxMDD = is30 ? 25 : 20;
-    } else if (typeCode === 'SPTI') {
-      recommendedTargetCAGR = is30 ? 5 : 7;
-      recommendedMaxMDD = is30 ? 35 : 22;
-    } else {
-      // SPLR, SPLI, SALR, SALI
-      recommendedTargetCAGR = is30 ? 6 : 8;
-      recommendedMaxMDD = is30 ? 36 : 26;
-    }
-  }
+  // historicalPrices.json 실데이터 기반 동적 목표치 산출
+  // presets.balanced 포트폴리오를 해당 기간(15Y/30Y)으로 백테스트하여 목표 기준선 설정
+  const durYears: 15 | 30 = is30 ? 30 : 15;
+  const dynamicMetrics = calculatePortfolioDynamicMetrics(
+    presets.balanced.portfolio,
+    presets.balanced.strategyPeriod,
+    durYears
+  );
+
+  // 시뮬레이터 목표치: 실계산 CAGR/MDD에 성향별 달성 목표 버퍼 적용
+  // ─ G (성장형): 포트폴리오 자체가 공격적이므로 목표 CAGR을 실계산 기준으로 설정
+  // ─ S (안정형): 안정형 포트 특성상 달성 가능한 현실 기준선 유지
+  const cagrAdjust = isG ? 0 : 0;
+  const mddAdjust = isG ? 5 : 3;
+  const recommendedTargetCAGR = Math.max(3, Math.round(dynamicMetrics.cagr) - cagrAdjust);
+  const recommendedMaxMDD = Math.min(80, Math.round(dynamicMetrics.mdd) + mddAdjust);
 
   return {
     typeCode,
@@ -864,8 +850,9 @@ export function calculatePortfolioDynamicMetrics(
 }
 
 /**
- * 5. 성향 4축 점수 및 S&P 500 벤치마크 기반 정교한 목표 연수익률(CAGR) 및 감내 하락폭(MDD) 산출
- * S&P 500 기준선(15Y: 10%/30%, 30Y: 7%/45%)을 바탕으로 유저의 G/S, A/P 성향 점수에 따라 정밀하게 연동
+ * 5. historicalPrices.json 실데이터 기반 동적 목표 연수익률(CAGR) 및 감내 하락폭(MDD) 산출
+ * update_historical_data.py로 매월 갱신된 실제 가격 데이터를 기반으로 15Y/30Y 백테스트를 수행하여
+ * 성향별 추천 포트폴리오의 실성과를 범위 형태로 동적 반환 (S&P 500 업데이트 시 자동 반영)
  */
 export function getPersonalityDynamicPreviewStats(
   typeCode: string | null | undefined,
@@ -880,60 +867,35 @@ export function getPersonalityDynamicPreviewStats(
 
   const activeScores = scores || createDefaultScoresForCode(typeCode);
   const isG = typeCode.includes('G');
-  const isA = typeCode.includes('A');
 
-  // 15년 및 30년 정량 목표치 산출
-  let cagr15 = 10;
-  let cagr30 = 7;
-  let mdd15 = 30;
-  let mdd30 = 45;
+  // 1. 성향 균형 포트폴리오 추출
+  const presets = getPersonality3Presets(typeCode, activeScores);
+  const { portfolio, strategyPeriod } = presets.balanced;
 
-  if (isG) {
-    if (typeCode === 'GALI' || typeCode === 'GATI') {
-      cagr15 = 16;
-      cagr30 = 12;
-      mdd15 = 45;
-      mdd30 = 60;
-    } else if (typeCode === 'GPLI' || typeCode === 'GATR' || typeCode === 'GALR') {
-      cagr15 = 13;
-      cagr30 = 9;
-      mdd15 = 38;
-      mdd30 = 55;
-    } else {
-      cagr15 = 11;
-      cagr30 = 8;
-      mdd15 = 35;
-      mdd30 = 50;
-    }
-  } else {
-    if (typeCode === 'SATR' || typeCode === 'SATI') {
-      cagr15 = 7;
-      cagr30 = 5;
-      mdd15 = 12;
-      mdd30 = 16;
-    } else if (typeCode === 'SPTR') {
-      cagr15 = 7;
-      cagr30 = 5;
-      mdd15 = 20;
-      mdd30 = 25;
-    } else if (typeCode === 'SPTI') {
-      cagr15 = 7;
-      cagr30 = 5;
-      mdd15 = 22;
-      mdd30 = 35;
-    } else {
-      // SPLR, SPLI, SALR, SALI
-      cagr15 = 8;
-      cagr30 = 6;
-      mdd15 = 26;
-      mdd30 = 36;
-    }
-  }
+  // 2. historicalPrices.json 실데이터 기반 15Y / 30Y 백테스트 실행
+  const metrics15 = calculatePortfolioDynamicMetrics(portfolio, strategyPeriod, 15);
+  const metrics30 = calculatePortfolioDynamicMetrics(portfolio, strategyPeriod, 30);
 
-  const minCAGR = Math.min(cagr15, cagr30);
-  const maxCAGR = Math.max(cagr15, cagr30);
-  const minMDD = Math.min(mdd15, mdd30);
-  const maxMDD = Math.max(mdd15, mdd30);
+  // 3. 성향 리스크 특성에 따른 목표 범위 산출
+  // ─ CAGR 범위: 30Y 실계산(장기 보수치) ~ 15Y 실계산(최근 강세장) + 소폭 버퍼
+  // ─ MDD 범위: 15Y 실계산치 ~ 30Y 실계산치(닷컴버블·금융위기 포함) + 리스크 버퍼
+  // ─ G (성장형): 변동성이 크므로 버퍼를 넉넉하게 (현실적 위험 고지)
+  // ─ S (안정형): 방어형 포트 특성상 버퍼 최소화
+  const cagrBufLow = isG ? 1 : 0;
+  const cagrBufHigh = isG ? 2 : 1;
+  const mddBufHigh = isG ? 8 : 4;
+
+  // CAGR: 30Y(낮은 쪽) - 버퍼 ~ 15Y(높은 쪽) + 버퍼
+  const minCAGR = Math.max(1, Math.floor(metrics30.cagr - cagrBufLow));
+  const maxCAGR = Math.ceil(metrics15.cagr + cagrBufHigh);
+
+  // MDD: 15Y 실계산 ~ 30Y 실계산 + 버퍼 (닷컴버블 극단값은 캡핑)
+  const rawMDD30WithBuf = metrics30.mdd + mddBufHigh;
+  const cappedMDDMax = isG
+    ? Math.min(rawMDD30WithBuf, 85)
+    : Math.min(rawMDD30WithBuf, 55);
+  const minMDD = Math.max(1, Math.floor(metrics15.mdd));
+  const maxMDD = Math.ceil(cappedMDDMax);
 
   return {
     targetCAGR: `${minCAGR}~${maxCAGR}%`,

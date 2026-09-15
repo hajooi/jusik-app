@@ -353,8 +353,19 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
   }
 
   // 시뮬레이터 백테스트 엔진 기반 실시간 동적 목표치 연동
-  const dynamicStats = useMemo(() => {
-    return getPersonalityDynamicPreviewStats(profile.code, scores);
+  // 실계산(historicalPrices.json 순회)이 무거우므로 useEffect 비동기로 렌더 블로킹 방지
+  // 초기: investmentSurvey.ts의 fallback값 즉시 표시 → 계산 완료 후 실데이터값으로 교체
+  const [dynamicStats, setDynamicStats] = useState<{ targetCAGR: string; targetMDD: string }>({
+    targetCAGR: preview?.targetCAGR ?? '',
+    targetMDD: preview?.targetMDD ?? '',
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const stats = getPersonalityDynamicPreviewStats(profile.code, scores);
+      setDynamicStats(stats);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [profile.code, scores]);
 
   return (
