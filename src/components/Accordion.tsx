@@ -39,15 +39,15 @@ export default function Accordion({ levels }: AccordionProps) {
   const [openLevelId, setOpenLevelId] = useState<string | null>(null);
   const { user, isLessonCompleted, completedLessons } = useAuth();
 
-  const toggleLevel = (id: string, isComingSoon?: boolean) => {
-    if (isComingSoon) return;
+  const toggleLevel = (id: string) => {
     setOpenLevelId((prev) => (prev === id ? null : id));
   };
 
-  // 전체 레슨 수 계산
+  // 전체 및 현재 오픈된 레슨 수 계산
   const allLessons = levels.flatMap((l) => l.lessons);
-  const totalLessonCount = allLessons.length;
-  const completedCount = completedLessons.filter((id) => allLessons.some((l) => l.id === id)).length;
+  const openLessons = allLessons.filter((l) => !l.isComingSoon);
+  const totalLessonCount = openLessons.length;
+  const completedCount = completedLessons.filter((id) => openLessons.some((l) => l.id === id)).length;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
   // 게이지 마운트 시 부드러운 애니메이션을 위한 상태 (0% -> 목표 %)
@@ -66,7 +66,7 @@ export default function Accordion({ levels }: AccordionProps) {
     : (user?.rankPercentile ?? Math.max(1, Math.round(100 - (completedCount / totalLessonCount) * 99)));
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-4 sm:space-y-5 relative">
       
       {/* 🔒 로그인 한 상태(user)일 때만 내 학습 수강 진도율 프로그레스 바 표시 */}
       {user && (
@@ -102,9 +102,10 @@ export default function Accordion({ levels }: AccordionProps) {
         const isOpen = openLevelId === level.id;
         const IconComponent = ICON_MAP[level.iconName] || Brain;
         
-        // 로그인된 상태일 때만 레벨별 완료 카운트 계산
-        const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
-        const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
+        // 오픈된 강의 기준 완료 카운트 계산
+        const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon);
+        const levelCompletedCount = user ? openLevelLessons.filter((l) => isLessonCompleted(l.id)).length : 0;
+        const isLevelFullyCompleted = user && openLevelLessons.length > 0 && levelCompletedCount === openLevelLessons.length;
 
         return (
           <RevealOnScroll key={level.id} delayIndex={idx}>
@@ -112,17 +113,13 @@ export default function Accordion({ levels }: AccordionProps) {
               className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
                 isOpen 
                   ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_16px_rgba(241,143,1,0.10)] border-[var(--accent-orange)]' 
-                  : level.isComingSoon
-                  ? 'shadow-2xs opacity-75'
                   : 'glass-card-hover shadow-2xs'
               }`}
             >
               {/* Header / Accordion Button */}
               <button
-                onClick={() => toggleLevel(level.id, level.isComingSoon)}
-                className={`group/btn w-full p-4 sm:p-5 text-left flex items-center justify-between gap-3.5 sm:gap-4 outline-none focus:outline-none transition-all duration-300 ${
-                  level.isComingSoon ? 'cursor-not-allowed opacity-75' : 'active:scale-[0.99]'
-                }`}
+                onClick={() => toggleLevel(level.id)}
+                className="group/btn w-full p-4 sm:p-5 text-left flex items-center justify-between gap-3.5 sm:gap-4 outline-none focus:outline-none transition-all duration-300 cursor-pointer active:scale-[0.99]"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   {/* Level Icon Container (Standardized w-10 h-10 with hairline border) */}
@@ -150,7 +147,7 @@ export default function Accordion({ levels }: AccordionProps) {
                           PRO
                         </span>
                       )}
-                      {isLevelFullyCompleted && !level.isComingSoon && (
+                      {isLevelFullyCompleted && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-green)] text-white shrink-0">
                           <CheckCircle2 className="w-3 h-3" /> 완료
                         </span>
@@ -159,27 +156,25 @@ export default function Accordion({ levels }: AccordionProps) {
                   </div>
                 </div>
 
-                {/* Status Indicator */}
-                {level.isComingSoon ? (
-                  <div className="flex items-center gap-1.5 shrink-0">
+                {/* Status Indicator & Chevron */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {level.isComingSoon ? (
                     <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono tracking-wider border border-[var(--border-color)]">
-                      COMING SOON
+                      오픈 예정
                     </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {user && (
+                  ) : (
+                    user && openLevelLessons.length > 0 && (
                       <span className="text-xs text-[var(--text-secondary)] font-mono opacity-80">
-                        {levelCompletedCount}/{level.lessons.length}
+                        {levelCompletedCount}/{openLevelLessons.length}
                       </span>
-                    )}
-                    <div className={`transition-transform duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] shrink-0 ${
-                      isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
-                    }`}>
-                      <ChevronDown className="w-5 h-5 stroke-[1.8]" />
-                    </div>
+                    )
+                  )}
+                  <div className={`transition-transform duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] shrink-0 ${
+                    isOpen ? 'rotate-180 text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] opacity-50 group-hover/btn:opacity-100 group-hover/btn:text-[var(--accent-orange)]'
+                  }`}>
+                    <ChevronDown className="w-5 h-5 stroke-[1.8]" />
                   </div>
-                )}
+                </div>
               </button>
 
               {/* Accordion Content - Apple Snappy Transition */}
@@ -192,6 +187,43 @@ export default function Accordion({ levels }: AccordionProps) {
                 <div className="p-3 sm:p-5 space-y-2">
                   {level.lessons.map((lesson) => {
                     const completed = Boolean(user && isLessonCompleted(lesson.id));
+                    const isComingSoon = Boolean(lesson.isComingSoon);
+
+                    if (isComingSoon) {
+                      return (
+                        <div
+                          key={lesson.id}
+                          className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card transition-all duration-300 shadow-sm border border-[var(--border-color)]/70 opacity-70 select-none pointer-events-none cursor-default"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center shrink-0 bg-[var(--bg-main)]/60 text-[var(--text-secondary)] shadow-2xs">
+                              <Clock className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[1.8]" />
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-sm sm:text-base font-semibold text-[var(--text-primary)] truncate">
+                                  {lesson.title}
+                                </span>
+
+                                {lesson.isProOnly && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 shrink-0">
+                                    <Crown className="w-3 h-3 stroke-[2.2]" />
+                                    PRO
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            <span className="text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono border border-[var(--border-color)]">
+                              오픈 예정
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
 
                     return (
                       <Link

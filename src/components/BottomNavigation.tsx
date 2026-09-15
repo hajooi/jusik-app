@@ -18,6 +18,8 @@ import {
   PieChart, 
   TrendingUp, 
   Cpu, 
+  Bot,
+  Crown,
   Sparkles,
   HelpCircle,
   LineChart,
@@ -35,6 +37,7 @@ const LEVEL_ICON_MAP: Record<string, any> = {
   PieChart,
   TrendingUp,
   Cpu,
+  Bot,
 };
 
 const TOOLS_DIRECTORY = [
@@ -387,8 +390,7 @@ export default function BottomNavigation() {
     }
   }, [currentLessonId]);
 
-  const toggleLevel = (levelId: string, isComingSoon?: boolean) => {
-    if (isComingSoon) return;
+  const toggleLevel = (levelId: string) => {
     setOpenLevels((prev) => ({
       ...prev,
       [levelId]: !prev[levelId],
@@ -565,9 +567,11 @@ export default function BottomNavigation() {
   // Active indicator state for smooth animated pill position
   const activeIndicatorTab = isExpanded ? activeTab : (isOnTools ? 'tools' : 'curriculum');
 
-  // Stats calculation
-  const completedCount = completedLessons?.length || 0;
-  const totalLessonCount = CURRICULUM_DATA.reduce((acc, lvl) => acc + lvl.lessons.length, 0);
+  // Stats calculation (오픈된 강의 기준)
+  const allLessons = CURRICULUM_DATA.flatMap((lvl) => lvl.lessons);
+  const openLessons = allLessons.filter((l) => !l.isComingSoon);
+  const totalLessonCount = openLessons.length;
+  const completedCount = completedLessons?.filter((id) => openLessons.some((l) => l.id === id)).length || 0;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
 
   // Animated progress bar fill state (triggers smooth 0.7s fill upon expand)
@@ -818,7 +822,7 @@ export default function BottomNavigation() {
                         {/* Clickable Level Header Button */}
                         <button
                           type="button"
-                          onClick={() => toggleLevel(level.id, level.isComingSoon)}
+                          onClick={() => toggleLevel(level.id)}
                           className="w-full flex items-center justify-between p-3 sm:p-3.5 text-left cursor-pointer select-none hover:bg-[var(--card-hover)]/70 hover:text-[var(--accent-orange)] transition-all"
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -832,6 +836,11 @@ export default function BottomNavigation() {
                               <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
                                 Lv.{level.levelNumber}
                               </span>
+                              {level.isProOnly && (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-mono font-extrabold px-1.5 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 shrink-0">
+                                  <Crown className="w-2.5 h-2.5" /> PRO
+                                </span>
+                              )}
                               {isLevelFullyCompleted && !level.isComingSoon && (
                                 <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[var(--accent-green)] text-white shrink-0">
                                   <CheckCircle2 className="w-2.5 h-2.5" /> 완료
@@ -842,7 +851,7 @@ export default function BottomNavigation() {
                           <div className="flex items-center gap-1.5 shrink-0 ml-2">
                             {level.isComingSoon ? (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--text-secondary)] font-mono">
-                                준비 중
+                                오픈 예정
                               </span>
                             ) : (
                               <span className="text-[10px] text-[var(--text-secondary)] font-mono font-bold">
@@ -860,6 +869,38 @@ export default function BottomNavigation() {
                               {level.lessons.map((lesson) => {
                                 const isActive = lesson.id === currentLessonId;
                                 const completed = Boolean(user && isLessonCompleted(lesson.id));
+                                const isComingSoon = Boolean(lesson.isComingSoon);
+
+                                if (isComingSoon) {
+                                  return (
+                                    <div
+                                      key={lesson.id}
+                                      className="flex items-center justify-between gap-2.5 p-2.5 rounded-xl text-xs border border-[var(--border-color)]/50 bg-[var(--card-hover)]/20 opacity-70 select-none pointer-events-none cursor-default"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[var(--card-hover)] text-[var(--text-secondary)]">
+                                          <Clock className="w-3.5 h-3.5 stroke-[1.8]" />
+                                        </div>
+                                        <div className="min-w-0 flex-1 flex items-center gap-1.5 flex-wrap">
+                                          <span className="truncate font-medium text-[var(--text-primary)]">
+                                            {lesson.title}
+                                          </span>
+                                          {lesson.isProOnly && (
+                                            <span className="inline-flex items-center gap-0.5 text-[8px] font-mono font-extrabold px-1.5 py-0.2 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 shrink-0">
+                                              <Crown className="w-2.5 h-2.5" /> PRO
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="shrink-0">
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] font-mono">
+                                          오픈 예정
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+
                                 return (
                                   <Link
                                     key={lesson.id}
@@ -993,6 +1034,9 @@ export default function BottomNavigation() {
               </div>
             )}
           </div>
+
+          {/* Bottom subtle gradient fadeout (폭을 매우 얇고 은은하게 적용) */}
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-5 sm:h-7 bg-gradient-to-t from-[var(--card-surface)] to-transparent z-20 rounded-b-3xl" />
         </div>
       </div>
     </>

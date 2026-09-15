@@ -38,7 +38,8 @@ import {
   Scale,
   Ghost,
   RefreshCw,
-  Check
+  Check,
+  Crown
 } from 'lucide-react';
 
 function renderStepIcon(iconName?: string) {
@@ -82,7 +83,7 @@ function renderStepIcon(iconName?: string) {
 }
 
 export async function generateStaticParams() {
-  const lessons = getAllLessons();
+  const lessons = getAllLessons().filter((l) => !l.isComingSoon);
   return lessons.map((lesson) => ({
     id: lesson.id,
   }));
@@ -91,16 +92,16 @@ export async function generateStaticParams() {
 export default function LessonDetailPage({ params }: { params: { id: string } }) {
   const data = getLessonById(params.id);
 
-  if (!data) {
+  if (!data || data.lesson.isComingSoon) {
     notFound();
   }
 
   const { lesson, level } = data;
-  const allLessons = getAllLessons();
-  const currentIndex = allLessons.findIndex((l) => l.id === lesson.id);
+  const openLessons = getAllLessons().filter((l) => !l.isComingSoon);
+  const currentIndex = openLessons.findIndex((l) => l.id === lesson.id);
 
-  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
-  const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+  const prevLesson = currentIndex > 0 ? openLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex >= 0 && currentIndex < openLessons.length - 1 ? openLessons[currentIndex + 1] : null;
 
   const courseJsonLd = {
     '@context': 'https://schema.org',

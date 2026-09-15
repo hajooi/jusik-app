@@ -68,6 +68,8 @@ export interface Lesson {
   interactiveToolType?: 'db_cta' | 'type_test' | 'calc' | 'ai_prompt';
   modules?: LessonModule[];
   bookSections?: BookSection[];
+  isComingSoon?: boolean;
+  isProOnly?: boolean;
 }
 
 export interface Level {
@@ -733,6 +735,17 @@ export const CURRICULUM_DATA: Level[] = [
             ]
           }
         ]
+      },
+      {
+        id: "lv1-7",
+        levelId: "lv1",
+        lessonNumber: 7,
+        title: "7강. 장기 보유 원칙",
+        subtitle: "단기 파동에 흔들리지 않고 자본의 열매를 끝까지 수확하는 힘",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
       }
     ]
   },
@@ -745,7 +758,85 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "자산 배분",
     iconName: "PieChart",
     isComingSoon: true,
-    lessons: []
+    lessons: [
+      {
+        id: "lv2-1",
+        levelId: "lv2",
+        lessonNumber: 1,
+        title: "1강. 자산 배분의 원리",
+        subtitle: "계란을 한 바구니에 담지 않는 진짜 이유와 자산 간 상관관계",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-2",
+        levelId: "lv2",
+        lessonNumber: 2,
+        title: "2강. 대체 자산",
+        subtitle: "주식과 반대로 움직이는 국채, 금, 현금성 자산의 역할",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-3",
+        levelId: "lv2",
+        lessonNumber: 3,
+        title: "3강. 추천 전략",
+        subtitle: "사계절 경제 위기에도 흔들리지 않는 올웨더와 영구 포트폴리오",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-4",
+        levelId: "lv2",
+        lessonNumber: 4,
+        title: "4강. 투자 성향",
+        subtitle: "내 위험 감수 성향과 멘탈 그릇에 딱 맞는 최적의 비중 찾기",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-5",
+        levelId: "lv2",
+        lessonNumber: 5,
+        title: "5강. 전략 검증",
+        subtitle: "과거 거대한 금융 위기에서도 살아남았는지 백테스트로 검증하기",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-6",
+        levelId: "lv2",
+        lessonNumber: 6,
+        title: "6강. 리밸런싱",
+        subtitle: "비싸진 자산은 일부 팔고 저렴해진 자산은 더 담는 기계적 규칙",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv2-7",
+        levelId: "lv2",
+        lessonNumber: 7,
+        title: "7강. 투자일지",
+        subtitle: "시장의 소음에 흔들리지 않고 원칙을 지키는 나만의 기록 습관",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      }
+    ]
   },
   {
     id: "lv3",
@@ -756,7 +847,74 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "절세와 계좌",
     iconName: "ShieldCheck",
     isComingSoon: true,
-    lessons: []
+    lessons: [
+      {
+        id: "lv3-1",
+        levelId: "lv3",
+        lessonNumber: 1,
+        title: "1강. ISA 계좌",
+        subtitle: "비과세와 손익 통산 혜택을 극대화하는 국민 만능 절세 통장",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv3-2",
+        levelId: "lv3",
+        lessonNumber: 2,
+        title: "2강. 연금저축과 IRP",
+        subtitle: "연말정산 세액공제 환급금부터 든든한 노후 연금 수령 전략까지",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv3-3",
+        levelId: "lv3",
+        lessonNumber: 3,
+        title: "3강. 양도소득세",
+        subtitle: "미국 주식 연 250만 원 기본공제와 세금 부과 원리 정복",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv3-4",
+        levelId: "lv3",
+        lessonNumber: 4,
+        title: "4강. 양도소득세 신고",
+        subtitle: "국세청 홈택스에서 손실 상계 처리와 5월 종합신고 완벽 가이드",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv3-5",
+        levelId: "lv3",
+        lessonNumber: 5,
+        title: "5강. 계좌별 활용 전략",
+        subtitle: "일반 계좌 vs ISA vs 연금저축, 어디서 어떤 자산을 담아야 유리할까?",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv3-6",
+        levelId: "lv3",
+        lessonNumber: 6,
+        title: "6강. 증여와 절세",
+        subtitle: "가족 간 10년 주기 비과세 증여 한도와 합법적 부의 이전 노하우",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      }
+    ]
   },
   {
     id: "lv4",
@@ -767,7 +925,133 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "초과 수익 전략",
     iconName: "TrendingUp",
     isComingSoon: true,
-    lessons: []
+    lessons: [
+      {
+        id: "lv4-1",
+        levelId: "lv4",
+        lessonNumber: 1,
+        title: "1강. 거시경제와 금리",
+        subtitle: "미국 연준(Fed)의 기준금리 결정과 글로벌 자산 시장의 나침반",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-2",
+        levelId: "lv4",
+        lessonNumber: 2,
+        title: "2강. 경기 사이클",
+        subtitle: "회복기, 호황기, 후퇴기, 침체기 4단계 국면별 자산 배분 대응법",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-3",
+        levelId: "lv4",
+        lessonNumber: 3,
+        title: "3강. 재무제표",
+        subtitle: "초보자도 5분 만에 핵심만 파악하는 기업의 실제 돈 버는 실력",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-4",
+        levelId: "lv4",
+        lessonNumber: 4,
+        title: "4강. 차트 분석",
+        subtitle: "이동평균선과 지지·저항선을 통해 시장의 심리와 추세 읽기",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-5",
+        levelId: "lv4",
+        lessonNumber: 5,
+        title: "5강. 코어-위성 전략",
+        subtitle: "안정적인 시장 지수 코어와 고수익 추구 위성 자산의 이상적 조화",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-6",
+        levelId: "lv4",
+        lessonNumber: 6,
+        title: "6강. 추세추종",
+        subtitle: "강하게 오르는 자산에 올라타고 꺾일 때 지키는 모멘텀 투자의 원리",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-7",
+        levelId: "lv4",
+        lessonNumber: 7,
+        title: "7강. 레버리지",
+        subtitle: "변동성 끌림(음의 복리) 현상과 레버리지 ETF의 양날의 검 주의사항",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv4-8",
+        levelId: "lv4",
+        lessonNumber: 8,
+        title: "8강. 샤프 지수와 켈리 공식",
+        subtitle: "위험 대비 초과 수익률 측정과 파산을 피하는 최적의 자금 베팅 비율",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      },
+      {
+        id: "lv4-9",
+        levelId: "lv4",
+        lessonNumber: 9,
+        title: "9강. 밸류에이션",
+        subtitle: "PER, PBR, EV/EBITDA, DCF로 측정하는 기업의 내재 가치 평가",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      },
+      {
+        id: "lv4-10",
+        levelId: "lv4",
+        lessonNumber: 10,
+        title: "10강. 팩터 투자",
+        subtitle: "가치, 퀄리티, 모멘텀, 저변동성, 소형주 팩터로 시장 평균 이기기",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      },
+      {
+        id: "lv4-11",
+        levelId: "lv4",
+        lessonNumber: 11,
+        title: "11강. 최적화 모델",
+        subtitle: "마코위츠의 평균-분산 최적화와 블랙-리터만 모델 실전 응용",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      }
+    ]
   },
   {
     id: "lv5",
@@ -778,7 +1062,88 @@ export const CURRICULUM_DATA: Level[] = [
     badgeText: "투자 자동화",
     iconName: "Bot",
     isComingSoon: true,
-    lessons: []
+    lessons: [
+      {
+        id: "lv5-1",
+        levelId: "lv5",
+        lessonNumber: 1,
+        title: "1강. 주식 비서 만들기",
+        subtitle: "생성형 AI를 나만의 전문 금융 리서치 및 뉴스 브리핑 비서로 구축하기",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv5-2",
+        levelId: "lv5",
+        lessonNumber: 2,
+        title: "2강. 전략 백테스트",
+        subtitle: "파이썬과 과거 금융 데이터를 활용해 전략의 승률과 MDD 정밀 검증",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv5-3",
+        levelId: "lv5",
+        lessonNumber: 3,
+        title: "3강. 신호 알림 봇",
+        subtitle: "매매 조건 충족 시 텔레그램과 디스코드로 실시간 신호 봇 전송",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv5-4",
+        levelId: "lv5",
+        lessonNumber: 4,
+        title: "4강. 증권사 자동 주문",
+        subtitle: "증권사 Open API 인증키 발급 및 파이썬을 활용한 실전 자동 주문",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true
+      },
+      {
+        id: "lv5-5",
+        levelId: "lv5",
+        lessonNumber: 5,
+        title: "5강. 동적 자산배분",
+        subtitle: "시장의 추세 지표에 따라 자산 배분 비중을 실시간 재산출하는 알고리즘",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      },
+      {
+        id: "lv5-6",
+        levelId: "lv5",
+        lessonNumber: 6,
+        title: "6강. 자동 리밸런싱",
+        subtitle: "클라우드 서버에서 주기적으로 포트폴리오를 계산하고 자동 실행",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      },
+      {
+        id: "lv5-7",
+        levelId: "lv5",
+        lessonNumber: 7,
+        title: "7강. 올인원 템플릿",
+        subtitle: "설정 파일 입력만으로 즉시 구동되는 전자동 시스템 패키지 템플릿",
+        youtubeId: "",
+        duration: "오픈 예정",
+        cardNewsTitles: [],
+        isComingSoon: true,
+        isProOnly: true
+      }
+    ]
   }
 ];
 
