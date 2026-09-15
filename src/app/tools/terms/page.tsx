@@ -582,7 +582,7 @@ function TermsQuizContent() {
                     <span>오픈 기념 이벤트</span>
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30">
-                    9/9(수) ~ 9/21(월) 00:00
+                    9/9(수) ~ 9/20(일) 24:00
                   </span>
                 </div>
                 <span className="text-xs font-extrabold text-[var(--accent-orange)] font-mono">
@@ -1219,7 +1219,7 @@ function TermsQuizContent() {
                     지금 이 결과 화면(점수와 소요 시간)을 캡처하여 구글 폼에 제출해주세요!
                   </p>
                   <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] font-medium">
-                    주식부엉을 못 이겨도, 점수가 낮아도 완주 인증만 하면 참가상 추첨 대상에 자동 포함됩니다. (~9/21 00:00까지)
+                    주식부엉을 못 이겨도, 점수가 낮아도 완주 인증만 하면 참가상 추첨 대상에 자동 포함됩니다. (~9/20(일) 24:00까지)
                   </p>
                 </div>
 

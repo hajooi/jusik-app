@@ -76,7 +76,7 @@ export default function AnnouncementRibbon() {
         {/* Optical Center: Single Quiz Event Banner */}
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">
           <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 font-bold text-[10px] sm:text-[10.5px] border border-amber-500/30 tracking-tight shrink-0">
-            ~9/21
+            ~9/20
           </span>
 
           <Link
