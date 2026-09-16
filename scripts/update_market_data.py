@@ -94,6 +94,55 @@ def send_telegram_error(subject: str, message: str):
     except Exception as e:
         print(f"Failed to send telegram error: {e}")
 
+def send_telegram_success(summary: dict):
+    """월간 자동화 작업 완료 후 상세 결과를 텔레그램으로 보고합니다."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    run_date = datetime.datetime.now().strftime('%Y년 %m월 %d일')
+    lines = [
+        f"📊 <b>[jusik.app 월간 자동화 완료 보고]</b>",
+        f"🗓 실행일: {run_date}",
+        "",
+        "━━━━━━━━━━━━━━━━",
+        "📈 <b>주가 데이터 갱신</b>",
+        f"  • 갱신 심볼: {summary.get('symbols_updated', 0)}개",
+        f"  • 추가된 월봉: {summary.get('monthly_added', 0)}개",
+        f"  • 추가된 주봉: {summary.get('weekly_added', 0)}개",
+    ]
+    if summary.get('failed_symbols'):
+        lines.append(f"  ⚠️ 수집 실패: {', '.join(summary['failed_symbols'])}")
+    lines += [
+        "",
+        "📅 <b>증시 캘린더 동기화</b>",
+        f"  • 실적 이벤트 추가/갱신: {summary.get('calendar_updated', 0)}건",
+        f"  • 3개월 이전 이벤트 정리: {summary.get('calendar_pruned', 0)}건",
+        "",
+        "🧮 <b>백테스트 지표 재계산</b>",
+        f"  • CAGR·변동성·MA전략 갱신: {summary.get('backtest_assets', 0)}개 종목",
+        "",
+        "━━━━━━━━━━━━━━━━",
+        "✅ 모든 작업 정상 완료",
+    ]
+    text = "\n".join(lines)
+    payload = json.dumps({
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "HTML"
+    }).encode('utf-8')
+    try:
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            pass
+        print("Telegram success report sent.")
+    except Exception as e:
+        print(f"Failed to send telegram success report: {e}")
+
+
+
 def calculate_metrics(m_series, w_series):
     if not m_series or len(m_series) < 12:
         return 0.1, 0.2, 0.11, 0.12, 0.13, 0.14
@@ -168,6 +217,8 @@ def update_historical_prices():
 
     print(f"Fetching market data from {start_date} (Current Month: {current_ym})...")
     failed_symbols = []
+    total_monthly_added = 0
+    total_weekly_added = 0
 
     for asset_id, yf_symbol in SYMBOLS.items():
         try:
@@ -202,6 +253,7 @@ def update_historical_prices():
                     m_series[m_index_map[ym]]['price'] = price
                 else:
                     m_series.append({'date': str(ym), 'price': price})
+                    total_monthly_added += 1
 
             m_series.sort(key=lambda x: x['date'])
             monthly[asset_id] = m_series
@@ -228,6 +280,7 @@ def update_historical_prices():
                     w_series[w_index_map[w_date]]['price'] = price
                 else:
                     w_series.append({'date': w_date, 'price': price})
+                    total_weekly_added += 1
 
             w_series.sort(key=lambda x: x['date'])
             weekly[asset_id] = w_series
@@ -249,6 +302,14 @@ def update_historical_prices():
     with open(HISTORICAL_PRICES_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"Successfully saved updated data to {HISTORICAL_PRICES_PATH}")
+
+    return {
+        'symbols_updated': len(SYMBOLS) - len(failed_symbols),
+        'monthly_added': total_monthly_added,
+        'weekly_added': total_weekly_added,
+        'failed_symbols': failed_symbols,
+    }
+
 
 def update_backtest_data():
     try:
@@ -277,7 +338,9 @@ def update_backtest_data():
             
         with open(BACKTEST_DATA_PATH, 'w', encoding='utf-8') as f:
             json.dump(backtest, f, indent=2, ensure_ascii=False)
+        asset_count = len(backtest.get('assets', []))
         print(f"Successfully recalculated all asset metrics in {BACKTEST_DATA_PATH} (lastUpdated: {today_str})")
+        return asset_count
     except Exception as e:
         print(f"Error updating {BACKTEST_DATA_PATH}: {e}")
         send_telegram_error("백테스트 데이터 계산 실패", str(e))
@@ -305,15 +368,34 @@ def update_earnings_calendar():
 
         print(f"Syncing earnings calendar for {len(stocks)} simulator stocks...")
 
-        # 1. 시뮬레이터에서 제거된 종목의 미래 실적 이벤트 정리
-        today_str = datetime.date.today().strftime('%Y-%m-%d')
+        today = datetime.date.today()
+        today_str = today.strftime('%Y-%m-%d')
+        # 슬라이딩 윈도우: 오늘 기준 3개월 이전 컷오프 (과거 보관 범위)
+        cutoff_date = (today - datetime.timedelta(days=91)).strftime('%Y-%m-%d')
+        cutoff_date_dot = (today - datetime.timedelta(days=91)).strftime('%Y.%m.%d')
+
+        # 1. 슬라이딩 윈도우 정리: 3개월 이전 이벤트 삭제 + 제거된 종목 미래 실적 제외
+        pruned_count = 0
         filtered_events = []
         for ev in events:
+            ev_date_raw = ev.get('date', '')
+            # 날짜 포맷 정규화 (YYYY.MM.DD → YYYY-MM-DD) for comparison
+            ev_date = ev_date_raw.replace('.', '-') if '.' in ev_date_raw else ev_date_raw
+
+            # 3개월 이전 이벤트 삭제 (슬라이딩 윈도우)
+            if ev_date < cutoff_date:
+                pruned_count += 1
+                print(f"  [Prune] Removing old event: {ev.get('id')} ({ev_date})")
+                continue
+
+            # 시뮬레이터에 없고 미래 발표 일정인 종목 실적 이벤트 제외
             if ev.get('type') == 'earnings' and ev.get('ticker'):
-                # 시뮬레이터에 없고 미래 발표 일정인 경우 제외
-                if ev['ticker'] not in stock_ids and ev.get('date', '') >= today_str:
+                if ev['ticker'] not in stock_ids and ev_date >= today_str:
                     continue
+
             filtered_events.append(ev)
+
+        print(f"[Calendar] Pruned {pruned_count} old events (before {cutoff_date})")
 
         # 2. 30개 종목의 차기 실적발표일 및 컨센서스 수집
         updated_count = 0
@@ -391,14 +473,26 @@ def update_earnings_calendar():
         with open(CALENDAR_PATH, 'w', encoding='utf-8') as f:
             f.write(updated_code)
 
-        print(f"Successfully updated earnings calendar in {CALENDAR_PATH} ({updated_count} events updated/added)")
+        print(f"Successfully updated earnings calendar in {CALENDAR_PATH} ({updated_count} events updated/added, {pruned_count} pruned)")
+        return {'calendar_updated': updated_count, 'calendar_pruned': pruned_count}
     except Exception as e:
         print(f"Error updating earnings calendar: {e}")
         send_telegram_error("증시 캘린더 실적 이벤트 동기화 실패", str(e))
         sys.exit(1)
 
 if __name__ == '__main__':
-    update_historical_prices()
-    update_backtest_data()
-    update_earnings_calendar()
+    price_summary = update_historical_prices()
+    backtest_count = update_backtest_data()
+    calendar_summary = update_earnings_calendar()
+
+    # 전체 작업 완료 후 텔레그램 상세 성공 보고
+    send_telegram_success({
+        'symbols_updated': price_summary.get('symbols_updated', 0),
+        'monthly_added': price_summary.get('monthly_added', 0),
+        'weekly_added': price_summary.get('weekly_added', 0),
+        'failed_symbols': price_summary.get('failed_symbols', []),
+        'calendar_updated': calendar_summary.get('calendar_updated', 0),
+        'calendar_pruned': calendar_summary.get('calendar_pruned', 0),
+        'backtest_assets': backtest_count or 0,
+    })
 

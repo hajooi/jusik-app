@@ -2,10 +2,10 @@ name: Daily Market Data Sync
 
 on:
   schedule:
-    # 월~금 22:00 UTC = 한국 시간(KST) 화~토 07:00
-    # ▸ 미국장 마감(표준시 21:00 UTC, 서머타임 20:00 UTC) 이후 1~2시간 후 실행 → 미국 공식 종가 완전 정착
-    # ▸ 한국장 개장(09:00 KST) 전 넉넉한 시간대이며, 혹여 지연으로 장 개장 후 실행되어도 마감 종가 추출 로직으로 안전
-    - cron: '0 22 * * 1-5'
+    # 월~금 01:00 UTC = 한국 시간(KST) 월~금 10:00
+    # ▸ 미국장 마감(EDT 16:00 = UTC 20:00) 이후 5시간 경과 → Yahoo Finance 종가 완전 정산 보장
+    # ▸ 한국장 개장 중(09:00~15:30 KST)이지만 코드 내 isOngoingSession 필터 및 Naver 15:30 판단 로직으로 전일 종가만 수집
+    - cron: '0 1 * * 1-5'
   workflow_dispatch: # 깃허브 Actions 탭에서 버튼 클릭으로 즉시 수동 실행 가능
 
 jobs:

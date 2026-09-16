@@ -5,6 +5,7 @@ import { runSiteHealthAudit } from '@/lib/observability/audit';
 import { syncMarketCalendarEvents } from '@/utils/marketCalendarSync';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Vercel 서버리스 최대 실행 시간 60초 (Pro: 최대 300초)
 
 interface YahooMeta {
   regularMarketPrice: number;
@@ -63,12 +64,20 @@ async function fetchYahooData(symbol: string): Promise<{
 } | null> {
   try {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8초 하드 타임아웃 (무응답 방지)
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       console.warn(`Yahoo fetch HTTP ${res.status} for ${symbol}`);
@@ -449,6 +458,7 @@ async function fetchNaverCommodity(code: 'OIL_CL' | 'CMDT_GC'): Promise<NaverInd
 }
 
 // Yahoo 데이터의 최신 포인트가 오늘 기준 N일 이상 오래됐는지 확인
+// 월요일 실행 시 금요일 종가(3일 전)가 stale로 잘못 판정되는 것을 방지하기 위해 주말 버퍼 적용
 function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
   if (!points || points.length === 0) return true;
   const lastDate = points[points.length - 1].date; // 'YYYY.MM.DD'
@@ -457,7 +467,11 @@ function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
   const nowKst = Date.now() + 9 * 60 * 60 * 1000; // KST 기준 현재
   const nowMidnightKst = nowKst - (nowKst % 86400000); // KST 자정
   const diffDays = (nowMidnightKst - lastMs) / 86400000;
-  return diffDays > thresholdDays;
+  // 월요일(KST)에 실행하는 경우 주말 2일을 허용 버퍼로 추가
+  // (금요일 종가 = 3일 전이지만 정상 — stale 오판 방지)
+  const kstDow = new Date(nowKst).getUTCDay(); // 0=일, 1=월 ... 6=토
+  const weekendBuffer = kstDow === 1 ? 2 : 0;
+  return diffDays > (thresholdDays + weekendBuffer);
 }
 
 export async function GET(request: Request) {
