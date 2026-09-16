@@ -75,10 +75,10 @@ function EventCard({ event, isPast }: EventCardProps) {
   const typeCfg = EVENT_TYPE_CONFIG[event.type];
   const impactCfg = IMPACT_TAG_CONFIG[event.impactTag];
   return (
-    <div className={`p-4 rounded-2xl border transition-all ${
+    <div className={`p-4 rounded-2xl border ${
       isPast 
-        ? 'border-[var(--border-color)]/60 bg-[var(--bg-main)]/60 opacity-80 hover:opacity-100' 
-        : 'border-[var(--border-color)]/90 bg-[var(--bg-main)]/80 hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/40 shadow-2xs'
+        ? 'border-[var(--border-color)]/60 bg-[var(--bg-main)]/60 opacity-80' 
+        : 'border-[var(--border-color)]/90 bg-[var(--bg-main)]/80 shadow-2xs'
     }`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -488,7 +488,7 @@ export default function MarketCalendarSection() {
                           {ev.region === 'kr' ? '국내' : '미국/해외'}
                         </span>
                       </div>
-                      <div className={isPast ? 'opacity-65 hover:opacity-100 transition-opacity' : ''}>
+                      <div className={isPast ? 'opacity-65' : ''}>
                         <EventCard event={ev} />
                       </div>
                     </RevealOnScroll>
