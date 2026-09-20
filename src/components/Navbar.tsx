@@ -7,7 +7,6 @@ import { BookmarkCheck, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import AuthPopover from '@/components/AuthPopover';
 import AdminModal from '@/components/AdminModal';
-import AnnouncementRibbon from '@/components/AnnouncementRibbon';
 import BrokerBenefitBanner from '@/components/BrokerBenefitBanner';
 
 export default function Navbar() {
@@ -75,10 +74,7 @@ export default function Navbar() {
           />
         </div>
 
-        {/* 1. Top Announcement Ribbon Banner */}
-        <AnnouncementRibbon />
-
-        {/* 2. Main Navbar Bar */}
+        {/* Main Navbar Bar */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             
