@@ -21,12 +21,10 @@ const RAW_TOOLS: ToolItem[] = [
   {
     id: 'terms',
     title: '주식 용어 퀴즈',
-    description: '주식 필수 기초 용어 퀴즈 (커피 30잔 이벤트)',
+    description: '주식 시장 필수 기초 용어 퀴즈',
     href: '/tools/terms',
     icon: HelpCircle,
     isComingSoon: false,
-    hasEvent: true,
-    eventBadge: 'EVENT ☕',
   },
   {
     id: 'type',
