@@ -832,13 +832,22 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       }
 
       const uMeta = attachUserMetadata(entry, userDb);
-      const pastPercentile = entry.percentile ?? uMeta.termsQuizBest?.percentile;
 
       // 성취 보존(High-Water Mark) 원칙:
-      // 과거 정당하게 획득한 최고 백분위(pastPercentile)와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
+      // 경로(termsQuizEntries 배열 vs termsQuizBest only)에 무관하게
+      // entry.percentile, uMeta.termsQuizBest?.percentile, userDb의 해당 레벨 termsQuizEntries 세 곳을 모두 탐색하여
+      // 정당하게 달성한 역대 최소 백분위를 확실히 찾아 High-Water Mark 적용
+      const uRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      const savedLevelPercentile = uRecord?.termsQuizEntries?.find((q: TermsQuizLeaderboardEntry) => q.level === entry.level)?.percentile;
+      const candidates = [entry.percentile, uMeta.termsQuizBest?.percentile, savedLevelPercentile].filter(
+        (v): v is number => typeof v === 'number' && v > 0
+      );
+      const pastPercentile = candidates.length > 0 ? Math.min(...candidates) : undefined;
+
+      // 과거 정당하게 획득한 최고 백분위와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
       // 단, 만점 미달자(14개 이하)인데 1%로 오염되었던 비정상 기록은 배제
       let effectivePercentile = rawDynamicPercentile;
-      if (typeof pastPercentile === 'number' && pastPercentile > 0) {
+      if (typeof pastPercentile === 'number') {
         const isCorruptedTop1 = entry.correctCount < (entry.totalQuestions || 15) && pastPercentile === 1;
         if (!isCorruptedTop1) {
           effectivePercentile = Math.min(pastPercentile, rawDynamicPercentile);
@@ -938,13 +947,22 @@ export async function getTermsQuizEntriesAsync(level?: number): Promise<TermsQui
       }
 
       const uMeta = attachUserMetadata(entry, userDb);
-      const pastPercentile = entry.percentile ?? uMeta.termsQuizBest?.percentile;
 
       // 성취 보존(High-Water Mark) 원칙:
-      // 과거 정당하게 획득한 최고 백분위(pastPercentile)와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
+      // 경로(termsQuizEntries 배열 vs termsQuizBest only)에 무관하게
+      // entry.percentile, uMeta.termsQuizBest?.percentile, userDb의 해당 레벨 termsQuizEntries 세 곳을 모두 탐색하여
+      // 정당하게 달성한 역대 최소 백분위를 확실히 찾아 High-Water Mark 적용
+      const uRecord = userDb[entry.nickname] || userDb[entry.nickname.toLowerCase()];
+      const savedLevelPercentile = uRecord?.termsQuizEntries?.find((q: TermsQuizLeaderboardEntry) => q.level === entry.level)?.percentile;
+      const candidates = [entry.percentile, uMeta.termsQuizBest?.percentile, savedLevelPercentile].filter(
+        (v): v is number => typeof v === 'number' && v > 0
+      );
+      const pastPercentile = candidates.length > 0 ? Math.min(...candidates) : undefined;
+
+      // 과거 정당하게 획득한 최고 백분위와 현재 실시간 dynamicPercentile 중 더 우수한(숫자가 작은) 것을 채택
       // 단, 만점 미달자(14개 이하)인데 1%로 오염되었던 비정상 기록은 배제
       let effectivePercentile = rawDynamicPercentile;
-      if (typeof pastPercentile === 'number' && pastPercentile > 0) {
+      if (typeof pastPercentile === 'number') {
         const isCorruptedTop1 = entry.correctCount < (entry.totalQuestions || 15) && pastPercentile === 1;
         if (!isCorruptedTop1) {
           effectivePercentile = Math.min(pastPercentile, rawDynamicPercentile);
