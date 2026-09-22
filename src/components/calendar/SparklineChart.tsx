@@ -574,7 +574,7 @@ export default function SparklineChart({
                 {dragInfo.isPositive ? '+' : ''}{dragInfo.diffPercent.toFixed(2)}%
               </span>
               <span className="text-[10px] text-[var(--text-secondary)]/80 font-medium hidden md:inline shrink-0">
-                ({dragInfo.startVal.toLocaleString(undefined, { maximumFractionDigits: 1 })} ➔ {dragInfo.endVal.toLocaleString(undefined, { maximumFractionDigits: 1 })})
+                ({dragInfo.startVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ➔ {dragInfo.endVal.toLocaleString(undefined, { maximumFractionDigits: 2 })})
               </span>
             </div>
           </div>

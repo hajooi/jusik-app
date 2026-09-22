@@ -1,8 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MARKET_SNAPSHOT, ASSET_CHARTS, TODAY_MARKET_NEWS, MarketNewsItem } from '@/data/marketCalendar';
-import { TrendingDown, TrendingUp, ExternalLink, Newspaper, Compass, Coins } from 'lucide-react';
+import {
+  MARKET_SNAPSHOT,
+  ASSET_CHARTS,
+  TODAY_MARKET_NEWS,
+  MarketNewsItem,
+  INDICATOR_METADATA,
+  MACRO_ASSET_CHARTS,
+  MACRO_SUMMARY_ITEMS,
+} from '@/data/marketCalendar';
+import { TrendingDown, TrendingUp, ExternalLink, Newspaper, Activity, Coins } from 'lucide-react';
 import SparklineChart from './SparklineChart';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
@@ -202,7 +210,12 @@ export default function MarketWeatherSection({
     snapshot;
   const newsList: MarketNewsItem[] = (snapshot as any)?.todayNews || TODAY_MARKET_NEWS;
 
-  const activeChart = charts[selectedAssetKey] ?? charts.SPX ?? ASSET_CHARTS.SPX;
+  const currentMeta = INDICATOR_METADATA[selectedAssetKey] ?? INDICATOR_METADATA.SPX;
+  const activeChart =
+    charts[selectedAssetKey] ??
+    MACRO_ASSET_CHARTS[selectedAssetKey] ??
+    charts.SPX ??
+    ASSET_CHARTS.SPX;
   const barColor = FG_BAR_COLOR(fearGreedIndex);
 
   return (
@@ -273,15 +286,22 @@ export default function MarketWeatherSection({
           {/* 1) Chart Header & Sparkline Canvas */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-              <div className="flex items-baseline gap-2">
-                <span className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] tracking-tight">
-                  {activeChart.label}
-                </span>
-                <span className="text-xs text-[var(--text-secondary)] font-medium">
-                  최근 1년 추이
-                </span>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] tracking-tight">
+                    {activeChart.label}
+                  </span>
+                  <span className="text-xs text-[var(--text-secondary)] font-medium">
+                    {currentMeta?.period ?? '최근 1년 추이'}
+                  </span>
+                </div>
+                {currentMeta?.summary && (
+                  <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] font-medium">
+                    {currentMeta.summary}
+                  </p>
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-1 sm:mt-0">
                 <span className="font-extrabold text-base sm:text-lg tabular-nums text-[var(--text-primary)] tracking-tight">
                   {activeChart.current}
                 </span>
@@ -292,7 +312,9 @@ export default function MarketWeatherSection({
                     }`}>
                       {activeChart.change}
                     </span>
-                    <span className="text-[11px] text-[var(--text-secondary)] font-medium">(1년 기준)</span>
+                    <span className="text-[11px] text-[var(--text-secondary)] font-medium">
+                      ({currentMeta?.period?.includes('5년') ? '5년 기준' : '1년 기준'})
+                    </span>
                   </div>
                 )}
               </div>
@@ -379,6 +401,42 @@ export default function MarketWeatherSection({
                     <span className="text-[11px] font-bold tabular-nums text-[var(--text-primary)]">
                       {a.value}
                     </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4) Macro Core Indicators Controls (5-Year Cycle) */}
+          <div className="space-y-2 pt-2 border-t border-[var(--border-color)]/60">
+            <div className="px-0.5">
+              <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                <span>핵심 경제 지표</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {MACRO_SUMMARY_ITEMS.map((item) => {
+                const isSelected = selectedAssetKey === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => setSelectedAssetKey(item.key)}
+                    className={`text-left rounded-xl p-3 backdrop-blur-md border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.24)] ring-1 ring-[var(--accent-orange)]/50 bg-[var(--accent-orange)]/10'
+                        : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/80 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:bg-[var(--card-hover)]'
+                    }`}
+                  >
+                    <div className="text-[var(--text-secondary)] text-[11px] font-semibold mb-1">
+                      <span className={isSelected ? 'text-[var(--accent-orange)] font-bold' : ''}>
+                        {item.name}
+                      </span>
+                    </div>
+                    <div className="text-[var(--text-primary)] font-extrabold text-sm sm:text-base tabular-nums tracking-tight">
+                      {item.value}
+                    </div>
                   </button>
                 );
               })}
