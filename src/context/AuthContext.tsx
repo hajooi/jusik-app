@@ -244,13 +244,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userPin = user.pin || '';
       const nextHasCompletedCourse = Boolean(user.hasCompletedCourse || isNowAllDone);
       const nextCount = newCompletedList.length;
+      // High-Water Mark: maxCompletedLessonsCount는 절대 줄어들지 않음
+      // 강의를 취소(toggle off)해도 과거 최대값이 보존되어야 감사 오탐 방지
+      const nextMaxCount = Math.max(user.maxCompletedLessonsCount ?? 0, nextCount);
 
       const updatedUser: UserAccount = {
         ...user,
         pin: userPin,
         completedLessons: newCompletedList,
         hasCompletedCourse: nextHasCompletedCourse,
-        maxCompletedLessonsCount: nextCount,
+        maxCompletedLessonsCount: nextMaxCount,
         lastLoginAt: new Date().toISOString()
       };
       setUser(updatedUser);
@@ -266,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             pin: userPin,
             completedLessons: newCompletedList,
             hasCompletedCourse: nextHasCompletedCourse,
-            maxCompletedLessonsCount: nextCount,
+            maxCompletedLessonsCount: nextMaxCount,
             investmentType,
             typeAnswers: isFullSurveyAnswers(typeAnswers) ? typeAnswers : undefined,
             simulatorSettings

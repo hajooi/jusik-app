@@ -474,6 +474,18 @@ function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
   return diffDays > (thresholdDays + weekendBuffer);
 }
 
+// 금·원유 선물의 targetUsDate 비교 시: 주말/공휴일로 인한 최대 4일 갭은 정상 범위로 허용
+// 예) 금요일(18일) 종가 vs 월요일(21일) 기준 → 3일 갭 → 정상 (주말)
+// 미국 주가지수(SPX)가 월요일에 먼저 정산되어도, 금·원유는 같은 주말 갭을 공유하므로 오탐 방지
+function isWeekendOrHolidayGap(lastDate: string, targetDate: string): boolean {
+  if (!lastDate || !targetDate || lastDate >= targetDate) return true;
+  const [ly, lm, ld] = lastDate.split('.').map(Number);
+  const [ty, tm, td] = targetDate.split('.').map(Number);
+  const diffMs = Date.UTC(ty, tm - 1, td) - Date.UTC(ly, lm - 1, ld);
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays <= 4; // 주말(3일) + 공휴일(1일) 최대 4일 갭은 정상
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -642,7 +654,8 @@ export async function GET(request: Request) {
 
     // 1) 국제 금 (CMDT_GC)
     const goldLastDate = gold?.points?.slice(-1)[0]?.date ?? '';
-    const isGoldStale = !gold || gold.points.length === 0 || isDataStale(gold.points, 1) || (Boolean(targetUsDate) && goldLastDate < targetUsDate);
+    const isGoldStale = !gold || gold.points.length === 0 || isDataStale(gold.points, 1)
+      || (Boolean(targetUsDate) && goldLastDate < targetUsDate && !isWeekendOrHolidayGap(goldLastDate, targetUsDate));
 
     if (isGoldStale) {
       console.log(`[Market Daily] Gold stale or missing (last: ${goldLastDate}, target: ${targetUsDate}). Triggering Naver CMDT_GC fallback...`);
@@ -674,7 +687,8 @@ export async function GET(request: Request) {
 
     // 2) 국제 유가 (OIL_CL)
     const oilLastDate = oil?.points?.slice(-1)[0]?.date ?? '';
-    const isOilStale = !oil || oil.points.length === 0 || isDataStale(oil.points, 1) || (Boolean(targetUsDate) && oilLastDate < targetUsDate);
+    const isOilStale = !oil || oil.points.length === 0 || isDataStale(oil.points, 1)
+      || (Boolean(targetUsDate) && oilLastDate < targetUsDate && !isWeekendOrHolidayGap(oilLastDate, targetUsDate));
 
     if (isOilStale) {
       console.log(`[Market Daily] Oil stale or missing (last: ${oilLastDate}, target: ${targetUsDate}). Triggering Naver OIL_CL fallback...`);

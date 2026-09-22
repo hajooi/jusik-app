@@ -83,21 +83,28 @@ export function checkUsersIntegrity(users: Record<string, ServerUserRecord>): In
       }
     }
 
-    // 수강 완료 목록 타입 무결성
+    // 수강 완료 목록 구조 무결성
+    // - 배열이 아닌 경우: 명백한 DB 손상
+    // - 배열 안에 문자열이 아닌 값이 섞인 경우: 데이터 오염
+    // ※ 갯수 증감 비교는 제거 — 사용자가 의도적으로 강의를 취소할 수 있으므로
+    //   "줄었다" 자체가 버그 증거가 될 수 없음
     if (!Array.isArray(u.completedLessons)) {
       issues.push({
         domain: 'user',
         severity: 'critical',
         title: '수강 완료 목록 비배열 손상',
-        details: `회원 [${u.nickname}]의 completedLessons가 배열이 아닙니다.`,
+        details: `회원 [${u.nickname}]의 completedLessons가 배열이 아닙니다 (타입: ${typeof u.completedLessons}).`,
       });
-    } else if (u.maxCompletedLessonsCount && u.completedLessons.length < u.maxCompletedLessonsCount) {
-      issues.push({
-        domain: 'user',
-        severity: 'critical',
-        title: '수강 진도 역행/초기화 의심',
-        details: `회원 [${u.nickname}]의 최대 수강 진도는 ${u.maxCompletedLessonsCount}개였으나 현재 ${u.completedLessons.length}개로 비정상 감소했습니다.`,
-      });
+    } else {
+      const invalidEntries = u.completedLessons.filter((id) => typeof id !== 'string' || id.trim() === '');
+      if (invalidEntries.length > 0) {
+        issues.push({
+          domain: 'user',
+          severity: 'critical',
+          title: '수강 완료 목록 내 비정상 항목 감지',
+          details: `회원 [${u.nickname}]의 completedLessons에 유효하지 않은 항목 ${invalidEntries.length}개가 포함되어 있습니다.`,
+        });
+      }
     }
   });
 
