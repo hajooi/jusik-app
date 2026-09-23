@@ -109,7 +109,8 @@ async function fetchYahooData(symbol: string): Promise<{
       if (timeMs < oneYearAgoMs) continue; // 370일 이전 데이터 스킵
 
       // 현재 시각이 정규장 진행 중(개장 후 ~ 마감 전)인 경우, 당일 장중 캔들은 '마감 종가'가 아니므로 완전 제외!
-      const isOngoingSession = ts >= regStart && nowSec < regEnd;
+      // (단, nowSec >= regStart 조건이 반드시 충족되어야 현재 진행 중인 세션임. 과거 캔들이 오인 제외되는 현상 방지)
+      const isOngoingSession = ts >= regStart && nowSec >= regStart && nowSec < regEnd;
       if (isOngoingSession) {
         continue;
       }
@@ -973,9 +974,10 @@ export async function GET(request: Request) {
 
         // 기준 거래일보다 1일 이상 오래된 경우 (금요일~월요일 주말 제외)
         // 만약 미국/한국 공휴일 차이가 아닌 일반 거래일 누락이면 경고
+        // 미국 자산(SPX, NDX, 10년물 국채, 국제 금, 국제 유가)은 한국 시간 오전/낮 실행 시 1일 시차가 정상 발생할 수 있으므로 1일 초과 지연만 감지
         if (diffDays > 0 && lastPtDate < latestClosedDate) {
-          // 1일 초과 차이이거나, 또는 평일 간격 누락인 경우
-          if (diffDays > 1 || (diffDays === 1 && !['SPX', 'NDX', '미국채 10년'].includes(check.name))) {
+          const isUsAsset = ['SPX', 'NDX', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
+          if (diffDays > 1 || (diffDays === 1 && !isUsAsset)) {
             staleAssets.push(`${check.name} (마지막: ${lastPtDate}, 기준일: ${latestClosedDate}, ${diffDays}일 지연)`);
           }
         }
