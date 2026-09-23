@@ -33,18 +33,28 @@ function formatLastActive(dateStr?: string): string {
   const diffMs = now.getTime() - date.getTime();
 
   if (isNaN(date.getTime())) return '최근 접속 없음';
-  if (diffMs < 0 || diffMs < 60 * 1000) return '방금 전 접속';
 
-  const diffMins = Math.floor(diffMs / (60 * 1000));
-  if (diffMins < 60) return `${diffMins}분 전 접속`;
+  const dateFormatted = date.toLocaleDateString('ko-KR');
 
-  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-  if (diffHours < 24) return `${diffHours}시간 전 접속`;
+  let relative = '';
+  if (diffMs < 60 * 1000) {
+    relative = '방금 전';
+  } else {
+    const diffMins = Math.floor(diffMs / (60 * 1000));
+    if (diffMins < 60) {
+      relative = `${diffMins}분 전`;
+    } else {
+      const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+      if (diffHours < 24) {
+        relative = `${diffHours}시간 전`;
+      } else {
+        const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+        relative = `${diffDays}일 전`;
+      }
+    }
+  }
 
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (diffDays <= 7) return `${diffDays}일 전 접속`;
-
-  return `${date.toLocaleDateString('ko-KR')} 최근 접속`;
+  return `최근 접속: ${dateFormatted} (${relative})`;
 }
 
 export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
@@ -244,6 +254,9 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
           </div>
         )}
 
+        {/* TAB 1: USER LIST */}
+        {activeTab === 'users' && (
+          <>
             {/* Search Input & List Meta */}
             <div className="space-y-1.5 shrink-0">
               <div className="relative">
