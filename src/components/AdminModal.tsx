@@ -26,6 +26,27 @@ interface AdminModalProps {
   onClose: () => void;
 }
 
+function formatLastActive(dateStr?: string): string {
+  if (!dateStr) return '최근 접속 없음';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  if (isNaN(date.getTime())) return '최근 접속 없음';
+  if (diffMs < 0 || diffMs < 60 * 1000) return '방금 전 접속';
+
+  const diffMins = Math.floor(diffMs / (60 * 1000));
+  if (diffMins < 60) return `${diffMins}분 전 접속`;
+
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  if (diffHours < 24) return `${diffHours}시간 전 접속`;
+
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (diffDays <= 7) return `${diffDays}일 전 접속`;
+
+  return `${date.toLocaleDateString('ko-KR')} 최근 접속`;
+}
+
 export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
   const { user } = useAuth();
   const [isClosing, setIsClosing] = useState(false);
@@ -223,19 +244,24 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
           </div>
         )}
 
-        {/* TAB 1: USER LIST */}
-        {activeTab === 'users' && (
-          <>
-            {/* Search Input */}
-            <div className="relative shrink-0">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="닉네임 또는 성향 검색"
-                className="w-full pl-8 pr-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-sans"
-              />
+            {/* Search Input & List Meta */}
+            <div className="space-y-1.5 shrink-0">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="닉네임 또는 성향 검색"
+                  className="w-full pl-8 pr-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-sans"
+                />
+              </div>
+              <div className="flex items-center justify-between px-1 text-[10px] text-[var(--text-secondary)]">
+                <span className="font-medium text-[var(--accent-orange)] flex items-center gap-1">
+                  ● 최근 접속순 정렬
+                </span>
+                <span className="opacity-80">※ 1년 미접속 시 자동 삭제</span>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-[180px] rounded-2xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]">
@@ -268,9 +294,14 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" />
-                          <span>{new Date(u.createdAt).toLocaleDateString('ko-KR')} 가입</span>
+                        <div 
+                          className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1"
+                          title={u.lastActiveAt ? `최근 접속: ${new Date(u.lastActiveAt).toLocaleString('ko-KR')}` : undefined}
+                        >
+                          <Clock className="w-2.5 h-2.5 text-[var(--accent-orange)]/70" />
+                          <span className="font-medium">
+                            {formatLastActive(u.lastActiveAt || u.createdAt)}
+                          </span>
                         </div>
                       </div>
 
@@ -385,8 +416,11 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                 <div key={u.nickname} className="p-3 flex items-center justify-between text-xs">
                   <div className="space-y-0.5">
                     <span className="font-bold text-[var(--text-primary)] font-mono">{u.nickname}</span>
-                    <div className="text-[10px] text-[var(--text-secondary)]">
-                      {new Date(u.lastActiveAt).toLocaleDateString('ko-KR')} 최근 접속
+                    <div 
+                      className="text-[10px] text-[var(--text-secondary)]"
+                      title={u.lastActiveAt ? `최근 접속: ${new Date(u.lastActiveAt).toLocaleString('ko-KR')}` : undefined}
+                    >
+                      {formatLastActive(u.lastActiveAt)}
                     </div>
                   </div>
                   <div className="text-right">

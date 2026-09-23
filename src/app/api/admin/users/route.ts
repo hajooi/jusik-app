@@ -52,8 +52,12 @@ export const GET = withApiGuard('관리자 회원 목록 조회 (/api/admin/user
         isPro: !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true)
       }));
 
-    // Sort by createdAt descending (newest first)
-    users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sort by lastActiveAt descending (most recently active first, fallback to createdAt)
+    users.sort((a, b) => {
+      const timeA = new Date(a.lastActiveAt || a.createdAt).getTime();
+      const timeB = new Date(b.lastActiveAt || b.createdAt).getTime();
+      return timeB - timeA;
+    });
 
     return NextResponse.json(
       {

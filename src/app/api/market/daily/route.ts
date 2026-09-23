@@ -734,17 +734,32 @@ export async function GET(request: Request) {
     const fgScore = fgData?.score ?? MARKET_SNAPSHOT.fearGreedIndex;
     const weather = mapRatingToWeather(fgScore);
 
-    // 날짜 포맷팅: 핵심 주가지수(SPX, NDX, KOSPI, KOSDAQ) 중 공식 마감된 최신 거래일을 단일 진실 공급원(Single Source of Truth)으로 확정
-    // 원자재/환율 등 24시간 거래 자산이 오늘(진행 중인 미마감일) 날짜로 앞서나가 전체 마감일을 왜곡하는 것을 원천 방지!
-    const stockAssets = [spx, ndx, resolvedKospi, resolvedKosdaq];
-    const stockDates = stockAssets
+    // 날짜 포맷팅: 미국 대표 지수(SPX, NDX)와 한국 대표 지수(KOSPI, KOSDAQ) 중
+    // 양국 증시가 '모두 마감 완료된 최신 공통 거래일'을 단일 진실 공급원(Single Source of Truth)으로 확정
+    // 미국장이 아직 마감되지 않은 야간(KST 15:30~익일 06:00)에 한국장 단독으로 23일로 치솟아
+    // 미국 지수 지연 오탐 경보를 유발하거나 데이터 불일치를 초래하는 것을 원천 방지!
+    const usAssets = [spx, ndx];
+    const usDates = usAssets
       .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
       .filter((d): d is string => Boolean(d));
+    usDates.sort();
+    const latestUsClosedDate = usDates.length > 0 ? usDates[usDates.length - 1] : null;
 
-    stockDates.sort();
-    const latestClosedDate = stockDates.length > 0 ? stockDates[stockDates.length - 1] : null;
+    const krAssets = [resolvedKospi, resolvedKosdaq];
+    const krDates = krAssets
+      .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
+      .filter((d): d is string => Boolean(d));
+    krDates.sort();
+    const latestKrClosedDate = krDates.length > 0 ? krDates[krDates.length - 1] : null;
 
-    // 모든 자산의 포인트가 공식 마감일(latestClosedDate)을 초과하지 않도록 정렬 (장중 진행 캔들 혼입 방지)
+    let latestClosedDate: string | null = null;
+    if (latestUsClosedDate && latestKrClosedDate) {
+      latestClosedDate = latestUsClosedDate < latestKrClosedDate ? latestUsClosedDate : latestKrClosedDate;
+    } else {
+      latestClosedDate = latestUsClosedDate || latestKrClosedDate || null;
+    }
+
+    // 모든 8대 자산의 포인트가 공식 마감일(latestClosedDate)을 초과하지 않도록 정렬 (장중 진행 캔들 혼입 방지)
     const alignAssetToClosedDate = (asset: any) => {
       if (!asset || !asset.points || !latestClosedDate) return asset;
       const validPoints = asset.points.filter((p: DailyPoint) => p.date <= latestClosedDate);
@@ -767,9 +782,14 @@ export async function GET(request: Request) {
       };
     };
 
+    const resolvedSpx = alignAssetToClosedDate(spx);
+    const resolvedNdx = alignAssetToClosedDate(ndx);
+    resolvedKospi = alignAssetToClosedDate(resolvedKospi);
+    resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq);
     resolvedGold = alignAssetToClosedDate(resolvedGold);
     resolvedOil = alignAssetToClosedDate(resolvedOil);
     resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw);
+    const resolvedUs10y = alignAssetToClosedDate(us10y);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
@@ -786,18 +806,18 @@ export async function GET(request: Request) {
       {
         name: 'S&P 500',
         code: 'SPX',
-        value: spx ? spx.current.toLocaleString('en-US', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[0].value,
-        change: spx ? `${spx.change >= 0 ? '+' : ''}${spx.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[0].change,
-        changePercent: spx ? `${spx.changePercent >= 0 ? '+' : ''}${spx.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[0].changePercent,
-        isPositive: spx ? spx.changePercent >= 0 : MARKET_SNAPSHOT.indices[0].isPositive,
+        value: resolvedSpx ? resolvedSpx.current.toLocaleString('en-US', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[0].value,
+        change: resolvedSpx ? `${resolvedSpx.change >= 0 ? '+' : ''}${resolvedSpx.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[0].change,
+        changePercent: resolvedSpx ? `${resolvedSpx.changePercent >= 0 ? '+' : ''}${resolvedSpx.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[0].changePercent,
+        isPositive: resolvedSpx ? resolvedSpx.changePercent >= 0 : MARKET_SNAPSHOT.indices[0].isPositive,
       },
       {
         name: '나스닥 100',
         code: 'NDX',
-        value: ndx ? ndx.current.toLocaleString('en-US', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[1].value,
-        change: ndx ? `${ndx.change >= 0 ? '+' : ''}${ndx.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[1].change,
-        changePercent: ndx ? `${ndx.changePercent >= 0 ? '+' : ''}${ndx.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[1].changePercent,
-        isPositive: ndx ? ndx.changePercent >= 0 : MARKET_SNAPSHOT.indices[1].isPositive,
+        value: resolvedNdx ? resolvedNdx.current.toLocaleString('en-US', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[1].value,
+        change: resolvedNdx ? `${resolvedNdx.change >= 0 ? '+' : ''}${resolvedNdx.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[1].change,
+        changePercent: resolvedNdx ? `${resolvedNdx.changePercent >= 0 ? '+' : ''}${resolvedNdx.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[1].changePercent,
+        isPositive: resolvedNdx ? resolvedNdx.changePercent >= 0 : MARKET_SNAPSHOT.indices[1].isPositive,
       },
       {
         name: '코스피',
@@ -826,8 +846,8 @@ export async function GET(request: Request) {
       },
       {
         label: '미국채 10년',
-        value: us10y ? `${us10y.current.toFixed(2)}%` : MARKET_SNAPSHOT.auxiliary[1].value,
-        isPositive: us10y ? us10y.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[1].isPositive,
+        value: resolvedUs10y ? `${resolvedUs10y.current.toFixed(2)}%` : MARKET_SNAPSHOT.auxiliary[1].value,
+        isPositive: resolvedUs10y ? resolvedUs10y.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[1].isPositive,
       },
       {
         label: '국제 금',
@@ -854,12 +874,12 @@ export async function GET(request: Request) {
       };
     };
 
-    const spx1y = calc1YearReturn(spx?.history, { change: '+19.1%', isPositive: true });
-    const ndx1y = calc1YearReturn(ndx?.history, { change: '+24.9%', isPositive: true });
+    const spx1y = calc1YearReturn(resolvedSpx?.history, { change: '+19.1%', isPositive: true });
+    const ndx1y = calc1YearReturn(resolvedNdx?.history, { change: '+24.9%', isPositive: true });
     const kospi1y = calc1YearReturn(resolvedKospi?.history, { change: '+108.6%', isPositive: true });
     const kosdaq1y = calc1YearReturn(resolvedKosdaq?.history, { change: '+0.3%', isPositive: true });
     const usdkrw1y = calc1YearReturn(resolvedUsdkrw?.history, { change: '-2.5%', isPositive: false });
-    const us10y1y = calc1YearReturn(us10y?.history, { change: '+16.9%', isPositive: true });
+    const us10y1y = calc1YearReturn(resolvedUs10y?.history, { change: '+16.9%', isPositive: true });
     const gold1y = calc1YearReturn(resolvedGold?.history, { change: '+23.9%', isPositive: true });
     const oil1y = calc1YearReturn(resolvedOil?.history, { change: '+47.4%', isPositive: true });
 
@@ -878,16 +898,16 @@ export async function GET(request: Request) {
         current: indices[0].value,
         change: spx1y.change,
         isPositive: spx1y.isPositive,
-        data: (spx && spx.history.length >= 20) ? spx.history : (ASSET_CHARTS.SPX?.data ?? []),
-        points: spx?.points,
+        data: (resolvedSpx && resolvedSpx.history.length >= 20) ? resolvedSpx.history : (ASSET_CHARTS.SPX?.data ?? []),
+        points: resolvedSpx?.points,
       },
       NDX: {
         label: '나스닥 100',
         current: indices[1].value,
         change: ndx1y.change,
         isPositive: ndx1y.isPositive,
-        data: (ndx && ndx.history.length >= 20) ? ndx.history : (ASSET_CHARTS.NDX?.data ?? []),
-        points: ndx?.points,
+        data: (resolvedNdx && resolvedNdx.history.length >= 20) ? resolvedNdx.history : (ASSET_CHARTS.NDX?.data ?? []),
+        points: resolvedNdx?.points,
       },
       KOSPI: {
         label: '코스피 (KOSPI)',
@@ -918,8 +938,8 @@ export async function GET(request: Request) {
         current: auxiliary[1].value,
         change: us10y1y.change,
         isPositive: us10y1y.isPositive,
-        data: (us10y && us10y.history.length >= 20) ? us10y.history : (ASSET_CHARTS['미국채 10년']?.data ?? []),
-        points: us10y?.points,
+        data: (resolvedUs10y && resolvedUs10y.history.length >= 20) ? resolvedUs10y.history : (ASSET_CHARTS['미국채 10년']?.data ?? []),
+        points: resolvedUs10y?.points,
       },
       '국제 금': {
         label: '국제 금 (1온스 기준)',
@@ -952,12 +972,12 @@ export async function GET(request: Request) {
 
     // 2) 8대 핵심 자산 시계열 수집 실패 및 최신 거래일 누락(Stale) 정밀 감지
     const assetChecks: Array<{ name: string; data: any }> = [
-      { name: 'S&P 500', data: spx },
-      { name: '나스닥 100', data: ndx },
+      { name: 'S&P 500', data: resolvedSpx },
+      { name: '나스닥 100', data: resolvedNdx },
       { name: '코스피', data: resolvedKospi },
       { name: '코스닥', data: resolvedKosdaq },
       { name: '달러 환율', data: resolvedUsdkrw },
-      { name: '미국채 10년', data: us10y },
+      { name: '미국채 10년', data: resolvedUs10y },
       { name: '국제 금', data: resolvedGold },
       { name: '국제 유가', data: resolvedOil },
     ];
@@ -987,7 +1007,7 @@ export async function GET(request: Request) {
         // 만약 미국/한국 공휴일 차이가 아닌 일반 거래일 누락이면 경고
         // 미국 자산(SPX, NDX, 10년물 국채, 국제 금, 국제 유가)은 한국 시간 오전/낮 실행 시 1일 시차가 정상 발생할 수 있으므로 1일 초과 지연만 감지
         if (diffDays > 0 && lastPtDate < latestClosedDate) {
-          const isUsAsset = ['SPX', 'NDX', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
+          const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
           if (diffDays > 1 || (diffDays === 1 && !isUsAsset)) {
             staleAssets.push(`${check.name} (마지막: ${lastPtDate}, 기준일: ${latestClosedDate}, ${diffDays}일 지연)`);
           }

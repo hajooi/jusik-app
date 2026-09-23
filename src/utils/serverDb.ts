@@ -144,7 +144,22 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
       const { data, error } = await supabase.from('users').select('*');
       if (!error && data) {
         const db: Record<string, ServerUserRecord> = {};
+        const now = Date.now();
+        const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+        const expiredNicknames: string[] = [];
+
         data.forEach((row: any) => {
+          // 1년 미접속 계정 자동 삭제 검사 (관리자 '주식부엉' 및 시스템 데이터 제외)
+          if (row.nickname !== '주식부엉' && !row.nickname.startsWith('__system_')) {
+            const lastActiveTime = row.last_active_at
+              ? new Date(row.last_active_at).getTime()
+              : new Date(row.created_at || 0).getTime();
+            if (now - lastActiveTime > ONE_YEAR_MS) {
+              expiredNicknames.push(row.nickname);
+              return; // 만료된 유저는 DB에 올리지 않음
+            }
+          }
+
           const isFull = row.type_answers && typeof row.type_answers === 'object' && Object.keys(row.type_answers).length === 40;
           
           const validatedTypeAnswers = isFull ? row.type_answers : undefined;
@@ -197,6 +212,23 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             favoriteTools: effectiveFavoriteTools,
           };
         });
+
+        // Supabase DB에서도 1년 초과 미접속 회원 영구 삭제 실행
+        if (expiredNicknames.length > 0) {
+          console.log(`[Auto-Purge] Purging ${expiredNicknames.length} expired users (1+ year inactive):`, expiredNicknames);
+          supabase
+            .from('users')
+            .delete()
+            .in('nickname', expiredNicknames)
+            .then(({ error: delErr }) => {
+              if (delErr) {
+                console.error('Failed to purge expired users from Supabase:', delErr.message);
+              } else {
+                console.log(`[Auto-Purge] Successfully purged ${expiredNicknames.length} users from Supabase.`);
+              }
+            });
+        }
+
         globalThis.__jusik_server_db__ = db;
         return db;
       } else if (error) {
@@ -284,10 +316,16 @@ export function getServerDb(): Record<string, ServerUserRecord> {
   const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
   Object.keys(db).forEach((nicknameKey) => {
+    // 관리자 '주식부엉' 및 시스템 데이터 보호
+    if (nicknameKey === '주식부엉' || nicknameKey.startsWith('__system_')) {
+      return;
+    }
     const user = db[nicknameKey];
-    if (user && user.lastActiveAt) {
-      const lastActive = new Date(user.lastActiveAt).getTime();
-      if (now - lastActive > ONE_YEAR_MS) {
+    if (user) {
+      const lastActiveTime = user.lastActiveAt
+        ? new Date(user.lastActiveAt).getTime()
+        : new Date(user.createdAt || 0).getTime();
+      if (now - lastActiveTime > ONE_YEAR_MS) {
         delete db[nicknameKey];
         hasPurged = true;
       }
