@@ -136,14 +136,14 @@ export const MARKET_SNAPSHOT = {
   weatherMessage: WEATHER_PRESETS.rainy.message,
   weatherSubMessage: WEATHER_PRESETS.rainy.subMessage,
   indices: [
-    { name: 'S&P 500', code: 'SPX', value: '7,764.70', change: '+114.20', changePercent: '+1.49', isPositive: true },
-    { name: '나스닥 100', code: 'NDX', value: '30,482.35', change: '+838.18', changePercent: '+2.83', isPositive: true },
+    { name: 'S&P 500', code: 'SPX', value: '7,764.64', change: '-0.06', changePercent: '-0.00', isPositive: false },
+    { name: '나스닥 100', code: 'NDX', value: '30,732.40', change: '+250.05', changePercent: '+0.82', isPositive: true },
     { name: '코스피', code: 'KOSPI', value: '7,017.91', change: '+10.19', changePercent: '+0.15', isPositive: true },
     { name: '코스닥', code: 'KOSDAQ', value: '834.38', change: '-1.89', changePercent: '-0.23', isPositive: false },
   ] as MarketIndex[],
   auxiliary: [
     { label: '달러 환율', value: '1,356원', isPositive: false },
-    { label: '미국채 10년', value: '4.96%', isPositive: false },
+    { label: '미국채 10년', value: '4.97%', isPositive: true },
     { label: '국제 금', value: '$4,376', isPositive: false },
     { label: '국제 유가', value: '$94.6', isPositive: false },
   ],

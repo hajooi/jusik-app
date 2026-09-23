@@ -119,20 +119,8 @@ async function fetchYahooData(symbol: string): Promise<{
       const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
       const rawVal = rawHistory[i];
-      // 종가가 null이거나 유효하지 않은 캔들 처리:
-      // 이미 종료된 과거 마감 세션(ts < regStart || nowSec >= regEnd)인데 결측된 경우,
-      // 직전 확정 종가로 보합 forward-fill 처리하여 시계열 공백 및 날짜 누락을 방지
+      // 종가가 null이거나 유효하지 않은 캔들은 스킵 (직전 종가 단순 복제로 인한 동일값 왜곡 방지)
       if (rawVal === null || typeof rawVal !== 'number' || isNaN(rawVal)) {
-        if (points.length > 0 && (ts < regStart || nowSec >= regEnd)) {
-          const prevVal = points[points.length - 1].value;
-          if (points[points.length - 1].date === dateStr) {
-            points[points.length - 1].value = prevVal;
-            history[history.length - 1] = prevVal;
-          } else {
-            points.push({ date: dateStr, value: prevVal });
-            history.push(prevVal);
-          }
-        }
         continue;
       }
 
