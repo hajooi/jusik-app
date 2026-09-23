@@ -115,17 +115,28 @@ async function fetchYahooData(symbol: string): Promise<{
         continue;
       }
 
+      const d = new Date(timeMs);
+      const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
       const rawVal = rawHistory[i];
-      // 종가가 null이거나 유효하지 않은 임시 캔들은 건너뜀 (직전값 복제로 인한 중복 데이터 원천 방지)
+      // 종가가 null이거나 유효하지 않은 캔들 처리:
+      // 이미 종료된 과거 마감 세션(ts < regStart || nowSec >= regEnd)인데 결측된 경우,
+      // 직전 확정 종가로 보합 forward-fill 처리하여 시계열 공백 및 날짜 누락을 방지
       if (rawVal === null || typeof rawVal !== 'number' || isNaN(rawVal)) {
+        if (points.length > 0 && (ts < regStart || nowSec >= regEnd)) {
+          const prevVal = points[points.length - 1].value;
+          if (points[points.length - 1].date === dateStr) {
+            points[points.length - 1].value = prevVal;
+            history[history.length - 1] = prevVal;
+          } else {
+            points.push({ date: dateStr, value: prevVal });
+            history.push(prevVal);
+          }
+        }
         continue;
       }
 
       const validClose = Number(rawVal.toFixed(2));
-
-      // 날짜 포맷 (YYYY.MM.DD)
-      const d = new Date(timeMs);
-      const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
       // 동일한 날짜(시차/장중 캔들)가 이미 존재할 경우 마지막 확정값으로 갱신
       if (points.length > 0 && points[points.length - 1].date === dateStr) {
