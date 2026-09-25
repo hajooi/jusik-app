@@ -104,7 +104,6 @@ export default function RebalanceBacktestChart() {
   // SVG Path 생성 (Area & Lines)
   const rebalPoints = SIMULATION_DATA.map((d, i) => `${getX(i)},${getY(d.rebal)}`).join(' ');
   const holdPoints = SIMULATION_DATA.map((d, i) => `${getX(i)},${getY(d.hold)}`).join(' ');
-  const investPoints = SIMULATION_DATA.map((d, i) => `${getX(i)},${getY(d.invested)}`).join(' ');
 
   // 리밸런싱 곡선 하단 에어리어 그라데이션 패스
   const rebalAreaPath = `M ${getX(0)},${getY(SIMULATION_DATA[0].rebal)} ` +
@@ -188,22 +187,13 @@ export default function RebalanceBacktestChart() {
               className="pointer-events-none"
             />
 
-            {/* Invested Capital Baseline (점선) */}
-            <polyline
-              fill="none"
-              stroke="var(--border-color)"
-              strokeWidth="1.2"
-              strokeDasharray="2 3"
-              points={investPoints}
-            />
-
-            {/* 1. Hold Curve (방치한 계좌 - 회색 점선) */}
+            {/* 1. Hold Curve (방치한 계좌 - 단일 회색 점선) */}
             <polyline
               fill="none"
               stroke="var(--text-secondary)"
-              strokeWidth="1.8"
+              strokeWidth="2"
               strokeDasharray="4 4"
-              opacity="0.8"
+              opacity="0.85"
               points={holdPoints}
             />
 
@@ -239,11 +229,15 @@ export default function RebalanceBacktestChart() {
         <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs px-1">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 font-bold text-[var(--accent-orange)]">
-              <span className="w-3.5 h-1 bg-[var(--accent-orange)] rounded-full inline-block" />
+              <svg width="16" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="16" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
               <span>리밸런싱한 계좌</span>
             </div>
             <div className="flex items-center gap-1.5 font-bold text-[var(--text-secondary)]">
-              <span className="w-3.5 h-1 bg-[var(--text-secondary)] rounded-full border-t border-dashed inline-block" />
+              <svg width="16" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="16" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="3 2" />
+              </svg>
               <span>방치한 계좌</span>
             </div>
           </div>
