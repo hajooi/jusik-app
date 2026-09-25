@@ -805,8 +805,9 @@ export default function BottomNavigation() {
                     const isOpen = !!openLevels[level.id];
                     const containsCurrent = isLessonPage && level.lessons.some((l) => l.id === currentLessonId);
                     const IconComponent = LEVEL_ICON_MAP[level.iconName] || Brain;
-                    const levelCompletedCount = user ? level.lessons.filter((l) => isLessonCompleted(l.id)).length : 0;
-                    const isLevelFullyCompleted = user && level.lessons.length > 0 && levelCompletedCount === level.lessons.length;
+                    const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon);
+                    const levelCompletedCount = user ? openLevelLessons.filter((l) => isLessonCompleted(l.id)).length : 0;
+                    const isLevelFullyCompleted = user && openLevelLessons.length > 0 && levelCompletedCount === openLevelLessons.length;
 
                     return (
                       <div
@@ -849,13 +850,13 @@ export default function BottomNavigation() {
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                            {level.isComingSoon ? (
+                            {level.isComingSoon || openLevelLessons.length === 0 ? (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--text-secondary)] font-mono">
                                 오픈 예정
                               </span>
                             ) : (
                               <span className="text-[10px] text-[var(--text-secondary)] font-mono font-bold">
-                                {user ? `${levelCompletedCount}/${level.lessons.length}강` : `${level.lessons.length}강`}
+                                {user ? `${levelCompletedCount}/${openLevelLessons.length}강` : `${openLevelLessons.length}강`}
                               </span>
                             )}
                             <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-[380ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isOpen ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />

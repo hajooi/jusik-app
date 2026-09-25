@@ -7,6 +7,9 @@ import BasicTermsQuiz from '@/components/BasicTermsQuiz';
 import FeeComparisonBox from '@/components/FeeComparisonBox';
 import DcaMotionSimulator from '@/components/DcaMotionSimulator';
 import JpMorganTimingBarChart from '@/components/JpMorganTimingBarChart';
+import PortfolioRecipeBarChart from '@/components/PortfolioRecipeBarChart';
+import RebalanceBacktestChart from '@/components/RebalanceBacktestChart';
+import InlineSimulatorCta from '@/components/InlineSimulatorCta';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
 import StockDcaGuide from '@/components/StockDcaGuide';
@@ -213,6 +216,9 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'fee_comparison' && <FeeComparisonBox />}
                     {section.interactiveTool === 'jpmorgan_chart' && <JpMorganTimingBarChart />}
                     {section.interactiveTool === 'dca_simulator' && <DcaMotionSimulator />}
+                    {section.interactiveTool === 'portfolio_recipes' && <PortfolioRecipeBarChart />}
+                    {section.interactiveTool === 'rebalance_backtest' && <RebalanceBacktestChart />}
+                    {section.interactiveTool === 'inline_simulator_cta' && <InlineSimulatorCta />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -273,33 +279,6 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             </div>
           )}
 
-          {/* CONCISE SUMMARY CARD */}
-          {lesson.summary && lesson.summary.length > 0 && (
-            <RevealOnScroll>
-              <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                    <Sparkles className="w-4 h-4 stroke-[2]" />
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
-                    핵심 요약
-                  </h3>
-                </div>
-                <ul className="space-y-3">
-                  {lesson.summary.map((point, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm font-medium leading-relaxed">
-                      <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 flex items-center justify-center text-[11px] font-extrabold shrink-0 font-mono mt-0.5 shadow-2xs">
-                        {index + 1}
-                      </span>
-                      <span className="flex-1 text-[var(--text-primary)] pt-0.5">
-                        {point}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </RevealOnScroll>
-          )}
 
           {/* DYNAMIC CONTENT MODULES BLOCK (Resources, CTA) */}
           {lesson.modules && lesson.modules.length > 0 && (
@@ -508,7 +487,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                           </div>
 
                           {module.benefits && module.benefits.length > 0 && (
-                            <div className="pt-4 border-t border-[var(--accent-orange)]/25 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {module.benefits.map((benefit, bIdx) => (
                                 <div
                                   key={bIdx}
@@ -531,6 +510,34 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                 return null;
               })}
             </div>
+          )}
+
+          {/* CONCISE SUMMARY CARD */}
+          {lesson.summary && lesson.summary.length > 0 && (
+            <RevealOnScroll>
+              <div className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3.5 shadow-2xs border border-[var(--border-color)] transition-all duration-300">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                    <Sparkles className="w-4 h-4 stroke-[2]" />
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
+                    핵심 요약
+                  </h3>
+                </div>
+                <ul className="space-y-3">
+                  {lesson.summary.map((point, index) => (
+                    <li key={index} className="flex items-start gap-3 text-sm font-medium leading-relaxed">
+                      <span className="w-5 h-5 rounded-full bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 flex items-center justify-center text-[11px] font-extrabold shrink-0 font-mono mt-0.5 shadow-2xs">
+                        {index + 1}
+                      </span>
+                      <span className="flex-1 text-[var(--text-primary)] pt-0.5">
+                        {point}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </RevealOnScroll>
           )}
 
           {/* Lesson Specific Comments */}
