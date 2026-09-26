@@ -779,26 +779,18 @@ export async function GET(request: Request) {
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
 
+    // 글로벌 양대 증시 중 가장 최신의 마감 거래일 기준으로 심플 단일화
+    let latestGlobalDate: string | null = null;
     if (latestUsClosedDate && latestKrClosedDate) {
-      if (latestUsClosedDate === latestKrClosedDate) {
-        const parts = latestUsClosedDate.split('.');
-        if (parts.length === 3) {
-          dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
-        }
-      } else {
-        const uParts = latestUsClosedDate.split('.');
-        const kParts = latestKrClosedDate.split('.');
-        if (uParts.length === 3 && kParts.length === 3) {
-          dateStr = `미국 ${parseInt(uParts[1], 10)}월 ${parseInt(uParts[2], 10)}일 · 한국 ${parseInt(kParts[1], 10)}월 ${parseInt(kParts[2], 10)}일 마감 기준`;
-        }
-      }
+      latestGlobalDate = latestUsClosedDate > latestKrClosedDate ? latestUsClosedDate : latestKrClosedDate;
     } else {
-      const fallbackDate = latestUsClosedDate || latestKrClosedDate;
-      if (fallbackDate) {
-        const parts = fallbackDate.split('.');
-        if (parts.length === 3) {
-          dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
-        }
+      latestGlobalDate = latestUsClosedDate || latestKrClosedDate || null;
+    }
+
+    if (latestGlobalDate) {
+      const parts = latestGlobalDate.split('.');
+      if (parts.length === 3) {
+        dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
       }
     }
 
