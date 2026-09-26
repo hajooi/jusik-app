@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS, CalendarEvent } from '@/data/marketCalendar';
 import { sendTelegramDailyReport, sendTelegramErrorAlert } from '@/utils/telegram';
 import { runSiteHealthAudit } from '@/lib/observability/audit';
-import { syncMarketCalendarEvents } from '@/utils/marketCalendarSync';
+import { syncMarketCalendarEvents, fetchFredMacroSnapshot } from '@/utils/marketCalendarSync';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Vercel 서버리스 최대 실행 시간 60초 (Pro: 최대 300초)
@@ -53,6 +53,29 @@ const CACHE_DURATION_MS = 60 * 60 * 1000; // 1시간 (DB 갱신 후 최대 1시�
 export interface DailyPoint {
   date: string;
   value: number;
+}
+
+/**
+ * 접속 월 기준 과거 3개월 이전의 오래된 캘린더 데이터를 완전 영구 삭제하여 DB와 캐시 페이로드를 가볍게 유지합니다.
+ * (예: 9월 접속 시 6월 1일 이전 데이터는 완전 폐기)
+ */
+function pruneOldCalendarEvents(events: CalendarEvent[]): CalendarEvent[] {
+  if (!Array.isArray(events) || events.length === 0) return [];
+  const now = new Date();
+  const currentTotalMonth = now.getFullYear() * 12 + now.getMonth();
+  const minMonthVal = currentTotalMonth - 3;
+  const maxMonthVal = currentTotalMonth + 3;
+
+  const minYear = Math.floor(minMonthVal / 12);
+  const minMonth = (minMonthVal % 12) + 1;
+  const minDateStr = `${minYear}-${String(minMonth).padStart(2, '0')}-01`;
+
+  const maxYear = Math.floor(maxMonthVal / 12);
+  const maxMonth = (maxMonthVal % 12) + 1;
+  const lastDay = new Date(maxYear, maxMonth, 0).getDate();
+  const maxDateStr = `${maxYear}-${String(maxMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+  return events.filter((e) => e.date >= minDateStr && e.date <= maxDateStr);
 }
 
 async function fetchYahooData(symbol: string): Promise<{
@@ -545,7 +568,7 @@ export async function GET(request: Request) {
             const cachedData = {
               ...dbRecord.simulator_settings,
               snapshot: { ...snap, todayNews: validNews },
-              calendarEvents: mergedEvents,
+              calendarEvents: pruneOldCalendarEvents(mergedEvents),
               weeklyBriefing: WEEKLY_BRIEFING,
             };
 
@@ -1068,13 +1091,18 @@ export async function GET(request: Request) {
       }
     }
 
-    const { updatedEvents, newlyPublished } = await syncMarketCalendarEvents(currentCalendarEvents);
+    const { updatedEvents, newlyPublished, macroUpdates } = await syncMarketCalendarEvents(currentCalendarEvents);
+    if (macroUpdates && Object.keys(macroUpdates).length > 0) {
+      console.log('[Market Daily] 매크로 지표 FRED 갱신:', macroUpdates);
+    }
+
+    const prunedEvents = pruneOldCalendarEvents(updatedEvents);
 
     const responseData = {
       success: true,
       snapshot,
       assetCharts,
-      calendarEvents: updatedEvents,
+      calendarEvents: prunedEvents,
       weeklyBriefing: WEEKLY_BRIEFING,
     };
 

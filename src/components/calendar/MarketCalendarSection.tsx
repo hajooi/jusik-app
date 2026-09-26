@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Clock, Star, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Star, Sparkles, CheckCircle2, ChevronDown, RotateCcw } from 'lucide-react';
 import { CALENDAR_EVENTS, EVENT_TYPE_CONFIG, IMPACT_TAG_CONFIG, CalendarEvent } from '@/data/marketCalendar';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
@@ -113,7 +113,7 @@ function EventCard({ event, isPast }: EventCardProps) {
         {event.title}
         {event.ticker && <span className="ml-1.5 text-xs font-mono text-[var(--accent-orange)] font-bold">({event.ticker})</span>}
       </h3>
-      <div className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-line border-l-2 border-[var(--border-color)] pl-2.5 mb-2 break-keep">
+      <div className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-line mb-2.5 break-keep">
         {event.simpleSummary}
       </div>
       {(event.actual || event.expected || event.previous) && (
@@ -143,16 +143,30 @@ function EventCard({ event, isPast }: EventCardProps) {
 }
 
 export default function MarketCalendarSection() {
-  const MIN_MONTH_VAL = 2026 * 12 + 5;  // 2026 June
-  const MAX_MONTH_VAL = 2026 * 12 + 11; // 2026 Dec
-
   // 매일 오늘 날짜로 자동 동적 세팅 (접속 당일 기준)
   const todayObj = new Date();
+  const currentTotalMonth = todayObj.getFullYear() * 12 + todayObj.getMonth();
+
+  // 월 단위 동적 롤링: 현재 달 기준 과거 3개월 ~ 미래 3개월 (총 7개월 윈도우)
+  const MIN_MONTH_VAL = currentTotalMonth - 3;
+  const MAX_MONTH_VAL = currentTotalMonth + 3;
+
   const TODAY_STR = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
+  // 롤링 윈도우 시작일 (과거 3개월 전 1일) 및 종료일 (미래 3개월 후 말일)
+  const minYear = Math.floor(MIN_MONTH_VAL / 12);
+  const minMonth = MIN_MONTH_VAL % 12;
+  const minDateLimitStr = `${minYear}-${String(minMonth + 1).padStart(2, '0')}-01`;
+
+  const maxYear = Math.floor(MAX_MONTH_VAL / 12);
+  const maxMonth = MAX_MONTH_VAL % 12;
+  const maxDays = getDaysInMonth(maxYear, maxMonth);
+  const maxDateLimitStr = `${maxYear}-${String(maxMonth + 1).padStart(2, '0')}-${String(maxDays).padStart(2, '0')}`;
 
   const [currentYear, setCurrentYear] = useState(todayObj.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(todayObj.getMonth()); // 0-indexed
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [expandedKeyId, setExpandedKeyId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('전체');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('전체');
   const [importanceFilter, setImportanceFilter] = useState<ImportanceFilter>('전체');
@@ -179,6 +193,11 @@ export default function MarketCalendarSection() {
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+
+  // 7개월 롤링 윈도우 범위를 벗어난 오래된 데이터는 메모리/렌더링에서 완전 삭제(제외)
+  const activeWindowEvents = useMemo(() => {
+    return calendarEvents.filter((e) => e.date >= minDateLimitStr && e.date <= maxDateLimitStr);
+  }, [calendarEvents, minDateLimitStr, maxDateLimitStr]);
 
 
   // Apply filters
@@ -228,10 +247,18 @@ export default function MarketCalendarSection() {
     setVisibleCount(10);
   }, [selectedDate, categoryFilter, regionFilter, importanceFilter]);
 
-  // 필터가 적용된 전체 일정 목록
+  // 필터가 적용된 전체 일정 목록 (7개월 윈도우 한정)
   const allFilteredEvents = useMemo(() => {
-    return filterEvents([...calendarEvents]).sort((a, b) => a.date.localeCompare(b.date));
-  }, [calendarEvents, categoryFilter, regionFilter, importanceFilter]);
+    return filterEvents([...activeWindowEvents]).sort((a, b) => a.date.localeCompare(b.date));
+  }, [activeWindowEvents, categoryFilter, regionFilter, importanceFilter]);
+
+  // 오늘 이전 가장 최근에 발표 결과(actual)가 나온 Top 3 핵심 이벤트
+  const recentPublishedEvents = useMemo(() => {
+    return activeWindowEvents
+      .filter((e) => e.date < TODAY_STR && e.actual)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 3);
+  }, [activeWindowEvents, TODAY_STR]);
 
   // 필터가 적용된 이벤트를 날짜별로 그룹화 (달력 그리드에서 스케줄 유무 판별)
   const eventsByDate = useMemo(() => {
@@ -290,13 +317,14 @@ export default function MarketCalendarSection() {
       </RevealOnScroll>
 
       {/* ── Top Section: 핵심 체크포인트 (좌/상) + 캘린더 (우/하) ── */}
+      {/* ── Top Section: 핵심 체크포인트 (좌/상) + 캘린더 (우/하) - 완벽한 Equal Height ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
         {/* 핵심 체크포인트 위젯 (데스크톱/모바일 공통 1순위: lg:col-span-5) */}
         <RevealOnScroll delayIndex={1} className="lg:col-span-5 flex flex-col h-full">
         <div className="flex-1 flex flex-col justify-between p-5 sm:p-6 rounded-3xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
           <div>
-            <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-xs sm:text-sm font-extrabold text-[var(--accent-orange)] flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" />
                 <span>핵심 체크포인트</span>
@@ -307,10 +335,10 @@ export default function MarketCalendarSection() {
             </div>
 
             <p className="text-xs text-[var(--text-secondary)] mb-3 leading-relaxed break-keep">
-              놓치지 말아야 할 시장의 핵심 지표와 실적 발표 일정이에요.
+              시장의 흐름을 좌우하는 가장 중요한 핵심 이벤트예요.
             </p>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {(() => {
                 const upcomingKeyEvents = allFilteredEvents.filter((e) => e.importance === 3 && e.date >= TODAY_STR);
                 const pastKeyEvents = allFilteredEvents.filter((e) => e.importance === 3 && e.date < TODAY_STR).reverse();
@@ -318,37 +346,78 @@ export default function MarketCalendarSection() {
 
                 return keyEvents.map((keyEv) => {
                   const isUpcoming = keyEv.date >= TODAY_STR;
+                  const isExpanded = expandedKeyId === keyEv.id;
+
                   return (
-                    <button
+                    <div
                       key={keyEv.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDate(keyEv.date);
-                      }}
-                      className="w-full text-left p-3 rounded-2xl bg-[var(--bg-main)]/80 hover:bg-[var(--card-hover)] border border-[var(--border-color)]/80 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group space-y-1.5"
+                      className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                        isExpanded
+                          ? 'border-[var(--accent-orange)]/60 bg-[var(--accent-orange)]/5 shadow-[0_0_14px_rgba(241,143,1,0.12)]'
+                          : 'border-[var(--border-color)]/80 bg-[var(--bg-main)]/80 hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/40'
+                      }`}
                     >
-                      <div className="flex items-center justify-between text-[11px] font-mono">
-                        <span className="font-bold text-[var(--accent-orange)]">{keyEv.date.replace(/-/g, '.')}</span>
-                        <div className="flex items-center gap-1.5">
-                          {isUpcoming ? (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                              예정
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExpandedKeyId(isExpanded ? null : keyEv.id);
+                          setSelectedDate(keyEv.date);
+                        }}
+                        className="w-full text-left p-3 cursor-pointer group space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="font-bold text-[var(--accent-orange)]">{keyEv.date.replace(/-/g, '.')}</span>
+                          <div className="flex items-center gap-1.5">
+                            {isUpcoming ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                                예정
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-500/15 text-[var(--text-secondary)]">
+                                발표완료
+                              </span>
+                            )}
+                            <span className="text-[10px] text-[var(--text-secondary)] font-medium">
+                              {keyEv.region === 'kr' ? '국내' : '미국'}
                             </span>
-                          ) : (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-500/15 text-[var(--text-secondary)]">
-                              발표완료
-                            </span>
-                          )}
-                          <span className="text-[10px] text-[var(--text-secondary)] font-medium">
-                            {keyEv.region === 'kr' ? '국내' : '미국'}
-                          </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors leading-snug break-keep flex-1">
+                            {keyEv.title}
+                            {keyEv.ticker && <span className="ml-1 text-xs font-mono text-[var(--accent-orange)]">({keyEv.ticker})</span>}
+                          </p>
+                          <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0 transition-transform duration-300 mt-0.5 ${isExpanded ? 'rotate-180 text-[var(--accent-orange)]' : ''}`} />
+                        </div>
+
+                        {(keyEv.actual || keyEv.previous) && (
+                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono pt-0.5">
+                            {keyEv.actual && (
+                              <span className="font-bold text-[var(--accent-orange)]">
+                                결과: {keyEv.actual}
+                              </span>
+                            )}
+                            {keyEv.previous && (
+                              <span className="text-[var(--text-secondary)] text-[10px]">
+                                (이전: {keyEv.previous})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Apple식 CSS Grid 트랜지션 슬라이드다운 애니메이션 (실선 완전 배제) */}
+                      <div className={`grid transition-all duration-300 ease-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                        <div className="overflow-hidden">
+                          <div className="px-3 pb-3 pt-0.5">
+                            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed break-keep">
+                              {keyEv.simpleSummary}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors leading-snug break-keep">
-                        {keyEv.title}
-                        {keyEv.ticker && <span className="ml-1 text-xs font-mono text-[var(--accent-orange)]">({keyEv.ticker})</span>}
-                      </p>
-                    </button>
+                    </div>
                   );
                 });
               })()}
@@ -359,7 +428,7 @@ export default function MarketCalendarSection() {
 
         {/* 캘린더 카드 (데스크톱/모바일 공통 2순위: lg:col-span-7) */}
         <RevealOnScroll delayIndex={2} className="lg:col-span-7 flex flex-col h-full">
-        <div className="flex-1 flex flex-col rounded-3xl p-5 sm:p-6 bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
+        <div className="flex-1 flex flex-col justify-between rounded-3xl p-5 sm:p-6 bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xs">
           {/* Month navigation */}
           <div className="flex items-center justify-between mb-4">
             <span className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
@@ -442,6 +511,13 @@ export default function MarketCalendarSection() {
               );
             })}
           </div>
+
+          {/* 캘린더 하단 안내 캡션 (좌우 높이 완벽 일치 및 시각적 안정감) */}
+          <div className="pt-3 text-center border-t border-[var(--border-color)]/50 mt-2">
+            <span className="text-[11px] text-[var(--text-secondary)]">
+              날짜를 누르면 하단 타임라인에서 해당 일자의 일정을 바로 확인할 수 있어요.
+            </span>
+          </div>
         </div>
         </RevealOnScroll>
       </div>
@@ -459,12 +535,69 @@ export default function MarketCalendarSection() {
             <button
               type="button"
               onClick={() => setSelectedDate(null)}
-              className="text-xs font-bold text-[var(--accent-orange)] hover:underline cursor-pointer"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--bg-main)]/90 border border-[var(--border-color)]/90 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
             >
-              선택 해제 (오늘 기준으로 보기)
+              <RotateCcw className="w-3 h-3 text-[var(--accent-orange)]" />
+              <span>오늘 기준으로 보기</span>
             </button>
           )}
         </div>
+
+        {/* ── 최근 발표 결과 Top 3 캡슐 슬롯 (오늘 이전 가장 최근 actual 발표 지표/실적) ── */}
+        {recentPublishedEvents.length > 0 && !selectedDate && (
+          <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/70 border border-[var(--border-color)]/80 space-y-2.5">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[var(--fintech-emerald)]" />
+                <span>최근 발표 결과</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {recentPublishedEvents.map((rev) => (
+                <button
+                  key={`recent-${rev.id}`}
+                  type="button"
+                  onClick={() => setSelectedDate(rev.date)}
+                  className="text-left p-3.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)]/80 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group flex flex-col justify-between space-y-2 shadow-2xs"
+                >
+                  <div className="flex items-center justify-between text-[11px] font-mono w-full">
+                    <span className="font-bold text-[var(--text-secondary)]">
+                      {rev.date.replace(/-/g, '.')}
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--fintech-emerald)]/10 text-[var(--fintech-emerald)]">
+                      발표완료
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 w-full">
+                    <h4 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors leading-snug break-keep">
+                      {rev.title}
+                    </h4>
+                    {(rev.actual || rev.previous) && (
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
+                        {rev.actual && (
+                          <span className="font-bold text-[var(--accent-orange)]">
+                            결과: {rev.actual}
+                          </span>
+                        )}
+                        {rev.previous && (
+                          <span className="text-[var(--text-secondary)] text-[10px]">
+                            (이전: {rev.previous})
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {rev.simpleSummary && (
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-0.5 break-keep">
+                        {rev.simpleSummary}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <SmoothHeight>
           {visibleEvents.length > 0 ? (

@@ -1,4 +1,8 @@
 // src/utils/marketCalendarSync.ts
+// ─── FRED API (미국 연준 공식 무료 데이터) + BOK ECOS API (한국은행 공식) 기반 자동 동기화 ───
+// TradingEconomics HTML 스크래핑 완전 제거 → 공식 API 기반으로 교체
+// FRED: https://fred.stlouisfed.org/ (기준금리, CPI, 실업률, NFP, GDP, PPI, 소매판매)
+// BOK ECOS: https://ecos.bok.or.kr/ (한국 기준금리)
 
 import { CalendarEvent } from '@/data/marketCalendar';
 import { generateEasyEventSummary } from './aiSummary';
@@ -12,11 +16,318 @@ export interface SyncCalendarResult {
     expected?: string;
     summary: string;
   }>;
+  macroUpdates?: {
+    fedRate?: string;
+    cpi?: string;
+    unemployment?: string;
+  };
+}
+
+const FRED_API_KEY = process.env.FRED_API_KEY;
+const BOK_API_KEY = process.env.BOK_API_KEY;
+
+// ─── FRED API 공통 수집기 ──────────────────────────────────────────────────────
+
+interface FredObservation {
+  date: string;   // 'YYYY-MM-DD'
+  value: string;  // 숫자 문자열 또는 '.' (결측)
 }
 
 /**
- * Yahoo Finance quoteSummary API를 통해 특정 티커의 최근 실적 결과치를 조회합니다.
+ * FRED API에서 특정 시리즈의 최근 N개 관측값을 수집합니다.
+ * @param seriesId FRED 시리즈 ID (예: 'DFEDTARU')
+ * @param observationEnd 조회 기준 종료 날짜 (YYYY-MM-DD)
+ * @param limit 조회할 개수 (기본 2: 최신값 + 직전값)
  */
+async function fetchFredSeries(
+  seriesId: string,
+  observationEnd: string,
+  limit = 2
+): Promise<FredObservation[]> {
+  if (!FRED_API_KEY) {
+    console.warn('[FRED] API key not configured (FRED_API_KEY env var missing)');
+    return [];
+  }
+
+  try {
+    const params = new URLSearchParams({
+      series_id: seriesId,
+      api_key: FRED_API_KEY,
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: String(limit),
+      observation_end: observationEnd,
+    });
+
+    const url = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+
+    let res: Response;
+    try {
+      res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!res.ok) {
+      console.warn(`[FRED] ${seriesId} HTTP ${res.status}`);
+      return [];
+    }
+
+    const data = await res.json();
+    // '.' 값(결측치)은 제외
+    return (data?.observations ?? []).filter((o: FredObservation) => o.value !== '.' && o.value !== '');
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      console.warn(`[FRED] ${seriesId} timeout`);
+    } else {
+      console.warn(`[FRED] ${seriesId} error:`, err);
+    }
+    return [];
+  }
+}
+
+/**
+ * 기준 날짜에서 N개월 이전의 월 첫째 날을 반환합니다.
+ * 예: '2026-09-11', prevMonths=1 → '2026-08-01'
+ */
+function getPrevMonthFirstDay(dateStr: string, prevMonths = 1): string {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() - prevMonths);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${y}-${m}-01`;
+}
+
+// ─── 미국 FOMC 기준금리 수집 (FRED: DFEDTARU - 연준 기준금리 상단) ──────────────
+
+async function fetchFomcRate(eventDate: string): Promise<{ actual: string; previous: string } | null> {
+  // 발표일 이후 5일 범위까지 조회 (FRED는 보통 당일 or 다음 거래일에 반영)
+  const endDate = new Date(eventDate + 'T00:00:00Z');
+  endDate.setUTCDate(endDate.getUTCDate() + 5);
+  const endStr = endDate.toISOString().split('T')[0];
+
+  // 최근 30개 조회: 발표일 전후 충분히 커버
+  const obs = await fetchFredSeries('DFEDTARU', endStr, 30);
+  if (obs.length === 0) return null;
+
+  // 발표일 이후 첫 번째 값 (시간 역순 정렬이므로 역으로 찾기)
+  const afterDate = [...obs].reverse().find(o => o.date >= eventDate);
+  if (!afterDate) return null;
+
+  const current = parseFloat(afterDate.value);
+  if (isNaN(current)) return null;
+
+  // 발표일 이전 마지막 값 (직전 금리 수준)
+  const beforeObs = obs.filter(o => o.date < eventDate);
+  const previous = beforeObs.length > 0 ? parseFloat(beforeObs[0].value) : current;
+
+  const diff = current - previous;
+  let direction = '';
+  if (diff > 0.001) direction = ` (${Math.abs(diff).toFixed(2)}%p 인상)`;
+  else if (diff < -0.001) direction = ` (${Math.abs(diff).toFixed(2)}%p 인하)`;
+  else direction = ' (동결)';
+
+  return {
+    actual: `${current.toFixed(2)}%${direction}`,
+    previous: `${isNaN(previous) ? current.toFixed(2) : previous.toFixed(2)}%`,
+  };
+}
+
+// ─── 한국은행 기준금리 수집 (BOK ECOS API) ────────────────────────────────────
+
+async function fetchBokRate(eventDate: string): Promise<{ actual: string; previous: string } | null> {
+  if (!BOK_API_KEY) {
+    console.warn('[BOK] API key not configured (BOK_API_KEY env var missing)');
+    return null;
+  }
+
+  try {
+    // 발표일 전 60일 범위로 조회
+    const start = new Date(eventDate + 'T00:00:00Z');
+    start.setUTCDate(start.getUTCDate() - 60);
+    const startStr = start.toISOString().split('T')[0].replace(/-/g, '');
+    const endStr = eventDate.replace(/-/g, '');
+
+    const url = `https://ecos.bok.or.kr/api/StatisticSearch/${BOK_API_KEY}/json/kr/1/5/722Y001/DD/${startStr}/${endStr}/0101000`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const rows: Array<{ TIME: string; DATA_VALUE: string }> = data?.StatisticSearch?.row ?? [];
+    if (rows.length === 0) return null;
+
+    // 최신순 정렬
+    rows.sort((a, b) => b.TIME.localeCompare(a.TIME));
+
+    const current = parseFloat(rows[0]?.DATA_VALUE);
+    const previous = rows.length > 1 ? parseFloat(rows[1]?.DATA_VALUE) : current;
+
+    if (isNaN(current)) return null;
+
+    const diff = current - (isNaN(previous) ? current : previous);
+    let direction = '';
+    if (diff > 0.001) direction = ` (${Math.abs(diff).toFixed(2)}%p 인상)`;
+    else if (diff < -0.001) direction = ` (${Math.abs(diff).toFixed(2)}%p 인하)`;
+    else direction = ' (동결)';
+
+    return {
+      actual: `${current.toFixed(2)}%${direction}`,
+      previous: `${isNaN(previous) ? current.toFixed(2) : previous.toFixed(2)}%`,
+    };
+  } catch (err) {
+    console.warn('[BOK] Rate fetch error:', err);
+    return null;
+  }
+}
+
+// ─── 미국 CPI (소비자물가) 수집 ────────────────────────────────────────────────
+// FRED: CPALTT01USM657N = CPI All Items YoY (전년동월비 %, 직접 제공)
+// 근원 CPI: CPILFESL (레벨값) → 13개월치 조회 후 YoY 직접 계산
+
+async function fetchCpiYoy(eventDate: string, isCore = false): Promise<string | null> {
+  // CPI 발표는 전월 데이터: 9월 11일 발표 = 8월 CPI → 기준월 = 2026-08-01
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+
+  if (!isCore) {
+    // 헤드라인 CPI: FRED가 직접 YoY %를 제공
+    const obs = await fetchFredSeries('CPALTT01USM657N', refMonthStr, 2);
+    if (obs.length === 0) return null;
+    const latest = obs.find(o => o.date <= refMonthStr);
+    if (!latest) return null;
+    const val = parseFloat(latest.value);
+    if (isNaN(val)) return null;
+    return `${val.toFixed(1)}%`;
+  } else {
+    // 근원 CPI: CPILFESL 레벨값 14개월치 → 직접 YoY 계산
+    const obs = await fetchFredSeries('CPILFESL', refMonthStr, 14);
+    if (obs.length < 2) return null;
+
+    // 가장 최근 값 (기준월)
+    const current = obs.find(o => o.date <= refMonthStr);
+    // 12개월 전 값
+    const prevYear = obs[obs.length - 1];
+
+    if (!current || !prevYear) return null;
+
+    const currentVal = parseFloat(current.value);
+    const prevYearVal = parseFloat(prevYear.value);
+
+    if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
+
+    const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
+    return `${yoy.toFixed(1)}%`;
+  }
+}
+
+// ─── 미국 Core PCE 수집 ────────────────────────────────────────────────────────
+// FRED: PCEPI (PCE 레벨) → YoY 계산, 또는 PCEPILFE (근원 PCE 레벨)
+
+async function fetchCorePceYoy(eventDate: string): Promise<string | null> {
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  const obs = await fetchFredSeries('PCEPILFE', refMonthStr, 14);
+  if (obs.length < 2) return null;
+
+  const current = obs.find(o => o.date <= refMonthStr);
+  const prevYear = obs[obs.length - 1];
+
+  if (!current || !prevYear) return null;
+
+  const currentVal = parseFloat(current.value);
+  const prevYearVal = parseFloat(prevYear.value);
+
+  if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
+
+  const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
+  return `${yoy.toFixed(1)}%`;
+}
+
+// ─── 미국 실업률 수집 (FRED: UNRATE) ─────────────────────────────────────────
+
+async function fetchUnemploymentRate(eventDate: string): Promise<string | null> {
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  const obs = await fetchFredSeries('UNRATE', refMonthStr, 1);
+  if (obs.length === 0) return null;
+  const val = parseFloat(obs[0].value);
+  if (isNaN(val)) return null;
+  return `${val.toFixed(1)}%`;
+}
+
+// ─── 미국 비농업 취업자수 수집 (FRED: PAYEMS - 월간 변화량) ──────────────────
+
+async function fetchNonfarmPayrolls(eventDate: string): Promise<string | null> {
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  // 2개월치 → 월간 변화량 계산
+  const obs = await fetchFredSeries('PAYEMS', refMonthStr, 2);
+  if (obs.length < 2) return null;
+
+  const current = parseFloat(obs[0].value);   // 기준월
+  const previous = parseFloat(obs[1].value);   // 직전월
+
+  if (isNaN(current) || isNaN(previous)) return null;
+
+  // PAYEMS 단위: 천 명
+  const change = Math.round(current - previous);
+  return `${change > 0 ? '+' : ''}${change.toLocaleString()}K`;
+}
+
+// ─── 미국 GDP 성장률 수집 (FRED: A191RL1Q225SBEA - 실질 GDP QoQ 연율) ─────────
+
+async function fetchGdpGrowth(eventDate: string): Promise<string | null> {
+  // GDP는 분기 발표, 발표일 기준 이전 분기 데이터
+  const obs = await fetchFredSeries('A191RL1Q225SBEA', eventDate, 1);
+  if (obs.length === 0) return null;
+  const val = parseFloat(obs[0].value);
+  if (isNaN(val)) return null;
+  return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`;
+}
+
+// ─── 미국 생산자물가 YoY 수집 (FRED: PPIACO) ─────────────────────────────────
+
+async function fetchPpiYoy(eventDate: string): Promise<string | null> {
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  const obs = await fetchFredSeries('PPIACO', refMonthStr, 14);
+  if (obs.length < 2) return null;
+
+  const current = obs.find(o => o.date <= refMonthStr);
+  const prevYear = obs[obs.length - 1];
+
+  if (!current || !prevYear) return null;
+
+  const currentVal = parseFloat(current.value);
+  const prevYearVal = parseFloat(prevYear.value);
+
+  if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
+
+  const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
+  return `${yoy.toFixed(1)}%`;
+}
+
+// ─── 미국 소매판매 YoY 수집 (FRED: RSAFS) ────────────────────────────────────
+
+async function fetchRetailSalesYoy(eventDate: string): Promise<string | null> {
+  const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  const obs = await fetchFredSeries('RSAFS', refMonthStr, 14);
+  if (obs.length < 2) return null;
+
+  const current = obs.find(o => o.date <= refMonthStr);
+  const prevYear = obs[obs.length - 1];
+
+  if (!current || !prevYear) return null;
+
+  const currentVal = parseFloat(current.value);
+  const prevYearVal = parseFloat(prevYear.value);
+
+  if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
+
+  const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
+  return `${yoy >= 0 ? '+' : ''}${yoy.toFixed(1)}%`;
+}
+
+// ─── Yahoo Finance 기업 실적 수집 ────────────────────────────────────────────
+
 async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<string | null> {
   try {
     const symbol = isKr ? `${ticker}.KS` : (ticker === 'BRK_B' ? 'BRK-B' : ticker);
@@ -34,17 +345,13 @@ async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<strin
     const earnings = result?.earnings;
     const financialData = result?.financialData;
 
-    // 최근 분기 실적 히스토리 확인
     const quarters = earnings?.earningsChart?.quarterly;
     if (Array.isArray(quarters) && quarters.length > 0) {
       const latest = quarters[quarters.length - 1];
       if (latest && (latest.actual !== undefined || latest.revenue !== undefined)) {
         const actualEps = latest.actual?.fmt || (typeof latest.actual === 'number' ? `$${latest.actual.toFixed(2)}` : null);
         const revenue = latest.revenue?.fmt || (typeof latest.revenue === 'number' ? `$${(latest.revenue / 1e9).toFixed(2)}B` : null);
-        
-        if (actualEps && revenue) {
-          return `매출 ${revenue} / EPS ${actualEps}`;
-        }
+        if (actualEps && revenue) return `매출 ${revenue} / EPS ${actualEps}`;
         if (revenue) return `매출 ${revenue}`;
         if (actualEps) return `EPS ${actualEps}`;
       }
@@ -56,391 +363,244 @@ async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<strin
 
     return null;
   } catch (err) {
-    console.warn(`[Sync] Failed to fetch earnings for ${ticker}:`, err);
+    console.warn(`[Sync] Yahoo earnings fetch failed for ${ticker}:`, err);
     return null;
   }
 }
 
-interface EconomicIndicator {
-  name: string;
-  date: string;
-  expected?: string;
-  actual?: string;
-  previous?: string;
-}
+// ─── 이벤트 제목 기반 FRED 수집 함수 라우터 ──────────────────────────────────
 
-/**
- * 향후 14일(2주) 범위의 주요 미국 경제지표 실시간 예상치(컨센서스) 및 발표 결과치를 스크래핑합니다.
- * ⚠️ 주의: TradingEconomics /calendar 페이지의 Actual 컬럼은
- *    금리 결정(Fed/BOK) 이벤트의 경우 구조적으로 항상 비어 있음.
- *    금리 결정 actual은 fetchInterestRateDecision()으로 별도 수집.
- */
-async function fetchUpcomingEconomicIndicators(): Promise<EconomicIndicator[]> {
+async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise<string | null> {
+  const t = ev.title.toLowerCase();
+  const eventDate = ev.date;
+
+  // 발표일이 아직 오지 않은 경우 스킵
+  if (eventDate > todayStr) return null;
+
   try {
-    const res = await fetch('https://tradingeconomics.com/calendar', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      cache: 'no-store',
-    });
-
-    if (!res.ok) {
-      console.warn('[Sync] TradingEconomics response not ok:', res.status);
-      return [];
+    // ① FOMC / 미국 기준금리
+    if (t.includes('fomc') || (t.includes('기준금리') && (t.includes('미국') || t.includes('연준')))) {
+      const result = await fetchFomcRate(eventDate);
+      return result?.actual ?? null;
     }
 
-    const html = await res.text();
-    const blocks = html.split('<tr data-url=');
-    const indicators: EconomicIndicator[] = [];
-
-    for (let i = 1; i < blocks.length; i++) {
-      const b = blocks[i];
-      const urlPart = b.substring(0, b.indexOf('>'));
-      if (!urlPart.includes('/united-states/')) continue;
-
-      const evM = b.match(/class=['"]calendar-event['"][^>]*>([^<]+)<\/a>/i);
-      const acM = b.match(/id=['"]actual['"][^>]*>([^<]*)<\/span>/i);
-      const prM = b.match(/id=['"]previous['"][^>]*>([^<]*)<\/span>/i);
-      const coM = b.match(/id=['"]consensus['"][^>]*>([^<]*)<\/a>/i);
-      const foM = b.match(/id=['"]forecast['"][^>]*>([^<]*)<\/a>/i);
-      const dtM = b.match(/class=['"][^'"]*(\d{4}-\d{2}-\d{2})[^'"]*['"]/i);
-
-      const name = evM ? evM[1].trim() : '';
-      const actual = acM ? acM[1].trim() : '';
-      const previous = prM ? prM[1].trim() : '';
-      const expected = (coM && coM[1].trim()) ? coM[1].trim() : (foM ? foM[1].trim() : '');
-      const date = dtM ? dtM[1].trim() : '';
-
-      if (name && (expected || actual || previous)) {
-        indicators.push({ name, date, expected, actual, previous });
-      }
+    // ② 한국은행 기준금리
+    if (t.includes('한국은행') || t.includes('금융통화위원회') || (t.includes('기준금리') && t.includes('한국'))) {
+      const result = await fetchBokRate(eventDate);
+      return result?.actual ?? null;
     }
 
-    return indicators;
-  } catch (err) {
-    console.warn('[Sync] Failed to fetch economic indicators:', err);
-    return [];
-  }
-}
+    // ③ Core PCE (반드시 헤드라인 PCE보다 먼저 체크)
+    if ((t.includes('core') || t.includes('근원')) && t.includes('pce')) {
+      return await fetchCorePceYoy(eventDate);
+    }
 
-/**
- * TradingEconomics 전용 인디케이터 페이지에서 기준금리 결정 결과를 수집합니다.
- *
- * 근거: /calendar 페이지의 Actual 컬럼은 금리 결정에 대해 구조적으로 비어 있습니다.
- * 실제 결과값은 각 국가의 전용 페이지(예: /united-states/interest-rate)의
- * Table 2 인디케이터 박스(Last / Previous)에서만 제공됩니다.
- *
- * 구조: Table 2 → ['', Actual, Previous, Highest, Lowest, Dates, Unit, Frequency, '']
- * 예)   ['', '4.00', '3.75', '20.00', '0.25', '1971 - 2026', 'percent', 'Daily', '']
- */
-async function fetchInterestRateDecision(
-  countryPath: 'united-states' | 'south-korea'
-): Promise<{ actual: string; previous: string } | null> {
-  try {
-    const url = `https://tradingeconomics.com/${countryPath}/interest-rate`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      cache: 'no-store',
-    });
+    // ④ 근원 소비자물가 (Core CPI) - 헤드라인 CPI보다 먼저 체크
+    if ((t.includes('근원') || t.includes('core')) && t.includes('소비자물가')) {
+      return await fetchCpiYoy(eventDate, true);
+    }
 
-    if (!res.ok) return null;
-    const html = await res.text();
+    // ⑤ 소비자물가 (CPI 헤드라인)
+    if (t.includes('소비자물가') && !t.includes('근원') && !t.includes('core')) {
+      return await fetchCpiYoy(eventDate, false);
+    }
 
-    // Table 2: 인디케이터 현재값 박스 파싱
-    // 구조: <table>...</table> 세 번째 table의 두 번째 <tr>
-    const tableMatches = [...html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi)];
-    if (tableMatches.length < 3) return null;
+    // ⑥ 생산자물가 (PPI)
+    if (t.includes('생산자물가')) {
+      return await fetchPpiYoy(eventDate);
+    }
 
-    const indicatorTable = tableMatches[2][1]; // 세 번째 table
-    const rowMatches = [...indicatorTable.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+    // ⑦ 비농업 취업자수 (NFP)
+    if (t.includes('비농업') || t.includes('nonfarm') || t.includes('payroll')) {
+      return await fetchNonfarmPayrolls(eventDate);
+    }
 
-    for (const rowMatch of rowMatches) {
-      const cells = [...rowMatch[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)]
-        .map(m => m[1].replace(/<[^>]+>/g, '').trim());
+    // ⑧ 실업률
+    if (t.includes('실업률') && !t.includes('비농업')) {
+      return await fetchUnemploymentRate(eventDate);
+    }
 
-      // Table 2의 데이터 행: ['', actualNum, previousNum, ..., 'percent', 'Daily', '']
-      if (cells.length >= 4 && cells[2] === 'percent') {
-        const actualVal = parseFloat(cells[1]);
-        const previousVal = parseFloat(cells[2] !== 'percent' ? cells[2] : '');
-        if (!isNaN(actualVal) && actualVal > 0 && actualVal < 25) {
-          // Table 2 row: ['', '4.00', '3.75', '20.00', '0.25', ..., 'percent', 'Daily', '']
-          const raw = cells.filter(c => c !== '');
-          // raw[0]=actual, raw[1]=previous, ..., then 'percent'
-          const rateActual = parseFloat(raw[0]);
-          const ratePrevious = parseFloat(raw[1]);
-          if (!isNaN(rateActual) && rateActual > 0 && rateActual < 25) {
-            const diff = rateActual - ratePrevious;
-            const diffAbs = Math.abs(diff);
-            let direction = '';
-            if (diff > 0.001) direction = ` (${diffAbs.toFixed(2)}%p 인상)`;
-            else if (diff < -0.001) direction = ` (${diffAbs.toFixed(2)}%p 인하)`;
-            else direction = ' (동결)';
-            return {
-              actual: `${rateActual.toFixed(2)}%${direction}`,
-              previous: `${ratePrevious.toFixed(2)}%`,
-            };
-          }
-        }
-      }
+    // ⑨ 소매판매
+    if (t.includes('소매판매')) {
+      return await fetchRetailSalesYoy(eventDate);
+    }
+
+    // ⑩ GDP 성장률
+    if (t.includes('gdp') || (t.includes('성장률') && !t.includes('기업'))) {
+      return await fetchGdpGrowth(eventDate);
     }
 
     return null;
   } catch (err) {
-    console.warn(`[Sync] fetchInterestRateDecision(${countryPath}) failed:`, err);
+    console.warn(`[Sync] fetchEconomicActual failed for ${ev.id}:`, err);
     return null;
   }
 }
 
-/**
- * 전일 및 당일 기준 발표 완료되어야 하는 캘린더 이벤트를 점검하고,
- * 14일(2주) 이내 경제지표의 예상치(expected)와 발표 결과치(actual)를 최신 동기화합니다.
- */
-export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): Promise<SyncCalendarResult> {
-  const now = new Date();
-  // KST 기준 오늘 날짜 및 14일 후(2주) 날짜 스트링 생성
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  
-  const future14 = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-  const future14Str = `${future14.getFullYear()}-${String(future14.getMonth() + 1).padStart(2, '0')}-${String(future14.getDate()).padStart(2, '0')}`;
+// ─── 경제지표 수치 유효성 검증 ──────────────────────────────────────────────────
 
-  const newlyPublished: SyncCalendarResult['newlyPublished'] = [];
-
-  // 1. 향후 14일간의 실시간 경제지표 피드 수집
-  const liveIndicators = await fetchUpcomingEconomicIndicators();
-
-// ─── 경제지표 수치 유효성 검증 (Sanity Check 가드레일) ─────────────────────────
-function isValidIndicatorValue(title: string, value: string): boolean {
+function isValidEconomicValue(title: string, value: string): boolean {
   if (!value || typeof value !== 'string') return false;
-  const clean = value.trim();
   const t = title.toLowerCase();
+  const clean = value.trim();
 
-  // 1) 기준금리 (FOMC / 한은 기준금리): 음수 절대 불가, 정상 범위(0% ~ 20%) 확인
+  // 기준금리: 0% ~ 20%
   if (t.includes('fomc') || t.includes('기준금리')) {
-    if (clean.startsWith('-')) {
-      console.warn(`[Sanity Guard] Rejected negative value "${clean}" for interest rate event "${title}"`);
-      return false;
-    }
+    if (clean.startsWith('-')) return false;
     const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
-    if (isNaN(num) || num < 0 || num > 20) {
-      console.warn(`[Sanity Guard] Rejected abnormal rate "${clean}" for event "${title}"`);
-      return false;
-    }
-    return true;
+    return !isNaN(num) && num >= 0 && num <= 20;
   }
 
-  // 2) 실업률: 1% ~ 30% 정상 범위
+  // 실업률: 1% ~ 30%
   if (t.includes('실업률')) {
     if (clean.startsWith('-')) return false;
     const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
-    if (isNaN(num) || num < 1 || num > 30) return false;
-    return true;
+    return !isNaN(num) && num >= 1 && num <= 30;
   }
 
-  // 3) 물가상승률(CPI, PPI): 비정상 극단치(±40% 초과) 차단
+  // CPI/PPI: ±40% 이내
   if (t.includes('소비자물가') || t.includes('생산자물가')) {
     const num = parseFloat(clean.replace(/[^0-9.-]/g, ''));
-    if (isNaN(num) || Math.abs(num) > 40) return false;
-    return true;
+    return !isNaN(num) && Math.abs(num) <= 40;
   }
 
   return true;
 }
 
-  // 지표 매핑 헬퍼 함수
-  const matchIndicator = (title: string, date: string): EconomicIndicator | undefined => {
-    const t = title.toLowerCase();
-    const isEventYoY = t.includes('yoy') || t.includes('전년');
-    const isEventMoM = t.includes('mom') || t.includes('전월');
-    const isEventCore = t.includes('근원') || t.includes('core');
+// ─── 메인 동기화 함수 ──────────────────────────────────────────────────────────
 
-    return liveIndicators.find((ind) => {
-      const indName = ind.name.toLowerCase();
-      // 날짜 오차 1일 허용 (시차 감안)
-      const dateMatch = ind.date === date || Math.abs(new Date(ind.date).getTime() - new Date(date).getTime()) <= 86400000;
-      if (!dateMatch) return false;
+export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): Promise<SyncCalendarResult> {
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-      const isIndYoY = indName.includes('yoy') || indName.includes('year on year') || indName.includes('change');
-      const isIndMoM = indName.includes('mom') || indName.includes('month on month');
-      const isIndCore = indName.includes('core');
-      const isIndExSub = indName.includes('ex '); // 'ex food', 'ex trade' 등 세부 제외 지표
-
-      // YoY / MoM 주기 일치 여부 엄격 검증
-      if (isEventYoY && !isIndYoY) return false;
-      if (isEventMoM && !isIndMoM) return false;
-
-      // Core(근원) 지표와 Headline 지표 상호 침범 방지
-      if (isEventCore && !isIndCore) return false;
-      if (!isEventCore && (isIndCore || isIndExSub)) return false;
-
-      if ((t.includes('nfib') || t.includes('소기업')) && (indName.includes('nfib') || indName.includes('optimism'))) return true;
-      if (t.includes('소비자물가') && (indName.includes('inflation rate') || indName.includes('cpi'))) return true;
-      if (t.includes('생산자물가') && (indName.includes('ppi') || indName.includes('producer prices'))) return true;
-      if (t.includes('소매판매') && indName.includes('retail sales')) return true;
-
-      // ── FOMC 기준금리 매칭 가드레일 ──
-      // 'fed' 3글자 단독 매칭 전면 금지!
-      // 지역 연은(NY, Philly, Dallas 등)의 서비스업/제조업 설문, 연설, 대차대조표 오매칭을 원천 차단하는 부정 필터 적용
-      if (t.includes('fomc') || t.includes('기준금리')) {
-        const isExcluded = indName.includes('manufacturing') ||
-                           indName.includes('services') ||
-                           indName.includes('index') ||
-                           indName.includes('activity') ||
-                           indName.includes('balance sheet') ||
-                           indName.includes('speech') ||
-                           indName.includes('testimony') ||
-                           indName.includes('minutes');
-        if (isExcluded) return false;
-
-        const isRateDecision = indName.includes('interest rate decision') ||
-                               indName.includes('fed interest rate') ||
-                               indName.includes('federal funds rate') ||
-                               (indName.includes('interest rate') && indName.includes('fed'));
-        return isRateDecision;
-      }
-
-      if (t.includes('비농업') && (indName.includes('non farm') || indName.includes('payroll'))) return true;
-      if (t.includes('실업률') && indName.includes('unemployment')) return true;
-      if (t.includes('gdp') && indName.includes('gdp')) return true;
-
-      return false;
-    });
-  };
+  const newlyPublished: SyncCalendarResult['newlyPublished'] = [];
+  const macroUpdates: SyncCalendarResult['macroUpdates'] = {};
 
   const updatedEvents = await Promise.all(
     currentEvents.map(async (ev) => {
-      // --- A. 경제지표인 경우: 14일 이내 일정의 실시간 예상치(expected) 및 결과치(actual) 동기화 ---
+      // 이미 actual이 있으면 건너뜀 (DB에 저장된 확정값 보호)
+      if (ev.actual) return ev;
+
+      // 아직 발표일이 오지 않은 미래 이벤트는 건너뜀
+      if (ev.date > todayStr) return ev;
+
+      // ─── A. 경제지표 ──────────────────────────────────────────
       if (ev.type === 'economic') {
-        const t = ev.title.toLowerCase();
-        const isFomcOrRate = t.includes('fomc') || t.includes('기준금리');
-        let updatedEv = { ...ev };
+        const fetchedActual = await fetchEconomicActual(ev, todayStr);
 
-        // ── A-1. FOMC / 기준금리 전용 경로 ──────────────────────────────────────
-        // /calendar Actual 컬럼은 구조적으로 비어 있음 → 전용 인디케이터 페이지 직접 조회
-        if (isFomcOrRate) {
-          // 이미 actual이 저장되어 있으면 재수집하지 않음
-          if (!ev.actual) {
-            // 발표일이 오늘 이전(이미 결정됨)인 경우에만 수집
-            if (ev.date <= todayStr) {
-              const countryPath = t.includes('fomc') || t.includes('미국') ? 'united-states' : 'south-korea';
-              const rateData = await fetchInterestRateDecision(countryPath);
-              if (rateData) {
-                updatedEv.actual = rateData.actual;
-                if (!ev.previous) updatedEv.previous = rateData.previous;
-                console.log(`[Sync] 기준금리 결과 수집 성공 (${countryPath}): ${rateData.actual}`);
-                const aiSummary = await generateEasyEventSummary({
-                  title: ev.title,
-                  ticker: ev.ticker,
-                  region: ev.region,
-                  actual: rateData.actual,
-                  expected: updatedEv.expected,
-                  previous: updatedEv.previous,
-                });
-                updatedEv.simpleSummary = aiSummary;
-                newlyPublished.push({
-                  title: ev.title,
-                  ticker: ev.ticker,
-                  actual: rateData.actual,
-                  expected: updatedEv.expected,
-                  summary: aiSummary,
-                });
-              } else {
-                console.warn(`[Sync] 기준금리 수집 실패: ${ev.id} — actual 업데이트 건너뜀`);
-              }
-            }
+        if (fetchedActual && isValidEconomicValue(ev.title, fetchedActual)) {
+          console.log(`[Sync] ✅ ${ev.id} (${ev.date}): actual = ${fetchedActual}`);
+
+          const aiSummary = await generateEasyEventSummary({
+            title: ev.title,
+            ticker: ev.ticker,
+            region: ev.region,
+            actual: fetchedActual,
+            expected: ev.expected,
+            previous: ev.previous,
+          });
+
+          newlyPublished.push({
+            title: ev.title,
+            ticker: ev.ticker,
+            actual: fetchedActual,
+            expected: ev.expected,
+            summary: aiSummary,
+          });
+
+          // 핵심 매크로 지표 업데이트 기록 (route.ts에서 MACRO_SUMMARY_ITEMS 갱신용)
+          const t = ev.title.toLowerCase();
+          if (t.includes('fomc') || (t.includes('기준금리') && t.includes('미국'))) {
+            macroUpdates.fedRate = fetchedActual;
           }
-          return updatedEv;
+          if (t.includes('소비자물가') && !t.includes('근원') && !t.includes('core')) {
+            macroUpdates.cpi = fetchedActual;
+          }
+          if (t.includes('실업률')) {
+            macroUpdates.unemployment = fetchedActual;
+          }
+
+          return { ...ev, actual: fetchedActual, simpleSummary: aiSummary };
         }
 
-        // ── A-2. 일반 경제지표 경로 (CPI, 실업률, GDP, NFP 등) ──────────────────
-        const matched = matchIndicator(ev.title, ev.date);
-
-        if (matched) {
-          // 최신 시장 예상치(컨센서스) 반영 (Sanity Check 통과 시)
-          if (matched.expected && matched.expected !== ev.expected && isValidIndicatorValue(ev.title, matched.expected)) {
-            updatedEv.expected = matched.expected;
-          }
-          // 직전치 반영
-          if (matched.previous && !ev.previous && isValidIndicatorValue(ev.title, matched.previous)) {
-            updatedEv.previous = matched.previous;
-          }
-          // 만약 결과치가 발표되었는데 아직 미등록 상태라면 자동 반영 (Sanity Check 통과 시)
-          if (matched.actual && !ev.actual && isValidIndicatorValue(ev.title, matched.actual)) {
-            updatedEv.actual = matched.actual;
-            const aiSummary = await generateEasyEventSummary({
-              title: ev.title,
-              ticker: ev.ticker,
-              region: ev.region,
-              actual: matched.actual,
-              expected: updatedEv.expected,
-              previous: updatedEv.previous,
-            });
-            updatedEv.simpleSummary = aiSummary;
-            newlyPublished.push({
-              title: ev.title,
-              ticker: ev.ticker,
-              actual: matched.actual,
-              expected: updatedEv.expected,
-              summary: aiSummary,
-            });
-          }
-        }
-        return updatedEv;
-      }
-
-      // --- B. 기업 실적인 경우: 발표 완료된 실적 조회 및 AI 요약 동기화 ---
-      // 이미 결과치(actual)가 입력되어 있다면 유지
-      if (ev.actual) {
+        console.warn(`[Sync] ⚠️ ${ev.id} (${ev.date}): FRED 수집 실패 또는 유효하지 않은 값, 기존 유지`);
         return ev;
       }
 
-      // 아직 발표일이 오지 않은 미래 실적은 유지
-      if (ev.date > todayStr) {
-        return ev;
-      }
-
-      let fetchedActual: string | null = null;
+      // ─── B. 기업 실적 ──────────────────────────────────────────
       if (ev.type === 'earnings' && ev.ticker) {
-        fetchedActual = await fetchEarningsResult(ev.ticker, ev.region === 'kr');
-      }
+        const fetchedActual = await fetchEarningsResult(ev.ticker, ev.region === 'kr');
 
-      if (fetchedActual) {
-        const aiSummaryText = await generateEasyEventSummary({
-          title: ev.title,
-          ticker: ev.ticker,
-          region: ev.region,
-          actual: fetchedActual,
-          expected: ev.expected,
-          previous: ev.previous,
-        });
+        if (fetchedActual) {
+          const aiSummary = await generateEasyEventSummary({
+            title: ev.title,
+            ticker: ev.ticker,
+            region: ev.region,
+            actual: fetchedActual,
+            expected: ev.expected,
+            previous: ev.previous,
+          });
 
-        newlyPublished.push({
-          title: ev.title,
-          ticker: ev.ticker,
-          actual: fetchedActual,
-          expected: ev.expected,
-          summary: aiSummaryText,
-        });
+          newlyPublished.push({
+            title: ev.title,
+            ticker: ev.ticker,
+            actual: fetchedActual,
+            expected: ev.expected,
+            summary: aiSummary,
+          });
 
-        return {
-          ...ev,
-          actual: fetchedActual,
-          simpleSummary: aiSummaryText,
-        };
+          return { ...ev, actual: fetchedActual, simpleSummary: aiSummary };
+        }
+
+        console.warn(`[Sync] ⚠️ ${ev.id} (${ev.date}): Yahoo 실적 수집 실패, 기존 유지`);
+        return ev;
       }
 
       return ev;
     })
   );
 
-  return {
-    updatedEvents,
-    newlyPublished,
-  };
+  return { updatedEvents, newlyPublished, macroUpdates };
 }
 
+// ─── FRED 기반 매크로 지표 현재값 수집 (route.ts forceRefresh 전용) ──────────
+
+export interface FredMacroSnapshot {
+  fedRate?: string;           // 미국 기준금리
+  cpiYoy?: string;            // 소비자물가 YoY
+  unemployment?: string;       // 실업률
+}
+
+/**
+ * GitHub Actions 크론 갱신 시 MACRO_SUMMARY_ITEMS의 현재값을 FRED로 업데이트합니다.
+ * route.ts의 forceRefresh 경로에서 호출됩니다.
+ */
+export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const [fedRateObs, cpiObs, unrateObs] = await Promise.allSettled([
+    fetchFredSeries('DFEDTARU', todayStr, 1),
+    fetchFredSeries('CPALTT01USM657N', todayStr, 1),
+    fetchFredSeries('UNRATE', todayStr, 1),
+  ]);
+
+  const result: FredMacroSnapshot = {};
+
+  if (fedRateObs.status === 'fulfilled' && fedRateObs.value.length > 0) {
+    const val = parseFloat(fedRateObs.value[0].value);
+    if (!isNaN(val)) result.fedRate = `${val.toFixed(2)}%`;
+  }
+
+  if (cpiObs.status === 'fulfilled' && cpiObs.value.length > 0) {
+    const val = parseFloat(cpiObs.value[0].value);
+    if (!isNaN(val)) result.cpiYoy = `${val.toFixed(2)}%`;
+  }
+
+  if (unrateObs.status === 'fulfilled' && unrateObs.value.length > 0) {
+    const val = parseFloat(unrateObs.value[0].value);
+    if (!isNaN(val)) result.unemployment = `${val.toFixed(1)}%`;
+  }
+
+  return result;
+}

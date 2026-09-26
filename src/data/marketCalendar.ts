@@ -11404,6 +11404,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "핵심지표",
     "importance": 3,
     "expected": "3.4%",
+    "actual": "3.35%",
     "previous": "3.4%"
   },
   {
@@ -11417,6 +11418,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "핵심지표",
     "importance": 3,
     "expected": "2.4%",
+    "actual": "2.4%",
     "previous": "2.5%"
   },
   {
@@ -11441,6 +11443,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "글로벌 유동성과 자산 가격의 향방을 가를 9월 FOMC 정례회의 결과가 공개돼요.\n파월 의장의 기자회견과 함께 연말까지의 금리 인하 경로 점도표가 핵심이에요.",
     "impactTag": "핵심지표",
     "importance": 3,
+    "actual": "4.00% (0.25%p 인상)",
     "previous": "3.75%"
   },
   {
@@ -11480,6 +11483,30 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "isHoliday": true
   },
   {
+    "id": "sep-us-core-pce",
+    "date": "2026-09-26",
+    "time": "21:30",
+    "title": "미국 8월 근원 PCE 물가지수 (Core PCE YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "연준이 가장 중시하는 물가 척도인 근원 PCE가 공개돼요. 소비자물가(CPI)보다 더 포괄적인 물가 흐름을 보여줘 금리 방향의 최종 단서가 됩니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "2.6%"
+  },
+  {
+    "id": "sep-cb-consumer-confidence",
+    "date": "2026-09-26",
+    "time": "23:00",
+    "title": "미국 9월 컨퍼런스보드 소비자신뢰지수 (CB Consumer Confidence) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "미국 소비자들이 경제 상황과 앞으로의 소비를 얼마나 낙관하는지 보여주는 지표예요. 미국 GDP의 70%가 소비에서 나오므로 소비 심리는 경제 성장의 선행 신호입니다.",
+    "impactTag": "관망",
+    "importance": 2,
+    "previous": "103.3"
+  },
+  {
     "id": "sep-us-gdp-final",
     "date": "2026-09-30",
     "time": "21:30",
@@ -11504,6 +11531,18 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "162K"
   },
   {
+    "id": "oct-ism-mfg",
+    "date": "2026-10-01",
+    "time": "23:00",
+    "title": "미국 9월 ISM 제조업 구매관리자지수 (PMI) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "미국 제조업 현장의 활력을 가장 빠르게 보여주는 선행지표예요. 50 이상이면 경기 확장, 50 미만이면 위축으로 해석합니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "54.6"
+  },
+  {
     "id": "oct-national-foundation",
     "date": "2026-10-03",
     "title": "한국 증시 휴장 (개천절)",
@@ -11513,6 +11552,30 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "관망",
     "importance": 1,
     "isHoliday": true
+  },
+  {
+    "id": "oct-ism-services",
+    "date": "2026-10-05",
+    "time": "23:00",
+    "title": "미국 9월 ISM 서비스업 구매관리자지수 (PMI) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "미국 경제의 80%를 차지하는 서비스업 체감 경기를 보여주는 지표예요. 제조업 PMI와 함께 경기 방향을 가늠하는 핵심 선행지표입니다.",
+    "impactTag": "관망",
+    "importance": 2,
+    "previous": "51.5"
+  },
+  {
+    "id": "oct-jolts",
+    "date": "2026-10-07",
+    "time": "23:00",
+    "title": "미국 8월 JOLTS 구인 건수 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "기업들이 현재 구인 중인 자리의 수로 고용 시장의 수요 측면을 보여줘요. 구인 건수가 많을수록 노동 시장이 탄탄하다는 신호입니다.",
+    "impactTag": "관망",
+    "importance": 2,
+    "previous": "7.67M"
   },
   {
     "id": "oct-samsung-q3",
@@ -11571,6 +11634,18 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "연말 통화정책 완화 속도를 가늠할 9월 물가 데이터가 공개돼요.",
     "impactTag": "핵심지표",
     "importance": 3
+  },
+  {
+    "id": "oct-retail-sales",
+    "date": "2026-10-15",
+    "time": "21:30",
+    "title": "미국 9월 소매판매 (Retail Sales YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "미국 소비자들의 실제 씀씀이를 보여주는 지표예요. 소비가 견조하면 기업 매출과 고용을 든든히 지지해 줍니다.",
+    "impactTag": "관망",
+    "importance": 2,
+    "previous": "5.0%"
   },
   {
     "id": "oct-tsmc-q3",
@@ -11764,6 +11839,30 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "importance": 3
   },
   {
+    "id": "oct-us-gdp-advance",
+    "date": "2026-10-29",
+    "time": "21:30",
+    "title": "미국 3분기 GDP 성장률 (속보치 QoQ) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "미국 3분기 경제가 얼마나 성장했는지 처음 공개되는 속보 성적표예요. 분기 GDP는 경기 침체 여부를 가르는 가장 중요한 잣대입니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "1.5%"
+  },
+  {
+    "id": "oct-core-pce",
+    "date": "2026-10-30",
+    "time": "21:30",
+    "title": "미국 9월 근원 PCE 물가지수 (Core PCE YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "연준이 가장 신뢰하는 물가 척도인 근원 PCE가 다시 공개돼요. 10월 FOMC 결정 다음 날 나오는 이 수치가 연말 금리 경로를 다시 한번 검증합니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "2.6%"
+  },
+  {
     "id": "oct-aapl-amzn-q3",
     "date": "2026-10-29",
     "time": "05:30",
@@ -11846,8 +11945,20 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "ticker": "SPCX"
   },
   {
+    "id": "nov-nfp",
+    "date": "2026-11-06",
+    "time": "21:30",
+    "title": "미국 10월 비농업 취업자수 (NFP) 및 실업률 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "10월 FOMC 이후 첫 고용 성적표로, 미국 경제 체력과 연준의 다음 행보를 가늠하는 핵심 데이터예요.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "162K"
+  },
+  {
     "id": "nov-cpi",
-    "date": "2026-11-12",
+    "date": "2026-11-10",
     "time": "21:30",
     "title": "미국 10월 소비자물가지수 (CPI) 발표",
     "type": "economic",
@@ -11855,6 +11966,18 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "연말 소비 시즌을 앞두고 물가 안정세가 지속되는지 점검해요.",
     "impactTag": "핵심지표",
     "importance": 3
+  },
+  {
+    "id": "nov-core-pce",
+    "date": "2026-11-26",
+    "time": "21:30",
+    "title": "미국 10월 근원 PCE 물가지수 (Core PCE YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "12월 FOMC를 한 달 앞두고 공개되는 근원 PCE예요. 연말 금리 결정의 방향타 역할을 하는 핵심 지표입니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "2.6%"
   },
   {
     "id": "nov-sksquare-q3",
@@ -11916,6 +12039,18 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "isHoliday": true
   },
   {
+    "id": "dec-nfp",
+    "date": "2026-12-04",
+    "time": "21:30",
+    "title": "미국 11월 비농업 취업자수 (NFP) 및 실업률 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "연말 소비 시즌에 고용 시장이 얼마나 탄탄한지 점검해요. 12월 FOMC를 일주일 앞두고 금리 결정에 결정적 영향을 미칩니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "162K"
+  },
+  {
     "id": "dec-avgo-q4",
     "date": "2026-12-03",
     "time": "06:00",
@@ -11928,19 +12063,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "ticker": "AVGO"
   },
   {
-    "id": "dec-cpi",
-    "date": "2026-12-10",
-    "time": "21:30",
-    "title": "미국 11월 소비자물가지수 (CPI) 발표",
-    "type": "economic",
-    "region": "us",
-    "simpleSummary": "올해 마지막 FOMC를 앞두고 확인하는 최종 물가 성적표예요.",
-    "impactTag": "핵심지표",
-    "importance": 3
-  },
-  {
     "id": "dec-fomc-result",
-    "date": "2026-12-17",
+    "date": "2026-12-10",
     "time": "03:00",
     "title": "미국 12월 FOMC 연간 최종 금리 결정 및 2027년 점도표 공개",
     "type": "economic",
@@ -11948,6 +12072,41 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "2026년을 결산하고 2027년 새해 글로벌 금리 경로를 제시하는 연중 가장 중요한 회의예요.",
     "impactTag": "핵심지표",
     "importance": 3
+  },
+  {
+    "id": "dec-cpi",
+    "date": "2026-12-10",
+    "time": "21:30",
+    "title": "미국 11월 소비자물가지수 (CPI) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "12월 FOMC 결과 발표 당일 저녁에 확인하는 올해 마지막 핵심 물가 성적표예요.",
+    "impactTag": "핵심지표",
+    "importance": 3
+  },
+  {
+    "id": "dec-retail-sales",
+    "date": "2026-12-16",
+    "time": "21:30",
+    "title": "미국 11월 소매판매 (Retail Sales YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "블랙프라이데이와 사이버먼데이를 포함한 연말 최대 소비 시즌의 씀씀이를 보여줘요. 소비 강도가 연간 기업 실적을 결정짓습니다.",
+    "impactTag": "관망",
+    "importance": 2,
+    "previous": "5.0%"
+  },
+  {
+    "id": "dec-core-pce",
+    "date": "2026-12-23",
+    "time": "21:30",
+    "title": "미국 11월 근원 PCE 물가지수 (Core PCE YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "연말을 앞두고 공개되는 올해 마지막 PCE 물가 지표예요. 2027년 연준의 금리 경로 논의에 첫 데이터를 제공합니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "2.6%"
   },
   {
     "id": "dec-christmas",
