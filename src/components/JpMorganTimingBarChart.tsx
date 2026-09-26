@@ -99,7 +99,7 @@ export default function JpMorganTimingBarChart() {
       className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] space-y-4 shadow-2xs my-4 select-none"
     >
       {/* Header */}
-      <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-color)]/70">
+      <div className="flex items-center gap-2">
         <span className="p-1.5 rounded-lg bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
           <Clock className="w-4 h-4" />
         </span>

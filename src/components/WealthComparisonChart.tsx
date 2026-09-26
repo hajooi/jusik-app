@@ -99,13 +99,13 @@ export default function WealthComparisonChart() {
   const currentWorkerOutlay = getWorkerOutlay(selectedYear);
   const gap = currentInvestorVal - currentWorkerVal;
 
-  // SVG Geometry (2-3강 PortfolioRecipeBarChart 규격 1:1 표준 채택)
+  // SVG Geometry: 세로 높이를 220으로 대폭 키워 모바일 찌그러짐 해소
   const chartWidth = 560;
-  const chartHeight = 180;
-  const padLeft = 40;
+  const chartHeight = 220;
+  const padLeft = 46;
   const padRight = 20;
-  const padTop = 22;
-  const padBottom = 26;
+  const padTop = 28;
+  const padBottom = 30;
   const usableW = chartWidth - padLeft - padRight;
   const usableH = chartHeight - padTop - padBottom;
   const maxVal = getInvestorValue(30); // 약 100.6억
@@ -213,8 +213,8 @@ export default function WealthComparisonChart() {
               </linearGradient>
             </defs>
 
-            {/* Y-Axis Value Grid Lines & Labels (0억, 25억, 50억, 75억, 100억) */}
-            {[0, 25, 50, 75, 100].map((val) => (
+            {/* Y-Axis Value Grid Lines & Labels (반응형 폰트: 모바일 14px ➔ 데스크톱 9.5px) */}
+            {[0, 50, 100].map((val) => (
               <g key={val}>
                 <line
                   x1={padLeft}
@@ -226,13 +226,10 @@ export default function WealthComparisonChart() {
                   strokeWidth="1"
                 />
                 <text
-                  x={padLeft - 6}
-                  y={getY(val) + 3}
-                  fill="var(--text-secondary)"
-                  fontSize="9"
+                  x={padLeft - 8}
+                  y={getY(val) + 4}
                   textAnchor="end"
-                  fontWeight="600"
-                  fontFamily="monospace"
+                  className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]"
                 >
                   {val}억
                 </text>
@@ -255,17 +252,17 @@ export default function WealthComparisonChart() {
                 className="pointer-events-none"
               />
 
-              {/* Worker Curve: Dashed Line (2-3강 1.5px standard) */}
+              {/* Worker Curve: Dashed Line (2px 선명하고 단단한 점선) */}
               <path
                 d={workerLinePath}
                 fill="none"
                 stroke="var(--text-secondary)"
-                strokeWidth="1.5"
-                strokeDasharray="4 4"
-                opacity="0.75"
+                strokeWidth="2"
+                strokeDasharray="5 3"
+                opacity="0.95"
               />
 
-              {/* Investor Curve: 2.5px Round Stroke (2-3강 standard) */}
+              {/* Investor Curve: 2.5px Round Stroke */}
               <path
                 d={investorLinePath}
                 fill="none"
@@ -275,22 +272,6 @@ export default function WealthComparisonChart() {
                 strokeLinejoin="round"
               />
             </g>
-
-            {/* X-Axis Compact Year Labels (2-3강 배치 표준) */}
-            {[0, 5, 10, 15, 20, 25, 30].map((y) => (
-              <text
-                key={y}
-                x={getX(y)}
-                y={chartHeight - 8}
-                fill="var(--text-secondary)"
-                fontSize="9"
-                textAnchor={y === 0 ? 'start' : y === 30 ? 'end' : 'middle'}
-                fontWeight="600"
-                fontFamily="monospace"
-              >
-                {y === 30 ? '30년후' : `${y}년`}
-              </text>
-            ))}
 
             {/* Leading Dot along Investor Curve */}
             {!isInteracting && selectedYear === 30 && isInView && animProgress > 0 && (
@@ -309,7 +290,7 @@ export default function WealthComparisonChart() {
                 <circle
                   cx={currentLeadX}
                   cy={currentLeadY}
-                  r="4.5"
+                  r="5"
                   fill="#F18F01"
                 />
                 {/* Inner White Pin */}
@@ -319,17 +300,13 @@ export default function WealthComparisonChart() {
                   r="2"
                   fill="#FFFFFF"
                 />
-                {/* 30-Year Badge when settled */}
+                {/* 30-Year Badge when settled (반응형 폰트) */}
                 {animProgress >= 0.95 && selectedYear === 30 && (
                   <text
                     x={getX(30)}
-                    y={getY(investorVals[30]) - 8}
-                    fill="#F18F01"
-                    fontSize="10"
+                    y={getY(investorVals[30]) - 12}
                     textAnchor="end"
-                    fontWeight="800"
-                    fontFamily="monospace"
-                    className="animate-in fade-in duration-300"
+                    className="text-[15px] sm:text-[10.5px] font-black font-mono fill-[#F18F01] animate-in fade-in duration-300"
                   >
                     100.6억
                   </text>
@@ -337,7 +314,7 @@ export default function WealthComparisonChart() {
               </g>
             )}
 
-            {/* Active Year Vertical Guideline & 2-3강 Hover/Touch Tooltip Indicator */}
+            {/* Active Year Vertical Guideline & Hover/Touch Tooltip Indicator */}
             {isInteracting && (
               <g className="animate-in fade-in duration-150">
                 <line
@@ -346,18 +323,16 @@ export default function WealthComparisonChart() {
                   x2={currentX}
                   y2={chartHeight - padBottom}
                   stroke="var(--accent-orange)"
-                  strokeWidth="1.2"
+                  strokeWidth="1.5"
                   strokeDasharray="2 2"
                 />
-                <circle cx={currentX} cy={currentInvY} r="4.5" fill="#F18F01" />
-                <circle cx={currentX} cy={currentWrkY} r="3.5" fill="var(--text-secondary)" />
+                <circle cx={currentX} cy={currentInvY} r="5" fill="#F18F01" />
+                <circle cx={currentX} cy={currentWrkY} r="4" fill="var(--text-secondary)" />
                 <text
-                  x={Math.min(chartWidth - 90, Math.max(90, currentX))}
-                  y={padTop - 6}
-                  fill="var(--text-primary)"
-                  fontSize="9.5"
+                  x={Math.min(chartWidth - 110, Math.max(110, currentX))}
+                  y={padTop - 8}
                   textAnchor="middle"
-                  fontWeight="700"
+                  className="text-[14px] sm:text-[10px] font-extrabold fill-[var(--text-primary)]"
                 >
                   {selectedYear}년차 | 자본가 {currentInvestorVal.toFixed(1)}억 (노동자 {currentWorkerVal.toFixed(1)}억)
                 </text>
@@ -377,22 +352,34 @@ export default function WealthComparisonChart() {
                   strokeDasharray="2 2"
                   opacity="0.8"
                 />
-                <circle cx={currentX} cy={currentInvY} r="4.5" fill="#F18F01" />
+                <circle cx={currentX} cy={currentInvY} r="5" fill="#F18F01" />
                 <circle cx={currentX} cy={currentInvY} r="2" fill="#FFFFFF" />
-                <circle cx={currentX} cy={currentWrkY} r="3.5" fill="var(--text-secondary)" />
+                <circle cx={currentX} cy={currentWrkY} r="4" fill="var(--text-secondary)" />
               </g>
             )}
           </svg>
+
+          {/* X-Axis Labels: SVG 외부 순수 HTML Flex로 분리하여 모바일/데스크톱 100% 동일한 선명도 확보 */}
+          <div className="flex justify-between items-center px-4 pt-1.5 text-[11px] sm:text-xs text-[var(--text-secondary)] font-mono font-bold select-none border-t border-[var(--border-color)]/40 mt-1">
+            <span>0년</span>
+            <span>10년</span>
+            <span>20년</span>
+            <span>30년후</span>
+          </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center justify-between gap-3 text-xs pt-0.5 px-1">
-          <div className="flex items-center gap-1.5 font-bold text-[var(--accent-orange)]">
-            <span className="w-2.5 h-2.5 rounded-sm bg-[#F18F01] shrink-0" />
+        {/* Legend: 통일된 Apple 표준 인덱스 (20px 정밀 SVG 라인) */}
+        <div className="flex items-center justify-between gap-3 text-xs pt-1 px-1">
+          <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)]">
+            <svg width="20" height="4" className="shrink-0">
+              <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
             <span>자본가 (10억 일시)</span>
           </div>
-          <div className="flex items-center gap-1.5 font-bold text-[var(--text-secondary)]">
-            <span className="w-2.5 h-0.5 border-b border-dashed border-[var(--text-secondary)] inline-block" />
+          <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)]">
+            <svg width="20" height="4" className="shrink-0">
+              <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
+            </svg>
             <span>노동자 (월 500만 적립)</span>
           </div>
         </div>

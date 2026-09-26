@@ -99,9 +99,9 @@ export default function PensionTaxSimulator() {
               소득에 따라 세액공제율(16.5% 또는 13.2%)이 결정됩니다
             </p>
           </div>
-          <div className="relative flex items-center p-1 rounded-full bg-[var(--bg-main)] border border-[var(--border-color)] text-xs font-semibold select-none self-start sm:self-center shrink-0">
+          <div className="relative flex items-center p-1 rounded-2xl sm:rounded-full bg-[var(--bg-main)] border border-[var(--border-color)] text-xs font-semibold select-none self-start sm:self-center shrink-0">
             <div
-              className="absolute top-1 bottom-1 rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+              className="absolute top-1 bottom-1 rounded-xl sm:rounded-full bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xs transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
               style={{
                 left: incomeType === 'low' ? '4px' : 'calc(50% + 2px)',
                 width: 'calc(50% - 6px)',
@@ -110,26 +110,26 @@ export default function PensionTaxSimulator() {
             <button
               type="button"
               onClick={() => setIncomeType('low')}
-              className={`relative z-10 py-1.5 px-3.5 rounded-full text-center transition-colors duration-200 flex items-center gap-1.5 ${
+              className={`relative z-10 py-1.5 px-3 sm:px-3.5 rounded-xl sm:rounded-full text-center transition-colors duration-200 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 ${
                 incomeType === 'low'
                   ? 'text-[var(--accent-orange)] font-bold'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <span>5,500만 원 이하</span>
-              <span className="text-[10px] font-mono text-[#10B981] font-bold">16.5%</span>
+              <span className="whitespace-nowrap">5,500만 원 이하</span>
+              <span className="text-[10px] font-mono text-[#10B981] font-bold whitespace-nowrap">16.5%</span>
             </button>
             <button
               type="button"
               onClick={() => setIncomeType('high')}
-              className={`relative z-10 py-1.5 px-3.5 rounded-full text-center transition-colors duration-200 flex items-center gap-1.5 ${
+              className={`relative z-10 py-1.5 px-3 sm:px-3.5 rounded-xl sm:rounded-full text-center transition-colors duration-200 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 ${
                 incomeType === 'high'
                   ? 'text-[var(--accent-orange)] font-bold'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <span>5,500만 원 초과</span>
-              <span className="text-[10px] font-mono text-[var(--accent-orange)] font-bold">13.2%</span>
+              <span className="whitespace-nowrap">5,500만 원 초과</span>
+              <span className="text-[10px] font-mono text-[var(--accent-orange)] font-bold whitespace-nowrap">13.2%</span>
             </button>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function PensionTaxSimulator() {
 
         {/* Row 2: 월 저축 희망액 슬라이더 & 4분할 대칭 프리셋 */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div>
               <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
                 월 저축 희망액
@@ -148,11 +148,11 @@ export default function PensionTaxSimulator() {
                 슬라이더를 조절하거나 아래 금액을 선택해 보세요
               </p>
             </div>
-            <div className="text-right">
-              <span className="text-base sm:text-lg font-extrabold text-[var(--accent-orange)] font-mono">
+            <div className="text-right flex flex-col sm:flex-row sm:items-baseline sm:justify-end shrink-0">
+              <span className="text-base sm:text-lg font-extrabold text-[var(--accent-orange)] font-mono whitespace-nowrap">
                 {monthlyAmount}만 원
               </span>
-              <span className="text-xs text-[var(--text-secondary)] font-medium ml-1.5">
+              <span className="text-xs text-[var(--text-secondary)] font-medium sm:ml-1.5 whitespace-nowrap">
                 (연 {annualAmount}만 원)
               </span>
             </div>

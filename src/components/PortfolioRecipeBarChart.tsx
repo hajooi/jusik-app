@@ -140,11 +140,11 @@ export default function PortfolioRecipeBarChart() {
 
   // SVG Chart Geometry
   const chartWidth = 560;
-  const chartHeight = 180;
-  const padLeft = 40;
+  const chartHeight = 250;
+  const padLeft = 36;
   const padRight = 20;
-  const padTop = 20;
-  const padBottom = 28;
+  const padTop = 18;
+  const padBottom = 16;
   const usableW = chartWidth - padLeft - padRight;
 
   const minVal = 0.8;
@@ -230,16 +230,6 @@ export default function PortfolioRecipeBarChart() {
   // SPY Benchmark Path
   const spyPoints = SPY_BENCHMARK.curve.map((pt, i) => `${getX(i).toFixed(1)},${getY(pt.v).toFixed(1)}`);
   const spyPath = `M ${spyPoints.join(' L ')}`;
-
-  // Key Dates for X-Axis Labels (every ~3 years)
-  const xLabels = [
-    { idx: 0, text: "'11년" },
-    { idx: 26, text: "'14년" },
-    { idx: 52, text: "'17년" },
-    { idx: 78, text: "'20년" },
-    { idx: 104, text: "'23년" },
-    { idx: Math.max(0, totalPoints - 1), text: "'26년" }
-  ];
 
   const hoveredPoint = hoverIndex !== null && hoverIndex < totalPoints ? selectedRecipe.curve[hoverIndex] : null;
   const hoveredSpy = hoverIndex !== null && hoverIndex < SPY_BENCHMARK.curve.length ? SPY_BENCHMARK.curve[hoverIndex] : null;
@@ -382,12 +372,19 @@ export default function PortfolioRecipeBarChart() {
               <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
               과거 15년 성적 비교
             </span>
-            <div className="flex items-center gap-3 text-[11px] font-bold">
-              <span className="flex items-center gap-1 text-[var(--accent-orange)]">
-                <span className="w-2.5 h-0.5 bg-[var(--accent-orange)] inline-block" /> {selectedRecipe.name}
+            {/* 통일된 표준 인덱스 (20px SVG 정밀 라인) */}
+            <div className="flex items-center gap-3 text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-[var(--accent-orange)]">
+                <svg width="20" height="4" className="shrink-0">
+                  <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+                <span>{selectedRecipe.name}</span>
               </span>
-              <span className="flex items-center gap-1 text-[var(--text-secondary)]">
-                <span className="w-2.5 h-0.5 border-b border-dashed border-[var(--text-secondary)] inline-block" /> S&P 500
+              <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+                <svg width="20" height="4" className="shrink-0">
+                  <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
+                </svg>
+                <span>S&P 500</span>
               </span>
             </div>
           </div>
@@ -423,7 +420,7 @@ export default function PortfolioRecipeBarChart() {
                 </clipPath>
               </defs>
 
-              {/* Grid Lines */}
+              {/* Grid Lines & Labels (반응형 폰트: 모바일 14px ➔ 데스크톱 9.5px) */}
               {[1, 4, 7, 10].map((val) => (
                 <g key={val}>
                   <line
@@ -436,12 +433,10 @@ export default function PortfolioRecipeBarChart() {
                     strokeWidth="1"
                   />
                   <text
-                    x={padLeft - 6}
-                    y={getY(val) + 3}
-                    fill="var(--text-secondary)"
-                    fontSize="9"
+                    x={padLeft - 8}
+                    y={getY(val) + 4}
                     textAnchor="end"
-                    fontWeight="600"
+                    className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]"
                   >
                     {val}배
                   </text>
@@ -453,41 +448,26 @@ export default function PortfolioRecipeBarChart() {
                 {/* Area Fill */}
                 <path d={recipeArea} fill="url(#recipeGradient15y)" />
 
-                {/* SPY Benchmark Line (Dashed) */}
+                {/* SPY Benchmark Line (Dashed 2.5px) */}
                 <path
                   d={spyPath}
                   fill="none"
                   stroke="var(--text-secondary)"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
-                  opacity="0.75"
+                  strokeWidth="2.5"
+                  strokeDasharray="5 3"
+                  opacity="0.9"
                 />
 
-                {/* Recipe Line */}
+                {/* Recipe Line (3px Round Stroke) */}
                 <path
                   d={recipePath}
                   fill="none"
                   stroke="#F18F01"
-                  strokeWidth="2.5"
+                  strokeWidth="2.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </g>
-
-              {/* X Axis Labels */}
-              {xLabels.map((lbl, i) => (
-                <text
-                  key={i}
-                  x={getX(lbl.idx)}
-                  y={chartHeight - 8}
-                  fill="var(--text-secondary)"
-                  fontSize="9"
-                  textAnchor="middle"
-                  fontWeight="600"
-                >
-                  {lbl.text}
-                </text>
-              ))}
 
               {/* Leading Dot & End Point Marker */}
               {hoverIndex === null && totalPoints > 0 && isInView && animProgress > 0 && (
@@ -506,7 +486,7 @@ export default function PortfolioRecipeBarChart() {
                   <circle
                     cx={currentLeadX}
                     cy={currentLeadY}
-                    r="4.5"
+                    r="5"
                     fill="#F18F01"
                   />
                   {/* Inner White Pin */}
@@ -516,16 +496,13 @@ export default function PortfolioRecipeBarChart() {
                     r="2"
                     fill="#FFFFFF"
                   />
-                  {/* Multiplier Badge when settled */}
+                  {/* Multiplier Badge when settled (반응형 폰트) */}
                   {animProgress >= 0.95 && (
                     <text
                       x={getX(totalPoints - 1)}
-                      y={getY(selectedRecipe.curve[totalPoints - 1].v) - 8}
-                      fill="#F18F01"
-                      fontSize="10"
+                      y={getY(selectedRecipe.curve[totalPoints - 1].v) - 10}
                       textAnchor="end"
-                      fontWeight="800"
-                      className="animate-in fade-in duration-300"
+                      className="text-[15px] sm:text-[10.5px] font-black font-mono fill-[#F18F01] animate-in fade-in duration-300"
                     >
                       {selectedRecipe.curve[totalPoints - 1].v.toFixed(1)}배
                     </text>
@@ -542,28 +519,26 @@ export default function PortfolioRecipeBarChart() {
                     x2={getX(hoverIndex)}
                     y2={chartHeight - padBottom}
                     stroke="var(--accent-orange)"
-                    strokeWidth="1"
+                    strokeWidth="1.2"
                     strokeDasharray="2 2"
                   />
                   <circle
                     cx={getX(hoverIndex)}
                     cy={getY(hoveredPoint.v)}
-                    r="4.5"
+                    r="5"
                     fill="#F18F01"
                   />
                   <circle
                     cx={getX(hoverIndex)}
                     cy={getY(hoveredSpy.v)}
-                    r="3.5"
+                    r="4"
                     fill="var(--text-secondary)"
                   />
                   <text
-                    x={Math.min(chartWidth - 60, Math.max(70, getX(hoverIndex)))}
+                    x={Math.min(chartWidth - 90, Math.max(90, getX(hoverIndex)))}
                     y={padTop + 4}
-                    fill="var(--text-primary)"
-                    fontSize="9.5"
                     textAnchor="middle"
-                    fontWeight="700"
+                    className="text-[14px] sm:text-[10px] font-extrabold fill-[var(--text-primary)]"
                   >
                     {selectedRecipe.name} {hoveredPoint.v.toFixed(1)}배 (S&P {hoveredSpy.v.toFixed(1)}배)
                   </text>

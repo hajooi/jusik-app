@@ -515,7 +515,7 @@ export default function MarketCalendarSection() {
           {/* 캘린더 하단 안내 캡션 (좌우 높이 완벽 일치 및 시각적 안정감) */}
           <div className="pt-3 text-center border-t border-[var(--border-color)]/50 mt-2">
             <span className="text-[11px] text-[var(--text-secondary)]">
-              날짜를 누르면 하단 타임라인에서 해당 일자의 일정을 바로 확인할 수 있어요.
+              날짜를 누르면 하단에서 해당 일자의 일정을 바로 확인할 수 있어요.
             </span>
           </div>
         </div>
@@ -543,29 +543,33 @@ export default function MarketCalendarSection() {
           )}
         </div>
 
-        {/* ── 최근 발표 결과 Top 3 캡슐 슬롯 (오늘 이전 가장 최근 actual 발표 지표/실적) ── */}
+        {/* ── 최근 발표 결과 브리핑 (에메랄드 전용 테마 + 모바일 가로 스크롤로 일반 타임라인 피드와 명확히 분리) ── */}
         {recentPublishedEvents.length > 0 && !selectedDate && (
-          <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-[var(--bg-main)]/70 border border-[var(--border-color)]/80 space-y-2.5">
+          <div className="mb-6 p-3.5 sm:p-4 rounded-2xl bg-[var(--fintech-emerald)]/5 border border-[var(--fintech-emerald)]/25 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between px-0.5">
-              <span className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[var(--fintech-emerald)]" />
-                <span>최근 발표 결과</span>
+                <span>최근 발표 결과 요약</span>
+              </span>
+              <span className="text-[10px] text-[var(--text-secondary)] hidden sm:inline font-mono">
+                최근 3건 결과
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {/* 모바일: 가로 슬라이드 스냅으로 세로 피드와 완전 분리 / 데스크톱: 3열 카드 */}
+            <div className="flex sm:grid sm:grid-cols-3 gap-2.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 snap-x">
               {recentPublishedEvents.map((rev) => (
                 <button
                   key={`recent-${rev.id}`}
                   type="button"
                   onClick={() => setSelectedDate(rev.date)}
-                  className="text-left p-3.5 rounded-xl bg-[var(--card-surface)] border border-[var(--border-color)]/80 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group flex flex-col justify-between space-y-2 shadow-2xs"
+                  className="min-w-[240px] sm:min-w-0 snap-start flex-1 shrink-0 text-left p-3.5 rounded-xl bg-[var(--card-surface)] border border-emerald-500/20 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group flex flex-col justify-between space-y-2 shadow-2xs"
                 >
                   <div className="flex items-center justify-between text-[11px] font-mono w-full">
                     <span className="font-bold text-[var(--text-secondary)]">
                       {rev.date.replace(/-/g, '.')}
                     </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--fintech-emerald)]/10 text-[var(--fintech-emerald)]">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--fintech-emerald)]/15 text-emerald-600 dark:text-emerald-400">
                       발표완료
                     </span>
                   </div>
@@ -576,7 +580,7 @@ export default function MarketCalendarSection() {
                     {(rev.actual || rev.previous) && (
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
                         {rev.actual && (
-                          <span className="font-bold text-[var(--accent-orange)]">
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
                             결과: {rev.actual}
                           </span>
                         )}
@@ -588,7 +592,7 @@ export default function MarketCalendarSection() {
                       </div>
                     )}
                     {rev.simpleSummary && (
-                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-0.5 break-keep">
+                      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed pt-0.5 break-keep line-clamp-2">
                         {rev.simpleSummary}
                       </p>
                     )}

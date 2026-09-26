@@ -113,7 +113,7 @@ export default function RebalanceBacktestChart() {
   const padLeft = 16;
   const padRight = 16;
   const padTop = 18;
-  const padBottom = 12;
+  const padBottom = 14;
   const usableW = chartWidth - padLeft - padRight;
   const usableH = chartHeight - padTop - padBottom;
   const maxVal = 26000; // 2억 6천만 원
@@ -265,12 +265,12 @@ export default function RebalanceBacktestChart() {
 
             {/* Horizontal Grid lines */}
             <line x1={padLeft} y1={chartHeight - padBottom} x2={chartWidth - padRight} y2={chartHeight - padBottom} stroke="var(--border-color)" strokeWidth="1" opacity="0.6" />
-            <line x1={padLeft} y1={getY(20000)} x2={chartWidth - padRight} y2={getY(20000)} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.35" />
-            <line x1={padLeft} y1={getY(10000)} x2={chartWidth - padRight} y2={getY(10000)} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.35" />
+            <line x1={padLeft} y1={getY(20000)} x2={chartWidth - padRight} y2={getY(20000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" />
+            <line x1={padLeft} y1={getY(10000)} x2={chartWidth - padRight} y2={getY(10000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" />
 
-            {/* Y-Axis Value Labels (은은한 미니멀 표기) */}
-            <text x={padLeft + 4} y={getY(20000) - 5} fill="var(--text-secondary)" fontSize="9" fontWeight="bold" opacity="0.6">2억</text>
-            <text x={padLeft + 4} y={getY(10000) - 5} fill="var(--text-secondary)" fontSize="9" fontWeight="bold" opacity="0.6">1억</text>
+            {/* Y-Axis Value Labels (반응형 폰트: 모바일 14px ➔ 데스크톱 9.5px) */}
+            <text x={padLeft + 6} y={getY(20000) - 6} textAnchor="start" className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]">2억</text>
+            <text x={padLeft + 6} y={getY(10000) - 6} textAnchor="start" className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]">1억</text>
 
             {/* Animated Curves & Area Fill inside Sweep ClipPath */}
             <g clipPath="url(#rebalSweepClip)">
@@ -281,21 +281,21 @@ export default function RebalanceBacktestChart() {
                 className="pointer-events-none"
               />
 
-              {/* 1. Hold Curve (방치한 계좌 - 단일 회색 점선) */}
+              {/* 1. Hold Curve (방치한 계좌 - 2.5px 단단한 점선) */}
               <polyline
                 fill="none"
                 stroke="var(--text-secondary)"
-                strokeWidth="2"
-                strokeDasharray="4 4"
-                opacity="0.85"
+                strokeWidth="2.5"
+                strokeDasharray="5 3"
+                opacity="0.9"
                 points={holdPoints}
               />
 
-              {/* 2. Rebalanced Curve (리밸런싱한 계좌 - 시그니처 오렌지 실선) */}
+              {/* 2. Rebalanced Curve (리밸런싱한 계좌 - 2.8px 시그니처 오렌지 실선) */}
               <polyline
                 fill="none"
                 stroke="#F18F01"
-                strokeWidth="2.4"
+                strokeWidth="2.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 points={rebalPoints}
@@ -331,16 +331,13 @@ export default function RebalanceBacktestChart() {
                   r="2"
                   fill="#FFFFFF"
                 />
-                {/* 30-Year Final Value Badge when settled */}
+                {/* 30-Year Final Value Badge when settled (반응형 폰트) */}
                 {animProgress >= 0.95 && (
                   <text
                     x={getX(SIMULATION_DATA.length - 1)}
                     y={getY(SIMULATION_DATA[SIMULATION_DATA.length - 1].rebal) - 10}
-                    fill="#F18F01"
-                    fontSize="10"
                     textAnchor="end"
-                    fontWeight="800"
-                    className="animate-in fade-in duration-300"
+                    className="text-[15px] sm:text-[10.5px] font-black font-mono fill-[#F18F01] animate-in fade-in duration-300"
                   >
                     2.51억 원
                   </text>
@@ -368,18 +365,18 @@ export default function RebalanceBacktestChart() {
           </svg>
         </div>
 
-        {/* Legend (일관된 명칭: 리밸런싱한 계좌 vs 방치한 계좌) */}
+        {/* Legend: 통일된 Apple 표준 인덱스 (20px 정밀 SVG 라인) */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs px-1">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 font-bold text-[var(--accent-orange)]">
-              <svg width="16" height="4" className="shrink-0">
-                <line x1="0" y1="2" x2="16" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
+            <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)]">
+              <svg width="20" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
               <span>리밸런싱한 계좌</span>
             </div>
-            <div className="flex items-center gap-1.5 font-bold text-[var(--text-secondary)]">
-              <svg width="16" height="4" className="shrink-0">
-                <line x1="0" y1="2" x2="16" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="3 2" />
+            <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)]">
+              <svg width="20" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
               </svg>
               <span>방치한 계좌</span>
             </div>
@@ -390,10 +387,10 @@ export default function RebalanceBacktestChart() {
         </div>
       </div>
 
-      {/* Result Metrics Cards (순서: 1. 리밸런싱한 계좌 -> 2. 방치한 계좌 -> 3. 차이) */}
+      {/* Result Metrics Cards: 통일된 카드 서피스 바탕색 + 명확한 위계 정돈 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
         {/* Card 1: Rebalanced Result */}
-        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 space-y-1">
+        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1 shadow-2xs hover:border-[var(--accent-orange)]/40 transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-[var(--accent-orange)]">리밸런싱한 계좌</span>
             <ShieldCheck className="w-4 h-4 text-[var(--accent-orange)] stroke-[2.2]" />
@@ -402,17 +399,17 @@ export default function RebalanceBacktestChart() {
             <AnimatedNumber value={current.rebal / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
-            원금 대비 +<AnimatedNumber value={Math.round(((current.rebal - current.invested) / current.invested) * 100)} duration={1200} />% 수익
+            원금 대비 <span className="font-bold text-[var(--accent-orange)]">+<AnimatedNumber value={Math.round(((current.rebal - current.invested) / current.invested) * 100)} duration={1200} />%</span> 수익
           </div>
         </div>
 
         {/* Card 2: Hold Result */}
-        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] space-y-1">
+        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)] space-y-1 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-[var(--text-secondary)]">방치한 계좌</span>
             <Clock className="w-4 h-4 text-[var(--text-secondary)] stroke-[2.2]" />
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight font-mono">
+          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-secondary)] tracking-tight font-mono">
             <AnimatedNumber value={current.hold / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
@@ -420,13 +417,13 @@ export default function RebalanceBacktestChart() {
           </div>
         </div>
 
-        {/* Card 3: Gap */}
-        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] space-y-1">
+        {/* Card 3: Gap (최종 성과 차이 - 오렌지 포인트 테두리로 깔끔하게 강조) */}
+        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--card-surface)] border border-[var(--accent-orange)]/40 space-y-1 shadow-2xs hover:border-[var(--accent-orange)]/70 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)]">리밸런싱 추가 이익</span>
+            <span className="text-[11px] font-bold text-[var(--text-primary)]">리밸런싱 추가 이익</span>
             <ArrowUpRight className="w-4 h-4 text-[var(--accent-orange)] stroke-[2.5]" />
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-[var(--accent-orange)] tracking-tight font-mono">
+          <div className="text-lg sm:text-xl font-black text-[var(--accent-orange)] tracking-tight font-mono">
             {gapAmount >= 0 ? '+' : '-'}<AnimatedNumber value={Math.abs(gapAmount) / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
