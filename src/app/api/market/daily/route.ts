@@ -740,17 +740,14 @@ export async function GET(request: Request) {
     krDates.sort();
     const latestKrClosedDate = krDates.length > 0 ? krDates[krDates.length - 1] : null;
 
-    let latestClosedDate: string | null = null;
-    if (latestUsClosedDate && latestKrClosedDate) {
-      latestClosedDate = latestUsClosedDate < latestKrClosedDate ? latestUsClosedDate : latestKrClosedDate;
-    } else {
-      latestClosedDate = latestUsClosedDate || latestKrClosedDate || null;
-    }
-
-    // 모든 8대 자산의 포인트가 공식 마감일(latestClosedDate)을 초과하지 않도록 정렬 (장중 진행 캔들 혼입 방지)
-    const alignAssetToClosedDate = (asset: any) => {
-      if (!asset || !asset.points || !latestClosedDate) return asset;
-      const validPoints = asset.points.filter((p: DailyPoint) => p.date <= latestClosedDate);
+    // 각 자산의 포인트가 자산 소속 시장(미국 또는 한국)의 공식 최신 마감일을 초과하지 않도록 독립 정렬 (장중 진행 캔들 혼입 방지)
+    // 미국 자산(SPX, NDX, 10년물 국채, 국제 금, 국제 유가)은 미국 최신 마감일(latestUsClosedDate) 기준,
+    // 한국 자산(KOSPI, KOSDAQ, 달러 환율)은 한국 최신 마감일(latestKrClosedDate) 기준.
+    // ※ 한쪽 국가가 명절/공휴일(한국 추석·설날, 미국 추수감사절 등)로 휴장하더라도
+    // 정상 개장한 상대 시장의 최신 마감 데이터가 과거 날짜로 잘려나가는 것을 완벽 방지!
+    const alignAssetToClosedDate = (asset: any, targetClosedDate: string | null) => {
+      if (!asset || !asset.points || !targetClosedDate) return asset;
+      const validPoints = asset.points.filter((p: DailyPoint) => p.date <= targetClosedDate);
       if (validPoints.length === 0) return asset;
       const lastPt = validPoints[validPoints.length - 1];
       const prevPt = validPoints.length >= 2 ? validPoints[validPoints.length - 2] : null;
@@ -770,21 +767,38 @@ export async function GET(request: Request) {
       };
     };
 
-    const resolvedSpx = alignAssetToClosedDate(spx);
-    const resolvedNdx = alignAssetToClosedDate(ndx);
-    resolvedKospi = alignAssetToClosedDate(resolvedKospi);
-    resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq);
-    resolvedGold = alignAssetToClosedDate(resolvedGold);
-    resolvedOil = alignAssetToClosedDate(resolvedOil);
-    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw);
-    const resolvedUs10y = alignAssetToClosedDate(us10y);
+    const resolvedSpx = alignAssetToClosedDate(spx, latestUsClosedDate);
+    const resolvedNdx = alignAssetToClosedDate(ndx, latestUsClosedDate);
+    resolvedKospi = alignAssetToClosedDate(resolvedKospi, latestKrClosedDate);
+    resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq, latestKrClosedDate);
+    resolvedGold = alignAssetToClosedDate(resolvedGold, latestUsClosedDate);
+    resolvedOil = alignAssetToClosedDate(resolvedOil, latestUsClosedDate);
+    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestKrClosedDate);
+    const resolvedUs10y = alignAssetToClosedDate(us10y, latestUsClosedDate);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
-    if (latestClosedDate) {
-      const parts = latestClosedDate.split('.');
-      if (parts.length === 3) {
-        dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
+
+    if (latestUsClosedDate && latestKrClosedDate) {
+      if (latestUsClosedDate === latestKrClosedDate) {
+        const parts = latestUsClosedDate.split('.');
+        if (parts.length === 3) {
+          dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
+        }
+      } else {
+        const uParts = latestUsClosedDate.split('.');
+        const kParts = latestKrClosedDate.split('.');
+        if (uParts.length === 3 && kParts.length === 3) {
+          dateStr = `미국 ${parseInt(uParts[1], 10)}월 ${parseInt(uParts[2], 10)}일 · 한국 ${parseInt(kParts[1], 10)}월 ${parseInt(kParts[2], 10)}일 마감 기준`;
+        }
+      }
+    } else {
+      const fallbackDate = latestUsClosedDate || latestKrClosedDate;
+      if (fallbackDate) {
+        const parts = fallbackDate.split('.');
+        if (parts.length === 3) {
+          dateStr = `${parts[0]}년 ${parseInt(parts[1], 10)}월 ${parseInt(parts[2], 10)}일 마감 기준`;
+        }
       }
     }
 
@@ -975,36 +989,34 @@ export async function GET(request: Request) {
       dataIssues.push(`❌ 시계열 데이터 수집 실패: ${failedAssets.map((f) => f.name).join(', ')}`);
     }
 
-    // 최신 마감 거래일(latestClosedDate) 대비 날짜 뒤처짐(Stale) 감지
-    // 예: SPX는 09.08인데 KOSPI가 09.07에 멈춰있는 경우 이상 감지
-    if (latestClosedDate) {
-      const staleAssets: string[] = [];
-      const [ly, lm, ld] = latestClosedDate.split('.').map(Number);
-      const latestMs = Date.UTC(ly, lm - 1, ld);
+    // 각 시장별 최신 마감 거래일 대비 날짜 뒤처짐(Stale) 감지
+    // 미국 자산은 latestUsClosedDate와 비교, 한국 자산은 latestKrClosedDate와 비교하여
+    // 한쪽 시장의 명절/공휴일 휴장으로 인한 상대 시장 오탐 경보 원천 차단
+    const staleAssets: string[] = [];
+    for (const check of assetChecks) {
+      const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
+      const targetClosedDate = isUsAsset ? latestUsClosedDate : latestKrClosedDate;
+      if (!targetClosedDate) continue;
 
-      for (const check of assetChecks) {
-        const pts = check.data?.points;
-        const lastPtDate = (pts && pts.length > 0) ? pts[pts.length - 1].date : null;
-        if (!lastPtDate) continue;
+      const pts = check.data?.points;
+      const lastPtDate = (pts && pts.length > 0) ? pts[pts.length - 1].date : null;
+      if (!lastPtDate) continue;
 
-        const [py, pm, pd] = lastPtDate.split('.').map(Number);
-        const pointMs = Date.UTC(py, pm - 1, pd);
-        const diffDays = Math.round((latestMs - pointMs) / (1000 * 60 * 60 * 24));
+      const [ty, tm, td] = targetClosedDate.split('.').map(Number);
+      const targetMs = Date.UTC(ty, tm - 1, td);
 
-        // 기준 거래일보다 1일 이상 오래된 경우 (금요일~월요일 주말 제외)
-        // 만약 미국/한국 공휴일 차이가 아닌 일반 거래일 누락이면 경고
-        // 미국 자산(SPX, NDX, 10년물 국채, 국제 금, 국제 유가)은 한국 시간 오전/낮 실행 시 1일 시차가 정상 발생할 수 있으므로 1일 초과 지연만 감지
-        if (diffDays > 0 && lastPtDate < latestClosedDate) {
-          const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
-          if (diffDays > 1 || (diffDays === 1 && !isUsAsset)) {
-            staleAssets.push(`${check.name} (마지막: ${lastPtDate}, 기준일: ${latestClosedDate}, ${diffDays}일 지연)`);
-          }
-        }
+      const [py, pm, pd] = lastPtDate.split('.').map(Number);
+      const pointMs = Date.UTC(py, pm - 1, pd);
+      const diffDays = Math.round((targetMs - pointMs) / (1000 * 60 * 60 * 24));
+
+      // 동일 시장 기준일보다 1일 이상 뒤처진 경우 이상 감지
+      if (diffDays > 0 && lastPtDate < targetClosedDate) {
+        staleAssets.push(`${check.name} (마지막: ${lastPtDate}, 기준일: ${targetClosedDate}, ${diffDays}일 지연)`);
       }
+    }
 
-      if (staleAssets.length > 0) {
-        dataIssues.push(`⚠️ 최신 마감일(${latestClosedDate}) 데이터 미반영:\n• ${staleAssets.join('\n• ')}`);
-      }
+    if (staleAssets.length > 0) {
+      dataIssues.push(`⚠️ 최신 마감 데이터 미반영:\n• ${staleAssets.join('\n• ')}`);
     }
 
     // 이슈 발견 시 텔레그램 즉시 통보
