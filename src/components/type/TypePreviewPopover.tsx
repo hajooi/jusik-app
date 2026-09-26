@@ -212,7 +212,7 @@ export default function TypePreviewPopover({
         {/* Header with Emoji on Right & Close Button */}
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-0.5 min-w-0 flex-1">
-            <span className="inline-block text-[11px] font-mono font-black text-[var(--accent-orange)] px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/15 tracking-wider">
+            <span className="inline-block text-[11px] font-mono font-black text-[var(--accent-orange)] px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 tracking-wider">
               {profile.code}
             </span>
             <h4 className="text-base font-extrabold text-[var(--text-primary)] tracking-tight truncate">

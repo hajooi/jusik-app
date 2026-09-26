@@ -114,7 +114,7 @@ export default function AnnouncementRibbon() {
           <button
             type="button"
             onClick={handleCopyCode}
-            className={`inline-flex items-center font-mono font-black text-xs px-2.5 py-0.5 rounded-lg border transition-all cursor-pointer active:scale-95 shadow-2xs shrink-0 ${
+            className={`inline-flex items-center font-mono font-black text-xs px-2.5 py-0.5 rounded-full border transition-all cursor-pointer active:scale-95 shadow-2xs shrink-0 ${
               isCopied
                 ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                 : 'bg-[var(--accent-orange)]/15 hover:bg-[var(--accent-orange)]/25 border-[var(--accent-orange)]/40 text-[var(--accent-orange)] hover:shadow-[0_0_12px_rgba(241,143,1,0.25)]'

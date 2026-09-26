@@ -252,26 +252,29 @@ export default function BasicTermsQuiz() {
           
           if (isAnswered) {
             if (isCorrectAnswer) {
-              cardStateClass = "!border-emerald-500 !bg-emerald-500/15 !text-emerald-700 dark:!text-emerald-300 !shadow-[0_0_18px_rgba(16,185,129,0.20)] font-bold";
-              badgeStateClass = "!bg-emerald-500 !text-white !border-emerald-500 !shadow-sm";
+              cardStateClass = "!border-[#10B981] !bg-[#10B981]/15 !text-[#10B981] !shadow-[0_0_16px_rgba(16,185,129,0.22)] font-extrabold";
+              badgeStateClass = "!bg-[#10B981] !text-white !border-[#10B981] !shadow-xs";
             } else if (isSelected && !isCorrectAnswer) {
-              cardStateClass = "!border-rose-500 !bg-rose-500/15 !text-rose-700 dark:!text-rose-300 !shadow-[0_0_18px_rgba(244,63,94,0.20)] font-bold";
-              badgeStateClass = "!bg-rose-500 !text-white !border-rose-500 !shadow-sm";
+              cardStateClass = "!border-[#F43F5E] !bg-[#F43F5E]/15 !text-[#F43F5E] !shadow-[0_0_16px_rgba(244,63,94,0.22)] font-extrabold";
+              badgeStateClass = "!bg-[#F43F5E] !text-white !border-[#F43F5E] !shadow-xs";
             } else {
-              cardStateClass = "opacity-40 !border-[var(--border-color)]/40 text-[var(--text-secondary)]";
-              badgeStateClass = "!bg-[var(--bg-main)]/50 !text-[var(--text-secondary)] !border-[var(--border-color)]/50";
+              cardStateClass = "opacity-40 !border-[var(--border-color)]/40 !bg-[var(--card-surface)]/40 text-[var(--text-secondary)]";
+              badgeStateClass = "!bg-[var(--bg-main)]/60 !text-[var(--text-secondary)] !border-[var(--border-color)]/40";
             }
           }
 
           return (
             <button
               key={`${currentQ.id || currentIndex}-${idx}`}
+              type="button"
               onClick={() => handleSelectOption(idx)}
               disabled={isAnswered}
-              className={`choice-card ${cardStateClass} !py-3 !px-2.5 sm:!px-3`}
+              className={`choice-card group !rounded-full !py-2.5 !px-3.5 sm:!py-3 sm:!px-4 transition-all duration-200 outline-none focus:outline-none focus:ring-0 select-none ${
+                isAnswered ? 'pointer-events-none' : 'active:scale-95'
+              } ${cardStateClass}`}
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className={`choice-badge ${badgeStateClass} shrink-0`}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`choice-badge !rounded-full w-7 h-7 ${badgeStateClass} shrink-0`}>
                   {idx + 1}
                 </span>
                 <span className="font-bold text-xs sm:text-sm tracking-tight truncate">
@@ -279,10 +282,10 @@ export default function BasicTermsQuiz() {
                 </span>
               </div>
               {isAnswered && isCorrectAnswer && (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
               )}
               {isAnswered && isSelected && !isCorrectAnswer && (
-                <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <XCircle className="w-4 h-4 text-[#F43F5E] shrink-0" />
               )}
             </button>
           );

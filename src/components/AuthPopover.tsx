@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import SmoothHeight from '@/components/SmoothHeight';
 import { User, CheckCircle2, AlertCircle, Eye, EyeOff, LogOut, BookmarkCheck, MoreVertical, Compass, ChevronRight, Camera, RefreshCw, KeyRound, Crown, Gift, Sparkles, GraduationCap } from 'lucide-react';
-import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
+import { PERSONALITY_PROFILES, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { getCourseBadgeInfo } from '@/utils/courseBadge';
 
 interface AuthPopoverProps {
@@ -17,7 +17,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
   const { login, user, logout, changePin, redeemPromoCode, isPro, proExpiresAt, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 수강 뱃지 정보 (1~5개: 입문생, 6~10개: 수강생, 11개 이상: 우등생) - 현재 실제 수강 완료 강의 수 기준
+  // 수강 뱃지 정보 (1~10개: 입문생, 11~20개: 수강생, 21개 이상: 우등생) - 현재 실제 수강 완료 강의 수 기준
   const completedLessonsCount = user?.completedLessons?.length || 0;
   const courseBadge = getCourseBadgeInfo(completedLessonsCount);
   
@@ -295,10 +295,11 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                   </span>
                 ) : user.activeBadge === 'investmentType' && user.investmentType && user.investmentType !== '미진단' ? (
                   <span 
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none shadow-2xs"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none shadow-2xs"
                     title="투자 성향 뱃지"
                   >
-                    {user.investmentType}
+                    <span className="text-[11px] leading-none">{user.investmentType ? (TYPE_EMOJIS[user.investmentType] || '🦉') : '🦉'}</span>
+                    <span>{user.investmentType}</span>
                   </span>
                 ) : null}
               </div>
@@ -413,8 +414,9 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                         )}
                       </div>
                       <div className="flex items-center justify-center pt-0.5">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
-                          {user.investmentType}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
+                          <span className="text-[11px] leading-none">{user.investmentType ? (TYPE_EMOJIS[user.investmentType] || '🦉') : '🦉'}</span>
+                          <span>{user.investmentType}</span>
                         </span>
                       </div>
                     </button>

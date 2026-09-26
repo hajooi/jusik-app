@@ -112,8 +112,8 @@ export default function Accordion({ levels }: AccordionProps) {
             <div
               className={`rounded-2xl overflow-hidden transition-all duration-300 glass-card ${
                 isOpen 
-                  ? 'ring-1 ring-[var(--accent-orange)] shadow-md shadow-[0_0_16px_rgba(241,143,1,0.10)] border-[var(--accent-orange)]' 
-                  : 'glass-card-hover shadow-2xs'
+                  ? 'border border-[var(--accent-orange)] bg-[var(--card-surface)]/95 shadow-[0_0_16px_rgba(241,143,1,0.12)]' 
+                  : 'glass-card-hover shadow-2xs border border-[var(--border-color)]'
               }`}
             >
               {/* Header / Accordion Button */}
@@ -164,7 +164,7 @@ export default function Accordion({ levels }: AccordionProps) {
                     </span>
                   ) : (
                     user && openLevelLessons.length > 0 && (
-                      <span className="text-xs text-[var(--text-secondary)] font-mono opacity-80">
+                      <span className="text-[10.5px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--bg-main)]/80 text-[var(--text-secondary)] border border-[var(--border-color)] shrink-0">
                         {levelCompletedCount}/{openLevelLessons.length}
                       </span>
                     )
@@ -273,7 +273,7 @@ export default function Accordion({ levels }: AccordionProps) {
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0 ml-2">
-                          <span className="hidden sm:flex items-center gap-1 text-xs text-[var(--text-secondary)] font-mono glass-card px-2.5 py-1 rounded-lg">
+                          <span className="hidden sm:flex items-center gap-1 text-[11px] sm:text-xs text-[var(--text-secondary)] font-mono glass-card px-2.5 py-0.5 rounded-full border border-[var(--border-color)]">
                             <Clock className="w-3.5 h-3.5" />
                             {lesson.duration}
                           </span>

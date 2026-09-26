@@ -123,8 +123,9 @@ export default function ClassDetectorQuiz() {
           {selectedOption !== null && (
             <div className="flex justify-end">
               <button
+                type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent-orange)] font-bold transition-colors px-2.5 py-1 rounded-lg hover:bg-[var(--card-hover)] cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border border-[var(--border-color)] bg-[var(--card-surface)]/80 text-[var(--text-secondary)] hover:border-[var(--accent-orange)]/60 hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] active:scale-95 transition-all duration-200 cursor-pointer outline-none focus:outline-none focus:ring-0 active:outline-none select-none"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 다시 하기
@@ -168,28 +169,30 @@ export default function ClassDetectorQuiz() {
           {/* Choice Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
+              type="button"
               onClick={() => handleSelect('A')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer focus:outline-none focus-visible:outline-none focus:ring-0 ${
+              className={`py-3 sm:py-3.5 px-6 rounded-full font-bold text-sm sm:text-base transition-all duration-200 border text-center flex items-center justify-center outline-none focus:outline-none focus:ring-0 focus-visible:outline-none active:outline-none select-none ${
                 selectedOption === 'A'
-                  ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.8)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
+                  ? 'border border-[var(--accent-orange)] bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.22)] font-extrabold pointer-events-none'
                   : selectedOption !== null
-                  ? 'opacity-50 border-[var(--border-color)] text-[var(--text-secondary)]'
-                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)]'
+                  ? 'opacity-40 border border-[var(--border-color)]/50 bg-[var(--card-surface)]/40 text-[var(--text-secondary)] pointer-events-none'
+                  : 'border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] shadow-2xs hover:border-[var(--accent-orange)]/60 hover:shadow-[0_0_16px_rgba(241,143,1,0.2)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] active:scale-95 cursor-pointer'
               }`}
             >
               <span>지금 당장 10억 받기</span>
             </button>
 
             <button
+              type="button"
               onClick={() => handleSelect('B')}
               disabled={selectedOption !== null || !isActive}
-              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 border text-center flex items-center justify-center active:scale-95 cursor-pointer focus:outline-none focus-visible:outline-none focus:ring-0 ${
+              className={`py-3 sm:py-3.5 px-6 rounded-full font-bold text-sm sm:text-base transition-all duration-200 border text-center flex items-center justify-center outline-none focus:outline-none focus:ring-0 focus-visible:outline-none active:outline-none select-none ${
                 selectedOption === 'B'
-                  ? 'bg-[var(--accent-orange)] text-white border-[rgba(241,143,1,0.8)] shadow-md ring-2 ring-[var(--accent-orange)]/40'
+                  ? 'border border-[var(--accent-orange)] bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.22)] font-extrabold pointer-events-none'
                   : selectedOption !== null
-                  ? 'opacity-50 border-[var(--border-color)] text-[var(--text-secondary)]'
-                  : 'glass-card glass-card-hover border-[var(--border-color)] text-[var(--text-primary)] hover:border-[rgba(241,143,1,0.5)] hover:shadow-[0_0_14px_rgba(241,143,1,0.18)]'
+                  ? 'opacity-40 border border-[var(--border-color)]/50 bg-[var(--card-surface)]/40 text-[var(--text-secondary)] pointer-events-none'
+                  : 'border border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-primary)] shadow-2xs hover:border-[var(--accent-orange)]/60 hover:shadow-[0_0_16px_rgba(241,143,1,0.2)] hover:bg-[var(--card-hover)] hover:text-[var(--accent-orange)] active:scale-95 cursor-pointer'
               }`}
             >
               <span>평생 매달 500만 원 받기</span>

@@ -90,35 +90,38 @@ export default function IsaTaxCalculator() {
           <button
             type="button"
             onClick={() => handlePreset(600, 300)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs transition-all duration-200 border outline-none focus:outline-none focus:ring-0 active:scale-95 select-none ${
               profit === 600 && loss === 300
-                ? 'bg-[var(--accent-orange)] text-white font-bold shadow-2xs'
-                : 'bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
+                ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-extrabold shadow-[0_0_12px_rgba(241,143,1,0.22)]'
+                : 'border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:border-[var(--accent-orange)]/60 hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] cursor-pointer'
             }`}
           >
-            기본 (+600만 / -300만)
+            <span>기본</span>
+            <span className="font-mono opacity-80 text-[11px] ml-1">(+600만 / -300만)</span>
           </button>
           <button
             type="button"
             onClick={() => handlePreset(1200, 400)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs transition-all duration-200 border outline-none focus:outline-none focus:ring-0 active:scale-95 select-none ${
               profit === 1200 && loss === 400
-                ? 'bg-[var(--accent-orange)] text-white font-bold shadow-2xs'
-                : 'bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
+                ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-extrabold shadow-[0_0_12px_rgba(241,143,1,0.22)]'
+                : 'border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:border-[var(--accent-orange)]/60 hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] cursor-pointer'
             }`}
           >
-            대형 수익 (+1,200만 / -400만)
+            <span>대형 수익</span>
+            <span className="font-mono opacity-80 text-[11px] ml-1">(+1,200만 / -400만)</span>
           </button>
           <button
             type="button"
             onClick={() => handlePreset(400, 200)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs transition-all duration-200 border outline-none focus:outline-none focus:ring-0 active:scale-95 select-none ${
               profit === 400 && loss === 200
-                ? 'bg-[var(--accent-orange)] text-white font-bold shadow-2xs'
-                : 'bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
+                ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] font-extrabold shadow-[0_0_12px_rgba(241,143,1,0.22)]'
+                : 'border-[var(--border-color)] bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:border-[var(--accent-orange)]/60 hover:text-[var(--accent-orange)] hover:bg-[var(--card-hover)] hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] cursor-pointer'
             }`}
           >
-            소액 적립 (+400만 / -200만)
+            <span>소액 적립</span>
+            <span className="font-mono opacity-80 text-[11px] ml-1">(+400만 / -200만)</span>
           </button>
         </div>
 
@@ -187,7 +190,7 @@ export default function IsaTaxCalculator() {
             <span className="text-[var(--text-secondary)] font-normal">-</span>
             <span className="text-[var(--signal-crimson)] font-bold">{loss}만</span>
             <span className="text-[var(--text-secondary)] font-normal">=</span>
-            <span className="font-extrabold text-[var(--text-primary)] bg-[var(--bg-main)] px-2.5 py-0.5 rounded-lg border border-[var(--border-color)]">
+            <span className="font-extrabold text-[var(--text-primary)] bg-[var(--bg-main)] px-2.5 py-0.5 rounded-full border border-[var(--border-color)]">
               순이익 <AnimatedNumber value={netProfit} duration={250} />만 원
             </span>
           </div>

@@ -166,7 +166,7 @@ export default function WealthComparisonChart() {
             10억 일시 vs 월 500만 복리 비교
           </h3>
         </div>
-        <span className="text-[11px] sm:text-xs font-bold text-[var(--accent-orange)] px-2 py-0.5 rounded-md bg-[var(--accent-orange)]/10 shrink-0 font-mono self-start sm:self-auto mt-1 sm:mt-0">
+        <span className="text-[10.5px] sm:text-xs font-bold text-[var(--accent-orange)] px-2.5 py-0.5 rounded-full bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/25 shrink-0 font-mono self-start sm:self-auto mt-1 sm:mt-0">
           연 8% 가정
         </span>
       </div>

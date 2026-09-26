@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
-import { calculateSurveyResult, PERSONALITY_PROFILES } from '@/data/investmentSurvey';
+import { calculateSurveyResult, PERSONALITY_PROFILES, TYPE_EMOJIS } from '@/data/investmentSurvey';
 import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown } from 'lucide-react';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
@@ -304,10 +304,10 @@ export default function CommentSection({
                   key={tab.key}
                   type="button"
                   onClick={() => onTabChange?.(tab.key)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer outline-none focus:outline-none focus:ring-0 active:scale-95 select-none ${
                     isActive
-                      ? 'bg-[var(--accent-orange)] text-white shadow-xs'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      ? 'bg-[var(--accent-orange)] text-white shadow-xs border border-[var(--accent-orange)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-transparent'
                   }`}
                 >
                   {tab.label}
@@ -371,8 +371,9 @@ export default function CommentSection({
                   {user.termsQuizBest.badgeName}
                 </span>
               ) : user.activeBadge === 'investmentType' && user.investmentType && user.investmentType !== '미진단' ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none">
-                  {user.investmentType}
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] leading-none select-none shadow-2xs">
+                  <span className="text-[11px] leading-none">{user.investmentType ? (TYPE_EMOJIS[user.investmentType] || '🦉') : '🦉'}</span>
+                  <span>{user.investmentType}</span>
                 </span>
               ) : null}
             </div>
@@ -551,10 +552,11 @@ export default function CommentSection({
                                   }
                             );
                           }}
-                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] hover:shadow-2xs transition-all leading-none select-none cursor-pointer"
                           title={`${root.nickname}님의 ${rootInvestmentType} 성향 미리보기`}
                         >
-                          {rootInvestmentType}
+                          <span className="text-[11px] leading-none">{rootInvestmentType ? (TYPE_EMOJIS[rootInvestmentType] || '🦉') : '🦉'}</span>
+                          <span>{rootInvestmentType}</span>
                         </button>
                         {previewTarget?.id === root.id && (
                           <TypePreviewPopover
@@ -779,10 +781,11 @@ export default function CommentSection({
                                             }
                                       );
                                     }}
-                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] transition-all leading-none select-none cursor-pointer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-bold font-mono text-[var(--text-secondary)] hover:text-[var(--accent-orange)] bg-[var(--bg-main)]/80 border border-[var(--border-color)] hover:border-[var(--accent-orange)] transition-all leading-none select-none cursor-pointer"
                                     title={`${reply.nickname}님의 ${replyInvestmentType} 성향 미리보기`}
                                   >
-                                    {replyInvestmentType}
+                                    <span className="text-[10px] leading-none">{replyInvestmentType ? (TYPE_EMOJIS[replyInvestmentType] || '🦉') : '🦉'}</span>
+                                    <span>{replyInvestmentType}</span>
                                   </button>
                                   {previewTarget?.id === reply.id && (
                                     <TypePreviewPopover

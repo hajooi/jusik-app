@@ -73,6 +73,15 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  button, input, select, textarea, [role="button"] {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+  }
+
+  button:focus, button:focus-visible, button:active {
+    outline: none !important;
+  }
+
   :focus-visible {
     outline: none !important;
     box-shadow: 0 0 0 1.5px rgba(241, 143, 1, 0.5) !important;
@@ -250,38 +259,42 @@
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
-/* Choice Card (1234 4지선다 카드) */
+/* Choice Card (1234 4지선다 캡슐 알약 카드) */
 .choice-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 1rem;
-  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
   background-color: var(--card-surface);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
   cursor: pointer;
   text-align: left;
   position: relative;
-  will-change: transform;
+  outline: none !important;
+  user-select: none;
 }
-.choice-card:hover {
+.choice-card:focus, .choice-card:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.choice-card:hover:not(:disabled) {
   background-color: var(--card-hover);
   border-color: rgba(241, 143, 1, 0.60) !important;
-  box-shadow: 0 0 18px rgba(241, 143, 1, 0.18);
+  box-shadow: 0 0 14px rgba(241, 143, 1, 0.18);
 }
-.choice-card:active {
-  transform: scale(0.97);
-  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+.choice-card:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-/* Choice Badge (1234 번호 뱃지) */
+/* Choice Badge (1234 원형 번호 뱃지) */
 .choice-badge {
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.625rem;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -294,7 +307,7 @@
   border: 1px solid rgba(241, 143, 1, 0.28);
   transition: all 0.2s ease;
 }
-.choice-card:hover .choice-badge {
+.choice-card:hover:not(:disabled) .choice-badge {
   background-color: var(--accent-orange);
   color: #ffffff;
   border-color: var(--accent-orange);
