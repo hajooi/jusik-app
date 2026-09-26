@@ -407,30 +407,32 @@ export default function ResultCompareAccordion({
       </div>
 
       {/* Action Footer */}
-      <div className="pt-1">
+      <div className="pt-1 flex justify-center">
         {hasMyResult && onCompareWithMe ? (
           <button
             onClick={onCompareWithMe}
-            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-7 rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_20px_rgba(241,143,1,0.35)] active:scale-95 transition-all cursor-pointer shadow-2xs group"
           >
-            <Sparkles className="w-4 h-4" />
-            나와 {leftUser.badgeName}의 투자 성향 비교하기 ➔
+            <Sparkles className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform duration-300" />
+            <span>나와 {leftUser.badgeName}의 투자 궁합 확인하기</span>
+            <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
           </button>
         ) : onTakeTest ? (
           <button
             onClick={onTakeTest}
-            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-7 rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_20px_rgba(241,143,1,0.35)] active:scale-95 transition-all cursor-pointer shadow-2xs group"
           >
-            <Sparkles className="w-4 h-4" />
-            나도 3분 만에 내 투자 성향 진단하기 ➔
+            <Sparkles className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform duration-300" />
+            <span>나도 3분 만에 투자 성향 진단하기</span>
+            <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
           </button>
         ) : (
           <button
             onClick={handleShareComparison}
-            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.35)] hover:shadow-[0_0_25px_rgba(241,143,1,0.5)] hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-7 rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_20px_rgba(241,143,1,0.35)] active:scale-95 transition-all cursor-pointer shadow-2xs"
           >
-            <Share2 className="w-4 h-4" />
-            {copied ? '비교 결과 링크 복사 완료! 🎉' : '이 비교 결과 공유하기'}
+            <Share2 className="w-4 h-4 shrink-0" />
+            <span>{copied ? '궁합 링크 복사 완료! 🎉' : '친구에게 이 투자 궁합 공유하기'}</span>
           </button>
         )}
       </div>

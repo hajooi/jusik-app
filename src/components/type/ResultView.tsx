@@ -466,14 +466,16 @@ function AnimatedPortfolioCard({ profile, scores }: AnimatedPortfolioCardProps) 
       </div>
 
       {/* Direct Interactive CTA Button to Simulator */}
-      <Link
-        href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
-        className="w-full inline-flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_24px_rgba(241,143,1,0.35)] active:scale-[0.99] transition-all cursor-pointer shadow-sm group"
-      >
-        <Sparkles className="w-4 h-4 text-white shrink-0 group-hover:rotate-12 transition-transform duration-300" />
-        <span>추천 비율로 백테스트 결과 보기</span>
-        <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
-      </Link>
+      <div className="flex justify-center pt-1">
+        <Link
+          href={`/tools/simulate?type=${profile.code}&g=${scores.GS.G}&a=${scores.AP.A}&l=${scores.LT.L}&r=${scores.RI.R}`}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 sm:px-7 rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-sm sm:text-base border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_20px_rgba(241,143,1,0.35)] active:scale-95 transition-all cursor-pointer shadow-2xs group"
+        >
+          <Sparkles className="w-4 h-4 text-white shrink-0 group-hover:rotate-12 transition-transform duration-300" />
+          <span>이 추천 비율로 모의투자 해보기</span>
+          <span className="font-mono text-white/90 group-hover:translate-x-1 transition-transform duration-200">➔</span>
+        </Link>
+      </div>
     </div>
   );
 }
@@ -852,10 +854,10 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
       {/* Action Buttons: 친구에게 공유하기 & 다시 진단하기 */}
       {!isReadOnly && (
         <RevealOnScroll delayIndex={5}>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 pt-2">
             <button
               onClick={handleShare}
-              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full glass-card glass-card-hover text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-95 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
             >
               <Share2 className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
               <span>{copied ? '궁합 링크 복사 완료!' : '친구에게 공유하고 투자 궁합 확인'}</span>
@@ -863,7 +865,7 @@ export default function ResultView({ profile, scores, percentage, ownerName, isR
 
             <button
               onClick={onRestart}
-              className="sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              className="sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm sm:text-base border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-95 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
             >
               <RefreshCw className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />
               <span>다시 진단하기</span>

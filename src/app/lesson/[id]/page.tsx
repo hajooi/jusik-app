@@ -9,7 +9,9 @@ import DcaMotionSimulator from '@/components/DcaMotionSimulator';
 import JpMorganTimingBarChart from '@/components/JpMorganTimingBarChart';
 import PortfolioRecipeBarChart from '@/components/PortfolioRecipeBarChart';
 import RebalanceBacktestChart from '@/components/RebalanceBacktestChart';
-import InlineSimulatorCta from '@/components/InlineSimulatorCta';
+import RepresentativeEtfCards from '@/components/RepresentativeEtfCards';
+import IsaTaxCalculator from '@/components/IsaTaxCalculator';
+import PensionTaxSimulator from '@/components/PensionTaxSimulator';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
 import StockDcaGuide from '@/components/StockDcaGuide';
@@ -218,7 +220,9 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'dca_simulator' && <DcaMotionSimulator />}
                     {section.interactiveTool === 'portfolio_recipes' && <PortfolioRecipeBarChart />}
                     {section.interactiveTool === 'rebalance_backtest' && <RebalanceBacktestChart />}
-                    {section.interactiveTool === 'inline_simulator_cta' && <InlineSimulatorCta />}
+                    {section.interactiveTool === 'representative_etf_cards' && <RepresentativeEtfCards />}
+                    {section.interactiveTool === 'isa_tax_calc' && <IsaTaxCalculator />}
+                    {section.interactiveTool === 'pension_tax_simulator' && <PensionTaxSimulator />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -228,51 +232,130 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     )}
 
                     {/* Book Paragraphs */}
-                    {section.paragraphs && section.paragraphs.length > 0 && (
-                      <div className="space-y-4 text-sm sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
-                        {section.paragraphs.map((para, pIdx) => {
-                          const isQuote = para.startsWith('"') && para.endsWith('"');
-                          if (isQuote) {
-                            return (
-                              <blockquote key={pIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
-                                {para}
-                              </blockquote>
-                            );
-                          }
+                    {section.paragraphs && section.paragraphs.length > 0 && (() => {
+                      type ParagraphItem =
+                        | { type: 'quote'; text: string }
+                        | { type: 'bulletGroup'; items: { label?: string; desc?: string; content: string }[]; isGrid: boolean }
+                        | { type: 'text'; text: string };
 
-                          const isBullet = para.startsWith('• ');
-                          if (isBullet) {
-                            const content = para.slice(2);
-                            const colonIndex = content.indexOf(':');
-                            if (colonIndex !== -1) {
-                              const label = content.slice(0, colonIndex);
-                              const desc = content.slice(colonIndex + 1);
+                      const groupedParagraphs: ParagraphItem[] = [];
+                      let currentBulletGroup: { label?: string; desc?: string; content: string }[] = [];
+
+                      const flushBullets = () => {
+                        if (currentBulletGroup.length > 0) {
+                          const avgLen = currentBulletGroup.reduce((acc, item) => acc + (item.desc ? item.desc.length : item.content.length), 0) / currentBulletGroup.length;
+                          const isGrid = currentBulletGroup.length >= 2 && avgLen <= 140;
+                          groupedParagraphs.push({
+                            type: 'bulletGroup',
+                            items: [...currentBulletGroup],
+                            isGrid,
+                          });
+                          currentBulletGroup = [];
+                        }
+                      };
+
+                      section.paragraphs.forEach((para) => {
+                        if (para.startsWith('• ')) {
+                          const raw = para.slice(2);
+                          // Match colon followed by space or colon after closing parenthesis to avoid splitting inside (e.g. ratios like 2:3)
+                          const parenColonIndex = raw.indexOf('): ');
+                          const colonSpaceIndex = raw.indexOf(': ');
+                          const effectiveIndex = parenColonIndex !== -1 
+                            ? parenColonIndex + 1 
+                            : (colonSpaceIndex !== -1 ? colonSpaceIndex : raw.indexOf(':'));
+
+                          if (effectiveIndex !== -1) {
+                            currentBulletGroup.push({
+                              label: raw.slice(0, effectiveIndex).trim(),
+                              desc: raw.slice(effectiveIndex + 1).trim(),
+                              content: raw,
+                            });
+                          } else {
+                            currentBulletGroup.push({
+                              content: raw,
+                            });
+                          }
+                        } else {
+                          flushBullets();
+                          if (para.startsWith('"') && para.endsWith('"')) {
+                            groupedParagraphs.push({ type: 'quote', text: para });
+                          } else {
+                            groupedParagraphs.push({ type: 'text', text: para });
+                          }
+                        }
+                      });
+                      flushBullets();
+
+                      return (
+                        <div className="space-y-4 text-sm sm:text-base text-[var(--text-primary)] leading-relaxed sm:leading-loose">
+                          {groupedParagraphs.map((group, gIdx) => {
+                            if (group.type === 'quote') {
                               return (
-                                <div key={pIdx} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-3 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
-                                  <span className="w-2.5 h-2.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
-                                  <div className="text-sm sm:text-base leading-relaxed">
-                                    <strong className="text-[var(--text-primary)] font-extrabold">{label}:</strong>
-                                    <span className="text-[var(--text-secondary)] ml-1.5 font-medium">{desc}</span>
-                                  </div>
+                                <blockquote key={gIdx} className="p-4 my-2 rounded-xl bg-[var(--bg-main)]/80 border-l-4 border-[var(--accent-orange)] text-sm sm:text-base font-extrabold text-[var(--accent-orange)] italic leading-relaxed">
+                                  {group.text}
+                                </blockquote>
+                              );
+                            }
+
+                            if (group.type === 'bulletGroup') {
+                              return (
+                                <div
+                                  key={gIdx}
+                                  className={
+                                    group.isGrid
+                                      ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 my-3"
+                                      : "space-y-3 my-3"
+                                  }
+                                >
+                                  {group.items.map((item, bIdx) => {
+                                    const isThreeGridHero = group.isGrid && group.items.length === 3 && bIdx === 0;
+                                    if (item.label && item.desc) {
+                                      return (
+                                        <div
+                                          key={bIdx}
+                                          className={`p-4 sm:p-4.5 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex flex-col justify-start gap-2 shadow-2xs ${
+                                            isThreeGridHero ? "sm:col-span-2" : ""
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2.5">
+                                            <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] shrink-0" />
+                                            <strong className="text-[var(--text-primary)] font-extrabold text-sm sm:text-base tracking-tight">
+                                              {item.label}
+                                            </strong>
+                                          </div>
+                                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed break-keep pl-4.5">
+                                            {item.desc}
+                                          </p>
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <div
+                                        key={bIdx}
+                                        className={`p-3.5 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs ${
+                                          isThreeGridHero ? "sm:col-span-2" : ""
+                                        }`}
+                                      >
+                                        <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
+                                        <p className="text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed break-keep">
+                                          {item.content}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               );
                             }
-                            return (
-                              <div key={pIdx} className="p-3 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs hover:border-[var(--accent-orange)]/30 transition-all">
-                                <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
-                                <p className="text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed">{content}</p>
-                              </div>
-                            );
-                          }
 
-                          return (
-                            <p key={pIdx} className="font-medium text-left leading-relaxed break-all">
-                              {para}
-                            </p>
-                          );
-                        })}
-                      </div>
-                    )}
+                            return (
+                              <p key={gIdx} className="font-medium text-left leading-relaxed break-all">
+                                {group.text}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </section>
                 </RevealOnScroll>
               ))}

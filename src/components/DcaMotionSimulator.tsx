@@ -142,6 +142,8 @@ function buildSchedule(): { schedule: ScheduleItem[]; totalDuration: number } {
 const { schedule: SCHEDULE, totalDuration: CYCLE_DURATION } = buildSchedule();
 
 export default function DcaMotionSimulator() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasTriggered, setHasTriggered] = useState<boolean>(false);
   const [currentT, setCurrentT] = useState<number>(0);
   const [activeBuyCount, setActiveBuyCount] = useState<number>(1);
   const [smoothDcaAvg, setSmoothDcaAvg] = useState<number>(10000);
@@ -149,7 +151,27 @@ export default function DcaMotionSimulator() {
   const targetDcaAvgRef = useRef<number>(10000);
   const currentSmoothAvgRef = useRef<number>(10000);
 
+  // Trigger animation only when component enters viewport
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasTriggered) {
+          setHasTriggered(true);
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasTriggered]);
+
+  useEffect(() => {
+    if (!hasTriggered) return;
+
     let animId: number;
     let startTime: number | null = null;
 
@@ -201,7 +223,7 @@ export default function DcaMotionSimulator() {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [hasTriggered]);
 
   // Map currentT (0..1) to timeline index
   const currentIndex = Math.min(TIMELINE.length - 1, Math.floor(currentT * (TIMELINE.length - 1)));
@@ -266,7 +288,10 @@ export default function DcaMotionSimulator() {
   }, [currentIndex, dcaAvgY]);
 
   return (
-    <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)]/80 space-y-4 shadow-2xs my-5 select-none">
+    <div 
+      ref={containerRef}
+      className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)]/80 space-y-4 shadow-2xs my-5 select-none"
+    >
       {/* Chart Canvas: Organic Market Wave + Massive Green Rebound Zone + Mobile-Safe Badge */}
       <div className="relative w-full bg-[var(--bg-main)]/90 rounded-2xl p-2.5 sm:p-4 border border-[var(--border-color)] overflow-hidden">
         

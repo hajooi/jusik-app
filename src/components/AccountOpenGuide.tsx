@@ -115,7 +115,7 @@ const STEP4_SUBSTEPS = [
   { num: 1, title: "해외주식 메뉴 이동", desc: "DB증권 앱 홈 하단 [메뉴] ➔ 상단 [해외주식] 탭으로 이동합니다." },
   { num: 2, title: "해외거래 이용신청", desc: "좌측 [서비스신청] ➔ [해외주식거래이용신청]을 선택합니다." },
   { num: 3, title: "해외주식 신청 완료", desc: "약관 확인 후 해외주식 거래 이용신청을 완료합니다." },
-  { num: 4, title: "혜택 신청 폼 제출", desc: "개설 정보를 구글 폼에 제출하시면 평생 우대 혜택이 최종 적용됩니다." }
+  { num: 4, title: "혜택 신청 폼 제출", desc: "지점 전담팀의 직접 확인 및 우대 등록을 위해 신청 폼을 제출합니다." }
 ];
 
 const CONTACT_LIST = [
@@ -142,7 +142,7 @@ const CONTACT_LIST = [
   }
 ];
 
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfMK-ZxVqgFSmKq0VyJu-K8IcLQJFjdmyaouG5Pls7hfX8siA/viewform";
+const GOOGLE_FORM_URL = "https://forms.gle/5nqjamLyGNeGnb5n7";
 
 export default function AccountOpenGuide() {
   const [currentStep, setCurrentStep] = useState(0); // 0: Step1, 1: Step2, 2: Step3, 3: Step4, 4: Step5
@@ -653,14 +653,19 @@ export default function AccountOpenGuide() {
     </div>
 
       {/* 2. 🌟 완전히 독립된 상시 노출 평생 우대 혜택 신청 카드 */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 border-2 border-[var(--accent-orange)]/50 shadow-[0_0_24px_rgba(241,143,1,0.15)] bg-gradient-to-br from-amber-500/10 via-[var(--accent-orange)]/10 to-transparent space-y-4">
+      <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-[var(--border-color)]/90 shadow-2xs hover:border-[var(--accent-orange)]/40 transition-all space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <h4 className="text-base sm:text-lg font-black text-[var(--text-primary)]">
-              주식부엉 X 오로라투자자문 평생 우대 혜택 신청
-            </h4>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              계좌 개설 및 자문사 앱 연동을 마치신 후, 아래 폼을 작성해 주시면 영업일 기준 1~2일 내에 우대 혜택이 세팅됩니다.
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </span>
+              <h4 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
+                평생 우대 혜택 신청
+              </h4>
+            </div>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed pl-8">
+              계좌 개설 및 자문사 앱 연동을 마치셨다면, 아래 폼을 작성해 주시면 DB증권 강남금융센터 제휴 전담팀에서 직접 확인 후 영업일 기준 1~2일 내에 우대 혜택을 등록해 드립니다.
             </p>
           </div>
 
@@ -668,7 +673,7 @@ export default function AccountOpenGuide() {
             href={GOOGLE_FORM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs shrink-0 whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs shrink-0 whitespace-nowrap self-start sm:self-center"
           >
             <span>혜택 신청 폼 작성하기</span>
             <ExternalLink className="w-4 h-4 stroke-[1.7]" />

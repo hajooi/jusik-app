@@ -336,17 +336,17 @@ export default function ResultCompareModal({
         </div>
 
         {/* Modal Action Footer */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
           <button
             onClick={handleShareComparison}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] shadow-[0_0_15px_rgba(241,143,1,0.3)] hover:scale-[1.01] active:scale-[0.98] transition-all"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 py-3 px-6 sm:px-7 rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-sm border border-[var(--accent-orange)] hover:brightness-105 hover:shadow-[0_0_20px_rgba(241,143,1,0.35)] active:scale-95 transition-all cursor-pointer shadow-2xs"
           >
             <Share2 className="w-4 h-4" />
-            {copied ? '비교 결과 링크 복사 완료! 🎉' : '이 비교 결과 공유하기'}
+            <span>{copied ? '궁합 링크 복사 완료! 🎉' : '친구에게 이 투자 궁합 공유하기'}</span>
           </button>
           <button
             onClick={onClose}
-            className="px-5 py-3 rounded-2xl glass-card text-[var(--text-secondary)] font-bold text-sm border border-[var(--border-color)] hover:text-[var(--text-primary)] transition-all"
+            className="px-6 py-3 rounded-full glass-card glass-card-hover text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold text-sm border border-[var(--border-color)] hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_15px_rgba(241,143,1,0.15)] active:scale-95 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
           >
             닫기
           </button>

@@ -1,7 +1,26 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { TrendingUp, ShieldCheck, ArrowUpRight, Scale, Info } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { TrendingUp, ShieldCheck, ArrowUpRight, Clock, Info } from 'lucide-react';
+import AnimatedNumber from '@/components/AnimatedNumber';
+
+// Apple Native 2-Token Physics Engine: cubic-bezier(0.2, 0.8, 0.2, 1)
+function appleSmoothEase(t: number): number {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  let u = t;
+  for (let i = 0; i < 5; i++) {
+    const x = 0.6 * u * (1 - u) + u * u * u;
+    const diff = x - t;
+    if (Math.abs(diff) < 0.001) break;
+    const dx = 0.6 * (1 - 2 * u) + 3 * u * u;
+    if (Math.abs(dx) < 0.0001) break;
+    u -= diff / dx;
+  }
+  u = Math.max(0, Math.min(1, u));
+  const y = 2.4 * (1 - u) * (1 - u) * u + 3.0 * (1 - u) * u * u + u * u * u;
+  return Math.max(0, Math.min(1, y));
+}
 
 interface DataPoint {
   date: string;
@@ -79,7 +98,13 @@ const SIMULATION_DATA: DataPoint[] = [
 
 export default function RebalanceBacktestChart() {
   const [selectedIndex, setSelectedIndex] = useState<number>(SIMULATION_DATA.length - 1);
+  const [isInView, setIsInView] = useState<boolean>(false);
+  const [animProgress, setAnimProgress] = useState<number>(0);
+  const [isInteracting, setIsInteracting] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInitialTriggeredRef = useRef<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
+
   const current = SIMULATION_DATA[selectedIndex];
 
   // SVG Geometry (투자 전략 시뮬레이터와 동일한 비율 및 반응형 스케일)
@@ -93,6 +118,51 @@ export default function RebalanceBacktestChart() {
   const usableH = chartHeight - padTop - padBottom;
   const maxVal = 26000; // 2억 6천만 원
 
+  // Viewport trigger
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Apple Native 1.8s drawing motion
+  useEffect(() => {
+    if (!isInView) return;
+    if (isInitialTriggeredRef.current) return;
+    isInitialTriggeredRef.current = true;
+
+    const duration = 1800;
+    const startTime = performance.now();
+    let frameId: number;
+
+    const update = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const ease = appleSmoothEase(t);
+      setAnimProgress(ease);
+
+      if (t < 1) {
+        frameId = requestAnimationFrame(update);
+      } else {
+        setAnimProgress(1);
+      }
+    };
+
+    frameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frameId);
+  }, [isInView]);
+
   const getX = useCallback((idx: number) => {
     return padLeft + (idx / (SIMULATION_DATA.length - 1)) * usableW;
   }, [padLeft, usableW]);
@@ -100,6 +170,15 @@ export default function RebalanceBacktestChart() {
   const getY = useCallback((val: number) => {
     return chartHeight - padBottom - (val / maxVal) * usableH;
   }, [chartHeight, padBottom, usableH, maxVal]);
+
+  // Leading Dot Coordinates along Rebalanced Curve
+  const currentLeadX = padLeft + animProgress * usableW;
+  const leadIdxFloat = animProgress * (SIMULATION_DATA.length - 1);
+  const idx0 = Math.floor(leadIdxFloat);
+  const idx1 = Math.min(SIMULATION_DATA.length - 1, Math.ceil(leadIdxFloat));
+  const weight = leadIdxFloat - idx0;
+  const leadRebalVal = SIMULATION_DATA[idx0].rebal * (1 - weight) + SIMULATION_DATA[idx1].rebal * weight;
+  const currentLeadY = getY(leadRebalVal);
 
   // SVG Path 생성 (Area & Lines)
   const rebalPoints = SIMULATION_DATA.map((d, i) => `${getX(i)},${getY(d.rebal)}`).join(' ');
@@ -122,6 +201,7 @@ export default function RebalanceBacktestChart() {
     const ratio = Math.max(0, Math.min(1, (touchX - (padLeft / chartWidth) * rect.width) / ((usableW / chartWidth) * rect.width)));
     const idx = Math.round(ratio * (SIMULATION_DATA.length - 1));
     setSelectedIndex(Math.max(0, Math.min(SIMULATION_DATA.length - 1, idx)));
+    setIsInteracting(true);
   }, [usableW, padLeft, chartWidth]);
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -138,7 +218,7 @@ export default function RebalanceBacktestChart() {
   const gapPercentage = ((gapAmount / current.hold) * 100).toFixed(1);
 
   return (
-    <div className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-5 shadow-2xs my-6">
+    <div ref={containerRef} className="glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] space-y-5 shadow-2xs my-6">
       {/* Header */}
       <div className="flex items-center gap-2.5">
         <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
@@ -163,12 +243,24 @@ export default function RebalanceBacktestChart() {
             className="w-full h-auto cursor-crosshair touch-none overflow-visible"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
+            onMouseLeave={() => setIsInteracting(false)}
+            onTouchEnd={() => setIsInteracting(false)}
           >
             <defs>
               <linearGradient id="rebalOrangeAreaGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#F18F01" stopOpacity="0.12" />
                 <stop offset="100%" stopColor="#F18F01" stopOpacity="0.00" />
               </linearGradient>
+
+              {/* Reveal ClipPath */}
+              <clipPath id="rebalSweepClip">
+                <rect
+                  x="0"
+                  y="0"
+                  width={isInView ? currentLeadX : 0}
+                  height={chartHeight}
+                />
+              </clipPath>
             </defs>
 
             {/* Horizontal Grid lines */}
@@ -180,48 +272,99 @@ export default function RebalanceBacktestChart() {
             <text x={padLeft + 4} y={getY(20000) - 5} fill="var(--text-secondary)" fontSize="9" fontWeight="bold" opacity="0.6">2억</text>
             <text x={padLeft + 4} y={getY(10000) - 5} fill="var(--text-secondary)" fontSize="9" fontWeight="bold" opacity="0.6">1억</text>
 
-            {/* Rebalanced Area Fill */}
-            <path
-              d={rebalAreaPath}
-              fill="url(#rebalOrangeAreaGrad)"
-              className="pointer-events-none"
-            />
+            {/* Animated Curves & Area Fill inside Sweep ClipPath */}
+            <g clipPath="url(#rebalSweepClip)">
+              {/* Rebalanced Area Fill */}
+              <path
+                d={rebalAreaPath}
+                fill="url(#rebalOrangeAreaGrad)"
+                className="pointer-events-none"
+              />
 
-            {/* 1. Hold Curve (방치한 계좌 - 단일 회색 점선) */}
-            <polyline
-              fill="none"
-              stroke="var(--text-secondary)"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              opacity="0.85"
-              points={holdPoints}
-            />
+              {/* 1. Hold Curve (방치한 계좌 - 단일 회색 점선) */}
+              <polyline
+                fill="none"
+                stroke="var(--text-secondary)"
+                strokeWidth="2"
+                strokeDasharray="4 4"
+                opacity="0.85"
+                points={holdPoints}
+              />
 
-            {/* 2. Rebalanced Curve (리밸런싱한 계좌 - 시그니처 오렌지 실선) */}
-            <polyline
-              fill="none"
-              stroke="#F18F01"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={rebalPoints}
-            />
+              {/* 2. Rebalanced Curve (리밸런싱한 계좌 - 시그니처 오렌지 실선) */}
+              <polyline
+                fill="none"
+                stroke="#F18F01"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={rebalPoints}
+              />
+            </g>
 
-            {/* Vertical Guide Marker */}
-            <line
-              x1={currentX}
-              y1={padTop}
-              x2={currentX}
-              y2={chartHeight - padBottom}
-              stroke="var(--accent-orange)"
-              strokeWidth="1.8"
-              strokeDasharray="3 3"
-              opacity="0.85"
-            />
+            {/* Leading Dot along Rebalanced Curve */}
+            {!isInteracting && selectedIndex === SIMULATION_DATA.length - 1 && isInView && animProgress > 0 && (
+              <g>
+                {/* Subtle soft pulse aura while sweeping */}
+                {animProgress < 1 && (
+                  <circle
+                    cx={currentLeadX}
+                    cy={currentLeadY}
+                    r="8"
+                    fill="#F18F01"
+                    opacity="0.22"
+                  />
+                )}
+                {/* Main Orange Dot */}
+                <circle
+                  cx={currentLeadX}
+                  cy={currentLeadY}
+                  r="5.5"
+                  fill="#F18F01"
+                  stroke="var(--bg-main)"
+                  strokeWidth="2"
+                />
+                {/* Inner White Pin */}
+                <circle
+                  cx={currentLeadX}
+                  cy={currentLeadY}
+                  r="2"
+                  fill="#FFFFFF"
+                />
+                {/* 30-Year Final Value Badge when settled */}
+                {animProgress >= 0.95 && (
+                  <text
+                    x={getX(SIMULATION_DATA.length - 1)}
+                    y={getY(SIMULATION_DATA[SIMULATION_DATA.length - 1].rebal) - 10}
+                    fill="#F18F01"
+                    fontSize="10"
+                    textAnchor="end"
+                    fontWeight="800"
+                    className="animate-in fade-in duration-300"
+                  >
+                    2.51억 원
+                  </text>
+                )}
+              </g>
+            )}
 
-            {/* Interactive Data Markers */}
-            <circle cx={currentX} cy={currentRebalY} r="5.5" fill="#F18F01" stroke="var(--bg-main)" strokeWidth="2" className="animate-pulse" />
-            <circle cx={currentX} cy={currentHoldY} r="4" fill="var(--text-secondary)" stroke="var(--bg-main)" strokeWidth="1.5" />
+            {/* Interactive Data Markers & Guideline */}
+            {(isInteracting || selectedIndex !== SIMULATION_DATA.length - 1) && (
+              <g className="animate-in fade-in duration-150">
+                <line
+                  x1={currentX}
+                  y1={padTop}
+                  x2={currentX}
+                  y2={chartHeight - padBottom}
+                  stroke="var(--accent-orange)"
+                  strokeWidth="1.8"
+                  strokeDasharray="3 3"
+                  opacity="0.85"
+                />
+                <circle cx={currentX} cy={currentRebalY} r="5.5" fill="#F18F01" stroke="var(--bg-main)" strokeWidth="2" className="animate-pulse" />
+                <circle cx={currentX} cy={currentHoldY} r="4" fill="var(--text-secondary)" stroke="var(--bg-main)" strokeWidth="1.5" />
+              </g>
+            )}
           </svg>
         </div>
 
@@ -255,11 +398,11 @@ export default function RebalanceBacktestChart() {
             <span className="text-[11px] font-bold text-[var(--accent-orange)]">리밸런싱한 계좌</span>
             <ShieldCheck className="w-4 h-4 text-[var(--accent-orange)] stroke-[2.2]" />
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight">
-            {(current.rebal / 100).toFixed(2)}억 원
+          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight font-mono">
+            <AnimatedNumber value={current.rebal / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
-            원금 대비 +{(((current.rebal - current.invested) / current.invested) * 100).toFixed(0)}% 수익
+            원금 대비 +<AnimatedNumber value={Math.round(((current.rebal - current.invested) / current.invested) * 100)} duration={1200} />% 수익
           </div>
         </div>
 
@@ -267,13 +410,13 @@ export default function RebalanceBacktestChart() {
         <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-[var(--text-secondary)]">방치한 계좌</span>
-            <Scale className="w-4 h-4 text-[var(--text-secondary)] stroke-[2.2]" />
+            <Clock className="w-4 h-4 text-[var(--text-secondary)] stroke-[2.2]" />
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight">
-            {(current.hold / 100).toFixed(2)}억 원
+          <div className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight font-mono">
+            <AnimatedNumber value={current.hold / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
-            원금 대비 +{(((current.hold - current.invested) / current.invested) * 100).toFixed(0)}% 수익
+            원금 대비 +<AnimatedNumber value={Math.round(((current.hold - current.invested) / current.invested) * 100)} duration={1200} />% 수익
           </div>
         </div>
 
@@ -283,8 +426,8 @@ export default function RebalanceBacktestChart() {
             <span className="text-[11px] font-bold text-[var(--text-secondary)]">리밸런싱 추가 이익</span>
             <ArrowUpRight className="w-4 h-4 text-[var(--accent-orange)] stroke-[2.5]" />
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-[var(--accent-orange)] tracking-tight">
-            {gapAmount >= 0 ? `+${(gapAmount / 100).toFixed(2)}억 원` : `-${(Math.abs(gapAmount) / 100).toFixed(2)}억 원`}
+          <div className="text-lg sm:text-xl font-extrabold text-[var(--accent-orange)] tracking-tight font-mono">
+            {gapAmount >= 0 ? '+' : '-'}<AnimatedNumber value={Math.abs(gapAmount) / 100} decimals={2} duration={1800} />억 원
           </div>
           <div className="text-[11px] text-[var(--text-secondary)] font-medium">
             최대 낙폭: -33.4% vs -40.2% (방어력 우수)
