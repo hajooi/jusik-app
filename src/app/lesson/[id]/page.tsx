@@ -173,7 +173,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
           )}
         </div>
 
-        {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Completion Bar */}
+        {/* TOP: M3 Styled Interactive YouTube Video Cover & Player with Meta Bar */}
         <RevealOnScroll delayIndex={1}>
           <LessonVideoSection
             lessonId={lesson.id}
@@ -181,6 +181,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
             title={lesson.title}
             duration={lesson.duration}
             iconName={level.iconName}
+            levelNumber={level.levelNumber}
           />
         </RevealOnScroll>
 

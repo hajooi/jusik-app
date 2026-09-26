@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Circle, UserCheck } from 'lucide-react';
+import { CheckCircle2, Circle } from 'lucide-react';
 import { triggerConfetti } from '@/utils/confetti';
 
 interface LessonCompletionBarProps {
@@ -28,54 +28,34 @@ export default function LessonCompletionBar({ lessonId }: LessonCompletionBarPro
   };
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-2xl glass-card border border-[var(--border-color)] transition-all duration-300 shadow-2xs">
-      <div className="space-y-0.5 min-w-0 flex-1 pr-3">
-        <div className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
-          강의 수강 상태
-        </div>
-        <p className="text-[11px] sm:text-xs font-medium leading-relaxed">
-          {completed ? (
-            <span className="text-[var(--accent-green)] font-bold">
-              수강 완료! 학습 기록이 {user?.nickname} 계정에 보관되었습니다.
-            </span>
-          ) : user ? (
-            <span className="text-[var(--text-secondary)]">
-              영상을 끝까지 보시면 학습 기록이 자동 저장됩니다.
-            </span>
-          ) : (
-            <span className="text-[var(--text-secondary)]">
-              로그인 시 강의 완료 여부가 기록됩니다.
-            </span>
-          )}
-        </p>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleToggle}
-        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 active:scale-95 shrink-0 cursor-pointer ${
-          completed
-            ? 'bg-[var(--accent-green)] text-white hover:bg-[var(--accent-green)]/90 hover:shadow-[0_0_18px_rgba(36,97,59,0.35)] shadow-sm'
-            : 'btn-secondary !rounded-full !py-2.5 !px-4'
-        }`}
-      >
-        {completed ? (
-          <>
-            <CheckCircle2 className="w-4 h-4 text-white" />
-            <span>수강 완료 ✓</span>
-          </>
-        ) : user ? (
-          <>
-            <Circle className="w-4 h-4 text-[var(--accent-orange)]" />
-            <span>수강 완료 체크하기</span>
-          </>
-        ) : (
-          <>
-            <UserCheck className="w-4 h-4 text-[var(--accent-orange)]" />
-            <span>로그인 후 기록하기</span>
-          </>
-        )}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={handleToggle}
+      title={
+        completed
+          ? '수강 완료된 강의입니다 (클릭하여 완료 취소)'
+          : user
+          ? '클릭하여 수강 완료로 표시'
+          : '로그인하면 학습 기록이 계정에 저장돼요'
+      }
+      className={`group inline-flex items-center gap-1.5 h-8 px-3 sm:px-3.5 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 shrink-0 cursor-pointer select-none ${
+        completed
+          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 hover:shadow-[0_0_14px_rgba(16,185,129,0.22)] font-bold'
+          : 'bg-[var(--card-surface)]/30 hover:bg-[var(--card-surface)]/80 text-[var(--text-secondary)] border border-[var(--border-color)]/70 hover:border-[var(--accent-orange)]/45 hover:text-[var(--text-primary)] hover:shadow-[0_0_12px_rgba(241,143,1,0.12)]'
+      }`}
+    >
+      {completed ? (
+        <>
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.4]" />
+          <span>수강 완료</span>
+        </>
+      ) : (
+        <>
+          <Circle className="w-3.5 h-3.5 text-[var(--text-secondary)]/60 stroke-[1.8] group-hover:text-[var(--accent-orange)] transition-colors" />
+          <span>수강 완료</span>
+        </>
+      )}
+    </button>
   );
 }
+
