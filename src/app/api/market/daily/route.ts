@@ -773,7 +773,7 @@ export async function GET(request: Request) {
     resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq, latestKrClosedDate);
     resolvedGold = alignAssetToClosedDate(resolvedGold, latestUsClosedDate);
     resolvedOil = alignAssetToClosedDate(resolvedOil, latestUsClosedDate);
-    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestKrClosedDate);
+    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestUsClosedDate);
     const resolvedUs10y = alignAssetToClosedDate(us10y, latestUsClosedDate);
 
     const now = new Date();
@@ -986,7 +986,7 @@ export async function GET(request: Request) {
     // 한쪽 시장의 명절/공휴일 휴장으로 인한 상대 시장 오탐 경보 원천 차단
     const staleAssets: string[] = [];
     for (const check of assetChecks) {
-      const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가'].includes(check.name);
+      const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가', '달러 환율'].includes(check.name);
       const targetClosedDate = isUsAsset ? latestUsClosedDate : latestKrClosedDate;
       if (!targetClosedDate) continue;
 
