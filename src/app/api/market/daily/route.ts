@@ -115,8 +115,9 @@ async function fetchYahooData(symbol: string): Promise<{
         continue;
       }
 
-      const d = new Date(timeMs);
-      const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+      // 서버(UTC) 환경에서의 일자 왜곡 방지: 한국 자산은 KST, 글로벌/미국 자산(환율 포함)은 New York 시간대 기준 일자 확정
+      const tz = (symbol === '^KS11' || symbol === '^KQ11') ? 'Asia/Seoul' : 'America/New_York';
+      const dateStr = new Date(timeMs).toLocaleDateString('en-CA', { timeZone: tz }).replace(/-/g, '.');
 
       const rawVal = rawHistory[i];
       // 종가가 null이거나 유효하지 않은 캔들은 스킵 (직전 종가 단순 복제로 인한 동일값 왜곡 방지)
