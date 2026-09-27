@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/context/AuthContext';
 import { 
   X, 
@@ -9,10 +10,10 @@ import {
   Sparkles, 
   KeyRound, 
   ShieldCheck, 
-  ChevronRight,
-  AlertCircle,
-  CheckCircle2,
-  RefreshCw
+  ChevronRight, 
+  AlertCircle, 
+  CheckCircle2, 
+  RefreshCw 
 } from 'lucide-react';
 import SmoothHeight from '@/components/SmoothHeight';
 
@@ -50,7 +51,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
     }, 400);
   };
 
-  // Synchronize enter and exit lifecycle
+  // Synchronize enter and exit lifecycle & dual-layer scroll lock (body + html)
   useEffect(() => {
     let timer: NodeJS.Timeout;
     let animFrame: number;
@@ -63,6 +64,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
         });
       });
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else if (isRendered) {
       setIsShowing(false);
       timer = setTimeout(() => {
@@ -73,11 +75,14 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
         setCodeSuccess(null);
       }, 400);
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
 
     return () => {
       if (timer) clearTimeout(timer);
       if (animFrame) cancelAnimationFrame(animFrame);
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen, isRendered]);
 
@@ -126,11 +131,11 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
-      {/* Heavy Blur Backdrop with Smooth Apple Ease Fade */}
+  const modalContent = (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden overscroll-contain">
+      {/* Heavy Blur Backdrop with Smooth Apple Ease Fade (z-[10000]) */}
       <div 
-        className={`fixed inset-0 bg-black/75 backdrop-blur-xl cursor-pointer transition-opacity duration-[450ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+        className={`fixed inset-0 bg-black/70 backdrop-blur-md cursor-pointer transition-opacity duration-[450ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] touch-none ${
           isShowing ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={handleClose}
@@ -144,40 +149,72 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
             : 'scale-[0.93] opacity-0 translate-y-8 pointer-events-none'
         }`}
       >
-        {/* Top Header without bottom border */}
-        <div className="relative px-5 pt-6 pb-2 sm:px-8 sm:pt-7 sm:pb-3 flex items-start justify-between shrink-0 bg-[var(--card-surface)]">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30">
-                <Crown className="w-4 h-4 stroke-[2.4]" />
-              </span>
-              <h2 className="text-lg sm:text-xl font-black tracking-tight text-[var(--text-primary)]">
-                내게 맞는 멤버십 플랜 알아보기
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-normal">
-              내 투자 수준과 목표에 꼭 맞는 플랜으로 똑똑한 자산관리를 시작하세요.
-            </p>
-          </div>
+        {/* Floating Apple Progressive Glass Blur Header Shell (BottomNavigation 1:1 Reference, No border line) */}
+        <div 
+          className="absolute top-0 inset-x-0 z-20 pointer-events-none select-none overflow-hidden h-[96px] sm:h-[104px]"
+        >
+          {/* Layer 1: Solid/Dense glass background vertical gradient fade (dense at top -> transparent at bottom) */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/95 to-transparent pointer-events-none"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)'
+            }}
+          />
+          {/* Layer 2: Deep glass backdrop blur across header area */}
+          <div 
+            className="absolute inset-x-0 top-0 h-[86px] sm:h-[94px] backdrop-blur-xl pointer-events-none"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 75%, transparent 100%)'
+            }}
+          />
+          {/* Layer 3: Soft ambient progressive blur fade */}
+          <div 
+            className="absolute inset-x-0 top-0 h-[96px] sm:h-[104px] backdrop-blur-[6px] pointer-events-none"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)'
+            }}
+          />
 
-          <button
-            type="button"
-            onClick={handleClose}
-            className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-all cursor-pointer"
-            title="닫기 (ESC)"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Interactive Header Title & Close Button */}
+          <div className="relative z-10 px-5 pt-6 pb-2 sm:px-8 sm:pt-7 sm:pb-3 flex items-start justify-between">
+            <div className="space-y-1 pointer-events-auto">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30">
+                  <Crown className="w-4 h-4 stroke-[2.4]" />
+                </span>
+                <h2 className="text-lg sm:text-xl font-black tracking-tight text-[var(--text-primary)]">
+                  내게 맞는 멤버십 플랜 알아보기
+                </h2>
+              </div>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-normal">
+                내 투자 수준과 목표에 꼭 맞는 플랜으로 똑똑한 자산관리를 시작하세요.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleClose}
+              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-all cursor-pointer pointer-events-auto shrink-0"
+              title="닫기 (ESC)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Scrollable Comparison Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 no-scrollbar">
+        {/* Scrollable Comparison Content (Passes smoothly under the floating progressive blur header) */}
+        <div 
+          className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-6 sm:pb-8 space-y-6 sm:space-y-8 no-scrollbar overscroll-contain"
+        >
           
           {/* 3-Tier Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
             
             {/* 1. FREE Plan Card */}
-            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-[var(--bg-main)] border transition-all duration-300 ${
+            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-[var(--card-hover)]/70 border transition-all duration-300 ${
               proTier === 'free' 
                 ? 'border-[var(--accent-orange)]/60 shadow-[0_0_20px_rgba(241,143,1,0.08)]' 
                 : 'border-[var(--border-color)]/90 hover:border-[var(--border-color)]'
@@ -253,7 +290,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
             </div>
 
             {/* 2. PRO Plan Card */}
-            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-[var(--bg-main)] border relative transition-all duration-300 ${
+            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-[var(--card-hover)]/70 border relative transition-all duration-300 ${
               proTier === 'pro' 
                 ? 'border-[var(--accent-orange)] shadow-[0_0_24px_rgba(241,143,1,0.20)]' 
                 : 'border-[var(--border-color)]/90 hover:border-[var(--accent-orange)]/40 hover:shadow-[0_0_18px_rgba(241,143,1,0.1)]'
@@ -355,7 +392,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
             </div>
 
             {/* 3. PRO+ Plan Card */}
-            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-amber-500/[0.04] to-[var(--bg-main)] border relative transition-all duration-300 ${
+            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-amber-500/[0.06] to-[var(--card-hover)]/70 border relative transition-all duration-300 ${
               proTier === 'pro_plus' 
                 ? 'border-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.25)]' 
                 : 'border-amber-500/40 hover:border-amber-400 hover:shadow-[0_0_22px_rgba(245,158,11,0.18)]'
@@ -556,7 +593,11 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
 
         </div>
 
+        {/* Bottom subtle gradient fadeout (BottomNavigation 1:1 Reference, subtle fadeout at bottom) */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 sm:h-8 bg-gradient-to-t from-[var(--card-surface)] to-transparent z-20 rounded-b-3xl" />
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }

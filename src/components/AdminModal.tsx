@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Users, BookOpen, PieChart, RefreshCw, Search, X, Clock, CheckCircle, BarChart3, ChevronRight, Crown, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
@@ -146,7 +147,17 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
     if (isOpen) {
       setIsClosing(false);
       fetchAdminData();
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
   }, [isOpen]);
 
   if (!isOpen && !isClosing) return null;
@@ -161,9 +172,9 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
   const proCount = users.filter(u => u.proTier === 'pro').length;
   const proPlusCount = users.filter(u => u.proTier === 'pro_plus').length;
 
-  return (
+  const modalContent = (
     <div 
-      className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md ${
+      className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overscroll-contain touch-none ${
         isClosing ? 'animate-fade-out-overlay' : 'animate-fade-in-overlay'
       }`}
       onClick={handleClose}
@@ -487,5 +498,7 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
 
