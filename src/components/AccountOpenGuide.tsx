@@ -258,15 +258,16 @@ export default function AccountOpenGuide() {
         </div>
       </div>
 
-      {/* Step Tabs Navigation with Sliding Pill Animation */}
-      <div className="relative p-1 rounded-2xl bg-[var(--card-hover)]/80 border border-[var(--border-color)]/50 select-none">
+      {/* Step Tabs Navigation with Sliding Pill Animation (Apple & Google Style Capsule) */}
+      <div className="relative p-1 sm:p-1.5 rounded-full bg-[var(--card-hover)]/90 dark:bg-white/[0.04] backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs select-none">
         <div className="grid grid-cols-5 relative">
-          {/* Liquid Sliding Pill Highlight */}
+          {/* Liquid Sliding Pill Highlight (1px Signature Orange Border & Glow) */}
           <div 
-            className="absolute top-0 bottom-0 rounded-xl bg-white dark:bg-zinc-800 border border-[var(--accent-orange)]/45 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+            className="absolute top-0 bottom-0 rounded-full bg-white dark:bg-zinc-800 border border-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.24)] transition-transform duration-300 pointer-events-none"
             style={{
               width: '20%',
               transform: `translateX(${currentStep * 100}%)`,
+              transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
             }}
           />
 
@@ -279,7 +280,7 @@ export default function AccountOpenGuide() {
                 key={s.id}
                 type="button"
                 onClick={() => handleMainTabClick(idx)}
-                className={`relative z-10 flex flex-col items-center justify-center py-2 px-0.5 text-center transition-colors duration-200 ${
+                className={`relative z-10 flex flex-col items-center justify-center py-2 sm:py-2.5 px-0.5 sm:px-1 rounded-full text-center transition-colors duration-200 cursor-pointer select-none active:scale-[0.98] ${
                   isActive
                     ? 'text-[var(--accent-orange)] font-extrabold'
                     : isDone
@@ -676,7 +677,6 @@ export default function AccountOpenGuide() {
             className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm font-bold bg-[var(--accent-orange)] hover:brightness-110 hover:shadow-[0_0_18px_rgba(241,143,1,0.35)] active:scale-95 text-white px-5 py-2.5 rounded-full transition-all shadow-2xs shrink-0 whitespace-nowrap self-start sm:self-center"
           >
             <span>혜택 신청 폼 작성하기</span>
-            <ExternalLink className="w-4 h-4 stroke-[1.7]" />
           </a>
         </div>
       </div>

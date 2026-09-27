@@ -21,7 +21,8 @@ const BENEFIT_LIST = [
   { label: '환전 수수료', value: '무료 (0원)', tag: '환전 우대' },
   { label: '국내주식 수수료', value: '0.015%', tag: '평생 우대' },
   { label: '이체 수수료', value: '무료 (0원)', tag: '무제한 무료' },
-  { label: '해외선물 수수료', value: '$2.49', tag: '선물 옵션' }
+  { label: '해외선물 수수료', value: '$2.49', tag: '선물 옵션' },
+  { label: '주식앱 PRO 멤버십', value: '무료 제공', tag: '거래 시 1년 단위 연장' }
 ];
 
 export default function FeeComparisonBox() {

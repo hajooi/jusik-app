@@ -413,15 +413,16 @@ export default function StockDcaGuide() {
           </div>
         </div>
 
-        {/* 4-Step Top Tab Navigation with Sliding Pill */}
-        <div className="relative p-1 rounded-2xl bg-[var(--card-hover)]/80 border border-[var(--border-color)]/50 select-none">
+        {/* 4-Step Top Tab Navigation with Sliding Pill (Apple & Google Style Capsule) */}
+        <div className="relative p-1 sm:p-1.5 rounded-full bg-[var(--card-hover)]/90 dark:bg-white/[0.04] backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs select-none">
           <div className="grid grid-cols-4 relative">
-            {/* Sliding Pill Highlight */}
+            {/* Sliding Pill Highlight (1px Signature Orange Border & Glow) */}
             <div 
-              className="absolute top-0 bottom-0 rounded-xl bg-white dark:bg-zinc-800 border border-[var(--accent-orange)]/45 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+              className="absolute top-0 bottom-0 rounded-full bg-white dark:bg-zinc-800 border border-[var(--accent-orange)] shadow-[0_0_14px_rgba(241,143,1,0.24)] transition-transform duration-300 pointer-events-none"
               style={{
                 width: '25%',
                 transform: `translateX(${(currentStep - 1) * 100}%)`,
+                transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             />
 
@@ -434,7 +435,7 @@ export default function StockDcaGuide() {
                   key={s.id}
                   type="button"
                   onClick={() => handleStepChange(s.stepNum as 1 | 2 | 3 | 4)}
-                  className={`relative z-10 flex flex-col items-center justify-center py-2 px-0.5 text-center transition-colors duration-200 ${
+                  className={`relative z-10 flex flex-col items-center justify-center py-2 sm:py-2.5 px-0.5 sm:px-1 rounded-full text-center transition-colors duration-200 cursor-pointer select-none active:scale-[0.98] ${
                     isActive
                       ? 'text-[var(--accent-orange)] font-extrabold'
                       : isDone

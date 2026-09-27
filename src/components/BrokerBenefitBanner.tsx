@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, X } from 'lucide-react';
+import { X, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const STORAGE_DISMISSED_UNTIL_KEY = 'jusik_broker_benefit_dismissed_until';
@@ -107,14 +107,16 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
             특별 제휴
           </span>
 
-          {/* 문구: 말줄임 없이 온전하게 표기 */}
-          <span className="whitespace-nowrap">
-            해외주식 수수료{' '}
-            <span className="text-[var(--accent-orange)] font-extrabold">평생 0.04%</span>
-            {' '}적용
+          {/* 문구: 해외주식 수수료 평생 0.04% + PRO */}
+          <span className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+            <span>
+              해외주식 수수료 <span className="text-[var(--accent-orange)] font-extrabold">평생 0.04%</span> +
+            </span>
+            <span className="animate-pro-badge inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-black font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/40 shadow-2xs leading-none">
+              <Crown className="w-2.5 h-2.5 stroke-[2.2] fill-[var(--accent-orange)]/20" />
+              <span>PRO</span>
+            </span>
           </span>
-
-          <ArrowRight className="w-3 h-3 text-[var(--accent-orange)] group-hover:translate-x-0.5 transition-transform duration-300 shrink-0" />
         </Link>
 
         {/* Separator Hairline */}
