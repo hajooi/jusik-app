@@ -50,7 +50,7 @@ export interface BookSection {
   };
   paragraphs: string[];
   callout?: string;
-  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania' | 'basic_terms_quiz' | 'fee_comparison' | 'jpmorgan_chart' | 'dca_simulator' | 'portfolio_recipes' | 'inline_simulator_cta' | 'rebalance_backtest' | 'representative_etf_cards' | 'isa_tax_calc' | 'pension_tax_simulator';
+  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania' | 'basic_terms_quiz' | 'fee_comparison' | 'jpmorgan_chart' | 'dca_simulator' | 'portfolio_recipes' | 'inline_simulator_cta' | 'rebalance_backtest' | 'representative_etf_cards' | 'isa_tax_calc' | 'pension_tax_simulator' | 'capital_gains_harvest_sim';
 }
 
 export type LessonModule = GuideStepsModule | ResourcesModule | CTAModule;
@@ -1238,11 +1238,20 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv3",
         lessonNumber: 3,
         title: "3강. 양도소득세",
-        subtitle: "미국 주식 연 250만 원 기본공제와 세금 부과 원리 정복",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "미국 주식 연 250만 원 기본공제와 연말 절세 실전 전략",
+        youtubeId: "mGISTVnGi_s",
+        duration: "5:58",
+        summary: [
+          "미국 주식은 1년 동안 실제로 주식을 팔아 확정한 순이익 중 250만 원까지 세금이 없습니다 (250만 원 초과분은 22% 단일 세율).",
+          "주식을 평생 모아가더라도 매년 250만 원 분량만큼 팔았다가 다시 사면, 주식 수량은 유지하면서 장부상 취득 가격을 높여 미래의 세금을 합법적으로 지울 수 있습니다.",
+          "주문일과 결제일 사이의 2영업일 시차(T+2)를 고려하여, 연말 절세 매매는 12월 말일이 아닌 최소 12월 20일경에 여유 있게 마쳐야 합니다."
+        ],
+        cardNewsTitles: [
+          "연말 250만 원 비과세 선물",
+          "주식을 모아가며 세금을 지우는 법",
+          "12월 마지막 날에 팔면 안 되는 이유"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv3-4",
@@ -1259,34 +1268,61 @@ export const CURRICULUM_DATA: Level[] = [
         id: "lv3-5",
         levelId: "lv3",
         lessonNumber: 5,
-        title: "5강. 계좌별 활용 전략",
-        subtitle: "일반 계좌 vs ISA vs 연금저축, 어디서 어떤 자산을 담아야 유리할까?",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        title: "5강. 국내 vs 해외 ETF 비교",
+        subtitle: "해외 직접 투자와 국내 ETF 중 나에게 딱 맞는 투자 방식 선택하기",
+        youtubeId: "afSxzyqdDV0",
+        duration: "8:07",
+        summary: [
+          "해외 직접 투자의 연간 250만 원 비과세 한도와 ISA 계좌의 비과세(200만~400만 원) 및 9.9% 분리과세 혜택을 동시에 활용해 절세 그릇을 최대로 누리는 조합 전략을 세워야 합니다.",
+          "두 계좌를 함께 굴릴 때는 해외 직투 계좌에 '미국배당다우존스(배당 중심)'를, ISA 계좌에 '나스닥 100(성장 및 매매차익 중심)'을 나누어 담는 것이 세제상 가장 유리합니다.",
+          "갑작스러운 지출에 대비해 납입 원금을 페널티 없이 언제든 출금할 수 있는 ISA 계좌를 안전판으로 활용하고, 3년마다 만기 해지 후 재개설하여 비과세 한도를 새롭게 갱신합니다."
+        ],
+        cardNewsTitles: [
+          "비과세 최대화 조합 전략",
+          "계좌별 최적 종목 배분",
+          "원금 인출과 3년 롤링"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv3-6",
         levelId: "lv3",
         lessonNumber: 6,
         title: "6강. ETF 수수료 비교",
-        subtitle: "표면 총보수 뒤에 숨겨진 실질 총비용(TER)과 직투 vs 국내 ETF 비용 차이",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "표면 총보수 뒤에 숨겨진 실질 총비용과 수수료 1% 아끼는 비결",
+        youtubeId: "UDsy39C0Vww",
+        duration: "1:05",
+        summary: [
+          "증권사 광고에 나오는 총보수 외에도 기타비용과 매매중개수수료가 숨어 있어 실제 수수료는 더 높을 수 있습니다.",
+          "동일한 지수를 추종하는 ETF라도 운용사마다 숨은 비용 차이로 인해 10년, 20년 뒤 수익률 격차가 크게 벌어집니다.",
+          "금융투자협회 공시를 통해 숨은 수수료까지 모두 포함된 진짜 총비용을 확인하고 가장 알뜰한 ETF를 골라야 합니다."
+        ],
+        cardNewsTitles: [
+          "숨겨진 수수료의 진실",
+          "운용사별 실질 비용 차이",
+          "1% 더 챙기는 알뜰 팁"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv3-7",
         levelId: "lv3",
         lessonNumber: 7,
         title: "7강. 증여와 절세",
-        subtitle: "가족 간 10년 주기 비과세 증여 한도와 합법적 부의 이전 노하우",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "가족 간 10년 주기 비과세 증여 한도와 합법적인 부의 이전 방법",
+        youtubeId: "PGtwr_kfd2o",
+        duration: "4:26",
+        summary: [
+          "배우자는 6억 원, 성인 자녀는 5,000만 원, 미성년 자녀는 2,000만 원까지 10년마다 세금 없이 증여할 수 있습니다.",
+          "어린 자녀에게 일찍 주식을 증여해 장기 복리로 불려주면, 미래의 자산 형성 기회를 크게 넓혀줄 수 있습니다.",
+          "국세청 홈택스를 통해 정해진 기간 내에 증여 사실을 신고해 두어야 추후 자금 출처 소명 시 불이익을 방지할 수 있습니다."
+        ],
+        cardNewsTitles: [
+          "10년 주기 비과세 한도",
+          "자녀를 위한 복리의 씨앗",
+          "홈택스 증여 신고 요령"
+        ],
+        isComingSoon: false
       }
     ]
   },
@@ -1298,51 +1334,87 @@ export const CURRICULUM_DATA: Level[] = [
     description: "적립식 변동 매매, 정기 리밸런싱, 트레이딩뷰 얼러트 웹훅 연동으로 전략 고도화",
     badgeText: "초과 수익 전략",
     iconName: "TrendingUp",
-    isComingSoon: true,
+    isComingSoon: false,
     lessons: [
       {
         id: "lv4-1",
         levelId: "lv4",
         lessonNumber: 1,
         title: "1강. 거시경제와 금리",
-        subtitle: "미국 연준(Fed)의 기준금리 결정과 글로벌 자산 시장의 나침반",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "GDP, CPI, 실업률 세 가지 핵심 경제 지표로 시장의 큰 흐름 읽기",
+        youtubeId: "kjz2NltKi8g",
+        duration: "10:58",
+        summary: [
+          "경기 순환 사이클 네 단계(회복·호황·둔화·침체)라는 지도를 읽기 위해 가장 먼저 챙겨야 할 세 가지 나침반은 경제 성장률(GDP), 물가 상승률(CPI), 고용 지표(실업률)입니다.",
+          "인베스팅닷컴을 통해 주요 지표의 발표치와 예측치를 직접 확인하면, 금리 인상·인하의 방향성과 경제 뉴스를 전문가 도움 없이 스스로 해석할 수 있습니다.",
+          "물가가 잡히더라도 실업률이 급등하면 경기침체 신호로 해석될 수 있으므로, 단편적인 수치 하나보다 세 지표 간의 상호작용을 종합적으로 관찰해야 합니다."
+        ],
+        cardNewsTitles: [
+          "경제의 세 가지 체온계",
+          "인베스팅닷컴 실전 해석",
+          "지표 간 상호작용과 금리"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-2",
         levelId: "lv4",
         lessonNumber: 2,
         title: "2강. 경기 사이클",
-        subtitle: "회복기, 호황기, 후퇴기, 침체기 4단계 국면별 자산 배분 대응법",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "회복, 호황, 후퇴, 침체 사계절 순환과 국면별 주도 섹터",
+        youtubeId: "qpt6kTuOgmQ",
+        duration: "8:25",
+        summary: [
+          "거시경제 큰 흐름에서 유망 산업을 찾고 단 하나의 기업으로 좁혀가는 '탑다운(Top-down)' 접근법으로 10배 오르는 주식 발굴의 기틀을 마련합니다.",
+          "피델리티 비즈니스 사이클(Fidelity Business Cycle)을 확인하여 현재 경제가 사계절(Early, Mid, Late, Recession) 중 어느 단계에 머물러 있는지 파악합니다.",
+          "경기 국면마다 강세를 보이는 섹터가 다르므로(침체기 전후 임의소비재/방어주, 활황기 기술/산업재 등), 사이클의 이동 방향에 맞춰 주도 섹터를 선별합니다."
+        ],
+        cardNewsTitles: [
+          "탑다운 접근법의 원리",
+          "피델리티 비즈니스 사이클",
+          "사계절 국면별 주도 섹터"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-3",
         levelId: "lv4",
         lessonNumber: 3,
         title: "3강. 재무제표",
-        subtitle: "초보자도 5분 만에 핵심만 파악하는 기업의 실제 돈 버는 실력",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "투자하면 안 되는 위험한 기업을 걸러내는 가치 평가 기초",
+        youtubeId: "N_wkPhhkYgo",
+        duration: "13:18",
+        summary: [
+          "복잡하고 예측 오차가 큰 DCF(현금흐름할인법) 대신, 야후 파이낸스 스크리너를 활용해 수익성, 성장성, 가격 매력도, 차트(RSI) 네 가지 지표로 기업을 평가합니다.",
+          "점수가 높다고 무조건 구매하는 것이 아니라, 스프레드시트에 직접 숫자를 기입하며 위험하거나 부실한 기업을 객관적으로 걸러내는 것이 핵심 목적입니다.",
+          "데이터를 통해 나쁜 기업을 1차로 탈락시킨 뒤, 시장의 대중적 관심과 비전이 뒷받침되는지 정성적으로 검토하여 최종 투자 종목을 결정합니다."
+        ],
+        cardNewsTitles: [
+          "스크리너로 유망 기업 발굴",
+          "네 가지 핵심 지표 점수화",
+          "정량 탈락과 정성 최종 선택"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-4",
         levelId: "lv4",
         lessonNumber: 4,
         title: "4강. 차트 분석",
-        subtitle: "이동평균선과 지지·저항선을 통해 시장의 심리와 추세 읽기",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "복잡한 보조지표 없이 세 가지만 보는 주식 차트 핵심 공식",
+        youtubeId: "3qy8RXAQZn8",
+        duration: "6:20",
+        summary: [
+          "복잡한 보조지표는 모두 지우고, 캔들(몸통과 꼬리의 힘), 이동평균선(50일·200일선 골든/데드크로스), 지지선·저항선(바닥과 천장) 딱 세 가지만 확인합니다.",
+          "캔들 아래 꼬리는 저가 반등 매수세를, 천장(저항선)을 뚫어내는 돌파는 새로운 상승 추세의 시작을 알리는 중요한 시장 참여자들의 심리 신호입니다.",
+          "차트는 미래를 맞히는 마법의 예언서가 아니라 과거 거래의 심리 흔적이므로, 맹신하지 않고 '현재 시장 분위기를 확인하는 보조 도구'로만 활용해야 합니다."
+        ],
+        cardNewsTitles: [
+          "차트의 세 가지 뼈대",
+          "꼬리와 돌파의 심리 신호",
+          "차트 맹신의 함정 경계"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-5",
@@ -1360,22 +1432,40 @@ export const CURRICULUM_DATA: Level[] = [
         levelId: "lv4",
         lessonNumber: 6,
         title: "6강. 추세추종",
-        subtitle: "강하게 오르는 자산에 올라타고 꺾일 때 지키는 모멘텀 투자의 원리",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "시장의 주도주와 강한 상승 흐름에 올라타는 모멘텀 투자의 원리",
+        youtubeId: "lUOrOIskJ40",
+        duration: "9:17",
+        summary: [
+          "구글 트렌드를 활용해 대중의 관심과 검색량이 폭발하는 '핫한 주도주(엔비디아, 테슬라, 브로드컴, 비트코인 등)'를 객관적으로 판별합니다.",
+          "\"쌀 때 사라\"는 통념을 깨고, 오르는 추세의 강력한 관성에 올라탄 뒤 하락 추세로 돌아설 때 기계적으로 파는 '3구간 추세추종' 원리를 적용합니다.",
+          "매일 시세창을 보지 않고 전체 자금의 10% 이내 소액으로만 접근하며, 한 달에 한 번 전월 대비 하락 기준을 정해두고 기계적으로 손절 및 비중 조절을 실행합니다."
+        ],
+        cardNewsTitles: [
+          "구글 트렌드 주도주 발굴",
+          "3구간 추세추종의 원리",
+          "월 1회 기계적 위험 관리"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-7",
         levelId: "lv4",
         lessonNumber: 7,
         title: "7강. 레버리지",
-        subtitle: "변동성 끌림(음의 복리) 현상과 레버리지 ETF의 양날의 검 주의사항",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        subtitle: "하락장 레버리지 ETF의 실전 검증과 음의 복리 주의사항",
+        youtubeId: "jru9qOPkgQI",
+        duration: "12:22",
+        summary: [
+          "일반 지수 주식(S&P 500, 나스닥 100)은 하락할 때마다 비중을 늘리는 방식보다, 매달 기계적으로 모아가는 '단순 적립식 투자'가 장기 성과와 멘탈 관리에 훨씬 우수합니다.",
+          "다만 레버리지 ETF(QLD, TQQQ)를 활용할 때는 단순 적립식의 음의 복리 위험을 피하기 위해, 고점 대비 일정 비율 하락 시 소액 비중으로만 대체/추가하는 전략이 유효합니다.",
+          "2배 레버리지보다는 3배 레버리지 ETF를 10~20% 이내의 극소수 비중으로만 통제하여 활용할 때 리스크를 줄이면서 초과 수익을 기대할 수 있습니다."
+        ],
+        cardNewsTitles: [
+          "적립식 vs 하락 시 추가 구매",
+          "레버리지 ETF 대체 공식",
+          "소액 비중 통제와 초과 수익"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv4-8",
@@ -1435,18 +1525,27 @@ export const CURRICULUM_DATA: Level[] = [
     description: "Gemini, Antigravity, 파이썬 웹훅 및 증권사 API를 활용해 감정을 배제하고 24시간 자동으로 돌아가는 나만의 투자 시스템 구축",
     badgeText: "투자 자동화",
     iconName: "Bot",
-    isComingSoon: true,
+    isComingSoon: false,
     lessons: [
       {
         id: "lv5-1",
         levelId: "lv5",
         lessonNumber: 1,
-        title: "1강. 주식 비서 만들기",
-        subtitle: "생성형 AI를 나만의 전문 금융 리서치 및 뉴스 브리핑 비서로 구축하기",
-        youtubeId: "",
-        duration: "오픈 예정",
-        cardNewsTitles: [],
-        isComingSoon: true
+        title: "1강. AI 주식 비서 만들기",
+        subtitle: "아침마다 앱 켜지 않고 내 관심 종목 브리핑을 받아보는 무료 시스템",
+        youtubeId: "oSbPsxtUWQ0",
+        duration: "8:42",
+        summary: [
+          "매일 아침 바쁜 출근길에 일일이 증권사 앱을 켜지 않아도, 내 관심 종목 시황과 지수·환율 정보를 매일 아침 자동으로 정리해 받아보는 무료 알림 시스템을 만듭니다.",
+          "복잡한 코딩을 배우지 않아도 AI에게 원하는 조건과 종목을 말로 요청하여 나만의 주식 비서 코드를 직접 완성할 수 있습니다.",
+          "GitHub Actions 가상 환경을 연동하여 개인 컴퓨터를 켜두거나 유료 서버 비용을 들이지 않고도 24시간 완전 무료로 자동 실행됩니다."
+        ],
+        cardNewsTitles: [
+          "아침을 여는 AI 비서",
+          "대화로 만드는 비서 코드",
+          "비용 0원의 자동화 시스템"
+        ],
+        isComingSoon: false
       },
       {
         id: "lv5-2",
