@@ -17,6 +17,9 @@ export interface UserAccount {
   rankPercentile?: number;
   isPro?: boolean;
   proExpiresAt?: string;
+  isProPlus?: boolean;
+  proPlusExpiresAt?: string;
+  proTier?: 'free' | 'pro' | 'pro_plus';
   hasCompletedCourse?: boolean; // 전 강좌 수강 완료 영구 업적 플래그 (우등생 뱃지 해금)
   maxCompletedLessonsCount?: number;
   termsQuizBest?: {
@@ -27,13 +30,16 @@ export interface UserAccount {
     percentile?: number;
     badgeName?: string;
   };
-  activeBadge?: 'type_only' | 'terms_percentile' | 'terms_master' | 'honor_student' | string;
+  activeBadge?: 'type_only' | 'terms_percentile' | 'terms_master' | 'honor_student' | 'pro' | 'pro_plus' | string;
 }
 
 interface AuthContextType {
   user: UserAccount | null;
   isPro: boolean;
+  isProPlus: boolean;
+  proTier: 'free' | 'pro' | 'pro_plus';
   proExpiresAt: string | null;
+  proPlusExpiresAt: string | null;
   completedLessons: string[];
   investmentType: string | null;
   typeAnswers: Record<number, number> | null;
@@ -41,9 +47,12 @@ interface AuthContextType {
   favoriteTools: string[];
   isAuthPopoverOpen: boolean;
   isAuthPopoverClosing: boolean;
+  isCompareModalOpen: boolean;
   openAuthPopover: () => void;
   closeAuthPopover: () => void;
   toggleAuthPopover: () => void;
+  openCompareModal: () => void;
+  closeCompareModal: () => void;
   login: (nickname: string, pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   changePin: (newPin: string) => Promise<{ success: boolean; error?: string }>;
@@ -90,6 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [favoriteTools, setFavoriteTools] = useState<string[]>([]);
   const [isAuthPopoverOpen, setIsAuthPopoverOpen] = useState<boolean>(false);
   const [isAuthPopoverClosing, setIsAuthPopoverClosing] = useState<boolean>(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState<boolean>(false);
+
+  const openCompareModal = () => setIsCompareModalOpen(true);
+  const closeCompareModal = () => setIsCompareModalOpen(false);
 
   // 디바운스 타이머 ref
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,7 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   ...data.user,
                   pin: userPin,
                   isPro: data.user.isPro,
+                  isProPlus: data.user.isProPlus,
+                  proTier: data.user.proTier,
                   proExpiresAt: data.user.proExpiresAt,
+                  proPlusExpiresAt: data.user.proPlusExpiresAt,
                   hasCompletedCourse: Boolean(parsedUser.hasCompletedCourse || data.user.hasCompletedCourse),
                 };
                 setUser(serverUser);
@@ -647,16 +663,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Pro Membership Status Evaluation (유효한 proExpiresAt 만료일을 보유하거나 영구 PRO인 경우만 인정, 만료 시 즉시 회수)
-  const isPro = !!(
+  // PRO+ 및 PRO 등급 평가 (2트랙 만료일 & Fallback 안전 복귀 원칙)
+  const isProPlus = !!(
     user &&
-    (user.proExpiresAt
-      ? new Date(user.proExpiresAt).getTime() > Date.now()
-      : user.isPro === true)
+    user.proPlusExpiresAt &&
+    new Date(user.proPlusExpiresAt).getTime() > Date.now()
   );
 
-  // Pro 만료일 (실제 등록된 만료일 표기)
+  const isPro = !!(
+    user &&
+    (isProPlus || (user.proExpiresAt ? new Date(user.proExpiresAt).getTime() > Date.now() : user.isPro === true))
+  );
+
+  const proTier: 'free' | 'pro' | 'pro_plus' = isProPlus ? 'pro_plus' : (isPro ? 'pro' : 'free');
+
+  // 만료일 정보
   const proExpiresAt = user?.proExpiresAt || null;
+  const proPlusExpiresAt = user?.proPlusExpiresAt || null;
 
   const redeemPromoCode = async (code: string): Promise<{ success: boolean; message?: string; error?: string }> => {
     if (!user || !user.nickname) {
@@ -695,7 +718,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
       }
 
-      return { success: true, message: data.message || 'Pro 코드가 성공적으로 등록되었습니다!' };
+      return { success: true, message: data.message || '인증 코드가 성공적으로 등록되었습니다!' };
     } catch (e) {
       console.error('redeemPromoCode error:', e);
       return { success: false, error: '서버 통신 중 오류가 발생했습니다.' };
@@ -727,7 +750,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         isPro,
+        isProPlus,
+        proTier,
         proExpiresAt,
+        proPlusExpiresAt,
         completedLessons,
         investmentType,
         typeAnswers,
@@ -735,9 +761,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         favoriteTools,
         isAuthPopoverOpen,
         isAuthPopoverClosing,
+        isCompareModalOpen,
         openAuthPopover,
         closeAuthPopover,
         toggleAuthPopover,
+        openCompareModal,
+        closeCompareModal,
         login,
         logout,
         changePin,

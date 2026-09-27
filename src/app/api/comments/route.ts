@@ -63,7 +63,7 @@ export const POST = withApiGuard('댓글 등록 및 삭제 (/api/comments POST)'
     const trimmedNick = nickname?.trim();
     const trimmedPin = pin?.trim();
     const trimmedContent = content?.trim();
-    const { typeScores, completedLessonsCount, hasCompletedCourse } = body;
+    const { typeScores, completedLessonsCount, hasCompletedCourse, isPro, proTier } = body;
 
     if (!trimmedNick || !trimmedPin || !trimmedContent || !targetKey) {
       return NextResponse.json({ success: false, error: '모든 필수 항목을 입력해 주세요.' }, { status: 400 });
@@ -83,6 +83,8 @@ export const POST = withApiGuard('댓글 등록 및 삭제 (/api/comments POST)'
       investmentType: investmentType || undefined,
       typeScores: typeScores && typeof typeScores === 'object' ? typeScores : undefined,
       activeBadge: activeBadge || undefined,
+      isPro: typeof isPro === 'boolean' ? isPro : undefined,
+      proTier: proTier || undefined,
       termsQuiz: termsQuiz && typeof termsQuiz === 'object' ? termsQuiz : undefined,
       hasCompletedCourse: typeof hasCompletedCourse === 'boolean' ? hasCompletedCourse : undefined,
       completedLessonsCount: typeof completedLessonsCount === 'number' ? completedLessonsCount : undefined,

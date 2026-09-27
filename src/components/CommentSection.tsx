@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { formatRelativeTime } from '@/utils/relativeTime';
 import { calculateSurveyResult, PERSONALITY_PROFILES, TYPE_EMOJIS } from '@/data/investmentSurvey';
-import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown } from 'lucide-react';
+import { MessageSquare, Send, Trash2, CornerDownRight, LogIn, CheckCircle2, Crown, Sparkles } from 'lucide-react';
 import TypePreviewPopover from '@/components/type/TypePreviewPopover';
 import TermsQuizPreviewPopover from '@/components/TermsQuizPreviewPopover';
 import { getCourseBadgeInfo } from '@/utils/courseBadge';
@@ -20,6 +20,7 @@ export interface CommentData {
   typeScores?: { g: number; a: number; l: number; r: number };
   activeBadge?: string;
   isPro?: boolean;
+  proTier?: 'free' | 'pro' | 'pro_plus';
   hasCompletedCourse?: boolean;
   completedLessonsCount?: number;
   termsQuiz?: {
@@ -52,7 +53,7 @@ export default function CommentSection({
   activeTabKey,
   onTabChange,
 }: CommentSectionProps) {
-  const { user, openAuthPopover } = useAuth();
+  const { user, isPro, proTier, openAuthPopover } = useAuth();
   const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
@@ -166,7 +167,8 @@ export default function CommentSection({
           investmentType: user.investmentType,
           typeScores: computedScores,
           activeBadge: user.activeBadge,
-          isPro: true,
+          isPro,
+          proTier: user.proTier || proTier,
           termsQuiz: user.termsQuizBest,
           hasCompletedCourse: user.hasCompletedCourse,
           completedLessonsCount: user.completedLessons?.length || 0,
@@ -223,7 +225,8 @@ export default function CommentSection({
           investmentType: user.investmentType,
           typeScores: computedScores,
           activeBadge: user.activeBadge,
-          isPro: true,
+          isPro,
+          proTier: user.proTier || proTier,
           termsQuiz: user.termsQuizBest,
           hasCompletedCourse: user.hasCompletedCourse,
           completedLessonsCount: user.completedLessons?.length || 0,
@@ -459,8 +462,16 @@ export default function CommentSection({
                       )}
                     </span>
 
-                    {/* User Active Badge Selection (One of: PRO / Course Badge / Terms Quiz / Investment Type) - ALL rounded-full */}
-                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro' ? (
+                    {/* User Active Badge Selection (One of: PRO+ / PRO / Course Badge / Terms Quiz / Investment Type) - ALL rounded-full */}
+                    {rootActiveBadge === 'none' ? null : rootActiveBadge === 'pro_plus' ? (
+                      <span 
+                        className="animate-pro-plus-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black font-mono text-amber-600 dark:text-amber-300 border select-none leading-none shadow-xs"
+                        title={`${root.nickname}님의 PRO+ VIP 회원 뱃지`}
+                      >
+                        <Sparkles className="w-3 h-3 stroke-[2.4] fill-amber-400" />
+                        <span className="tracking-wide">PRO+</span>
+                      </span>
+                    ) : rootActiveBadge === 'pro' ? (
                       <span 
                         className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                         title={`${root.nickname}님의 PRO 회원 뱃지`}
@@ -688,8 +699,16 @@ export default function CommentSection({
                                 )}
                               </span>
 
-                              {/* User Active Badge Selection on Reply (One of: PRO / Course Badge / Terms Quiz / Investment Type) - ALL rounded-full */}
-                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro' ? (
+                              {/* User Active Badge Selection on Reply (One of: PRO+ / PRO / Course Badge / Terms Quiz / Investment Type) - ALL rounded-full */}
+                              {replyActiveBadge === 'none' ? null : replyActiveBadge === 'pro_plus' ? (
+                                <span 
+                                  className="animate-pro-plus-badge inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black font-mono text-amber-600 dark:text-amber-300 border select-none leading-none shadow-xs"
+                                  title={`${reply.nickname}님의 PRO+ VIP 회원 뱃지`}
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 stroke-[2.4] fill-amber-400" />
+                                  <span className="tracking-wide">PRO+</span>
+                                </span>
+                              ) : replyActiveBadge === 'pro' ? (
                                 <span 
                                   className="animate-pro-badge inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none"
                                   title={`${reply.nickname}님의 PRO 회원 뱃지`}

@@ -41,6 +41,9 @@ export interface ServerUserRecord {
   activeBadge?: string;
   isPro?: boolean;
   proExpiresAt?: string;
+  isProPlus?: boolean;
+  proPlusExpiresAt?: string;
+  proTier?: 'free' | 'pro' | 'pro_plus';
   hasCompletedCourse?: boolean;
   maxCompletedLessonsCount?: number;
   favoriteTools?: string[];
@@ -66,6 +69,7 @@ export interface CommentRecord {
   typeScores?: { g: number; a: number; l: number; r: number };
   activeBadge?: string;
   isPro?: boolean;
+  proTier?: 'free' | 'pro' | 'pro_plus';
   hasCompletedCourse?: boolean;
   completedLessonsCount?: number;
   termsQuiz?: {

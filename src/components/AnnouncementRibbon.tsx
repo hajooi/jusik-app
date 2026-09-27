@@ -8,7 +8,7 @@ const SESSION_STORAGE_KEY = 'jusik_hide_ribbon_promo_v2';
 const USER_STORAGE_KEY = 'jusik_app_user_account';
 
 export default function AnnouncementRibbon() {
-  const { isPro } = useAuth();
+  const { isPro, openCompareModal } = useAuth();
 
   // Synchronously determine if ribbon should be eligible to display to avoid any FOUC / layout flash
   const [isDismissed, setIsDismissed] = useState<boolean>(() => {
@@ -129,6 +129,19 @@ export default function AnnouncementRibbon() {
             ) : (
               <span>JU26</span>
             )}
+          </button>
+
+          {/* Plan Compare Trigger */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openCompareModal();
+            }}
+            className="text-[10px] sm:text-[10.5px] font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors hover:underline cursor-pointer shrink-0 ml-0.5"
+            title="멤버십 플랜 비교 보기"
+          >
+            혜택 보기
           </button>
         </div>
 

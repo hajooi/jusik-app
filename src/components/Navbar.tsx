@@ -8,11 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import AuthPopover from '@/components/AuthPopover';
 import AdminModal from '@/components/AdminModal';
 import BrokerBenefitBanner from '@/components/BrokerBenefitBanner';
+import MembershipCompareModal from '@/components/MembershipCompareModal';
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const { user, isAuthPopoverOpen, toggleAuthPopover, closeAuthPopover } = useAuth();
+  const { user, isAuthPopoverOpen, toggleAuthPopover, closeAuthPopover, isCompareModalOpen, closeCompareModal } = useAuth();
   const authPopoverRef = useRef<HTMLDivElement>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isBenefitDismissed, setIsBenefitDismissed] = useState(false);
@@ -137,6 +138,12 @@ export default function Navbar() {
       <AdminModal 
         isOpen={isAdminModalOpen} 
         onClose={() => setIsAdminModalOpen(false)} 
+      />
+
+      {/* Google One / Apple Style Membership Compare Modal */}
+      <MembershipCompareModal
+        isOpen={isCompareModalOpen}
+        onClose={closeCompareModal}
       />
     </>
   );

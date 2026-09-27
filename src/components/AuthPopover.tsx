@@ -14,7 +14,22 @@ interface AuthPopoverProps {
 }
 
 export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) {
-  const { login, user, logout, changePin, redeemPromoCode, isPro, proExpiresAt, updateAvatar, updateActiveBadge, isAuthPopoverClosing } = useAuth();
+  const { 
+    login, 
+    user, 
+    logout, 
+    changePin, 
+    redeemPromoCode, 
+    isPro, 
+    isProPlus, 
+    proTier, 
+    proExpiresAt, 
+    proPlusExpiresAt, 
+    openCompareModal,
+    updateAvatar, 
+    updateActiveBadge, 
+    isAuthPopoverClosing 
+  } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 수강 뱃지 정보 (1~10개: 입문생, 11~20개: 수강생, 21개 이상: 우등생) - 현재 실제 수강 완료 강의 수 기준
@@ -266,7 +281,15 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                 </span>
 
                 {/* Live Selected Badge Display next to Nickname */}
-                {user.activeBadge === 'pro' && isPro ? (
+                {user.activeBadge === 'pro_plus' && isProPlus ? (
+                  <span 
+                    className="animate-pro-plus-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black font-mono text-amber-600 dark:text-amber-300 select-none leading-none shadow-xs"
+                    title="PRO+ 최고 등급 뱃지"
+                  >
+                    <Sparkles className="w-2.5 h-2.5 stroke-[2.4] fill-amber-400" />
+                    <span className="tracking-wide">PRO+</span>
+                  </span>
+                ) : user.activeBadge === 'pro' && isPro ? (
                   <span 
                     className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none shadow-2xs"
                     title="PRO 회원 뱃지"
@@ -305,35 +328,89 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
               </div>
             </div>
 
-            {/* Pro Status Banner */}
-            {isPro && (
+            {/* Membership Status Banner & Plan Compare Link */}
+            {proTier === 'pro_plus' ? (
               <div className="w-full pt-1">
-                <div className="w-full py-1.5 px-2.5 rounded-lg bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 flex items-center justify-between text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    openCompareModal();
+                  }}
+                  className="w-full py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-amber-500/15 border border-amber-500/40 flex items-center justify-between text-[11px] font-bold hover:brightness-105 cursor-pointer transition-all shadow-xs"
+                  title="멤버십 플랜 비교 보기"
+                >
+                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                    <Sparkles className="w-3.5 h-3.5 stroke-[2.4] fill-amber-400" />
+                    <span className="font-mono text-[10.5px]">PRO+ 회원</span>
+                  </span>
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)] flex items-center gap-1">
+                    <span>
+                      {user.proPlusExpiresAt 
+                        ? `~${new Date(user.proPlusExpiresAt).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\s/g, '')}까지` 
+                        : '이용 중'}
+                    </span>
+                    <ChevronRight className="w-3 h-3 opacity-60" />
+                  </span>
+                </button>
+              </div>
+            ) : proTier === 'pro' ? (
+              <div className="w-full pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    openCompareModal();
+                  }}
+                  className="w-full py-1.5 px-2.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 flex items-center justify-between text-[11px] font-bold hover:bg-[var(--accent-orange)]/15 cursor-pointer transition-all"
+                  title="멤버십 플랜 비교 보기"
+                >
                   <span className="flex items-center gap-1 text-[var(--accent-orange)]">
                     <Crown className="w-3.5 h-3.5 stroke-[2.4]" />
                     <span className="font-mono text-[10.5px]">PRO 회원</span>
                   </span>
-                  <span className="text-[10px] font-medium text-[var(--text-secondary)]">
-                    {user.proExpiresAt 
-                      ? `~${new Date(user.proExpiresAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\s/g, '')}까지` 
-                      : '무료 체험 중'}
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)] flex items-center gap-1">
+                    <span>
+                      {user.proExpiresAt 
+                        ? `~${new Date(user.proExpiresAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\s/g, '')}까지` 
+                        : '이용 중'}
+                    </span>
+                    <ChevronRight className="w-3 h-3 opacity-60" />
                   </span>
-                </div>
+                </button>
+              </div>
+            ) : (
+              <div className="w-full pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    openCompareModal();
+                  }}
+                  className="w-full py-2 px-2.5 rounded-xl bg-[var(--card-hover)] border border-[var(--border-color)] hover:border-[var(--accent-orange)]/50 flex items-center justify-between text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] cursor-pointer transition-all shadow-2xs"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                    <span>멤버십 플랜 알아보기</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
 
-          {/* Badge Selection Cards (Visible if at least one badge is earned or user is PRO) */}
+          {/* Badge Selection Cards (Visible if at least one badge is earned or user is PRO/PRO+) */}
           {(() => {
             const hasInvestmentType = !!(user.investmentType && user.investmentType !== '미진단');
             const hasTermsQuizBest = !!user.termsQuizBest;
-            const hasProBadge = isPro;
+            const hasMembershipBadge = isProPlus || isPro;
             const hasCourseBadge = !!courseBadge;
 
-            if (!hasInvestmentType && !hasTermsQuizBest && !hasProBadge && !hasCourseBadge) return null;
+            if (!hasInvestmentType && !hasTermsQuizBest && !hasMembershipBadge && !hasCourseBadge) return null;
 
             const isTypeActive = user.activeBadge === 'investmentType';
             const isQuizActive = user.activeBadge === 'terms_percentile';
+            const isProPlusActive = user.activeBadge === 'pro_plus';
             const isProActive = user.activeBadge === 'pro';
             const isCourseActive = user.activeBadge === 'honor_student';
 
@@ -344,33 +421,44 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5">
-                  {/* Option 1: PRO Badge (First) */}
-                  {hasProBadge && (
+                  {/* Option 1: Single Unified Membership Badge (PRO+ or PRO) */}
+                  {hasMembershipBadge && (
                     <button
                       type="button"
-                      onClick={() => updateActiveBadge?.(isProActive ? 'none' : 'pro')}
+                      onClick={() => {
+                        const targetBadge = isProPlus ? 'pro_plus' : 'pro';
+                        const isCurrentlyActive = isProPlus ? isProPlusActive : isProActive;
+                        updateActiveBadge?.(isCurrentlyActive ? 'none' : targetBadge);
+                      }}
                       className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 ${
-                        isProActive
-                          ? 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs'
+                        (isProPlus ? isProPlusActive : isProActive)
+                          ? (isProPlus ? 'bg-[var(--card-surface)] border-amber-400 shadow-xs' : 'bg-[var(--card-surface)] border-[var(--accent-orange)] shadow-xs')
                           : 'bg-[var(--card-hover)] border-[var(--border-color)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[9.5px] font-bold text-[var(--text-secondary)] truncate">멤버십</span>
-                        {isProActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-orange)] shrink-0" />
+                        {(isProPlus ? isProPlusActive : isProActive) && (
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isProPlus ? 'bg-amber-400' : 'bg-[var(--accent-orange)]'}`} />
                         )}
                       </div>
                       <div className="flex items-center justify-center pt-0.5">
-                        <span className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none">
-                          <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
-                          <span className="tracking-wide">PRO</span>
-                        </span>
+                        {isProPlus ? (
+                          <span className="animate-pro-plus-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black font-mono text-amber-600 dark:text-amber-300 border leading-none select-none">
+                            <Sparkles className="w-2.5 h-2.5 fill-amber-400" />
+                            <span>PRO+</span>
+                          </span>
+                        ) : (
+                          <span className="animate-pro-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none leading-none">
+                            <Crown className="w-2.5 h-2.5 stroke-[2.4] fill-[var(--accent-orange)]/20 animate-pulse" />
+                            <span className="tracking-wide">PRO</span>
+                          </span>
+                        )}
                       </div>
                     </button>
                   )}
 
-                  {/* Option 2: Course Badge (입문생 / 수강생 / 우등생) */}
+                  {/* Option 3: Course Badge */}
                   {courseBadge && (
                     <button
                       type="button"
@@ -396,7 +484,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     </button>
                   )}
 
-                  {/* Option 3: Investment Type Badge */}
+                  {/* Option 4: Investment Type Badge */}
                   {hasInvestmentType && (
                     <button
                       type="button"
@@ -422,7 +510,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     </button>
                   )}
 
-                  {/* Option 4: Terms Quiz Rank Badge */}
+                  {/* Option 5: Terms Quiz Rank Badge */}
                   {hasTermsQuizBest && (
                     <button
                       type="button"
@@ -457,8 +545,8 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
             );
           })()}
 
-          {/* PRO Code Redeem Accordion (Only visible if not PRO) */}
-          {!isPro && (
+          {/* Membership Code Redeem Accordion (Visible for Free & PRO users wanting to enter PRO+ code) */}
+          {proTier !== 'pro_plus' && (
             <SmoothHeight duration={250}>
               <div className="space-y-1.5">
                 {!isRedeemingCode ? (
@@ -472,15 +560,15 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     }}
                     className="w-full py-2 px-3 rounded-full text-xs font-bold text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 hover:border-[rgba(241,143,1,0.5)] active:scale-95 transition-all border border-[var(--accent-orange)]/30 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                   >
-                    <Crown className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>PRO 코드 인증</span>
+                    <KeyRound className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <span>{proTier === 'pro' ? 'PRO+ 코드 등록' : '멤버십 코드 인증'}</span>
                   </button>
                 ) : (
                   <div className="p-3.5 rounded-2xl bg-[var(--card-hover)] border border-[var(--border-color)] space-y-2.5 animate-fade-in text-left">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                        <Crown className="w-3.5 h-3.5 text-[var(--accent-orange)] stroke-[2.2]" />
-                        <span>PRO 코드 인증</span>
+                        <KeyRound className="w-3.5 h-3.5 text-[var(--accent-orange)] stroke-[2.2]" />
+                        <span>멤버십 코드 인증</span>
                       </div>
                       <button
                         type="button"
@@ -492,7 +580,7 @@ export default function AuthPopover({ onClose, onOpenAdmin }: AuthPopoverProps) 
                     </div>
 
                     <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[var(--accent-orange)]/10 border border-[var(--accent-orange)]/30 text-[10.5px]">
-                      <span className="text-[var(--text-secondary)] font-medium">무료 코드: <strong className="text-[var(--accent-orange)] font-mono font-bold">JU26</strong></span>
+                      <span className="text-[var(--text-secondary)] font-medium">이번 달 무료 코드: <strong className="text-[var(--accent-orange)] font-mono font-bold">JU26</strong></span>
                       <button
                         type="button"
                         onClick={() => {

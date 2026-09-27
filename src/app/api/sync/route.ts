@@ -23,6 +23,34 @@ const isFullSurveyAnswers = (answers?: any): boolean => {
   return !!answers && typeof answers === 'object' && Object.keys(answers).length === 40;
 };
 
+// 2트랙 만료일 & 자동 복귀(Fallback) 등급 산출 헬퍼
+function resolveUserProStatus(userRecord: ServerUserRecord) {
+  const now = Date.now();
+  const effectiveIsProPlus = !!(userRecord.proPlusExpiresAt && new Date(userRecord.proPlusExpiresAt).getTime() > now);
+  const effectiveIsPro = !!(userRecord.proExpiresAt ? new Date(userRecord.proExpiresAt).getTime() > now : userRecord.isPro === true);
+
+  const proTier: 'free' | 'pro' | 'pro_plus' = effectiveIsProPlus ? 'pro_plus' : (effectiveIsPro ? 'pro' : 'free');
+
+  userRecord.isProPlus = effectiveIsProPlus;
+  userRecord.isPro = effectiveIsPro || effectiveIsProPlus;
+  userRecord.proTier = proTier;
+
+  // 만료 시 활성 뱃지 자동 보정
+  if (proTier === 'free' && (userRecord.activeBadge === 'pro' || userRecord.activeBadge === 'pro_plus')) {
+    userRecord.activeBadge = 'investmentType';
+  } else if (proTier === 'pro' && userRecord.activeBadge === 'pro_plus') {
+    userRecord.activeBadge = 'pro';
+  }
+
+  return {
+    isPro: userRecord.isPro,
+    isProPlus: effectiveIsProPlus,
+    proTier,
+    proExpiresAt: userRecord.proExpiresAt,
+    proPlusExpiresAt: userRecord.proPlusExpiresAt,
+  };
+}
+
 // GET /api/sync?nickname=...&pin=...
 export const GET = withApiGuard('회원 동기화 및 로그인 (/api/sync GET)', async (request: Request) => {
   try {
@@ -45,14 +73,8 @@ export const GET = withApiGuard('회원 동기화 및 로그인 (/api/sync GET)'
       return NextResponse.json({ success: false, error: '핀번호가 일치하지 않습니다.' }, { status: 200, headers: ZERO_CACHE_HEADERS });
     }
 
-    // 만료된 PRO 권한 자동 회수 및 DB 반영
-    const effectiveIsPro = !!(userRecord.proExpiresAt ? new Date(userRecord.proExpiresAt).getTime() > Date.now() : userRecord.isPro === true);
-    if (userRecord.isPro && !effectiveIsPro) {
-      userRecord.isPro = false;
-      if (userRecord.activeBadge === 'pro') {
-        userRecord.activeBadge = 'investmentType';
-      }
-    }
+    // 만료된 PRO / PRO+ 권한 자동 평가 및 DB 반영
+    const proStatus = resolveUserProStatus(userRecord);
 
     userRecord.lastActiveAt = new Date().toISOString();
     db[nickname] = userRecord;
@@ -75,8 +97,11 @@ export const GET = withApiGuard('회원 동기화 및 로그인 (/api/sync GET)'
           activeBadge: userRecord.activeBadge,
           termsQuizBest: userRecord.termsQuizBest,
           favoriteTools: userRecord.favoriteTools || [],
-          isPro: effectiveIsPro,
+          isPro: proStatus.isPro,
+          isProPlus: proStatus.isProPlus,
+          proTier: proStatus.proTier,
           proExpiresAt: userRecord.proExpiresAt,
+          proPlusExpiresAt: userRecord.proPlusExpiresAt,
           hasCompletedCourse: userRecord.hasCompletedCourse,
           maxCompletedLessonsCount: userRecord.maxCompletedLessonsCount || (userRecord.completedLessons || []).length,
           rankPercentile
@@ -138,6 +163,16 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
       return NextResponse.json({ success: false, error: '핀번호는 숫자 6자리로 입력해 주세요.' }, { status: 200 });
     }
 
+// 한국 표준시(KST) 기준 이번 달 말일 23:59:59 ISO 문자열 반환 헬퍼
+function getEndOfCurrentMonthKstIso(): string {
+  const now = new Date();
+  const kstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const year = kstTime.getUTCFullYear();
+  const month = kstTime.getUTCMonth();
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(year, month, lastDay, 14, 59, 59, 999)).toISOString();
+}
+
     if (action === 'redeemPromoCode') {
       const { code } = body;
       const cleanCode = code?.trim().toUpperCase();
@@ -149,31 +184,49 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
-      // 현재 활성화된 공식 4자리 프로모션 코드 (10월 31일까지 적용)
-      const VALID_PROMO_CODES: Record<string, number> = {
-        'JU26': 60, // 10월 말까지 공식 프로모션 코드
-      };
-
-      if (!VALID_PROMO_CODES[cleanCode]) {
+      // 프로모션 코드 정책 (매달 초 새 코드 제공, 등록 시 해당 월 말일 23:59:59 KST까지 적용):
+      // JU25: 유튜브 4,900원 멤버십용 PRO 코드
+      // JU26: 유튜브 12,000원 멤버십용 PRO+ 코드
+      if (cleanCode !== 'JU25' && cleanCode !== 'JU26') {
         return NextResponse.json({ 
           success: false, 
           error: '유효하지 않거나 만료된 프로모션 코드입니다.' 
         }, { status: 200 });
       }
 
-      // Calculate October 31st 23:59:59 KST (2026-10-31 14:59:59.999 UTC)
-      const endOfMonthIso = new Date(Date.UTC(2026, 9, 31, 14, 59, 59, 999)).toISOString();
+      const endOfMonthIso = getEndOfCurrentMonthKstIso();
 
-      existing.isPro = true;
-      existing.proExpiresAt = endOfMonthIso;
+      if (cleanCode === 'JU26') {
+        // PRO+ 플랜: 해당 월 말일까지 PRO+ 권한 부여
+        existing.isProPlus = true;
+        existing.proPlusExpiresAt = endOfMonthIso;
+        existing.proTier = 'pro_plus';
+        existing.activeBadge = 'pro_plus';
+      } else if (cleanCode === 'JU25') {
+        // PRO 플랜: 기존 만료일(제휴 계좌 등)이 이번 달 말일보다 더 길다면 보존
+        const currentExpiryTime = existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() : 0;
+        const newExpiryTime = Math.max(currentExpiryTime, new Date(endOfMonthIso).getTime());
+        existing.isPro = true;
+        existing.proExpiresAt = new Date(newExpiryTime).toISOString();
+        if (existing.proTier !== 'pro_plus') {
+          existing.proTier = 'pro';
+          existing.activeBadge = 'pro';
+        }
+      }
+
+      const proStatus = resolveUserProStatus(existing);
       existing.lastActiveAt = new Date().toISOString();
 
       db[trimmedNickname] = existing;
       await saveServerDbAsync(db);
 
+      const successMsg = cleanCode === 'JU26'
+        ? 'PRO+ 코드가 인증되어 이번 달 말일까지 PRO+ 권한이 활성화되었습니다!'
+        : 'PRO 코드가 인증되어 이번 달 말일까지 PRO 권한이 활성화되었습니다!';
+
       return NextResponse.json({
         success: true,
-        message: 'Pro 코드가 인증되어 10월 말일까지 Pro 권한이 활성화되었습니다!',
+        message: successMsg,
         user: {
           nickname: existing.nickname,
           avatarUrl: existing.avatarUrl,
@@ -185,8 +238,11 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
           simulatorSettings: existing.simulatorSettings,
           activeBadge: existing.activeBadge,
           termsQuizBest: existing.termsQuizBest,
-          isPro: existing.isPro,
-          proExpiresAt: existing.proExpiresAt
+          isPro: proStatus.isPro,
+          isProPlus: proStatus.isProPlus,
+          proTier: proStatus.proTier,
+          proExpiresAt: existing.proExpiresAt,
+          proPlusExpiresAt: existing.proPlusExpiresAt,
         }
       });
     }
@@ -200,14 +256,8 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
         // 로그인 시: 기존 서버 DB의 수강 진도 및 설정은 100% 보존하며 절대로 클라이언트 상태로 덮어쓰지 않음
         // (단일 진실의 원천: Single Source of Truth 원칙)
 
-        // 만료된 PRO 권한 자동 회수 및 DB 반영
-        const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
-        if (existing.isPro && !effectiveIsPro) {
-          existing.isPro = false;
-          if (existing.activeBadge === 'pro') {
-            existing.activeBadge = 'investmentType';
-          }
-        }
+        // 만료된 PRO / PRO+ 권한 자동 평가 및 DB 반영 (2트랙 만료일 & 자동 복귀)
+        const proStatus = resolveUserProStatus(existing);
 
         existing.lastActiveAt = new Date().toISOString();
 
@@ -230,8 +280,11 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
             activeBadge: existing.activeBadge,
             termsQuizBest: existing.termsQuizBest,
             favoriteTools: existing.favoriteTools || [],
-            isPro: effectiveIsPro,
+            isPro: proStatus.isPro,
+            isProPlus: proStatus.isProPlus,
+            proTier: proStatus.proTier,
             proExpiresAt: existing.proExpiresAt,
+            proPlusExpiresAt: existing.proPlusExpiresAt,
             hasCompletedCourse: existing.hasCompletedCourse,
             maxCompletedLessonsCount: existing.maxCompletedLessonsCount || (existing.completedLessons || []).length,
             rankPercentile
@@ -252,6 +305,7 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
           termsQuizBest,
           favoriteTools: favoriteTools || [],
           hasCompletedCourse: false,
+          proTier: 'free',
         };
         db[trimmedNickname] = newRecord;
         await saveServerDbAsync(db);
@@ -272,8 +326,11 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
             activeBadge: newRecord.activeBadge,
             termsQuizBest: newRecord.termsQuizBest,
             favoriteTools: newRecord.favoriteTools || [],
-            isPro: newRecord.isPro,
-            proExpiresAt: newRecord.proExpiresAt,
+            isPro: false,
+            isProPlus: false,
+            proTier: 'free',
+            proExpiresAt: undefined,
+            proPlusExpiresAt: undefined,
             hasCompletedCourse: newRecord.hasCompletedCourse,
             rankPercentile
           }
@@ -362,14 +419,8 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
         currentCount
       );
 
-      // 만료된 PRO 권한 자동 회수 및 DB 반영
-      const effectiveIsPro = !!(existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() > Date.now() : existing.isPro === true);
-      if (existing.isPro && !effectiveIsPro) {
-        existing.isPro = false;
-        if (existing.activeBadge === 'pro') {
-          existing.activeBadge = 'investmentType';
-        }
-      }
+      // 만료된 PRO / PRO+ 권한 자동 평가 및 DB 반영
+      const proStatus = resolveUserProStatus(existing);
 
       existing.lastActiveAt = new Date().toISOString();
 
@@ -392,8 +443,11 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
           activeBadge: existing.activeBadge,
           termsQuizBest: existing.termsQuizBest,
           favoriteTools: existing.favoriteTools || [],
-          isPro: effectiveIsPro,
+          isPro: proStatus.isPro,
+          isProPlus: proStatus.isProPlus,
+          proTier: proStatus.proTier,
           proExpiresAt: existing.proExpiresAt,
+          proPlusExpiresAt: existing.proPlusExpiresAt,
           hasCompletedCourse: existing.hasCompletedCourse,
           maxCompletedLessonsCount: existing.maxCompletedLessonsCount,
           rankPercentile
