@@ -25,6 +25,23 @@ const isFullSurveyAnswers = (answers?: any): boolean => {
 
 // 2트랙 만료일 & 자동 복귀(Fallback) 등급 산출 헬퍼
 function resolveUserProStatus(userRecord: ServerUserRecord) {
+  const oct31Iso = new Date(Date.UTC(2026, 9, 31, 14, 59, 59, 999)).toISOString();
+
+  // 기존 PRO 유저 전원 PRO+ / 10월 31일까지 특별 업그레이드 및 연장 (단, '테스트유저'는 PRO 유지)
+  const isTestUser = userRecord.nickname === '테스트유저';
+  const hadProOriginally = userRecord.isPro === true || !!userRecord.proExpiresAt;
+
+  if (hadProOriginally) {
+    if (!isTestUser) {
+      if (!userRecord.proPlusExpiresAt || new Date(userRecord.proPlusExpiresAt).getTime() < new Date(oct31Iso).getTime()) {
+        userRecord.proPlusExpiresAt = oct31Iso;
+      }
+    }
+    if (!userRecord.proExpiresAt || new Date(userRecord.proExpiresAt).getTime() < new Date(oct31Iso).getTime()) {
+      userRecord.proExpiresAt = oct31Iso;
+    }
+  }
+
   const now = Date.now();
   const effectiveIsProPlus = !!(userRecord.proPlusExpiresAt && new Date(userRecord.proPlusExpiresAt).getTime() > now);
   const effectiveIsPro = !!(userRecord.proExpiresAt ? new Date(userRecord.proExpiresAt).getTime() > now : userRecord.isPro === true);
@@ -38,6 +55,8 @@ function resolveUserProStatus(userRecord: ServerUserRecord) {
   // 만료 시 활성 뱃지 자동 보정
   if (proTier === 'free' && (userRecord.activeBadge === 'pro' || userRecord.activeBadge === 'pro_plus')) {
     userRecord.activeBadge = 'investmentType';
+  } else if (proTier === 'pro_plus' && userRecord.activeBadge === 'pro') {
+    userRecord.activeBadge = 'pro_plus';
   } else if (proTier === 'pro' && userRecord.activeBadge === 'pro_plus') {
     userRecord.activeBadge = 'pro';
   }
@@ -173,6 +192,14 @@ function getEndOfCurrentMonthKstIso(): string {
   return new Date(Date.UTC(year, month, lastDay, 14, 59, 59, 999)).toISOString();
 }
 
+// 프로모션 코드별 만료일 산출 (사전 오픈 코드 JU25, JU26은 10월 31일 23:59:59 KST까지 특별 부여)
+function getPromoCodeExpiryIso(cleanCode: string): string {
+  if (cleanCode === 'JU25' || cleanCode === 'JU26') {
+    return new Date(Date.UTC(2026, 9, 31, 14, 59, 59, 999)).toISOString();
+  }
+  return getEndOfCurrentMonthKstIso();
+}
+
     if (action === 'redeemPromoCode') {
       const { code } = body;
       const cleanCode = code?.trim().toUpperCase();
@@ -184,9 +211,9 @@ function getEndOfCurrentMonthKstIso(): string {
         return NextResponse.json({ success: false, error: '인증 실패' }, { status: 200 });
       }
 
-      // 프로모션 코드 정책 (매달 초 새 코드 제공, 등록 시 해당 월 말일 23:59:59 KST까지 적용):
-      // JU25: 유튜브 4,900원 멤버십용 PRO 코드
-      // JU26: 유튜브 12,000원 멤버십용 PRO+ 코드
+      // 프로모션 코드 정책:
+      // JU25: 유튜브 4,900원 멤버십용 PRO 코드 (사전 오픈 특례: ~10/31까지)
+      // JU26: 유튜브 12,000원 멤버십용 PRO+ 코드 (사전 오픈 특례: ~10/31까지)
       if (cleanCode !== 'JU25' && cleanCode !== 'JU26') {
         return NextResponse.json({ 
           success: false, 
@@ -194,18 +221,19 @@ function getEndOfCurrentMonthKstIso(): string {
         }, { status: 200 });
       }
 
-      const endOfMonthIso = getEndOfCurrentMonthKstIso();
+      const promoExpiryIso = getPromoCodeExpiryIso(cleanCode);
+      const isOctoberPromo = cleanCode === 'JU25' || cleanCode === 'JU26';
 
       if (cleanCode === 'JU26') {
-        // PRO+ 플랜: 해당 월 말일까지 PRO+ 권한 부여
+        // PRO+ 플랜: 10월 31일(향후 코드는 당월 말일)까지 PRO+ 권한 부여
         existing.isProPlus = true;
-        existing.proPlusExpiresAt = endOfMonthIso;
+        existing.proPlusExpiresAt = promoExpiryIso;
         existing.proTier = 'pro_plus';
         existing.activeBadge = 'pro_plus';
       } else if (cleanCode === 'JU25') {
-        // PRO 플랜: 기존 만료일(제휴 계좌 등)이 이번 달 말일보다 더 길다면 보존
+        // PRO 플랜: 기존 만료일(제휴 계좌 등)이 부여 만료일보다 더 길다면 보존
         const currentExpiryTime = existing.proExpiresAt ? new Date(existing.proExpiresAt).getTime() : 0;
-        const newExpiryTime = Math.max(currentExpiryTime, new Date(endOfMonthIso).getTime());
+        const newExpiryTime = Math.max(currentExpiryTime, new Date(promoExpiryIso).getTime());
         existing.isPro = true;
         existing.proExpiresAt = new Date(newExpiryTime).toISOString();
         if (existing.proTier !== 'pro_plus') {
@@ -221,8 +249,8 @@ function getEndOfCurrentMonthKstIso(): string {
       await saveServerDbAsync(db);
 
       const successMsg = cleanCode === 'JU26'
-        ? 'PRO+ 코드가 인증되어 이번 달 말일까지 PRO+ 권한이 활성화되었습니다!'
-        : 'PRO 코드가 인증되어 이번 달 말일까지 PRO 권한이 활성화되었습니다!';
+        ? (isOctoberPromo ? 'PRO+ 코드가 인증되어 10월 31일까지 PRO+ 권한이 활성화되었습니다!' : 'PRO+ 코드가 인증되어 이번 달 말일까지 PRO+ 권한이 활성화되었습니다!')
+        : (isOctoberPromo ? 'PRO 코드가 인증되어 10월 31일까지 PRO 권한이 활성화되었습니다!' : 'PRO 코드가 인증되어 이번 달 말일까지 PRO 권한이 활성화되었습니다!');
 
       return NextResponse.json({
         success: true,

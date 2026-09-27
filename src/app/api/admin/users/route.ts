@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerDbAsync } from '@/utils/serverDb';
+import { getServerDbAsync, saveServerDbAsync } from '@/utils/serverDb';
 import { withApiGuard } from '@/lib/observability/guard';
 
 export const dynamic = 'force-dynamic';
@@ -40,17 +40,55 @@ export const GET = withApiGuard('관리자 회원 목록 조회 (/api/admin/user
     }
 
     // Prepare user list excluding pin numbers and system cache records
+    const now = Date.now();
+    const oct31Iso = new Date(Date.UTC(2026, 9, 31, 14, 59, 59, 999)).toISOString();
+    let dbUpdated = false;
+
     const users = Object.values(db)
       .filter((u) => !u.nickname.startsWith('__system_'))
-      .map((u) => ({
-        nickname: u.nickname,
-        createdAt: u.createdAt,
-        lastActiveAt: u.lastActiveAt,
-        completedLessonsCount: u.completedLessons ? u.completedLessons.length : 0,
-        investmentType: u.investmentType || '미진단',
-        hasSimulatorSettings: !!u.simulatorSettings,
-        isPro: !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > Date.now() : u.isPro === true)
-      }));
+      .map((u) => {
+        const isTestUser = u.nickname === '테스트유저';
+        const hadProOriginally = u.isPro === true || !!u.proExpiresAt;
+
+        if (hadProOriginally) {
+          if (!isTestUser) {
+            if (!u.proPlusExpiresAt || new Date(u.proPlusExpiresAt).getTime() < new Date(oct31Iso).getTime()) {
+              u.proPlusExpiresAt = oct31Iso;
+              u.isProPlus = true;
+              u.proTier = 'pro_plus';
+              if (u.activeBadge === 'pro') u.activeBadge = 'pro_plus';
+              dbUpdated = true;
+            }
+          }
+          if (!u.proExpiresAt || new Date(u.proExpiresAt).getTime() < new Date(oct31Iso).getTime()) {
+            u.proExpiresAt = oct31Iso;
+            u.isPro = true;
+            dbUpdated = true;
+          }
+        }
+
+        const isProPlus = !!(u.proPlusExpiresAt && new Date(u.proPlusExpiresAt).getTime() > now);
+        const isPro = !!(u.proExpiresAt ? new Date(u.proExpiresAt).getTime() > now : u.isPro === true);
+        const proTier: 'free' | 'pro' | 'pro_plus' = isProPlus ? 'pro_plus' : (isPro ? 'pro' : 'free');
+
+        return {
+          nickname: u.nickname,
+          createdAt: u.createdAt,
+          lastActiveAt: u.lastActiveAt,
+          completedLessonsCount: u.completedLessons ? u.completedLessons.length : 0,
+          investmentType: u.investmentType || '미진단',
+          hasSimulatorSettings: !!u.simulatorSettings,
+          isPro: isPro || isProPlus,
+          isProPlus,
+          proTier,
+          proExpiresAt: u.proExpiresAt,
+          proPlusExpiresAt: u.proPlusExpiresAt,
+        };
+      });
+
+    if (dbUpdated) {
+      await saveServerDbAsync(db);
+    }
 
     // Sort by lastActiveAt descending (most recently active first, fallback to createdAt)
     users.sort((a, b) => {

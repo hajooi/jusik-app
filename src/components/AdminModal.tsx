@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Users, BookOpen, PieChart, RefreshCw, Search, X, Clock, CheckCircle, BarChart3, ChevronRight } from 'lucide-react';
+import { Users, BookOpen, PieChart, RefreshCw, Search, X, Clock, CheckCircle, BarChart3, ChevronRight, Crown, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PERSONALITY_PROFILES } from '@/data/investmentSurvey';
 
@@ -13,6 +13,10 @@ interface AdminUserRecord {
   investmentType: string;
   hasSimulatorSettings: boolean;
   isPro?: boolean;
+  isProPlus?: boolean;
+  proTier?: 'free' | 'pro' | 'pro_plus';
+  proExpiresAt?: string;
+  proPlusExpiresAt?: string;
 }
 
 interface SurveyStatsResponse {
@@ -154,6 +158,8 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
 
   const completedAnyLessonCount = users.filter(u => u.completedLessonsCount > 0).length;
   const surveyedTypeCount = users.filter(u => u.investmentType !== '미진단').length;
+  const proCount = users.filter(u => u.proTier === 'pro').length;
+  const proPlusCount = users.filter(u => u.proTier === 'pro_plus').length;
 
   return (
     <div 
@@ -266,13 +272,17 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="닉네임 또는 성향 검색"
-                  className="w-full pl-8 pr-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:ring-1 focus:ring-[var(--accent-orange)]/30 transition-all font-sans"
+                  className="w-full pl-8 pr-3 py-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--accent-orange)] focus:shadow-[0_0_12px_rgba(241,143,1,0.25)] transition-all font-sans"
                 />
               </div>
               <div className="flex items-center justify-between px-1 text-[10px] text-[var(--text-secondary)]">
-                <span className="font-medium text-[var(--accent-orange)] flex items-center gap-1">
-                  ● 최근 접속순 정렬
-                </span>
+                <div className="font-medium text-[var(--accent-orange)] flex items-center gap-1.5">
+                  <span>● 최근 접속순</span>
+                  <span className="text-[var(--text-secondary)]/40">|</span>
+                  <span className="font-mono text-[var(--text-secondary)]">
+                    PRO <strong className="text-[var(--accent-orange)] font-bold">{proCount}</strong>명 · PRO+ <strong className="text-amber-500 font-bold">{proPlusCount}</strong>명
+                  </span>
+                </div>
                 <span className="opacity-80">※ 1년 미접속 시 자동 삭제</span>
               </div>
             </div>
@@ -301,11 +311,23 @@ export default function AdminModal({ isOpen, onClose }: AdminModalProps) {
                               관리자
                             </span>
                           )}
-                          {u.isPro && (
-                            <span className="px-1.5 py-0.2 rounded bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/40 text-[var(--accent-orange)] text-[9px] font-extrabold font-mono shrink-0 flex items-center gap-0.5 shadow-2xs">
-                              PRO
+                          {u.proTier === 'pro_plus' ? (
+                            <span 
+                              className="animate-pro-plus-badge px-1.5 py-0.5 rounded-full text-[9px] font-black font-mono shrink-0 flex items-center gap-0.5 text-amber-600 dark:text-amber-300 border border-amber-500/50 select-none shadow-2xs leading-none"
+                              title={u.proPlusExpiresAt ? `PRO+ 만료: ~${new Date(u.proPlusExpiresAt).toLocaleDateString('ko-KR').replace(/\s/g, '')}까지` : 'PRO+ 회원'}
+                            >
+                              <Sparkles className="w-2.5 h-2.5 fill-amber-400 shrink-0" />
+                              <span>PRO+</span>
                             </span>
-                          )}
+                          ) : u.isPro || u.proTier === 'pro' ? (
+                            <span 
+                              className="animate-pro-badge px-1.5 py-0.5 rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/40 text-[var(--accent-orange)] text-[9px] font-extrabold font-mono shrink-0 flex items-center gap-0.5 shadow-2xs select-none leading-none"
+                              title={u.proExpiresAt ? `PRO 만료: ~${new Date(u.proExpiresAt).toLocaleDateString('ko-KR').replace(/\s/g, '')}까지` : 'PRO 회원'}
+                            >
+                              <Crown className="w-2.5 h-2.5 stroke-[2.2] shrink-0" />
+                              <span>PRO</span>
+                            </span>
+                          ) : null}
                         </div>
                         <div 
                           className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1"

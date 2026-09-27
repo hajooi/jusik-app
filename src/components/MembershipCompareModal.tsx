@@ -377,10 +377,10 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     )}
                   </div>
                   <h3 className="text-xl font-black text-[var(--text-primary)]">
-                    스마트 자산관리 VIP
+                    프로+ VIP 플랜
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    증권사 API 원클릭 연동 및 AI 포트폴리오 최적 배분기
+                    증권사 원클릭 주문 연동과 포트폴리오 최적 배분기
                   </p>
                 </div>
 
@@ -416,11 +416,11 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <span>증권사 API 연동 원클릭 주문</span>
+                      <span>증권사 원클릭 주문 연동</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <span>AI 포트폴리오 최적 배분기</span>
+                      <span>포트폴리오 최적 배분기</span>
                     </li>
                   </ul>
                 </div>
@@ -498,7 +498,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                       </button>
                     </div>
                     <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
-                      유튜브 [커뮤니티] 회원 전용 게시판에 매달 초 공지되는 인증 코드를 입력하시면 해당 등급이 즉시 활성화됩니다.
+                      유튜브 커뮤니티 회원 전용 게시판에 매달 초 공지되는 인증 코드를 입력하시면 해당 등급이 즉시 활성화됩니다.
                     </p>
 
                     <form onSubmit={handleCodeSubmit} className="space-y-2.5">
