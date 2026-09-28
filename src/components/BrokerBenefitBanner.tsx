@@ -6,6 +6,7 @@ import { X, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const STORAGE_DISMISSED_UNTIL_KEY = 'jusik_broker_benefit_dismissed_until';
+const SESSION_SHOWN_KEY = 'jusik_broker_benefit_session_shown';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 interface BrokerBenefitBannerProps {
@@ -13,6 +14,7 @@ interface BrokerBenefitBannerProps {
 }
 
 export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerProps) {
+  const { completedLessons } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -21,16 +23,18 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
     setIsClient(true);
 
     try {
-      // 1. 1-3(lv1-3) 수강 완료 유저는 영구 미노출 (비회원 로컬 & 로그인 회원 계정 모두 확인)
-      let is13Completed = false;
+      // 1. 1-3(lv1-3) 수강 완료 유저는 영구 미노출 (AuthContext 및 비회원/로컬 캐시 확인)
+      let is13Completed = completedLessons?.includes('lv1-3') || false;
 
       // 비회원 / 로컬 캐시 확인
-      const localCompletedJson = localStorage.getItem('jusik_app_completed_lessons');
-      if (localCompletedJson) {
-        try {
-          const list: string[] = JSON.parse(localCompletedJson);
-          if (list.includes('lv1-3')) is13Completed = true;
-        } catch {}
+      if (!is13Completed) {
+        const localCompletedJson = localStorage.getItem('jusik_app_completed_lessons');
+        if (localCompletedJson) {
+          try {
+            const list: string[] = JSON.parse(localCompletedJson);
+            if (list.includes('lv1-3')) is13Completed = true;
+          } catch {}
+        }
       }
 
       // 로그인 계정 데이터 확인
@@ -48,17 +52,26 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
         return;
       }
 
-      // 2. 사용자가 X를 눌러 3일간 숨김 중인지 확인
+      // 2. 사용자가 X를 눌러 3일간 숨김 중인지 확인 (localStorage)
       const now = Date.now();
       const dismissedUntil = localStorage.getItem(STORAGE_DISMISSED_UNTIL_KEY);
       if (dismissedUntil && Number(dismissedUntil) > now) {
         return;
       }
+
+      // 3. 이번 접속(세션) 중 이미 1회 노출되었는지 확인 (sessionStorage)
+      const sessionShown = sessionStorage.getItem(SESSION_SHOWN_KEY);
+      if (sessionShown === 'true') {
+        return;
+      }
+
+      // 위 조건을 모두 통과했으므로 이번 접속(세션) 노출 처리 기록
+      sessionStorage.setItem(SESSION_SHOWN_KEY, 'true');
     } catch {
       // ignore
     }
 
-    // 0.6초 뒤 프로필 아래로 자연스럽게 확장 (유저가 X를 누르기 전까지 상시 유지)
+    // 0.6초 뒤 프로필 아래로 자연스럽게 확장 (유저가 X를 누르기 전까지 이번 화면에서 유지)
     const enterTimer = setTimeout(() => {
       setIsVisible(true);
     }, 600);
@@ -66,7 +79,7 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
     return () => {
       clearTimeout(enterTimer);
     };
-  }, []);
+  }, [completedLessons]);
 
   const handleManualClose = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,12 +92,18 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
     }, 260);
 
     try {
-      // X를 클릭한 경우 3일간(72시간) 숨김 기록
+      // X를 클릭한 경우 3일간(72시간) 숨김 기록 + 세션 노출 완료 유지
       const expireTime = Date.now() + THREE_DAYS_MS;
       localStorage.setItem(STORAGE_DISMISSED_UNTIL_KEY, String(expireTime));
+      sessionStorage.setItem(SESSION_SHOWN_KEY, 'true');
     } catch {
       // ignore
     }
+  };
+
+  const handleLinkClick = () => {
+    setIsVisible(false);
+    if (onDismiss) onDismiss();
   };
 
   if (!isClient || !isVisible) return null;
@@ -100,6 +119,7 @@ export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerPr
         {/* Link Clickable Area */}
         <Link
           href="/lesson/lv1-3"
+          onClick={handleLinkClick}
           className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
         >
           {/* 특별 제휴 뱃지 */}
