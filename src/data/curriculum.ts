@@ -70,6 +70,7 @@ export interface Lesson {
   bookSections?: BookSection[];
   isComingSoon?: boolean;
   isProOnly?: boolean;
+  isInactive?: boolean;
 }
 
 export interface Level {
@@ -436,6 +437,7 @@ export const CURRICULUM_DATA: Level[] = [
         subtitle: "평소 쓰던 은행 대신 수수료 평생 우대 계좌를 개설해야 하는 이유",
         youtubeId: "BCiEK-SzWOg",
         duration: "3:03",
+        isInactive: true,
         cardNewsTitles: [
           "왜 쓰던 은행 대신 이 계좌일까?",
           "수수료 한눈에 비교하기",

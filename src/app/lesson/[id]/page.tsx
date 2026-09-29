@@ -88,7 +88,7 @@ function renderStepIcon(iconName?: string) {
 }
 
 export async function generateStaticParams() {
-  const lessons = getAllLessons().filter((l) => !l.isComingSoon);
+  const lessons = getAllLessons().filter((l) => !l.isComingSoon && !l.isInactive);
   return lessons.map((lesson) => ({
     id: lesson.id,
   }));
@@ -97,12 +97,12 @@ export async function generateStaticParams() {
 export default function LessonDetailPage({ params }: { params: { id: string } }) {
   const data = getLessonById(params.id);
 
-  if (!data || data.lesson.isComingSoon) {
+  if (!data || data.lesson.isComingSoon || data.lesson.isInactive) {
     notFound();
   }
 
   const { lesson, level } = data;
-  const openLessons = getAllLessons().filter((l) => !l.isComingSoon);
+  const openLessons = getAllLessons().filter((l) => !l.isComingSoon && !l.isInactive);
   const currentIndex = openLessons.findIndex((l) => l.id === lesson.id);
 
   const prevLesson = currentIndex > 0 ? openLessons[currentIndex - 1] : null;
@@ -684,7 +684,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const result = getLessonById(resolvedParams.id);
-  if (!result) return {};
+  if (!result || result.lesson.isInactive || result.lesson.isComingSoon) return {};
   const { lesson } = result;
 
   const title = lesson.title;

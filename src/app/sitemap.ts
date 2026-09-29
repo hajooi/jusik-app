@@ -44,10 +44,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Dynamic lesson routes from curriculum data (Exclude unlisted/stealth lessons like lv1-3)
+  // Dynamic lesson routes from curriculum data (Exclude inactive/stealth lessons like lv1-3)
   CURRICULUM_DATA.forEach((level) => {
     level.lessons.forEach((lesson) => {
-      if (lesson.id === 'lv1-3') return; // 유튜브 '일부 공개'와 동일하게 sitemap 제외
+      if (lesson.id === 'lv1-3' || lesson.isInactive) return; // 비활성화 레슨 sitemap 제외
       routes.push({
         url: `${baseUrl}/lesson/${lesson.id}`,
         lastModified: new Date(),

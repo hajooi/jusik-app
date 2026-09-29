@@ -14,6 +14,9 @@ interface BrokerBenefitBannerProps {
 }
 
 export default function BrokerBenefitBanner({ onDismiss }: BrokerBenefitBannerProps) {
+  // 1-3강 비활성화(금감원/증권사 요청)에 따라 제휴 배너 전체 비활성화
+  return null;
+
   const { completedLessons } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [isVisible, setIsVisible] = useState(false);

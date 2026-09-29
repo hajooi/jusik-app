@@ -45,7 +45,7 @@ export default function Accordion({ levels }: AccordionProps) {
 
   // 전체 및 현재 오픈된 레슨 수 계산
   const allLessons = levels.flatMap((l) => l.lessons);
-  const openLessons = allLessons.filter((l) => !l.isComingSoon);
+  const openLessons = allLessons.filter((l) => !l.isComingSoon && !l.isInactive);
   const totalLessonCount = openLessons.length;
   const completedCount = completedLessons.filter((id) => openLessons.some((l) => l.id === id)).length;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
@@ -103,7 +103,7 @@ export default function Accordion({ levels }: AccordionProps) {
         const IconComponent = ICON_MAP[level.iconName] || Brain;
         
         // 오픈된 강의 기준 완료 카운트 계산
-        const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon);
+        const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon && !l.isInactive);
         const levelCompletedCount = user ? openLevelLessons.filter((l) => isLessonCompleted(l.id)).length : 0;
         const isLevelFullyCompleted = user && openLevelLessons.length > 0 && levelCompletedCount === openLevelLessons.length;
 
@@ -188,6 +188,36 @@ export default function Accordion({ levels }: AccordionProps) {
                   {level.lessons.map((lesson) => {
                     const completed = Boolean(user && isLessonCompleted(lesson.id));
                     const isComingSoon = Boolean(lesson.isComingSoon);
+                    const isInactive = Boolean(lesson.isInactive);
+
+                    if (isInactive) {
+                      return (
+                        <div
+                          key={lesson.id}
+                          className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl glass-card transition-all duration-300 shadow-sm border border-[var(--border-color)]/70 opacity-60 select-none pointer-events-none cursor-default"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-[var(--border-color)] flex items-center justify-center shrink-0 bg-[var(--bg-main)]/60 text-[var(--text-secondary)] shadow-2xs">
+                              <Clock className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[1.8]" />
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-sm sm:text-base font-semibold text-[var(--text-primary)]/70 truncate">
+                                  {lesson.title}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            <span className="text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-mono border border-[var(--accent-orange)]/25">
+                              점검 중
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
 
                     if (isComingSoon) {
                       return (

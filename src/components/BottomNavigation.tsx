@@ -569,7 +569,7 @@ export default function BottomNavigation() {
 
   // Stats calculation (오픈된 강의 기준)
   const allLessons = CURRICULUM_DATA.flatMap((lvl) => lvl.lessons);
-  const openLessons = allLessons.filter((l) => !l.isComingSoon);
+  const openLessons = allLessons.filter((l) => !l.isComingSoon && !l.isInactive);
   const totalLessonCount = openLessons.length;
   const completedCount = completedLessons?.filter((id) => openLessons.some((l) => l.id === id)).length || 0;
   const progressPercent = totalLessonCount > 0 ? Math.round((completedCount / totalLessonCount) * 100) : 0;
@@ -805,7 +805,7 @@ export default function BottomNavigation() {
                     const isOpen = !!openLevels[level.id];
                     const containsCurrent = isLessonPage && level.lessons.some((l) => l.id === currentLessonId);
                     const IconComponent = LEVEL_ICON_MAP[level.iconName] || Brain;
-                    const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon);
+                    const openLevelLessons = level.lessons.filter((l) => !l.isComingSoon && !l.isInactive);
                     const levelCompletedCount = user ? openLevelLessons.filter((l) => isLessonCompleted(l.id)).length : 0;
                     const isLevelFullyCompleted = user && openLevelLessons.length > 0 && levelCompletedCount === openLevelLessons.length;
 
@@ -871,6 +871,32 @@ export default function BottomNavigation() {
                                 const isActive = lesson.id === currentLessonId;
                                 const completed = Boolean(user && isLessonCompleted(lesson.id));
                                 const isComingSoon = Boolean(lesson.isComingSoon);
+                                const isInactive = Boolean(lesson.isInactive);
+
+                                if (isInactive) {
+                                  return (
+                                    <div
+                                      key={lesson.id}
+                                      className="flex items-center justify-between gap-2.5 p-2.5 rounded-xl text-xs border border-[var(--border-color)]/50 bg-[var(--card-hover)]/20 opacity-60 select-none pointer-events-none cursor-default"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-[var(--card-hover)] text-[var(--text-secondary)]">
+                                          <Clock className="w-3.5 h-3.5 stroke-[1.8]" />
+                                        </div>
+                                        <div className="min-w-0 flex-1 flex items-center gap-1.5 flex-wrap">
+                                          <span className="truncate font-medium text-[var(--text-primary)]/70">
+                                            {lesson.title}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="shrink-0">
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] font-mono border border-[var(--accent-orange)]/25">
+                                          점검 중
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
 
                                 if (isComingSoon) {
                                   return (
