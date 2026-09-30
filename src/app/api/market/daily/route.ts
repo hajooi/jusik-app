@@ -132,8 +132,33 @@ async function fetchYahooData(symbol: string): Promise<{
       if (timeMs < oneYearAgoMs) continue; // 370일 이전 데이터 스킵
 
       // 현재 시각이 정규장 진행 중(개장 후 ~ 마감 전)인 경우, 당일 장중 캔들은 '마감 종가'가 아니므로 완전 제외!
-      // (단, nowSec >= regStart 조건이 반드시 충족되어야 현재 진행 중인 세션임. 과거 캔들이 오인 제외되는 현상 방지)
-      const isOngoingSession = ts >= regStart && nowSec >= regStart && nowSec < regEnd;
+      // 1) 선물 자산 (국제 금 GC=F, 국제 유가 CL=F):
+      //    CME 선물은 23시간 연속 거래되며 일일 공식 정산/세션 마감은 뉴욕 시간 17:00 EDT(KST 06:00)에 완료됩니다.
+      //    야후 메타데이터의 regEnd(23:59 EDT)로 단순 판별 시 한국 오전 9시(뉴욕 20:00 EDT)에 공식 마감 캔들이 오인 삭제되므로,
+      //    뉴욕 시간 17:00 EDT 이후 시점에서는 당일 캔들을 공식 마감 종가로 확정 수용합니다.
+      const isCommodityFutures = symbol === 'GC=F' || symbol === 'CL=F';
+      let isOngoingSession = false;
+
+      if (isCommodityFutures) {
+        const candleNyDate = new Date(timeMs).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        const nowDate = new Date(nowTimeMs);
+        const nowNyDate = nowDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        const nyTimeStr = nowDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false });
+        const [nyHour, nyMin] = nyTimeStr.split(':').map(Number);
+        const isAfterCmeClose = nyHour > 17 || (nyHour === 17 && nyMin >= 0);
+
+        if (candleNyDate > nowNyDate) {
+          isOngoingSession = true; // 익일 야간 거래 장중 틱
+        } else if (candleNyDate === nowNyDate) {
+          isOngoingSession = !isAfterCmeClose; // 당일 17:00 이전이면 장중, 17:00 이후면 마감 확정 종가
+        } else {
+          isOngoingSession = false; // 과거 마감 캔들은 정상 수용
+        }
+      } else {
+        // 주식/국채/환율 등 일반 자산
+        isOngoingSession = ts >= regStart && nowSec >= regStart && nowSec < regEnd;
+      }
+
       if (isOngoingSession) {
         continue;
       }
@@ -442,41 +467,55 @@ async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
   }
 }
 
-// ─── Naver Finance 원자재(국제 금, WTI 유가) 폴백 ──────────────────────────────
-// 선물 롤오버 기간 등으로 Yahoo GC=F, CL=F 일봉이 누락되었을 때의 2차 공식 대비책.
-// 네이버 증권의 해외 마감 정산 시세 테이블에서 당일 공식 마감 종가를 추출합니다.
-async function fetchNaverCommodity(code: 'OIL_CL' | 'CMDT_GC'): Promise<NaverIndexPoint | null> {
-  try {
-    const res = await fetch(
-      `https://finance.naver.com/marketindex/worldDailyQuote.naver?marketindexCd=${code}&fdtc=2&page=1`,
-      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }, cache: 'no-store' }
-    );
-    if (!res.ok) return null;
-    const buf = await res.arrayBuffer();
-    const text = new TextDecoder('euc-kr').decode(buf);
-    const m = text.match(/<tbody[^>]*>[\s\S]*?<tr[^>]*>([\s\S]*?)<\/tr>/);
-    if (!m) return null;
-    const tr = m[1];
-    const dateM = tr.match(/<td class=\"date\">[\s\S]*?([0-9\.]+)[\s\S]*?<\/td>/);
-    const tds = [...tr.matchAll(/<td class=\"num\">([\s\S]*?)<\/td>/g)].map((x) => x[1].trim());
-    if (!dateM || tds.length < 3) return null;
+// ─── Naver Finance 원자재(국제 금 GCcv1, WTI 유가 CLcv1) 폴백 ────────────────
+// 선물 롤오버 기간 등으로 Yahoo GC=F, CL=F 일봉이 누락되었을 때의 2차 공식 안전망.
+// Npay 증권의 최신 공식 백엔드 JSON REST API에서 당일 공식 마감 종가를 추출합니다.
+async function fetchNaverCommodity(type: 'OIL_CL' | 'CMDT_GC'): Promise<NaverIndexPoint | null> {
+  const endpointMap = {
+    CMDT_GC: { category: 'metals', code: 'GCcv1' },
+    OIL_CL: { category: 'energy', code: 'CLcv1' },
+  };
+  const target = endpointMap[type];
+  if (!target) return null;
 
-    const price = parseFloat(tds[0].replace(/<[^>]*>/g, '').replace(/,/g, '').trim());
-    const isDown = tds[1].includes('하락');
-    const chgStr = tds[1].replace(/<[^>]*>/g, '').replace(/,/g, '').trim();
-    const change = (parseFloat(chgStr) || 0) * (isDown ? -1 : 1);
-    const pctStr = tds[2].replace(/<[^>]*>/g, '').replace(/%/g, '').trim();
-    const changePercent = parseFloat(pctStr) || 0;
+  try {
+    const url = `https://stock.naver.com/api/securityService/marketindex/${target.category}/${target.code}/prices?page=1&pageSize=5`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      console.warn(`[Naver ${type} HTTP ${res.status}]`);
+      return null;
+    }
+    const data: Array<{
+      localTradedAt: string;
+      closePrice: string;
+      fluctuations: string;
+      fluctuationsRatio: string;
+    }> = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) return null;
+
+    const row = data[0];
+    const date = (row.localTradedAt || '').slice(0, 10).replace(/-/g, '.');
+    const price = parseFloat(String(row.closePrice).replace(/,/g, ''));
+    const change = parseFloat(String(row.fluctuations).replace(/,/g, '')) || 0;
+    const changePercent = parseFloat(String(row.fluctuationsRatio)) || 0;
+
+    if (!date || isNaN(price)) return null;
 
     return {
-      date: dateM[1].trim(),
+      date,
       value: price,
       change,
       changePercent,
-      isPositive: !isDown,
+      isPositive: change >= 0,
     };
   } catch (e) {
-    console.warn(`[Naver ${code} fetch failed]`, e);
+    console.warn(`[Naver ${type} fetch failed]`, e);
     return null;
   }
 }
@@ -496,18 +535,6 @@ function isDataStale(points: DailyPoint[], thresholdDays = 1): boolean {
   const kstDow = new Date(nowKst).getUTCDay(); // 0=일, 1=월 ... 6=토
   const weekendBuffer = kstDow === 1 ? 2 : 0;
   return diffDays > (thresholdDays + weekendBuffer);
-}
-
-// 금·원유 선물의 targetUsDate 비교 시: 주말/공휴일로 인한 최대 4일 갭은 정상 범위로 허용
-// 예) 금요일(18일) 종가 vs 월요일(21일) 기준 → 3일 갭 → 정상 (주말)
-// 미국 주가지수(SPX)가 월요일에 먼저 정산되어도, 금·원유는 같은 주말 갭을 공유하므로 오탐 방지
-function isWeekendOrHolidayGap(lastDate: string, targetDate: string): boolean {
-  if (!lastDate || !targetDate || lastDate >= targetDate) return true;
-  const [ly, lm, ld] = lastDate.split('.').map(Number);
-  const [ty, tm, td] = targetDate.split('.').map(Number);
-  const diffMs = Date.UTC(ty, tm - 1, td) - Date.UTC(ly, lm - 1, ld);
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  return diffDays <= 4; // 주말(3일) + 공휴일(1일) 최대 4일 갭은 정상
 }
 
 export async function GET(request: Request) {
@@ -679,7 +706,7 @@ export async function GET(request: Request) {
     // 1) 국제 금 (CMDT_GC)
     const goldLastDate = gold?.points?.slice(-1)[0]?.date ?? '';
     const isGoldStale = !gold || gold.points.length === 0 || isDataStale(gold.points, 1)
-      || (Boolean(targetUsDate) && goldLastDate < targetUsDate && !isWeekendOrHolidayGap(goldLastDate, targetUsDate));
+      || (Boolean(targetUsDate) && goldLastDate < targetUsDate);
 
     if (isGoldStale) {
       console.log(`[Market Daily] Gold stale or missing (last: ${goldLastDate}, target: ${targetUsDate}). Triggering Naver CMDT_GC fallback...`);
@@ -695,6 +722,8 @@ export async function GET(request: Request) {
             change: naverGold.change,
             changePercent: naverGold.changePercent,
           };
+          fallbackNotices.push(`국제 금: 야후 일봉 지연으로 네이버 증권 마감가(${naverGold.date} $${naverGold.value.toLocaleString()}) 대체 반영`);
+          console.log(`[Market Daily] Gold updated via Naver CMDT_GC: ${naverGold.date} = ${naverGold.value}`);
         } else if (!gold || gold.points.length === 0) {
           resolvedGold = {
             points: [{ date: naverGold.date, value: naverGold.value }],
@@ -703,16 +732,16 @@ export async function GET(request: Request) {
             change: naverGold.change,
             changePercent: naverGold.changePercent,
           };
+          fallbackNotices.push(`국제 금: 네이버 증권 단독 수집(${naverGold.date} $${naverGold.value.toLocaleString()}) 대체 반영`);
+          console.log(`[Market Daily] Gold updated via Naver CMDT_GC (standalone): ${naverGold.date} = ${naverGold.value}`);
         }
-        fallbackNotices.push(`국제 금: 야후 일봉 지연으로 네이버 증권 마감가(${naverGold.date} $${naverGold.value.toLocaleString()}) 대체 반영`);
-        console.log(`[Market Daily] Gold updated via Naver CMDT_GC: ${naverGold.date} = ${naverGold.value}`);
       }
     }
 
     // 2) 국제 유가 (OIL_CL)
     const oilLastDate = oil?.points?.slice(-1)[0]?.date ?? '';
     const isOilStale = !oil || oil.points.length === 0 || isDataStale(oil.points, 1)
-      || (Boolean(targetUsDate) && oilLastDate < targetUsDate && !isWeekendOrHolidayGap(oilLastDate, targetUsDate));
+      || (Boolean(targetUsDate) && oilLastDate < targetUsDate);
 
     if (isOilStale) {
       console.log(`[Market Daily] Oil stale or missing (last: ${oilLastDate}, target: ${targetUsDate}). Triggering Naver OIL_CL fallback...`);
@@ -728,6 +757,8 @@ export async function GET(request: Request) {
             change: naverOil.change,
             changePercent: naverOil.changePercent,
           };
+          fallbackNotices.push(`국제 유가: 야후 일봉 지연으로 네이버 증권 마감가(${naverOil.date} $${naverOil.value.toFixed(2)}) 대체 반영`);
+          console.log(`[Market Daily] Oil updated via Naver OIL_CL: ${naverOil.date} = ${naverOil.value}`);
         } else if (!oil || oil.points.length === 0) {
           resolvedOil = {
             points: [{ date: naverOil.date, value: naverOil.value }],
@@ -736,9 +767,9 @@ export async function GET(request: Request) {
             change: naverOil.change,
             changePercent: naverOil.changePercent,
           };
+          fallbackNotices.push(`국제 유가: 네이버 증권 단독 수집(${naverOil.date} $${naverOil.value.toFixed(2)}) 대체 반영`);
+          console.log(`[Market Daily] Oil updated via Naver OIL_CL (standalone): ${naverOil.date} = ${naverOil.value}`);
         }
-        fallbackNotices.push(`국제 유가: 야후 일봉 지연으로 네이버 증권 마감가(${naverOil.date} $${naverOil.value.toFixed(2)}) 대체 반영`);
-        console.log(`[Market Daily] Oil updated via Naver OIL_CL: ${naverOil.date} = ${naverOil.value}`);
       }
     }
 
@@ -791,25 +822,24 @@ export async function GET(request: Request) {
       };
     };
 
-    const resolvedSpx = alignAssetToClosedDate(spx, latestUsClosedDate);
-    const resolvedNdx = alignAssetToClosedDate(ndx, latestUsClosedDate);
-    resolvedKospi = alignAssetToClosedDate(resolvedKospi, latestKrClosedDate);
-    resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq, latestKrClosedDate);
-    resolvedGold = alignAssetToClosedDate(resolvedGold, latestUsClosedDate);
-    resolvedOil = alignAssetToClosedDate(resolvedOil, latestUsClosedDate);
-    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestUsClosedDate);
-    const resolvedUs10y = alignAssetToClosedDate(us10y, latestUsClosedDate);
+    // 글로벌 단일 기준일 확정:
+    // 글로벌 8대 자산(미국 주식 2종, 미국채, 금, 유가, 환율 등)의 기준이 되는 미국 시장 마감일(latestUsClosedDate)을
+    // 글로벌 단일 진실 공급원(Single Source of Truth)으로 확정합니다.
+    // 미국장이 아직 마감되지 않은 야간(KST 15:30 ~ 익일 06:00)에 한국장 단독으로 익일 날짜로 치솟아
+    // 전체 마켓 인사이트의 기준일 및 자산 간 일관성이 왜곡되는 것을 원천 방지합니다.
+    const latestGlobalDate = latestUsClosedDate || latestKrClosedDate || null;
+
+    const resolvedSpx = alignAssetToClosedDate(spx, latestGlobalDate);
+    const resolvedNdx = alignAssetToClosedDate(ndx, latestGlobalDate);
+    resolvedKospi = alignAssetToClosedDate(resolvedKospi, latestGlobalDate);
+    resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq, latestGlobalDate);
+    resolvedGold = alignAssetToClosedDate(resolvedGold, latestGlobalDate);
+    resolvedOil = alignAssetToClosedDate(resolvedOil, latestGlobalDate);
+    resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestGlobalDate);
+    const resolvedUs10y = alignAssetToClosedDate(us10y, latestGlobalDate);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
-
-    // 글로벌 양대 증시 중 가장 최신의 마감 거래일 기준으로 심플 단일화
-    let latestGlobalDate: string | null = null;
-    if (latestUsClosedDate && latestKrClosedDate) {
-      latestGlobalDate = latestUsClosedDate > latestKrClosedDate ? latestUsClosedDate : latestKrClosedDate;
-    } else {
-      latestGlobalDate = latestUsClosedDate || latestKrClosedDate || null;
-    }
 
     if (latestGlobalDate) {
       const parts = latestGlobalDate.split('.');
