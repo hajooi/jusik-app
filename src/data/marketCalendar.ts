@@ -12144,6 +12144,50 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "관망",
     "importance": 1,
     "isHoliday": true
+  },
+  {
+    "id": "jan-new-year-kr",
+    "date": "2027-01-01",
+    "title": "한국 증시 신정 휴장",
+    "type": "holiday",
+    "region": "kr",
+    "simpleSummary": "2027년 새해 첫날(신정)로 국내 금융 및 주식 시장이 하루 쉬어갑니다.",
+    "impactTag": "관망",
+    "importance": 1,
+    "isHoliday": true
+  },
+  {
+    "id": "jan-new-year-us",
+    "date": "2027-01-01",
+    "title": "미국 증시 신정 휴장 (New Year's Day)",
+    "type": "holiday",
+    "region": "us",
+    "simpleSummary": "새해 첫날로 뉴욕 증시가 하루 쉬어갑니다.",
+    "impactTag": "관망",
+    "importance": 1,
+    "isHoliday": true
+  },
+  {
+    "id": "jan-us-mlk",
+    "date": "2027-01-18",
+    "title": "미국 증시 휴장 (마틴 루터 킹 데이, MLK Day)",
+    "type": "holiday",
+    "region": "us",
+    "simpleSummary": "미국 연방 공휴일로 뉴욕 증시가 하루 쉬어갑니다.",
+    "impactTag": "관망",
+    "importance": 1,
+    "isHoliday": true
+  },
+  {
+    "id": "jan-fomc-result",
+    "date": "2027-01-28",
+    "time": "03:00",
+    "title": "미국 1월 FOMC 2027년 첫 기준금리 결정",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "2027년 새해 첫 연준 회의로, 12월 점도표 이후 연준의 실제 통화정책 피벗 또는 인하 속도를 가늠하는 핵심 회의예요.",
+    "impactTag": "핵심지표",
+    "importance": 3
   }
 ];
 
