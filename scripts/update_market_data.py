@@ -126,6 +126,10 @@ def send_telegram_success(summary: dict):
         f"  • 미국 실업률: {summary.get('unrate_latest', '4.1%')}",
         f"  • S&P 500 EPS: {summary.get('eps_latest', '$295.36')}",
         "",
+        "🚨 <b>[핵심 4대 경제지표 최신화 알림 - 직접 확인 필요]</b>",
+        "👉 <i>주요 경제지표가 동기화되었으니 사이트(마켓 인사이트)에서 직접 이상 유무와 5년 차트를 확인해 주세요!</i>",
+        "🔗 https://www.jusik.app/tools/market",
+        "",
         "🧮 <b>백테스트 지표 재계산</b>",
         f"  • CAGR·변동성·MA전략 갱신: {summary.get('backtest_assets', 0)}개 종목",
         "",
@@ -541,6 +545,85 @@ def update_macro_indicators():
         fed_cur = f"{fed_points[-1]['value']:.2f}%"
         cpi_cur = f"{cpi_points[-1]['value']:.2f}%"
         unrate_cur = f"{unrate_points[-1]['value']:.1f}%"
+
+        # 5년 전 대비 변동폭 계산 (시작점 대비)
+        fed_diff = fed_points[-1]['value'] - fed_points[0]['value']
+        fed_change = f"{'+' if fed_diff >= 0 else ''}{fed_diff:.2f}%p"
+
+        cpi_diff = cpi_points[-1]['value'] - cpi_points[0]['value']
+        cpi_change = f"{'+' if cpi_diff >= 0 else ''}{cpi_diff:.2f}%p"
+
+        unrate_diff = unrate_points[-1]['value'] - unrate_points[0]['value']
+        unrate_change = f"{'+' if unrate_diff >= 0 else ''}{unrate_diff:.1f}%p"
+
+        # src/data/marketCalendar.ts 파일 읽기 및 동기화
+        with open(CALENDAR_PATH, 'r', encoding='utf-8') as f:
+            calendar_code = f.read()
+
+        macro_charts_tag = "export const MACRO_ASSET_CHARTS: Record<string, {"
+        charts_start_idx = calendar_code.find(macro_charts_tag)
+
+        def replace_macro_asset_block(content, key, label, current, change, is_pos, points):
+            data = [p['value'] for p in points]
+            block = f"""  {key}: {{
+    label: '{label}',
+    current: '{current}',
+    change: '{change}',
+    isPositive: {'true' if is_pos else 'false'},
+    data: {json.dumps(data)},
+    points: {json.dumps(points)},
+  }},"""
+            start_tag = f"  {key}: {{"
+            end_tag = "  },"
+            search_from = charts_start_idx if charts_start_idx != -1 else 0
+            start_idx = content.find(start_tag, search_from)
+            if start_idx != -1:
+                end_idx = content.find(end_tag, start_idx) + len(end_tag)
+                return content[:start_idx] + block + content[end_idx:]
+            return content
+
+        calendar_code = replace_macro_asset_block(
+            calendar_code, 'DFEDTARU', '미국 기준금리', fed_cur, fed_change, fed_diff >= 0, fed_points
+        )
+        calendar_code = replace_macro_asset_block(
+            calendar_code, 'CPI_YOY', '소비자물가 (CPI)', cpi_cur, cpi_change, cpi_diff >= 0, cpi_points
+        )
+        calendar_code = replace_macro_asset_block(
+            calendar_code, 'UNEMPLOYMENT', '미국 실업률', unrate_cur, unrate_change, unrate_diff >= 0, unrate_points
+        )
+
+        # MACRO_SUMMARY_ITEMS 갱신
+        start_sum_tag = "export const MACRO_SUMMARY_ITEMS: MacroIndicatorSummary[] = ["
+        end_sum_tag = "];"
+        s_idx = calendar_code.find(start_sum_tag)
+        if s_idx != -1:
+            e_idx = calendar_code.find(end_sum_tag, s_idx) + len(end_sum_tag)
+            sum_block = f"""export const MACRO_SUMMARY_ITEMS: MacroIndicatorSummary[] = [
+  {{
+    key: 'DFEDTARU',
+    name: '미국 기준금리',
+    value: '{fed_cur}',
+  }},
+  {{
+    key: 'CPI_YOY',
+    name: '소비자물가',
+    value: '{cpi_cur}',
+  }},
+  {{
+    key: 'UNEMPLOYMENT',
+    name: '미국 실업률',
+    value: '{unrate_cur}',
+  }},
+  {{
+    key: 'SP500_EPS',
+    name: '기업 실적(EPS)',
+    value: '$295.36',
+  }},
+];"""
+            calendar_code = calendar_code[:s_idx] + sum_block + calendar_code[e_idx:]
+
+        with open(CALENDAR_PATH, 'w', encoding='utf-8') as f:
+            f.write(calendar_code)
 
         print(f"Macro sync success: Fed {fed_cur}, CPI YoY {cpi_cur}, Unrate {unrate_cur}")
         return {

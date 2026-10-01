@@ -33,6 +33,23 @@ export async function sendTelegramMessage(text: string, replyMarkup?: any): Prom
   }
 }
 
+function identifyMajorMacroEvent(title: string): string | null {
+  const t = title.toLowerCase();
+  if (t.includes('fomc') || (t.includes('기준금리') && t.includes('미국'))) {
+    return '미국 기준금리 (FOMC)';
+  }
+  if (t.includes('소비자물가') || t.includes('cpi')) {
+    return '미국 소비자물가지수 (CPI)';
+  }
+  if (t.includes('실업률') || t.includes('비농업') || t.includes('nfp')) {
+    return '미국 실업률 / 비농업 고용 (NFP)';
+  }
+  if (t.includes('s&p') && (t.includes('eps') || t.includes('기업 실적') || t.includes('실적'))) {
+    return 'S&P 500 기업 실적 (EPS)';
+  }
+  return null;
+}
+
 /**
  * 일일 증시 브리핑 리포트 전송 (화~토 07:15)
  */
@@ -54,7 +71,12 @@ export async function sendTelegramDailyReport(
     summary: string;
   }>,
   warningMessage?: string,
-  fallbackNotice?: string
+  fallbackNotice?: string,
+  macroUpdates?: {
+    fedRate?: string;
+    cpi?: string;
+    unemployment?: string;
+  }
 ): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
@@ -62,6 +84,32 @@ export async function sendTelegramDailyReport(
     `🦉 <b>[jusik.app 일일 증시 브리핑]</b>`,
     `📅 ${snapshot.updatedAt}`,
   ];
+
+  // 4대 핵심 거시 경제 지표 발표 여부 감지 및 특별 직접 확인 알림
+  const majorMacroList = (newlyPublishedEvents || []).filter((e) => identifyMajorMacroEvent(e.title));
+  const hasMacroUpdates = macroUpdates && Object.keys(macroUpdates).length > 0;
+
+  if (majorMacroList.length > 0 || hasMacroUpdates) {
+    lines.push(``);
+    lines.push(`🚨 <b>[핵심 4대 경제지표 발표 알림 - 직접 확인 필요]</b>`);
+    majorMacroList.forEach((item) => {
+      const macroName = identifyMajorMacroEvent(item.title);
+      lines.push(`• <b>${macroName}</b> 발표 완료: <b>${item.actual}</b>${item.expected ? ` (예상: ${item.expected})` : ''}`);
+    });
+    if (macroUpdates) {
+      if (macroUpdates.fedRate && !majorMacroList.some((m) => m.title.includes('기준금리') || m.title.toLowerCase().includes('fomc'))) {
+        lines.push(`• <b>미국 기준금리 (FOMC)</b>: <b>${macroUpdates.fedRate}</b>`);
+      }
+      if (macroUpdates.cpi && !majorMacroList.some((m) => m.title.includes('소비자물가') || m.title.toLowerCase().includes('cpi'))) {
+        lines.push(`• <b>미국 소비자물가지수 (CPI)</b>: <b>${macroUpdates.cpi}</b>`);
+      }
+      if (macroUpdates.unemployment && !majorMacroList.some((m) => m.title.includes('실업률'))) {
+        lines.push(`• <b>미국 실업률</b>: <b>${macroUpdates.unemployment}</b>`);
+      }
+    }
+    lines.push(`👉 <i>주요 경제지표가 발표되었으니 웹사이트(마켓 인사이트)에서 직접 이상 유무와 차트를 꼭 확인해 주세요!</i>`);
+    lines.push(`🔗 <a href="https://www.jusik.app/tools/market">jusik.app 마켓 인사이트 바로가기</a>`);
+  }
 
   if (fallbackNotice) {
     lines.push(``);

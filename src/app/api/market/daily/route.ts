@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS, CalendarEvent } from '@/data/marketCalendar';
+import { MARKET_SNAPSHOT, ASSET_CHARTS, CALENDAR_EVENTS, WEEKLY_BRIEFING, WEATHER_PRESETS, WeatherState, TODAY_MARKET_NEWS, CalendarEvent, MACRO_ASSET_CHARTS, MACRO_SUMMARY_ITEMS } from '@/data/marketCalendar';
 import { sendTelegramDailyReport, sendTelegramErrorAlert } from '@/utils/telegram';
 import { runSiteHealthAudit } from '@/lib/observability/audit';
-import { syncMarketCalendarEvents, fetchFredMacroSnapshot } from '@/utils/marketCalendarSync';
+import { syncMarketCalendarEvents, fetchFredMacroSnapshot, resolveUpdatedMacroIndicators } from '@/utils/marketCalendarSync';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Vercel 서버리스 최대 실행 시간 60초 (Pro: 최대 300초)
@@ -597,6 +597,8 @@ export async function GET(request: Request) {
               snapshot: { ...snap, todayNews: validNews },
               calendarEvents: pruneOldCalendarEvents(mergedEvents),
               weeklyBriefing: WEEKLY_BRIEFING,
+              macroSummaryItems: dbRecord.simulator_settings?.macroSummaryItems ?? MACRO_SUMMARY_ITEMS,
+              macroAssetCharts: dbRecord.simulator_settings?.macroAssetCharts ?? MACRO_ASSET_CHARTS,
             };
 
             // 메모리 캐시에 저장 (다음 요청은 DB 조회 없이 즉시 반환)
@@ -616,6 +618,8 @@ export async function GET(request: Request) {
         assetCharts: ASSET_CHARTS,
         calendarEvents: CALENDAR_EVENTS,
         weeklyBriefing: WEEKLY_BRIEFING,
+        macroSummaryItems: MACRO_SUMMARY_ITEMS,
+        macroAssetCharts: MACRO_ASSET_CHARTS,
       };
       return NextResponse.json(fallbackData);
     }
@@ -1126,6 +1130,15 @@ export async function GET(request: Request) {
       console.log('[Market Daily] 매크로 지표 FRED 갱신:', macroUpdates);
     }
 
+    const fredSnapshot = await fetchFredMacroSnapshot().catch(() => ({}));
+    const { resolvedMacroSummary, resolvedMacroCharts } = resolveUpdatedMacroIndicators(
+      MACRO_SUMMARY_ITEMS,
+      MACRO_ASSET_CHARTS,
+      updatedEvents,
+      macroUpdates,
+      fredSnapshot
+    );
+
     const prunedEvents = pruneOldCalendarEvents(updatedEvents);
 
     const responseData = {
@@ -1134,6 +1147,8 @@ export async function GET(request: Request) {
       assetCharts,
       calendarEvents: prunedEvents,
       weeklyBriefing: WEEKLY_BRIEFING,
+      macroSummaryItems: resolvedMacroSummary,
+      macroAssetCharts: resolvedMacroCharts,
     };
 
     // 메모리 캐시 갱신
@@ -1158,7 +1173,7 @@ export async function GET(request: Request) {
     try {
       const warningMessage = dataIssues.length > 0 ? dataIssues.join('\n') : undefined;
       const fallbackNotice = fallbackNotices.length > 0 ? fallbackNotices.map((n) => `• ${n}`).join('\n') : undefined;
-      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage, fallbackNotice);
+      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage, fallbackNotice, macroUpdates);
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);
     }

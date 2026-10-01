@@ -131,6 +131,8 @@ export default function MarketWeatherSection({
 }) {
   const [snapshot, setSnapshot] = useState<typeof MARKET_SNAPSHOT | null>(null);
   const [charts, setCharts] = useState<typeof ASSET_CHARTS | null>(null);
+  const [macroCharts, setMacroCharts] = useState<typeof MACRO_ASSET_CHARTS>(MACRO_ASSET_CHARTS);
+  const [macroSummary, setMacroSummary] = useState<typeof MACRO_SUMMARY_ITEMS>(MACRO_SUMMARY_ITEMS);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAssetKey, setSelectedAssetKey] = useState<string>('SPX');
   const [gaugeWidth, setGaugeWidth] = useState(0);
@@ -148,6 +150,8 @@ export default function MarketWeatherSection({
         if (isFresh && parsed?.data?.snapshot && parsed?.data?.assetCharts) {
           setSnapshot(parsed.data.snapshot);
           setCharts(parsed.data.assetCharts);
+          if (parsed.data.macroAssetCharts) setMacroCharts(parsed.data.macroAssetCharts);
+          if (parsed.data.macroSummaryItems) setMacroSummary(parsed.data.macroSummaryItems);
           setIsLoading(false);
           if (onWeatherChange && parsed.data.snapshot.weatherState) {
             onWeatherChange(parsed.data.snapshot.weatherState);
@@ -165,6 +169,8 @@ export default function MarketWeatherSection({
         if (isMounted && data.success && data.snapshot && data.assetCharts) {
           setSnapshot(data.snapshot);
           setCharts(data.assetCharts);
+          if (data.macroAssetCharts) setMacroCharts(data.macroAssetCharts);
+          if (data.macroSummaryItems) setMacroSummary(data.macroSummaryItems);
           setIsLoading(false);
           if (onWeatherChange && data.snapshot.weatherState) {
             onWeatherChange(data.snapshot.weatherState);
@@ -213,7 +219,7 @@ export default function MarketWeatherSection({
   const currentMeta = INDICATOR_METADATA[selectedAssetKey] ?? INDICATOR_METADATA.SPX;
   const activeChart =
     charts[selectedAssetKey] ??
-    MACRO_ASSET_CHARTS[selectedAssetKey] ??
+    macroCharts[selectedAssetKey] ??
     charts.SPX ??
     ASSET_CHARTS.SPX;
   const barColor = FG_BAR_COLOR(fearGreedIndex);
@@ -417,7 +423,7 @@ export default function MarketWeatherSection({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {MACRO_SUMMARY_ITEMS.map((item) => {
+              {macroSummary.map((item) => {
                 const isSelected = selectedAssetKey === item.key;
                 return (
                   <button

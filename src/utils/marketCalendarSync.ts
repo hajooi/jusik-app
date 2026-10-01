@@ -4,7 +4,7 @@
 // FRED: https://fred.stlouisfed.org/ (기준금리, CPI, 실업률, NFP, GDP, PPI, 소매판매)
 // BOK ECOS: https://ecos.bok.or.kr/ (한국 기준금리)
 
-import { CalendarEvent } from '@/data/marketCalendar';
+import { CalendarEvent, MacroIndicatorSummary, MACRO_SUMMARY_ITEMS, MACRO_ASSET_CHARTS } from '@/data/marketCalendar';
 import { generateEasyEventSummary } from './aiSummary';
 
 export interface SyncCalendarResult {
@@ -603,4 +603,209 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
   }
 
   return result;
+}
+
+/**
+ * 캘린더 발표 결과(actual) 및 FRED 최신 스냅샷을 기반으로
+ * 핵심 거시 경제 지표(MACRO_SUMMARY_ITEMS)와 시계열 차트(MACRO_ASSET_CHARTS)를 동적으로 동기화합니다.
+ */
+export function resolveUpdatedMacroIndicators(
+  baseSummaryItems: MacroIndicatorSummary[],
+  baseMacroCharts: typeof MACRO_ASSET_CHARTS,
+  updatedEvents: CalendarEvent[],
+  macroUpdates?: SyncCalendarResult['macroUpdates'],
+  fredSnapshot?: FredMacroSnapshot
+): {
+  resolvedMacroSummary: MacroIndicatorSummary[];
+  resolvedMacroCharts: typeof MACRO_ASSET_CHARTS;
+} {
+  const resolvedSummary: MacroIndicatorSummary[] = JSON.parse(JSON.stringify(baseSummaryItems));
+  const resolvedCharts: typeof MACRO_ASSET_CHARTS = JSON.parse(JSON.stringify(baseMacroCharts));
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  const findLatestEventActual = (predicate: (ev: CalendarEvent) => boolean): { actual: string; date: string } | null => {
+    const matched = updatedEvents
+      .filter((ev) => ev.date <= todayStr && ev.actual && predicate(ev))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    if (matched.length > 0 && matched[0].actual) {
+      return { actual: matched[0].actual, date: matched[0].date };
+    }
+    return null;
+  };
+
+  // 1. 기준금리 DFEDTARU
+  let fedValStr: string | undefined;
+  let fedDateStr: string | undefined;
+
+  if (macroUpdates?.fedRate) {
+    fedValStr = macroUpdates.fedRate;
+    fedDateStr = todayStr;
+  } else {
+    const ev = findLatestEventActual((e) => {
+      const t = e.title.toLowerCase();
+      return t.includes('fomc') || (t.includes('기준금리') && t.includes('미국'));
+    });
+    if (ev) {
+      fedValStr = ev.actual;
+      fedDateStr = ev.date;
+    } else if (fredSnapshot?.fedRate) {
+      fedValStr = fredSnapshot.fedRate;
+      fedDateStr = todayStr;
+    }
+  }
+
+  if (fedValStr && resolvedCharts.DFEDTARU) {
+    const match = fedValStr.match(/\d+(\.\d+)?%/);
+    if (match) {
+      const cleanRate = match[0];
+      const numRate = parseFloat(cleanRate.replace('%', ''));
+      if (!isNaN(numRate)) {
+        const sumItem = resolvedSummary.find((s) => s.key === 'DFEDTARU');
+        if (sumItem) sumItem.value = cleanRate;
+        resolvedCharts.DFEDTARU.current = cleanRate;
+
+        if (fedDateStr) {
+          const ym = fedDateStr.slice(0, 7).replace('-', '.');
+          const pts = resolvedCharts.DFEDTARU.points;
+          const existingIdx = pts.findIndex((p) => p.date === ym);
+          if (existingIdx >= 0) {
+            pts[existingIdx].value = numRate;
+            if (resolvedCharts.DFEDTARU.data[existingIdx] !== undefined) {
+              resolvedCharts.DFEDTARU.data[existingIdx] = numRate;
+            }
+          } else {
+            pts.push({ date: ym, value: numRate });
+            resolvedCharts.DFEDTARU.data.push(numRate);
+          }
+          if (pts.length > 0) {
+            const baseVal = pts[0].value;
+            const diff = numRate - baseVal;
+            resolvedCharts.DFEDTARU.change = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)}%p`;
+            resolvedCharts.DFEDTARU.isPositive = diff >= 0;
+          }
+        }
+      }
+    }
+  }
+
+  // 2. 소비자물가 CPI_YOY
+  let cpiValStr: string | undefined;
+  let cpiDateStr: string | undefined;
+
+  if (macroUpdates?.cpi) {
+    cpiValStr = macroUpdates.cpi;
+    cpiDateStr = todayStr;
+  } else {
+    const ev = findLatestEventActual((e) => {
+      const t = e.title.toLowerCase();
+      return t.includes('소비자물가') && !t.includes('근원') && !t.includes('core');
+    });
+    if (ev) {
+      cpiValStr = ev.actual;
+      cpiDateStr = ev.date;
+    } else if (fredSnapshot?.cpiYoy) {
+      cpiValStr = fredSnapshot.cpiYoy;
+      cpiDateStr = todayStr;
+    }
+  }
+
+  if (cpiValStr && resolvedCharts.CPI_YOY) {
+    const match = cpiValStr.match(/-?\d+(\.\d+)?%/);
+    if (match) {
+      const cleanCpi = match[0];
+      const numCpi = parseFloat(cleanCpi.replace('%', ''));
+      if (!isNaN(numCpi)) {
+        const sumItem = resolvedSummary.find((s) => s.key === 'CPI_YOY');
+        if (sumItem) sumItem.value = cleanCpi;
+        resolvedCharts.CPI_YOY.current = cleanCpi;
+
+        if (cpiDateStr) {
+          const d = new Date(cpiDateStr + 'T00:00:00Z');
+          d.setUTCMonth(d.getUTCMonth() - 1);
+          const ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          const pts = resolvedCharts.CPI_YOY.points;
+          const existingIdx = pts.findIndex((p) => p.date === ym);
+          if (existingIdx >= 0) {
+            pts[existingIdx].value = numCpi;
+            if (resolvedCharts.CPI_YOY.data[existingIdx] !== undefined) {
+              resolvedCharts.CPI_YOY.data[existingIdx] = numCpi;
+            }
+          } else {
+            pts.push({ date: ym, value: numCpi });
+            resolvedCharts.CPI_YOY.data.push(numCpi);
+          }
+          if (pts.length > 0) {
+            const baseVal = pts[0].value;
+            const diff = numCpi - baseVal;
+            resolvedCharts.CPI_YOY.change = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)}%p`;
+            resolvedCharts.CPI_YOY.isPositive = diff >= 0;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. 미국 실업률 UNEMPLOYMENT
+  let unrateValStr: string | undefined;
+  let unrateDateStr: string | undefined;
+
+  if (macroUpdates?.unemployment) {
+    unrateValStr = macroUpdates.unemployment;
+    unrateDateStr = todayStr;
+  } else {
+    const ev = findLatestEventActual((e) => {
+      const t = e.title.toLowerCase();
+      return t.includes('실업률') && (t.includes('미국') || !t.includes('한국'));
+    });
+    if (ev) {
+      unrateValStr = ev.actual;
+      unrateDateStr = ev.date;
+    } else if (fredSnapshot?.unemployment) {
+      unrateValStr = fredSnapshot.unemployment;
+      unrateDateStr = todayStr;
+    }
+  }
+
+  if (unrateValStr && resolvedCharts.UNEMPLOYMENT) {
+    const match = unrateValStr.match(/\d+(\.\d+)?%/);
+    if (match) {
+      const cleanUnrate = match[0];
+      const numUnrate = parseFloat(cleanUnrate.replace('%', ''));
+      if (!isNaN(numUnrate)) {
+        const sumItem = resolvedSummary.find((s) => s.key === 'UNEMPLOYMENT');
+        if (sumItem) sumItem.value = cleanUnrate;
+        resolvedCharts.UNEMPLOYMENT.current = cleanUnrate;
+
+        if (unrateDateStr) {
+          const d = new Date(unrateDateStr + 'T00:00:00Z');
+          d.setUTCMonth(d.getUTCMonth() - 1);
+          const ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          const pts = resolvedCharts.UNEMPLOYMENT.points;
+          const existingIdx = pts.findIndex((p) => p.date === ym);
+          if (existingIdx >= 0) {
+            pts[existingIdx].value = numUnrate;
+            if (resolvedCharts.UNEMPLOYMENT.data[existingIdx] !== undefined) {
+              resolvedCharts.UNEMPLOYMENT.data[existingIdx] = numUnrate;
+            }
+          } else {
+            pts.push({ date: ym, value: numUnrate });
+            resolvedCharts.UNEMPLOYMENT.data.push(numUnrate);
+          }
+          if (pts.length > 0) {
+            const baseVal = pts[0].value;
+            const diff = numUnrate - baseVal;
+            resolvedCharts.UNEMPLOYMENT.change = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%p`;
+            resolvedCharts.UNEMPLOYMENT.isPositive = diff >= 0;
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    resolvedMacroSummary: resolvedSummary,
+    resolvedMacroCharts: resolvedCharts,
+  };
 }
