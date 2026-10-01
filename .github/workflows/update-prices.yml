@@ -1,10 +1,7 @@
 name: Update Historical Prices & Backtest Data
 
 on:
-  schedule:
-    # 매달 1일 오전 0시 (UTC) -> 한국 시간 오전 9시 실행
-    - cron: '0 0 1 * *'
-  workflow_dispatch:
+  workflow_dispatch: # 매월 초 사용자와 시총 순위 확인 후 필요 시 수동 실행 가능
 
 jobs:
   update-data:

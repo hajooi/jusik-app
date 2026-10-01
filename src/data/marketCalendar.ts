@@ -10623,57 +10623,6 @@ export const WEEKLY_BRIEFING = {
 
 export const CALENDAR_EVENTS: CalendarEvent[] = [
   {
-    "id": "jun-kr-memorial",
-    "date": "2026-06-06",
-    "title": "한국 증시 휴장 (현충일)",
-    "type": "holiday",
-    "region": "kr",
-    "simpleSummary": "법정 공휴일 현충일로 국내 금융 및 주식 시장이 하루 쉬어갔어요.",
-    "impactTag": "관망",
-    "importance": 1,
-    "isHoliday": true
-  },
-  {
-    "id": "jun-fomc-result",
-    "date": "2026-06-17",
-    "time": "03:00",
-    "title": "미국 6월 FOMC 기준금리 결정",
-    "type": "economic",
-    "region": "us",
-    "simpleSummary": "미국 연준이 기준금리를 3.75%로 동결하며 물가 안정 추세를 신중히 관망했어요.\n장기 금리 전망(3.1%)을 유지하며 시장에 차분한 안정감을 부여했습니다.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "actual": "3.75% (동결)",
-    "expected": "3.75%",
-    "previous": "3.75%"
-  },
-  {
-    "id": "jun-us-juneteenth",
-    "date": "2026-06-19",
-    "title": "미국 증시 휴장 (노예해방의 날, Juneteenth)",
-    "type": "holiday",
-    "region": "us",
-    "simpleSummary": "미국 연방 공휴일로 뉴욕 증시가 하루 쉬어갔어요.",
-    "impactTag": "관망",
-    "importance": 1,
-    "isHoliday": true
-  },
-  {
-    "id": "jun-mu-q3",
-    "date": "2026-06-25",
-    "time": "05:30",
-    "title": "마이크론 테크놀로지 (MU) 회계 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "AI 메모리(HBM) 수요 급증으로 분기 매출과 영업이익이 가이던스를 크게 웃돌았어요.\n글로벌 반도체 업황의 강력한 상승 사이클을 확인했습니다.",
-    "impactTag": "호재 가능성",
-    "importance": 3,
-    "ticker": "MU",
-    "actual": "매출 $6.81B / EPS $0.62",
-    "expected": "매출 $6.67B / EPS $0.51",
-    "previous": "매출 $5.82B / EPS $0.42"
-  },
-  {
     "id": "jul-us-independence",
     "date": "2026-07-04",
     "title": "미국 증시 휴장 (독립기념일)",
@@ -11519,18 +11468,6 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "1.5%"
   },
   {
-    "id": "oct-nfp",
-    "date": "2026-10-02",
-    "time": "21:30",
-    "title": "미국 9월 비농업 고용보고서 (NFP) 및 실업률 발표",
-    "type": "economic",
-    "region": "us",
-    "simpleSummary": "9월 FOMC 이후 첫 고용 성적표로 실물 경기 체력을 재확인해요.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "previous": "162K"
-  },
-  {
     "id": "oct-ism-mfg",
     "date": "2026-10-01",
     "time": "23:00",
@@ -11541,6 +11478,31 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "핵심지표",
     "importance": 3,
     "previous": "54.6"
+  },
+  {
+    "id": "oct-mu-next",
+    "date": "2026-10-01",
+    "time": "05:30",
+    "title": "마이크론 테크놀로지 (MU) 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "마이크론 테크놀로지의 분기 경영 실적과 미래 사업 가이던스가 공개돼요.",
+    "impactTag": "호재 가능성",
+    "importance": 2,
+    "ticker": "MU",
+    "expected": "매출 $57.93B / EPS $35.92"
+  },
+  {
+    "id": "oct-nfp",
+    "date": "2026-10-02",
+    "time": "21:30",
+    "title": "미국 9월 비농업 고용보고서 (NFP) 및 실업률 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "9월 FOMC 이후 첫 고용 성적표로 실물 경기 체력을 재확인해요.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "162K"
   },
   {
     "id": "oct-national-foundation",
@@ -11578,18 +11540,6 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "7.67M"
   },
   {
-    "id": "oct-samsung-q3",
-    "date": "2026-10-08",
-    "time": "08:30",
-    "title": "삼성전자 3분기 잠정 실적 발표",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "코스피 시가총액 1위 삼성전자의 분기 매출과 영업이익이 공개돼요.\nHBM 납품 성과와 메모리 반도체 실적이 코스피 방향을 주도합니다.",
-    "impactTag": "호재 가능성",
-    "importance": 3,
-    "ticker": "005930"
-  },
-  {
     "id": "oct-hangeul-day",
     "date": "2026-10-09",
     "title": "한국 증시 휴장 (한글날)",
@@ -11610,7 +11560,21 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 어닝 시즌의 시작을 알리는 대표 금융주로 대출 건전성과 연말 미국 소비 체력을 점검해요.",
     "impactTag": "관망",
     "importance": 2,
-    "ticker": "JPM"
+    "ticker": "JPM",
+    "expected": "매출 $50.92B / EPS $5.88"
+  },
+  {
+    "id": "oct-jnj-q3",
+    "date": "2026-10-13",
+    "time": "20:00",
+    "title": "존슨앤존슨 (JNJ) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "제약 및 정밀 의료기기 부문의 글로벌 매출 신장세와 환율 변동에 따른 해외 수익성을 확인해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "JNJ",
+    "expected": "매출 $25.31B / EPS $2.48"
   },
   {
     "id": "oct-asml-q3",
@@ -11622,7 +11586,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "첨단 반도체 핵심 장비인 극자외선(EUV) 노광장비 수주 잔고와 AI 칩 제조사들의 설비 투자 현황을 확인해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "ASML"
+    "ticker": "ASML",
+    "expected": "매출 $11.68B / EPS $10.65"
   },
   {
     "id": "oct-cpi",
@@ -11657,23 +11622,12 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "애플과 엔비디아의 핵심 칩을 도맡아 생산하는 주요 파운드리 기업의 3분기 매출과 연말 실적 가이던스를 점검해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "TSM"
-  },
-  {
-    "id": "oct-jnj-q3",
-    "date": "2026-10-15",
-    "time": "20:00",
-    "title": "존슨앤존슨 (JNJ) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "제약 및 정밀 의료기기 부문의 글로벌 매출 신장세와 환율 변동에 따른 해외 수익성을 확인해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "JNJ"
+    "ticker": "TSM",
+    "expected": "매출 $1454.97B / EPS $4.46"
   },
   {
     "id": "oct-tsla-q3",
-    "date": "2026-10-21",
+    "date": "2026-10-22",
     "time": "05:30",
     "title": "테슬라 (TSLA) 3분기 실적 발표",
     "type": "earnings",
@@ -11681,19 +11635,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "3분기 글로벌 차량 인도량과 에너지 부문 성장세, 자율주행(FSD) 및 로보택시 사업의 수익성을 확인해요.",
     "impactTag": "변동성 주의",
     "importance": 3,
-    "ticker": "TSLA"
-  },
-  {
-    "id": "oct-samsungbio-q3",
-    "date": "2026-10-21",
-    "time": "15:30",
-    "title": "삼성바이오로직스 (207940) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "1~4공장 풀가동 효과와 5공장 조기 완공 기대감, 연간 누적 수주 잔고 성장을 점검해요.",
-    "impactTag": "호재 가능성",
-    "importance": 2,
-    "ticker": "207940"
+    "ticker": "TSLA",
+    "expected": "매출 $27.47B / EPS $0.44"
   },
   {
     "id": "oct-bok-rate",
@@ -11708,32 +11651,21 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "3.00%"
   },
   {
-    "id": "oct-hyundai-q3",
-    "date": "2026-10-22",
-    "time": "14:00",
-    "title": "현대차 (005380) 3분기 실적 발표",
+    "id": "oct-samsungbio-q3",
+    "date": "2026-10-27",
+    "time": "15:30",
+    "title": "삼성바이오로직스 (207940) 3분기 실적 발표",
     "type": "earnings",
     "region": "kr",
-    "simpleSummary": "북미 하이브리드 판매 비중 확대와 제네시스 프리미엄 수익성, 주주환원 자사주 매입 추진 현황을 공개해요.",
-    "impactTag": "호재 가능성",
-    "importance": 3,
-    "ticker": "005380"
-  },
-  {
-    "id": "oct-kbfg-q3",
-    "date": "2026-10-22",
-    "time": "16:00",
-    "title": "KB금융 (105560) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "금리 인하기 순이자마진(NIM) 방어력과 추가 주주환원 밸류업 이행 계획을 공식 발표해요.",
+    "simpleSummary": "1~4공장 풀가동 효과와 5공장 조기 완공 기대감, 연간 누적 수주 잔고 성장을 점검해요.",
     "impactTag": "호재 가능성",
     "importance": 2,
-    "ticker": "105560"
+    "ticker": "207940",
+    "expected": "매출 1.3조 원 / EPS 9,718원"
   },
   {
     "id": "oct-skhynix-q3",
-    "date": "2026-10-23",
+    "date": "2026-10-27",
     "time": "09:00",
     "title": "SK하이닉스 3분기 잠정 실적 발표",
     "type": "earnings",
@@ -11741,83 +11673,12 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "글로벌 AI 가속기용 HBM 납품 실적과 D램·낸드 수익성 개선 흐름이 국내 반도체 섹터의 추가 상승 동력을 가늠해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "000660"
-  },
-  {
-    "id": "oct-lgensol-q3",
-    "date": "2026-10-26",
-    "time": "09:30",
-    "title": "LG에너지솔루션 (373220) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "유럽 및 북미 주요 완성차 파트너사의 배터리 가동률과 원가 절감에 따른 분기 영업이익 개선을 점검해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "373220"
-  },
-  {
-    "id": "oct-amd-q3",
-    "date": "2026-10-27",
-    "time": "05:30",
-    "title": "AMD (AMD) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "차세대 AI GPU 출하 현황과 데이터센터 서버 CPU 시장 점유율 상승 추세를 확인해요.",
-    "impactTag": "호재 가능성",
-    "importance": 3,
-    "ticker": "AMD"
-  },
-  {
-    "id": "oct-v-q4",
-    "date": "2026-10-27",
-    "time": "05:30",
-    "title": "비자 (V) 회계 4분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "글로벌 전자결제 거래량 추이와 회계연도 전체 실적 결산 및 2027년 배당 확대 계획을 발표해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "V"
-  },
-  {
-    "id": "oct-samsungel-q3",
-    "date": "2026-10-27",
-    "time": "14:00",
-    "title": "삼성전기 (009150) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "글로벌 AI 서버 및 전장용 고신뢰성 MLCC 공급 물량 확대와 패키지기판 수익성을 확인해요.",
-    "impactTag": "호재 가능성",
-    "importance": 2,
-    "ticker": "009150"
-  },
-  {
-    "id": "oct-msft-googl-q3",
-    "date": "2026-10-28",
-    "time": "05:30",
-    "title": "마이크로소프트 (MSFT) & 알파벳 (GOOGL) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "클라우드 인프라(Azure, Google Cloud)의 두 자릿수 성장률과 기업용 AI 서비스 매출 기여도를 동시에 확인해요.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "ticker": "MSFT"
-  },
-  {
-    "id": "oct-meta-q3",
-    "date": "2026-10-28",
-    "time": "05:30",
-    "title": "메타 플랫폼스 (META) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "AI 어시스턴트 도입에 따른 사용자 체류시간 증가와 연말 쇼핑 시즌 디지털 광고 단가 추이를 확인해요.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "ticker": "META"
+    "ticker": "000660",
+    "expected": "매출 99.6조 원 / EPS 86,241원"
   },
   {
     "id": "oct-samsungcnt-q3",
-    "date": "2026-10-28",
+    "date": "2026-10-27",
     "time": "15:00",
     "title": "삼성물산 (028260) 3분기 실적 발표",
     "type": "earnings",
@@ -11825,7 +11686,99 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "건설 하이테크 프로젝트 수익성과 상사 부문 친환경 원자재 트레이딩 실적을 점검해요.",
     "impactTag": "관망",
     "importance": 2,
-    "ticker": "028260"
+    "ticker": "028260",
+    "expected": "매출 11.5조 원 / EPS 3,543원"
+  },
+  {
+    "id": "oct-samsung-q3",
+    "date": "2026-10-28",
+    "time": "08:30",
+    "title": "삼성전자 3분기 잠정 실적 발표",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "코스피 시가총액 1위 삼성전자의 분기 매출과 영업이익이 공개돼요.\nHBM 납품 성과와 메모리 반도체 실적이 코스피 방향을 주도합니다.",
+    "impactTag": "호재 가능성",
+    "importance": 3,
+    "ticker": "005930",
+    "expected": "매출 203.1조 원 / EPS 13,800원"
+  },
+  {
+    "id": "oct-v-q4",
+    "date": "2026-10-28",
+    "time": "05:30",
+    "title": "비자 (V) 회계 4분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "글로벌 전자결제 거래량 추이와 회계연도 전체 실적 결산 및 2027년 배당 확대 계획을 발표해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "V",
+    "expected": "매출 $12.08B / EPS $3.43"
+  },
+  {
+    "id": "oct-hyundai-q3",
+    "date": "2026-10-29",
+    "time": "14:00",
+    "title": "현대차 (005380) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "북미 하이브리드 판매 비중 확대와 제네시스 프리미엄 수익성, 주주환원 자사주 매입 추진 현황을 공개해요.",
+    "impactTag": "호재 가능성",
+    "importance": 3,
+    "ticker": "005380",
+    "expected": "매출 48.3조 원 / EPS 8,894원"
+  },
+  {
+    "id": "oct-kbfg-q3",
+    "date": "2026-10-29",
+    "time": "16:00",
+    "title": "KB금융 (105560) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "금리 인하기 순이자마진(NIM) 방어력과 추가 주주환원 밸류업 이행 계획을 공식 발표해요.",
+    "impactTag": "호재 가능성",
+    "importance": 2,
+    "ticker": "105560",
+    "expected": "매출 4.9조 원 / EPS 5,289원"
+  },
+  {
+    "id": "oct-samsungel-q3",
+    "date": "2026-10-29",
+    "time": "14:00",
+    "title": "삼성전기 (009150) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "글로벌 AI 서버 및 전장용 고신뢰성 MLCC 공급 물량 확대와 패키지기판 수익성을 확인해요.",
+    "impactTag": "호재 가능성",
+    "importance": 2,
+    "ticker": "009150",
+    "expected": "매출 3.8조 원 / EPS 6,148원"
+  },
+  {
+    "id": "oct-msft-googl-q3",
+    "date": "2026-10-29",
+    "time": "05:30",
+    "title": "마이크로소프트 (MSFT) & 알파벳 (GOOGL) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "클라우드 인프라(Azure, Google Cloud)의 두 자릿수 성장률과 기업용 AI 서비스 매출 기여도를 동시에 확인해요.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "ticker": "MSFT",
+    "expected": "매출 $90.66B / EPS $4.72"
+  },
+  {
+    "id": "oct-meta-q3",
+    "date": "2026-10-29",
+    "time": "05:30",
+    "title": "메타 플랫폼스 (META) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "AI 어시스턴트 도입에 따른 사용자 체류시간 증가와 연말 쇼핑 시즌 디지털 광고 단가 추이를 확인해요.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "ticker": "META",
+    "expected": "매출 $63.32B / EPS $6.74"
   },
   {
     "id": "oct-fomc-result",
@@ -11851,30 +11804,6 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "1.5%"
   },
   {
-    "id": "oct-core-pce",
-    "date": "2026-10-30",
-    "time": "21:30",
-    "title": "미국 9월 근원 PCE 물가지수 (Core PCE YoY) 발표",
-    "type": "economic",
-    "region": "us",
-    "simpleSummary": "연준이 가장 신뢰하는 물가 척도인 근원 PCE가 다시 공개돼요. 10월 FOMC 결정 다음 날 나오는 이 수치가 연말 금리 경로를 다시 한번 검증합니다.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "previous": "2.6%"
-  },
-  {
-    "id": "oct-aapl-amzn-q3",
-    "date": "2026-10-29",
-    "time": "05:30",
-    "title": "애플 (AAPL) & 아마존 (AMZN) 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "애플의 신규 아이폰 판매 실적과 아마존의 AWS 클라우드 및 전자상거래 성수기 대비 전망을 공개해요.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "ticker": "AAPL"
-  },
-  {
     "id": "oct-samsung-q3-final",
     "date": "2026-10-29",
     "time": "08:30",
@@ -11896,7 +11825,46 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "글로벌 공급망 증설에 따른 비만 치료제 출하량 확대와 주요 신약 임상 진행 상황을 확인해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "LLY"
+    "ticker": "LLY",
+    "expected": "매출 $22.36B / EPS $9.96"
+  },
+  {
+    "id": "oct-googl-next",
+    "date": "2026-10-29",
+    "time": "05:30",
+    "title": "알파벳/구글 (GOOGL) 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "알파벳/구글의 분기 경영 실적과 미래 사업 가이던스가 공개돼요.",
+    "impactTag": "호재 가능성",
+    "importance": 2,
+    "ticker": "GOOGL",
+    "expected": "매출 $127.46B / EPS $3.03"
+  },
+  {
+    "id": "oct-core-pce",
+    "date": "2026-10-30",
+    "time": "21:30",
+    "title": "미국 9월 근원 PCE 물가지수 (Core PCE YoY) 발표",
+    "type": "economic",
+    "region": "us",
+    "simpleSummary": "연준이 가장 신뢰하는 물가 척도인 근원 PCE가 다시 공개돼요. 10월 FOMC 결정 다음 날 나오는 이 수치가 연말 금리 경로를 다시 한번 검증합니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "previous": "2.6%"
+  },
+  {
+    "id": "oct-aapl-amzn-q3",
+    "date": "2026-10-30",
+    "time": "05:30",
+    "title": "애플 (AAPL) & 아마존 (AMZN) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "애플의 신규 아이폰 판매 실적과 아마존의 AWS 클라우드 및 전자상거래 성수기 대비 전망을 공개해요.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "ticker": "AAPL",
+    "expected": "매출 $113.62B / EPS $1.98"
   },
   {
     "id": "oct-xom-q3",
@@ -11908,19 +11876,21 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "국제 유가 변동에 따른 정제마진 방어력과 업스트림 원유 생산 효율성을 점검해요.",
     "impactTag": "관망",
     "importance": 2,
-    "ticker": "XOM"
+    "ticker": "XOM",
+    "expected": "매출 $99.17B / EPS $3.71"
   },
   {
-    "id": "nov-brk-q3",
-    "date": "2026-11-02",
-    "time": "21:00",
-    "title": "버크셔 해서웨이 (BRK.B) 3분기 실적 공시 (10-Q)",
+    "id": "oct-amzn-next",
+    "date": "2026-10-30",
+    "time": "05:30",
+    "title": "아마존 (AMZN) 실적 발표",
     "type": "earnings",
     "region": "us",
-    "simpleSummary": "워런 버핏의 3분기 주식 매수/매도 동향과 보험 부문 플로트(운용자산) 수익률을 확인해요.",
-    "impactTag": "관망",
+    "simpleSummary": "아마존의 분기 경영 실적과 미래 사업 가이던스가 공개돼요.",
+    "impactTag": "호재 가능성",
     "importance": 2,
-    "ticker": "BRK_B"
+    "ticker": "AMZN",
+    "expected": "매출 $201.98B / EPS $1.98"
   },
   {
     "id": "nov-us-election",
@@ -11933,8 +11903,21 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "importance": 2
   },
   {
+    "id": "oct-amd-q3",
+    "date": "2026-11-04",
+    "time": "05:30",
+    "title": "AMD (AMD) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "차세대 AI GPU 출하 현황과 데이터센터 서버 CPU 시장 점유율 상승 추세를 확인해요.",
+    "impactTag": "호재 가능성",
+    "importance": 3,
+    "ticker": "AMD",
+    "expected": "매출 $13.00B / EPS $1.93"
+  },
+  {
     "id": "nov-spcx-q3",
-    "date": "2026-11-10",
+    "date": "2026-11-04",
     "time": "06:00",
     "title": "스페이스X (SPCX) 3분기 실적 발표",
     "type": "earnings",
@@ -11942,7 +11925,21 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "차세대 우주선 스타십(Starship) 상용 비행 라이선스 진척과 스타링크 D2D(위성-스마트폰 직접 통신) 서비스 확장을 점검해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "SPCX"
+    "ticker": "SPCX",
+    "expected": "매출 $12.57B / EPS $0.10"
+  },
+  {
+    "id": "oct-lgensol-q3",
+    "date": "2026-11-05",
+    "time": "09:30",
+    "title": "LG에너지솔루션 (373220) 3분기 실적 발표",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "유럽 및 북미 주요 완성차 파트너사의 배터리 가동률과 원가 절감에 따른 분기 영업이익 개선을 점검해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "373220",
+    "expected": "매출 8.6조 원 / EPS 1,555원"
   },
   {
     "id": "nov-nfp",
@@ -11957,6 +11954,19 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "previous": "162K"
   },
   {
+    "id": "nov-brk-q3",
+    "date": "2026-11-08",
+    "time": "21:00",
+    "title": "버크셔 해서웨이 (BRK.B) 3분기 실적 공시 (10-Q)",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "워런 버핏의 3분기 주식 매수/매도 동향과 보험 부문 플로트(운용자산) 수익률을 확인해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "BRK_B",
+    "expected": "매출 $104.33B / EPS $5.78"
+  },
+  {
     "id": "nov-cpi",
     "date": "2026-11-10",
     "time": "21:30",
@@ -11966,6 +11976,58 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "연말 소비 시즌을 앞두고 물가 안정세가 지속되는지 점검해요.",
     "impactTag": "핵심지표",
     "importance": 3
+  },
+  {
+    "id": "nov-samsunglife-q3",
+    "date": "2026-11-12",
+    "time": "16:30",
+    "title": "삼성생명 (032830) 3분기 분기보고서 공시",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "금융당국 건전성 제도 하에서 K-ICS(지급여력비율) 안정성과 연간 배당 가시성을 점검해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "032830",
+    "expected": "매출 2.1조 원 / EPS 3,585원"
+  },
+  {
+    "id": "nov-sksquare-q3",
+    "date": "2026-11-13",
+    "time": "16:00",
+    "title": "SK스퀘어 (402340) 3분기 분기보고서 공시",
+    "type": "earnings",
+    "region": "kr",
+    "simpleSummary": "SK하이닉스 실적 모멘텀에 따른 순자산가치(NAV) 할인율 축소와 신규 테크 투자 방향을 확인해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "402340",
+    "expected": "매출 0.3조 원 / EPS 84,663원"
+  },
+  {
+    "id": "nov-nvda-q3",
+    "date": "2026-11-18",
+    "time": "06:00",
+    "title": "엔비디아 (NVDA) 회계 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "차세대 블랙웰(Blackwell B200) 아키텍처의 대량 납품 실적과 AI 생태계 수주 잔고를 총결산해요.\n글로벌 테크 섹터 연말 랠리의 최대 분수령입니다.",
+    "impactTag": "핵심지표",
+    "importance": 3,
+    "ticker": "NVDA",
+    "expected": "매출 $109.01B / EPS $2.47"
+  },
+  {
+    "id": "nov-wmt-q3",
+    "date": "2026-11-19",
+    "time": "20:00",
+    "title": "월마트 (WMT) 회계 3분기 실적 발표",
+    "type": "earnings",
+    "region": "us",
+    "simpleSummary": "추수감사절과 연말 홀리데이 쇼핑 성수기를 앞두고 미국 일반 가계의 소비 심리 상태를 확인해요.",
+    "impactTag": "관망",
+    "importance": 2,
+    "ticker": "WMT",
+    "expected": "매출 $187.22B / EPS $0.64"
   },
   {
     "id": "nov-core-pce",
@@ -11978,54 +12040,6 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "impactTag": "핵심지표",
     "importance": 3,
     "previous": "2.6%"
-  },
-  {
-    "id": "nov-sksquare-q3",
-    "date": "2026-11-13",
-    "time": "16:00",
-    "title": "SK스퀘어 (402340) 3분기 분기보고서 공시",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "SK하이닉스 실적 모멘텀에 따른 순자산가치(NAV) 할인율 축소와 신규 테크 투자 방향을 확인해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "402340"
-  },
-  {
-    "id": "nov-samsunglife-q3",
-    "date": "2026-11-13",
-    "time": "16:30",
-    "title": "삼성생명 (032830) 3분기 분기보고서 공시",
-    "type": "earnings",
-    "region": "kr",
-    "simpleSummary": "금융당국 건전성 제도 하에서 K-ICS(지급여력비율) 안정성과 연간 배당 가시성을 점검해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "032830"
-  },
-  {
-    "id": "nov-wmt-q3",
-    "date": "2026-11-17",
-    "time": "20:00",
-    "title": "월마트 (WMT) 회계 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "추수감사절과 연말 홀리데이 쇼핑 성수기를 앞두고 미국 일반 가계의 소비 심리 상태를 확인해요.",
-    "impactTag": "관망",
-    "importance": 2,
-    "ticker": "WMT"
-  },
-  {
-    "id": "nov-nvda-q3",
-    "date": "2026-11-18",
-    "time": "06:00",
-    "title": "엔비디아 (NVDA) 회계 3분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "차세대 블랙웰(Blackwell B200) 아키텍처의 대량 납품 실적과 AI 생태계 수주 잔고를 총결산해요.\n글로벌 테크 섹터 연말 랠리의 최대 분수령입니다.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "ticker": "NVDA"
   },
   {
     "id": "nov-thanksgiving",
@@ -12052,7 +12066,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
   },
   {
     "id": "dec-avgo-q4",
-    "date": "2026-12-03",
+    "date": "2026-12-10",
     "time": "06:00",
     "title": "브로드컴 (AVGO) 회계 4분기 및 연간 실적 발표",
     "type": "earnings",
@@ -12060,7 +12074,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "2026 회계연도 전체 결산 및 2027년 커스텀 AI 가속기 칩 공급 전망과 배당 증액을 발표해요.",
     "impactTag": "호재 가능성",
     "importance": 3,
-    "ticker": "AVGO"
+    "ticker": "AVGO",
+    "expected": "매출 $34.88B / EPS $3.83"
   },
   {
     "id": "dec-fomc-result",

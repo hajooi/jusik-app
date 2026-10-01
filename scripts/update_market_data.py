@@ -44,18 +44,18 @@ SYMBOLS = {
     'AMZN': 'AMZN',
     'TSM': 'TSM',
     'SPCX': 'SPCX',
+    'META': 'META',
     'AVGO': 'AVGO',
     'TSLA': 'TSLA',
-    'META': 'META',
-    'LLY': 'LLY',
     'MU': 'MU',
     'BRK_B': 'BRK-B',
+    'LLY': 'LLY',
+    'AMD': 'AMD',
     'JPM': 'JPM',
     'WMT': 'WMT',
-    'AMD': 'AMD',
     'V': 'V',
-    'XOM': 'XOM',
     'ASML': 'ASML',
+    'XOM': 'XOM',
     'JNJ': 'JNJ',
     # 7. 한국 대표 개별주 (시총 Top 10)
     '005930': '005930.KS',
@@ -65,9 +65,9 @@ SYMBOLS = {
     '373220': '373220.KS',
     '005380': '005380.KS',
     '207940': '207940.KS',
+    '105560': '105560.KS',
     '032830': '032830.KS',
-    '028260': '028260.KS',
-    '105560': '105560.KS'
+    '028260': '028260.KS'
 }
 
 HISTORICAL_PRICES_PATH = 'src/data/historicalPrices.json'
