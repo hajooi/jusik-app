@@ -15,6 +15,18 @@ interface SparklineChartProps {
   valueFormatter?: (val: number) => string;
 }
 
+/**
+ * 차트 날짜 문자열(예: '2026-10-01', '2026.10.01', '2026.01')을
+ * 사용자 친화적인 컴팩트 형식('26.10.01', '26.01')으로 일관되게 정규화합니다.
+ */
+function formatChartDate(rawDate?: string): string {
+  if (!rawDate) return '';
+  // 1. 하이픈('-') 및 슬래시('/')를 온점('.')으로 일괄 정규화
+  const dotDate = rawDate.replace(/[-/]/g, '.');
+  // 2. 4자리 연도를 2자리 연도로 단축 ("2026.01.01" -> "26.01.01", "2026.01" -> "26.01")
+  return dotDate.replace(/^\d{2}(\d{2}\.)/, '$1');
+}
+
 export default function SparklineChart({
   data,
   points,
@@ -312,7 +324,7 @@ export default function SparklineChart({
     return fractions.map((frac) => {
       const idx = Math.min(points.length - 1, Math.round((points.length - 1) * frac));
       return {
-        date: points[idx].date.substring(2), // '25.12.01' 형태로 컴팩트
+        date: formatChartDate(points[idx].date),
         ratio: idx / (points.length - 1),
       };
     });
@@ -540,8 +552,7 @@ export default function SparklineChart({
             <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-mono leading-none">
               {activeDate && (
                 <span className="text-[var(--text-secondary)] font-semibold">
-                  {/* 모바일에서는 '26.03.04' 형태로 컴팩트 */}
-                  {activeDate.replace(/^\d{2}(\d{2}\.)/, '$1')}
+                  {formatChartDate(activeDate)}
                 </span>
               )}
               <span className="text-[var(--text-primary)] font-extrabold tabular-nums">
@@ -571,7 +582,7 @@ export default function SparklineChart({
           >
             <div className="flex items-center gap-1.5 sm:gap-2 font-mono text-xs">
               <span className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] font-semibold">
-                {dragInfo.startDate.replace(/^\d{2}(\d{2}\.)/, '$1')} ~ {dragInfo.endDate.replace(/^\d{2}(\d{2}\.)/, '$1')}
+                {formatChartDate(dragInfo.startDate)} ~ {formatChartDate(dragInfo.endDate)}
               </span>
               <span className="w-1 h-1 rounded-full bg-[var(--border-color)] shrink-0" />
               <span className="font-extrabold text-[11px] sm:text-xs text-[var(--accent-orange)] font-mono shrink-0">
