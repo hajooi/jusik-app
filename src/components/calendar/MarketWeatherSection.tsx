@@ -188,10 +188,16 @@ export default function MarketWeatherSection({
     };
 
     const mergeMacroCharts = (incoming?: any) => {
-      return {
+      const merged: Record<string, any> = {
         ...MACRO_ASSET_CHARTS,
         ...(incoming || {}),
       };
+      for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
+        if (merged[k]) {
+          merged[k] = { ...merged[k], label: MACRO_ASSET_CHARTS[k].label };
+        }
+      }
+      return merged;
     };
 
     // 1. 유효한 로컬 캐시가 있으면 즉시 0ms 렌더링 (깜빡임 및 덜컹거림 없음)

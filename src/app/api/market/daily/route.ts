@@ -600,10 +600,15 @@ export async function GET(request: Request) {
               return { ...base, ...found };
             });
 
-            const mergedMacroCharts = {
+            const mergedMacroCharts: Record<string, any> = {
               ...MACRO_ASSET_CHARTS,
               ...(dbRecord.simulator_settings?.macroAssetCharts || {}),
             };
+            for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
+              if (mergedMacroCharts[k]) {
+                mergedMacroCharts[k] = { ...mergedMacroCharts[k], label: MACRO_ASSET_CHARTS[k].label };
+              }
+            }
 
             const cachedData = {
               ...dbRecord.simulator_settings,
