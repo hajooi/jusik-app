@@ -10,10 +10,18 @@ import {
   MACRO_ASSET_CHARTS,
   MACRO_SUMMARY_ITEMS,
 } from '@/data/marketCalendar';
-import { TrendingDown, TrendingUp, ExternalLink, Newspaper, Activity, Coins } from 'lucide-react';
+import { TrendingDown, TrendingUp, ExternalLink, Newspaper, Activity, Coins, CheckCircle2, AlertTriangle } from 'lucide-react';
 import SparklineChart from './SparklineChart';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
+import {
+  evaluateCreditSpreadSignal,
+  evaluateFedRateSignal,
+  evaluateCpiSignal,
+  evaluateUnemploymentSignal,
+  evaluateEpsSignal,
+  MacroSignalResult,
+} from '@/utils/macroSignals';
 
 const WEATHER_EMOJI: Record<string, string> = {
   sunny: '☀️',
@@ -96,6 +104,22 @@ function MarketWeatherSkeleton() {
               <div key={i} className="rounded-xl px-3 py-2.5 bg-[var(--card-surface)]/80 border border-[var(--border-color)]/80 shadow-2xs flex items-center justify-between">
                 <div className="h-3 w-14 rounded bg-[var(--border-color)]/30" />
                 <div className="h-3 w-12 rounded bg-[var(--border-color)]/40" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2.5 pt-1">
+          <div className="flex items-center justify-between px-0.5">
+            <div className="h-3.5 w-24 rounded bg-[var(--border-color)]/30" />
+            <div className="h-4 w-28 rounded-full bg-[var(--border-color)]/25" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="rounded-xl p-3 bg-[var(--card-surface)]/80 border border-[var(--border-color)]/80 shadow-2xs space-y-2.5">
+                <div className="h-3 w-16 rounded bg-[var(--border-color)]/30" />
+                <div className="h-5 w-20 rounded bg-[var(--border-color)]/40" />
+                <div className="h-4 w-14 rounded bg-[var(--border-color)]/20 pt-1" />
               </div>
             ))}
           </div>
@@ -223,6 +247,18 @@ export default function MarketWeatherSection({
     charts.SPX ??
     ASSET_CHARTS.SPX;
   const barColor = FG_BAR_COLOR(fearGreedIndex);
+
+  // 5대 거시경제 핵심 지표 신호등 판정
+  const signals: Record<string, MacroSignalResult> = {
+    DFEDTARU: evaluateFedRateSignal(macroCharts.DFEDTARU?.points ?? []),
+    CPI_YOY: evaluateCpiSignal(macroCharts.CPI_YOY?.points ?? []),
+    UNEMPLOYMENT: evaluateUnemploymentSignal(macroCharts.UNEMPLOYMENT?.points ?? []),
+    SP500_EPS: evaluateEpsSignal(macroCharts.SP500_EPS?.points ?? []),
+    CREDIT_SPREAD: evaluateCreditSpreadSignal(macroCharts.CREDIT_SPREAD?.points ?? []),
+  };
+
+  const emeraldCount = Object.values(signals).filter((s) => s.status === 'emerald').length;
+  const orangeCount = Object.values(signals).filter((s) => s.status === 'orange').length;
 
   return (
     <SmoothHeight>
@@ -413,18 +449,31 @@ export default function MarketWeatherSection({
             </div>
           </div>
 
-          {/* 4) Macro Core Indicators Controls (5-Year Cycle) */}
-          <div className="space-y-2 pt-2 border-t border-[var(--border-color)]/60">
-            <div className="px-0.5">
+          {/* 4) Macro Core Indicators Controls (5-Year Cycle) with Cockpit Signals */}
+          <div className="space-y-2.5 pt-1">
+            <div className="flex items-center justify-between px-0.5">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
                 <span>핵심 경제 지표</span>
               </span>
+              <div className="flex items-center gap-1.5 text-[11px] font-bold font-mono px-2.5 py-1 rounded-full bg-[var(--bg-main)] border border-[var(--border-color)]">
+                <span className="flex items-center gap-1 text-emerald-500">
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{emeraldCount}개 안정</span>
+                </span>
+                <span className="text-[var(--text-secondary)]/30">·</span>
+                <span className="flex items-center gap-1 text-[var(--accent-orange)]">
+                  <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{orangeCount}개 주의</span>
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
               {macroSummary.map((item) => {
                 const isSelected = selectedAssetKey === item.key;
+                const signal = signals[item.key] ?? { status: 'emerald', label: '안정', detail: '' };
+                const isEmerald = signal.status === 'emerald';
                 return (
                   <button
                     key={item.key}
@@ -435,13 +484,28 @@ export default function MarketWeatherSection({
                         : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/80 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:bg-[var(--card-hover)]'
                     }`}
                   >
-                    <div className="text-[var(--text-secondary)] text-[11px] font-semibold mb-1">
-                      <span className={isSelected ? 'text-[var(--accent-orange)] font-bold' : ''}>
-                        {item.name}
-                      </span>
+                    <div>
+                      <div className="text-[var(--text-secondary)] text-[11px] font-semibold mb-1 flex items-center justify-between">
+                        <span className={isSelected ? 'text-[var(--accent-orange)] font-bold' : ''}>
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="text-[var(--text-primary)] font-extrabold text-sm sm:text-base tabular-nums tracking-tight">
+                        {item.value}
+                      </div>
                     </div>
-                    <div className="text-[var(--text-primary)] font-extrabold text-sm sm:text-base tabular-nums tracking-tight">
-                      {item.value}
+
+                    <div className="mt-2.5 flex items-center justify-between">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md border ${
+                        isEmerald
+                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25'
+                          : 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border-[var(--accent-orange)]/30'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          isEmerald ? 'bg-emerald-500' : 'bg-[var(--accent-orange)]'
+                        }`} />
+                        {signal.label}
+                      </span>
                     </div>
                   </button>
                 );

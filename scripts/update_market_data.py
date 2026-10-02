@@ -592,6 +592,26 @@ def update_macro_indicators():
             calendar_code, 'UNEMPLOYMENT', '미국 실업률', unrate_cur, unrate_change, unrate_diff >= 0, unrate_points
         )
 
+        # 4. 신용스프레드 BAMLC0A0CM (5년 일별 슬라이딩)
+        spread_raw = fetch_fred_csv('BAMLC0A0CM')
+        spread_json_path = os.path.join(ROOT_DIR, 'src/data/creditSpreadDaily.json')
+        spread_cur = "0.84%"
+        if os.path.exists(spread_json_path):
+            with open(spread_json_path, 'r', encoding='utf-8') as f:
+                existing_spread = json.load(f)
+            existing_map = {item['date']: item['value'] for item in existing_spread}
+            for date, val in spread_raw:
+                existing_map[date] = val
+            all_dates = sorted(existing_map.keys())
+            if all_dates:
+                last_dt = datetime.strptime(all_dates[-1], '%Y-%m-%d')
+                start_5y_str = (last_dt - timedelta(days=int(5 * 365.25))).strftime('%Y-%m-%d')
+                pruned_dates = [d for d in all_dates if d >= start_5y_str]
+                updated_spread = [{'date': d, 'value': existing_map[d]} for d in pruned_dates]
+                with open(spread_json_path, 'w', encoding='utf-8') as f:
+                    json.dump(updated_spread, f, indent=2, ensure_ascii=False)
+                spread_cur = f"{updated_spread[-1]['value']:.2f}%"
+
         # MACRO_SUMMARY_ITEMS 갱신
         start_sum_tag = "export const MACRO_SUMMARY_ITEMS: MacroIndicatorSummary[] = ["
         end_sum_tag = "];"
@@ -619,18 +639,24 @@ def update_macro_indicators():
     name: '기업 실적(EPS)',
     value: '$295.36',
   }},
+  {{
+    key: 'CREDIT_SPREAD',
+    name: '신용스프레드',
+    value: '{spread_cur}',
+  }},
 ];"""
             calendar_code = calendar_code[:s_idx] + sum_block + calendar_code[e_idx:]
 
         with open(CALENDAR_PATH, 'w', encoding='utf-8') as f:
             f.write(calendar_code)
 
-        print(f"Macro sync success: Fed {fed_cur}, CPI YoY {cpi_cur}, Unrate {unrate_cur}")
+        print(f"Macro sync success: Fed {fed_cur}, CPI YoY {cpi_cur}, Unrate {unrate_cur}, Spread {spread_cur}")
         return {
             'fed_latest': fed_cur,
             'cpi_latest': cpi_cur,
             'unrate_latest': unrate_cur,
             'eps_latest': '$295.36',
+            'spread_latest': spread_cur,
         }
     except Exception as e:
         print(f"Error updating macro indicators: {e}")

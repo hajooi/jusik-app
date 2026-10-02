@@ -569,6 +569,8 @@ export interface FredMacroSnapshot {
   fedRate?: string;           // 미국 기준금리
   cpiYoy?: string;            // 소비자물가 YoY
   unemployment?: string;       // 실업률
+  creditSpread?: string;       // 신용스프레드
+  creditSpreadObs?: Array<{ date: string; value: number }>;
 }
 
 /**
@@ -579,10 +581,11 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  const [fedRateObs, cpiObs, unrateObs] = await Promise.allSettled([
+  const [fedRateObs, cpiObs, unrateObs, spreadObs] = await Promise.allSettled([
     fetchFredSeries('DFEDTARU', todayStr, 1),
     fetchFredSeries('CPALTT01USM657N', todayStr, 1),
     fetchFredSeries('UNRATE', todayStr, 1),
+    fetchFredSeries('BAMLC0A0CM', todayStr, 5),
   ]);
 
   const result: FredMacroSnapshot = {};
@@ -600,6 +603,16 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
   if (unrateObs.status === 'fulfilled' && unrateObs.value.length > 0) {
     const val = parseFloat(unrateObs.value[0].value);
     if (!isNaN(val)) result.unemployment = `${val.toFixed(1)}%`;
+  }
+
+  if (spreadObs.status === 'fulfilled' && spreadObs.value.length > 0) {
+    const val = parseFloat(spreadObs.value[0].value);
+    if (!isNaN(val)) {
+      result.creditSpread = `${val.toFixed(2)}%`;
+      result.creditSpreadObs = spreadObs.value
+        .map((o) => ({ date: o.date, value: parseFloat(o.value) }))
+        .filter((o) => !isNaN(o.value));
+    }
   }
 
   return result;
@@ -798,6 +811,51 @@ export function resolveUpdatedMacroIndicators(
             const diff = numUnrate - baseVal;
             resolvedCharts.UNEMPLOYMENT.change = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%p`;
             resolvedCharts.UNEMPLOYMENT.isPositive = diff >= 0;
+          }
+        }
+      }
+    }
+  }
+
+  // 4. 미국 신용스프레드 CREDIT_SPREAD
+  if (fredSnapshot?.creditSpread && resolvedCharts.CREDIT_SPREAD) {
+    const match = fredSnapshot.creditSpread.match(/\d+(\.\d+)?%/);
+    if (match) {
+      const cleanSpread = match[0];
+      const numSpread = parseFloat(cleanSpread.replace('%', ''));
+      if (!isNaN(numSpread)) {
+        const sumItem = resolvedSummary.find((s) => s.key === 'CREDIT_SPREAD');
+        if (sumItem) sumItem.value = cleanSpread;
+        resolvedCharts.CREDIT_SPREAD.current = cleanSpread;
+
+        if (fredSnapshot.creditSpreadObs && fredSnapshot.creditSpreadObs.length > 0) {
+          const pts = resolvedCharts.CREDIT_SPREAD.points;
+          for (const obs of fredSnapshot.creditSpreadObs) {
+            const existingIdx = pts.findIndex((p) => p.date === obs.date);
+            if (existingIdx >= 0) {
+              pts[existingIdx].value = obs.value;
+              if (resolvedCharts.CREDIT_SPREAD.data[existingIdx] !== undefined) {
+                resolvedCharts.CREDIT_SPREAD.data[existingIdx] = obs.value;
+              }
+            } else {
+              pts.push({ date: obs.date, value: obs.value });
+              resolvedCharts.CREDIT_SPREAD.data.push(obs.value);
+            }
+          }
+          pts.sort((a, b) => a.date.localeCompare(b.date));
+          if (pts.length > 0) {
+            const latestDate = new Date(pts[pts.length - 1].date);
+            const cutoffDate = new Date(latestDate);
+            cutoffDate.setFullYear(cutoffDate.getFullYear() - 5);
+            const cutoffStr = cutoffDate.toISOString().split('T')[0];
+            const prunedPts = pts.filter((p) => p.date >= cutoffStr);
+            resolvedCharts.CREDIT_SPREAD.points = prunedPts;
+            resolvedCharts.CREDIT_SPREAD.data = prunedPts.map((p) => p.value);
+
+            const baseVal = prunedPts[0].value;
+            const diff = numSpread - baseVal;
+            resolvedCharts.CREDIT_SPREAD.change = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)}%p`;
+            resolvedCharts.CREDIT_SPREAD.isPositive = diff >= 0;
           }
         }
       }

@@ -1,3 +1,5 @@
+import CREDIT_SPREAD_DAILY from './creditSpreadDaily.json';
+
 export type EventType = 'economic' | 'earnings' | 'holiday' | 'dividend';
 export type ImpactTag = '호재 가능성' | '변동성 주의' | '관망' | '핵심지표';
 export type EventRegion = 'us' | 'kr';
@@ -10401,6 +10403,12 @@ export const INDICATOR_METADATA: Record<string, IndicatorMeta> = {
     period: '최근 5년 추이 (월간 누적)',
     summary: 'S&P 500 기업들의 1주당 순이익',
   },
+  CREDIT_SPREAD: {
+    key: 'CREDIT_SPREAD',
+    name: '신용스프레드',
+    period: '최근 5년 추이 (일간)',
+    summary: '기업들의 채권 금리 추가 이자 (부도 위험도)',
+  },
 };
 
 export const MACRO_ASSET_CHARTS: Record<string, {
@@ -10443,6 +10451,14 @@ export const MACRO_ASSET_CHARTS: Record<string, {
     data: [134.66, 148.34, 161.62, 173.04, 184.3, 195.12, 200.96, 207.3, 213.48, 220.77, 228.7, 236.99, 235.02, 232.91, 229.86, 226.41, 221.79, 216.66, 214.74, 212.87, 210.47, 204.27, 199.12, 194.36, 193.71, 193.53, 193.79, 194.96, 196.6, 198.1, 198.9, 199.21, 199.89, 202.93, 206.3, 209.48, 207.97, 206.31, 204.62, 205.44, 206.7, 208.24, 209.54, 210.9, 212.09, 215.34, 218.95, 222.37, 223.2, 224.49, 226.26, 227.58, 229.13, 230.37, 233.99, 237.28, 240.63, 243.95, 246.06, 247.96, 254.26, 260.25, 264.66, 273.68, 283.14, 295.36],
     points: [{"date": "2021.01", "value": 134.66}, {"date": "2021.02", "value": 148.34}, {"date": "2021.03", "value": 161.62}, {"date": "2021.04", "value": 173.04}, {"date": "2021.05", "value": 184.3}, {"date": "2021.06", "value": 195.12}, {"date": "2021.07", "value": 200.96}, {"date": "2021.08", "value": 207.3}, {"date": "2021.09", "value": 213.48}, {"date": "2021.10", "value": 220.77}, {"date": "2021.11", "value": 228.7}, {"date": "2021.12", "value": 236.99}, {"date": "2022.01", "value": 235.02}, {"date": "2022.02", "value": 232.91}, {"date": "2022.03", "value": 229.86}, {"date": "2022.04", "value": 226.41}, {"date": "2022.05", "value": 221.79}, {"date": "2022.06", "value": 216.66}, {"date": "2022.07", "value": 214.74}, {"date": "2022.08", "value": 212.87}, {"date": "2022.09", "value": 210.47}, {"date": "2022.10", "value": 204.27}, {"date": "2022.11", "value": 199.12}, {"date": "2022.12", "value": 194.36}, {"date": "2023.01", "value": 193.71}, {"date": "2023.02", "value": 193.53}, {"date": "2023.03", "value": 193.79}, {"date": "2023.04", "value": 194.96}, {"date": "2023.05", "value": 196.6}, {"date": "2023.06", "value": 198.1}, {"date": "2023.07", "value": 198.9}, {"date": "2023.08", "value": 199.21}, {"date": "2023.09", "value": 199.89}, {"date": "2023.10", "value": 202.93}, {"date": "2023.11", "value": 206.3}, {"date": "2023.12", "value": 209.48}, {"date": "2024.01", "value": 207.97}, {"date": "2024.02", "value": 206.31}, {"date": "2024.03", "value": 204.62}, {"date": "2024.04", "value": 205.44}, {"date": "2024.05", "value": 206.7}, {"date": "2024.06", "value": 208.24}, {"date": "2024.07", "value": 209.54}, {"date": "2024.08", "value": 210.9}, {"date": "2024.09", "value": 212.09}, {"date": "2024.10", "value": 215.34}, {"date": "2024.11", "value": 218.95}, {"date": "2024.12", "value": 222.37}, {"date": "2025.01", "value": 223.2}, {"date": "2025.02", "value": 224.49}, {"date": "2025.03", "value": 226.26}, {"date": "2025.04", "value": 227.58}, {"date": "2025.05", "value": 229.13}, {"date": "2025.06", "value": 230.37}, {"date": "2025.07", "value": 233.99}, {"date": "2025.08", "value": 237.28}, {"date": "2025.09", "value": 240.63}, {"date": "2025.10", "value": 243.95}, {"date": "2025.11", "value": 246.06}, {"date": "2025.12", "value": 247.96}, {"date": "2026.01", "value": 254.26}, {"date": "2026.02", "value": 260.25}, {"date": "2026.03", "value": 264.66}, {"date": "2026.04", "value": 273.68}, {"date": "2026.05", "value": 283.14}, {"date": "2026.06", "value": 295.36}],
   },
+  CREDIT_SPREAD: {
+    label: '미국 신용스프레드 (BAMLC0A0CM)',
+    current: `${CREDIT_SPREAD_DAILY[CREDIT_SPREAD_DAILY.length - 1].value.toFixed(2)}%`,
+    change: `${CREDIT_SPREAD_DAILY[CREDIT_SPREAD_DAILY.length - 1].value - CREDIT_SPREAD_DAILY[0].value >= 0 ? '+' : ''}${(CREDIT_SPREAD_DAILY[CREDIT_SPREAD_DAILY.length - 1].value - CREDIT_SPREAD_DAILY[0].value).toFixed(2)}%p`,
+    isPositive: CREDIT_SPREAD_DAILY[CREDIT_SPREAD_DAILY.length - 1].value - CREDIT_SPREAD_DAILY[0].value >= 0,
+    data: CREDIT_SPREAD_DAILY.map((d: { value: number }) => d.value),
+    points: CREDIT_SPREAD_DAILY.map((d: { date: string; value: number }) => ({ date: d.date, value: d.value })),
+  },
 };
 
 export interface MacroIndicatorSummary {
@@ -10471,6 +10487,11 @@ export const MACRO_SUMMARY_ITEMS: MacroIndicatorSummary[] = [
     key: 'SP500_EPS',
     name: '기업 실적(EPS)',
     value: '$295.36',
+  },
+  {
+    key: 'CREDIT_SPREAD',
+    name: '신용스프레드',
+    value: `${CREDIT_SPREAD_DAILY[CREDIT_SPREAD_DAILY.length - 1].value.toFixed(2)}%`,
   },
 ];
 
