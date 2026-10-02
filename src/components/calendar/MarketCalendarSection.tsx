@@ -252,13 +252,13 @@ export default function MarketCalendarSection() {
     return filterEvents([...activeWindowEvents]).sort((a, b) => a.date.localeCompare(b.date));
   }, [activeWindowEvents, categoryFilter, regionFilter, importanceFilter]);
 
-  // 오늘 이전 가장 최근에 발표 결과(actual)가 나온 Top 3 핵심 이벤트
+  // 사용자가 선택한 필터(종류, 지역, 중요도)가 반영된 오늘 이전 최근 발표 결과 Top 3
   const recentPublishedEvents = useMemo(() => {
-    return activeWindowEvents
+    return allFilteredEvents
       .filter((e) => e.date < TODAY_STR && e.actual)
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 3);
-  }, [activeWindowEvents, TODAY_STR]);
+  }, [allFilteredEvents, TODAY_STR]);
 
   // 필터가 적용된 이벤트를 날짜별로 그룹화 (달력 그리드에서 스케줄 유무 판별)
   const eventsByDate = useMemo(() => {
@@ -563,7 +563,7 @@ export default function MarketCalendarSection() {
                   key={`recent-${rev.id}`}
                   type="button"
                   onClick={() => setSelectedDate(rev.date)}
-                  className="min-w-[240px] sm:min-w-0 snap-start flex-1 shrink-0 text-left p-3.5 rounded-xl bg-[var(--card-surface)] border border-emerald-500/20 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group flex flex-col justify-between space-y-2 shadow-2xs"
+                  className="min-w-[240px] sm:min-w-0 snap-start flex-1 shrink-0 text-left p-3.5 rounded-xl bg-[var(--card-surface)] border border-emerald-500/20 hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_14px_rgba(241,143,1,0.15)] transition-all cursor-pointer group flex flex-col justify-start space-y-2 shadow-2xs"
                 >
                   <div className="flex items-center justify-between text-[11px] font-mono w-full">
                     <span className="font-bold text-[var(--text-secondary)]">
