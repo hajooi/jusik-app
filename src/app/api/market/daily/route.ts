@@ -592,13 +592,26 @@ export async function GET(request: Request) {
               });
             }
 
+            const cachedMacroItems: any[] = dbRecord.simulator_settings?.macroSummaryItems || [];
+            const mergedMacroSummary = MACRO_SUMMARY_ITEMS.map((base) => {
+              const found = cachedMacroItems.find((c: any) => c.key === base.key);
+              if (!found) return base;
+              if (base.key === 'CPI_YOY' && (found.value === '3.4%' || found.value === '3.4')) return base;
+              return { ...base, ...found };
+            });
+
+            const mergedMacroCharts = {
+              ...MACRO_ASSET_CHARTS,
+              ...(dbRecord.simulator_settings?.macroAssetCharts || {}),
+            };
+
             const cachedData = {
               ...dbRecord.simulator_settings,
               snapshot: { ...snap, todayNews: validNews },
               calendarEvents: pruneOldCalendarEvents(mergedEvents),
               weeklyBriefing: WEEKLY_BRIEFING,
-              macroSummaryItems: dbRecord.simulator_settings?.macroSummaryItems ?? MACRO_SUMMARY_ITEMS,
-              macroAssetCharts: dbRecord.simulator_settings?.macroAssetCharts ?? MACRO_ASSET_CHARTS,
+              macroSummaryItems: mergedMacroSummary,
+              macroAssetCharts: mergedMacroCharts,
             };
 
             // 메모리 캐시에 저장 (다음 요청은 DB 조회 없이 즉시 반환)
@@ -1173,7 +1186,15 @@ export async function GET(request: Request) {
     try {
       const warningMessage = dataIssues.length > 0 ? dataIssues.join('\n') : undefined;
       const fallbackNotice = fallbackNotices.length > 0 ? fallbackNotices.map((n) => `• ${n}`).join('\n') : undefined;
-      await sendTelegramDailyReport(snapshot, newlyPublished, warningMessage, fallbackNotice, macroUpdates);
+      await sendTelegramDailyReport(
+        snapshot,
+        newlyPublished,
+        warningMessage,
+        fallbackNotice,
+        macroUpdates,
+        resolvedMacroSummary,
+        resolvedMacroCharts
+      );
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);
     }

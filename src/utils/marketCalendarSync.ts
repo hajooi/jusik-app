@@ -568,9 +568,54 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
 export interface FredMacroSnapshot {
   fedRate?: string;           // 미국 기준금리
   cpiYoy?: string;            // 소비자물가 YoY
+  cpiDate?: string;           // 소비자물가 기준일
   unemployment?: string;       // 실업률
   creditSpread?: string;       // 신용스프레드
   creditSpreadObs?: Array<{ date: string; value: number }>;
+}
+
+/**
+ * FRED 공식 CSV에서 CPIAUCSL 원천 지수를 다운로드하여
+ * 전년 동월 대비(YoY) 정밀 성장률(소수점 둘째 자리)을 산출합니다.
+ */
+async function fetchFredCpiYoY(): Promise<{ cpiYoy: string; cpiDate: string } | null> {
+  try {
+    const res = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL', {
+      cache: 'no-store',
+      headers: { 'User-Agent': 'jusik.app-market-sync' },
+    });
+    if (res.ok) {
+      const text = await res.text();
+      const lines = text.trim().split('\n').filter((l) => l.includes(','));
+      const cpiMap = new Map<string, number>();
+      const points: Array<{ date: string; val: number }> = [];
+
+      for (const line of lines) {
+        const [d, v] = line.split(',');
+        const num = parseFloat(v);
+        if (d && !isNaN(num) && isFinite(num)) {
+          const cleanDate = d.trim();
+          cpiMap.set(cleanDate, num);
+          points.push({ date: cleanDate, val: num });
+        }
+      }
+
+      if (points.length > 0) {
+        const latest = points[points.length - 1];
+        const [y, m, day] = latest.date.split('-');
+        const prevDate = `${parseInt(y, 10) - 1}-${m}-${day}`;
+        const prevVal = cpiMap.get(prevDate);
+
+        if (prevVal !== undefined && prevVal > 0) {
+          const yoy = ((latest.val - prevVal) / prevVal) * 100;
+          return { cpiYoy: `${yoy.toFixed(2)}%`, cpiDate: latest.date };
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[FRED] CPIAUCSL fetch failed:', e);
+  }
+  return null;
 }
 
 /**
@@ -581,9 +626,9 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  const [fedRateObs, cpiObs, unrateObs, spreadObs] = await Promise.allSettled([
+  const [fedRateObs, cpiResult, unrateObs, spreadObs] = await Promise.allSettled([
     fetchFredSeries('DFEDTARU', todayStr, 1),
-    fetchFredSeries('CPALTT01USM657N', todayStr, 1),
+    fetchFredCpiYoY(),
     fetchFredSeries('UNRATE', todayStr, 1),
     fetchFredSeries('BAMLC0A0CM', todayStr, 5),
   ]);
@@ -595,9 +640,9 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
     if (!isNaN(val)) result.fedRate = `${val.toFixed(2)}%`;
   }
 
-  if (cpiObs.status === 'fulfilled' && cpiObs.value.length > 0) {
-    const val = parseFloat(cpiObs.value[0].value);
-    if (!isNaN(val)) result.cpiYoy = `${val.toFixed(2)}%`;
+  if (cpiResult.status === 'fulfilled' && cpiResult.value) {
+    result.cpiYoy = cpiResult.value.cpiYoy;
+    result.cpiDate = cpiResult.value.cpiDate;
   }
 
   if (unrateObs.status === 'fulfilled' && unrateObs.value.length > 0) {
@@ -648,11 +693,14 @@ export function resolveUpdatedMacroIndicators(
     return null;
   };
 
-  // 1. 기준금리 DFEDTARU
+  // 1. 기준금리 DFEDTARU (1순위: FRED 공식 확정치, 2순위: 당일 속보, 3순위: 캘린더)
   let fedValStr: string | undefined;
   let fedDateStr: string | undefined;
 
-  if (macroUpdates?.fedRate) {
+  if (fredSnapshot?.fedRate) {
+    fedValStr = fredSnapshot.fedRate;
+    fedDateStr = todayStr;
+  } else if (macroUpdates?.fedRate) {
     fedValStr = macroUpdates.fedRate;
     fedDateStr = todayStr;
   } else {
@@ -663,9 +711,6 @@ export function resolveUpdatedMacroIndicators(
     if (ev) {
       fedValStr = ev.actual;
       fedDateStr = ev.date;
-    } else if (fredSnapshot?.fedRate) {
-      fedValStr = fredSnapshot.fedRate;
-      fedDateStr = todayStr;
     }
   }
 
@@ -703,11 +748,22 @@ export function resolveUpdatedMacroIndicators(
     }
   }
 
-  // 2. 소비자물가 CPI_YOY
+  // 2. 소비자물가 CPI_YOY (1순위: FRED 공식 확정치, 2순위: 당일 속보, 3순위: 캘린더)
   let cpiValStr: string | undefined;
   let cpiDateStr: string | undefined;
 
-  if (macroUpdates?.cpi) {
+  if (fredSnapshot?.cpiYoy) {
+    cpiValStr = fredSnapshot.cpiYoy;
+    cpiDateStr = fredSnapshot.cpiDate || todayStr;
+    // 캘린더 이벤트의 actual도 FRED 공식 확정치로 일원화
+    const targetEv = updatedEvents.find((e) => {
+      const t = e.title.toLowerCase();
+      return t.includes('소비자물가') && !t.includes('근원') && !t.includes('core') && e.date <= todayStr;
+    });
+    if (targetEv) {
+      targetEv.actual = fredSnapshot.cpiYoy;
+    }
+  } else if (macroUpdates?.cpi) {
     cpiValStr = macroUpdates.cpi;
     cpiDateStr = todayStr;
   } else {
@@ -718,9 +774,6 @@ export function resolveUpdatedMacroIndicators(
     if (ev) {
       cpiValStr = ev.actual;
       cpiDateStr = ev.date;
-    } else if (fredSnapshot?.cpiYoy) {
-      cpiValStr = fredSnapshot.cpiYoy;
-      cpiDateStr = todayStr;
     }
   }
 
@@ -760,11 +813,14 @@ export function resolveUpdatedMacroIndicators(
     }
   }
 
-  // 3. 미국 실업률 UNEMPLOYMENT
+  // 3. 미국 실업률 UNEMPLOYMENT (1순위: FRED 공식 확정치, 2순위: 당일 속보, 3순위: 캘린더)
   let unrateValStr: string | undefined;
   let unrateDateStr: string | undefined;
 
-  if (macroUpdates?.unemployment) {
+  if (fredSnapshot?.unemployment) {
+    unrateValStr = fredSnapshot.unemployment;
+    unrateDateStr = todayStr;
+  } else if (macroUpdates?.unemployment) {
     unrateValStr = macroUpdates.unemployment;
     unrateDateStr = todayStr;
   } else {
@@ -775,9 +831,6 @@ export function resolveUpdatedMacroIndicators(
     if (ev) {
       unrateValStr = ev.actual;
       unrateDateStr = ev.date;
-    } else if (fredSnapshot?.unemployment) {
-      unrateValStr = fredSnapshot.unemployment;
-      unrateDateStr = todayStr;
     }
   }
 

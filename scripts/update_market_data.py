@@ -125,8 +125,9 @@ def send_telegram_success(summary: dict):
         f"  • 소비자물가(YoY): {summary.get('cpi_latest', '3.35%')}",
         f"  • 미국 실업률: {summary.get('unrate_latest', '4.1%')}",
         f"  • S&P 500 EPS: {summary.get('eps_latest', '$295.36')}",
+        f"  • 신용스프레드: {summary.get('spread_latest', '0.84%')}",
         "",
-        "🚨 <b>[핵심 4대 경제지표 최신화 알림 - 직접 확인 필요]</b>",
+        "🚨 <b>[핵심 5대 경제지표 최신화 알림 - 직접 확인 필요]</b>",
         "👉 <i>주요 경제지표가 동기화되었으니 사이트(마켓 인사이트)에서 직접 이상 유무와 5년 차트를 확인해 주세요!</i>",
         "🔗 https://www.jusik.app/tools/market",
         "",
@@ -682,5 +683,6 @@ if __name__ == '__main__':
         'cpi_latest': macro_summary.get('cpi_latest', '3.35%'),
         'unrate_latest': macro_summary.get('unrate_latest', '4.1%'),
         'eps_latest': macro_summary.get('eps_latest', '$295.36'),
+        'spread_latest': macro_summary.get('spread_latest', '0.84%'),
     })
 

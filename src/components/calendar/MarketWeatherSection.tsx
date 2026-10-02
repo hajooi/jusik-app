@@ -38,8 +38,22 @@ const FG_BAR_COLOR = (value: number) =>
   value >= 25 ? '#FB7185' : // 공포 (Soft Rose / Coral)
   '#F43F5E';                // 극도의 공포 (Signal Crimson)
 
-const CACHE_KEY = 'jusik_market_daily_cache_v1';
+const CACHE_KEY = 'jusik_market_daily_cache_v2';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1시간 (오래된 과거 데이터 노출 방지)
+
+// 차트 호버/드래그 툴팁용 지표별 공식 정밀 자릿수 및 단위 통일 포맷터
+export function formatChartValue(assetKey: string, val: number): string {
+  if (assetKey === 'DFEDTARU') return `${val.toFixed(2)}%`;
+  if (assetKey === 'CPI_YOY') return `${val.toFixed(2)}%`;
+  if (assetKey === 'UNEMPLOYMENT') return `${val.toFixed(1)}%`;
+  if (assetKey === 'CREDIT_SPREAD') return `${val.toFixed(2)}%`;
+  if (assetKey === 'SP500_EPS') return `$${val.toFixed(2)}`;
+  if (assetKey === '달러/원') return `${Math.round(val).toLocaleString()}원`;
+  if (assetKey === '미국채 10년') return `${val.toFixed(2)}%`;
+  if (assetKey === '국제 금') return `$${Math.round(val).toLocaleString()}`;
+  if (assetKey === '국제 유가') return `$${val.toFixed(1)}`;
+  return val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 // 실제 마켓 카드와 100% 동일한 그리드/높이/패딩을 갖는 0-CLS 글래스모픽 스켈레톤
 function MarketWeatherSkeleton() {
@@ -165,6 +179,21 @@ export default function MarketWeatherSection({
   useEffect(() => {
     let isMounted = true;
 
+    const mergeMacroSummary = (incoming?: any[]) => {
+      if (!Array.isArray(incoming) || incoming.length === 0) return MACRO_SUMMARY_ITEMS;
+      return MACRO_SUMMARY_ITEMS.map((base) => {
+        const found = incoming.find((item: any) => item?.key === base.key);
+        return found ? { ...base, ...found } : base;
+      });
+    };
+
+    const mergeMacroCharts = (incoming?: any) => {
+      return {
+        ...MACRO_ASSET_CHARTS,
+        ...(incoming || {}),
+      };
+    };
+
     // 1. 유효한 로컬 캐시가 있으면 즉시 0ms 렌더링 (깜빡임 및 덜컹거림 없음)
     try {
       const cached = localStorage.getItem(CACHE_KEY);
@@ -174,8 +203,8 @@ export default function MarketWeatherSection({
         if (isFresh && parsed?.data?.snapshot && parsed?.data?.assetCharts) {
           setSnapshot(parsed.data.snapshot);
           setCharts(parsed.data.assetCharts);
-          if (parsed.data.macroAssetCharts) setMacroCharts(parsed.data.macroAssetCharts);
-          if (parsed.data.macroSummaryItems) setMacroSummary(parsed.data.macroSummaryItems);
+          if (parsed.data.macroAssetCharts) setMacroCharts(mergeMacroCharts(parsed.data.macroAssetCharts));
+          if (parsed.data.macroSummaryItems) setMacroSummary(mergeMacroSummary(parsed.data.macroSummaryItems));
           setIsLoading(false);
           if (onWeatherChange && parsed.data.snapshot.weatherState) {
             onWeatherChange(parsed.data.snapshot.weatherState);
@@ -193,8 +222,8 @@ export default function MarketWeatherSection({
         if (isMounted && data.success && data.snapshot && data.assetCharts) {
           setSnapshot(data.snapshot);
           setCharts(data.assetCharts);
-          if (data.macroAssetCharts) setMacroCharts(data.macroAssetCharts);
-          if (data.macroSummaryItems) setMacroSummary(data.macroSummaryItems);
+          if (data.macroAssetCharts) setMacroCharts(mergeMacroCharts(data.macroAssetCharts));
+          if (data.macroSummaryItems) setMacroSummary(mergeMacroSummary(data.macroSummaryItems));
           setIsLoading(false);
           if (onWeatherChange && data.snapshot.weatherState) {
             onWeatherChange(data.snapshot.weatherState);
@@ -367,6 +396,7 @@ export default function MarketWeatherSection({
               points={(activeChart as any).points}
               highlightLast={4}
               height={180}
+              valueFormatter={(val) => formatChartValue(selectedAssetKey, val)}
             />
           </div>
 

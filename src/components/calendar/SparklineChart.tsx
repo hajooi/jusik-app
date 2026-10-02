@@ -12,6 +12,7 @@ interface SparklineChartProps {
   points?: ChartPoint[];
   highlightLast?: number;
   height?: number;
+  valueFormatter?: (val: number) => string;
 }
 
 export default function SparklineChart({
@@ -19,6 +20,7 @@ export default function SparklineChart({
   points,
   highlightLast = 0,
   height = 160,
+  valueFormatter,
 }: SparklineChartProps) {
   // 1. 유효한 숫자만 안전 필터링 (NaN, null, undefined 100% 차단)
   const sanitized = useMemo(() => {
@@ -543,7 +545,9 @@ export default function SparklineChart({
                 </span>
               )}
               <span className="text-[var(--text-primary)] font-extrabold tabular-nums">
-                {activeVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                {valueFormatter
+                  ? valueFormatter(activeVal)
+                  : activeVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -574,7 +578,7 @@ export default function SparklineChart({
                 {dragInfo.isPositive ? '+' : ''}{dragInfo.diffPercent.toFixed(2)}%
               </span>
               <span className="text-[10px] text-[var(--text-secondary)]/80 font-medium hidden md:inline shrink-0">
-                ({dragInfo.startVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ➔ {dragInfo.endVal.toLocaleString(undefined, { maximumFractionDigits: 2 })})
+                ({valueFormatter ? valueFormatter(dragInfo.startVal) : dragInfo.startVal.toLocaleString(undefined, { maximumFractionDigits: 2 })} ➔ {valueFormatter ? valueFormatter(dragInfo.endVal) : dragInfo.endVal.toLocaleString(undefined, { maximumFractionDigits: 2 })})
               </span>
             </div>
           </div>

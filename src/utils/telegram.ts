@@ -1,4 +1,13 @@
 // src/utils/telegram.ts
+import { MacroIndicatorSummary, MACRO_ASSET_CHARTS, MACRO_SUMMARY_ITEMS } from '@/data/marketCalendar';
+import {
+  evaluateCreditSpreadSignal,
+  evaluateFedRateSignal,
+  evaluateCpiSignal,
+  evaluateUnemploymentSignal,
+  evaluateEpsSignal,
+  MacroSignalResult,
+} from './macroSignals';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -76,7 +85,9 @@ export async function sendTelegramDailyReport(
     fedRate?: string;
     cpi?: string;
     unemployment?: string;
-  }
+  },
+  macroSummaryItems?: MacroIndicatorSummary[],
+  macroCharts?: typeof MACRO_ASSET_CHARTS
 ): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
@@ -138,6 +149,32 @@ export async function sendTelegramDailyReport(
   snapshot.auxiliary.forEach((aux) => {
     lines.push(`• <b>${aux.label}</b>: ${aux.value}`);
   });
+
+  // 5대 핵심 경제 지표 및 신호등 (신용스프레드 포함)
+  const resolvedItems: MacroIndicatorSummary[] = (macroSummaryItems && macroSummaryItems.length > 0) ? macroSummaryItems : MACRO_SUMMARY_ITEMS;
+  const resolvedCharts = macroCharts || MACRO_ASSET_CHARTS;
+
+  if (resolvedItems && resolvedItems.length > 0 && resolvedCharts) {
+    const signals: Record<string, MacroSignalResult> = {
+      DFEDTARU: evaluateFedRateSignal(resolvedCharts.DFEDTARU?.points ?? []),
+      CPI_YOY: evaluateCpiSignal(resolvedCharts.CPI_YOY?.points ?? []),
+      UNEMPLOYMENT: evaluateUnemploymentSignal(resolvedCharts.UNEMPLOYMENT?.points ?? []),
+      SP500_EPS: evaluateEpsSignal(resolvedCharts.SP500_EPS?.points ?? []),
+      CREDIT_SPREAD: evaluateCreditSpreadSignal(resolvedCharts.CREDIT_SPREAD?.points ?? []),
+    };
+
+    const emeraldCount = Object.values(signals).filter((s) => s.status === 'emerald').length;
+    const orangeCount = Object.values(signals).filter((s) => s.status === 'orange').length;
+
+    lines.push(``);
+    lines.push(`🚦 <b>핵심 경제 지표</b> (${emeraldCount}개 안정 · ${orangeCount}개 주의)`);
+    resolvedItems.forEach((item) => {
+      const sig = signals[item.key];
+      const icon = sig?.status === 'emerald' ? '🟢' : '🟠';
+      const label = sig?.label ? ` (${icon} ${sig.label})` : '';
+      lines.push(`• <b>${item.name}</b>: ${item.value}${label}`);
+    });
+  }
 
   // 새로 발표/동기화된 실적 및 경제지표와 AI 요약이 있는 경우
   if (newlyPublishedEvents && newlyPublishedEvents.length > 0) {
