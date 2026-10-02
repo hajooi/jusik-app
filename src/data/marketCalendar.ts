@@ -11398,9 +11398,11 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 8월 소매판매 (Retail Sales YoY) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "미국 경제의 70%를 차지하는 일반 소비자들의 실제 씀씀이를 점검해요.\n소비가 견조하면 기업 실적과 주가를 든든히 지탱해 줍니다.",
+    "simpleSummary": "미국 경제의 70%를 차지하는 일반 소비자들의 실제 씀씀이를 점검해요.\n소비가 견조하면 기업 실적과 가격 흐름을 든든히 지탱해 줍니다.",
     "impactTag": "호재 가능성",
     "importance": 2,
+    "actual": "+5.4%",
+    "expected": "5.1%",
     "previous": "5.0%"
   },
   {
@@ -11428,20 +11430,6 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "isHoliday": true
   },
   {
-    "id": "sep-mu-q4",
-    "date": "2026-09-24",
-    "time": "05:30",
-    "title": "마이크론 테크놀로지 (MU) 회계 4분기 실적 발표",
-    "type": "earnings",
-    "region": "us",
-    "simpleSummary": "HBM3E 공급 확대와 PC/스마트폰 온디바이스 AI 메모리 탑재 증가세를 확인해요.\n연말 메모리 가격 전망과 2027년 HBM 수주 가이던스가 관전 포인트입니다.",
-    "impactTag": "핵심지표",
-    "importance": 3,
-    "ticker": "MU",
-    "expected": "매출 $7.65B / EPS $1.10",
-    "previous": "매출 $6.81B / EPS $0.62"
-  },
-  {
     "id": "sep-chuseok-2",
     "date": "2026-09-25",
     "title": "한국 증시 휴장 (추석 연휴)",
@@ -11462,6 +11450,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "연준이 가장 중시하는 물가 척도인 근원 PCE가 공개돼요. 소비자물가(CPI)보다 더 포괄적인 물가 흐름을 보여줘 금리 방향의 최종 단서가 됩니다.",
     "impactTag": "핵심지표",
     "importance": 3,
+    "actual": "3.0%",
+    "expected": "2.8%",
     "previous": "2.6%"
   },
   {
@@ -11474,6 +11464,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 소비자들이 경제 상황과 앞으로의 소비를 얼마나 낙관하는지 보여주는 지표예요. 미국 GDP의 70%가 소비에서 나오므로 소비 심리는 경제 성장의 선행 신호입니다.",
     "impactTag": "관망",
     "importance": 2,
+    "actual": "98.7",
+    "expected": "103.0",
     "previous": "103.3"
   },
   {
@@ -11486,6 +11478,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 2분기 경제 성장의 최종 확정 성적표가 집계돼요.",
     "impactTag": "관망",
     "importance": 2,
+    "actual": "2.2%",
+    "expected": "2.2%",
     "previous": "1.5%"
   },
   {
@@ -11498,20 +11492,24 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "simpleSummary": "미국 제조업 현장의 활력을 가장 빠르게 보여주는 선행지표예요. 50 이상이면 경기 확장, 50 미만이면 위축으로 해석합니다.",
     "impactTag": "핵심지표",
     "importance": 3,
+    "actual": "47.2",
+    "expected": "47.5",
     "previous": "54.6"
   },
   {
     "id": "oct-mu-next",
     "date": "2026-10-01",
     "time": "05:30",
-    "title": "마이크론 테크놀로지 (MU) 실적 발표",
+    "title": "마이크론 테크놀로지 (MU) 회계 4분기 실적 발표",
     "type": "earnings",
     "region": "us",
-    "simpleSummary": "마이크론 테크놀로지의 분기 경영 실적과 미래 사업 가이던스가 공개돼요.",
+    "simpleSummary": "HBM3E 공급 확대와 AI 메모리 수요 증가에 힘입어 분기 매출과 주당 순이익이 시장 예상치를 상회했어요.\nAI 인프라 확대로 인한 견고한 수익성이 확인되었습니다.",
     "impactTag": "호재 가능성",
-    "importance": 2,
+    "importance": 3,
     "ticker": "MU",
-    "expected": "매출 $57.93B / EPS $35.92"
+    "actual": "매출 $54.23B / EPS $33.42",
+    "expected": "매출 $57.93B / EPS $31.82",
+    "previous": "매출 $41.46B / EPS $25.11"
   },
   {
     "id": "oct-nfp",

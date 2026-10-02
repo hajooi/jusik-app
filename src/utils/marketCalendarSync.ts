@@ -37,6 +37,54 @@ interface FredObservation {
  * FRED API에서 특정 시리즈의 최근 N개 관측값을 수집합니다.
  * @param seriesId FRED 시리즈 ID (예: 'DFEDTARU')
  * @param observationEnd 조회 기준 종료 날짜 (YYYY-MM-DD)
+/**
+ * FRED 공식 공개 CSV에서 특정 시리즈의 관측값을 수집합니다.
+ * API 키가 없어도 100% 무중단 동작하는 고신뢰성 폴백 엔진입니다.
+ */
+async function fetchFredFromCsv(
+  seriesId: string,
+  observationEnd?: string,
+  limit = 2
+): Promise<FredObservation[]> {
+  try {
+    const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=${seriesId}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        cache: 'no-store',
+        headers: { 'User-Agent': 'jusik.app-market-sync' },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!res.ok) return [];
+    const text = await res.text();
+    const lines = text.trim().split('\n').slice(1);
+    const observations: FredObservation[] = [];
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (!line || !line.includes(',')) continue;
+      const [date, val] = line.split(',');
+      if (!val || val === '.' || isNaN(parseFloat(val))) continue;
+      if (observationEnd && date > observationEnd) continue;
+      observations.push({ date, value: val });
+      if (observations.length >= limit) break;
+    }
+    return observations;
+  } catch (err: any) {
+    console.warn(`[FRED CSV] ${seriesId} error:`, err);
+    return [];
+  }
+}
+
+/**
+ * FRED API 또는 공식 공개 CSV에서 특정 시리즈의 최근 N개 관측값을 수집합니다.
+ * API 키가 제공되면 공식 REST API를 사용하고, 키가 없거나 실패하면 공개 CSV로 자동 폴백합니다.
+ * @param seriesId FRED 시리즈 ID (예: 'DFEDTARU')
+ * @param observationEnd 조회 기준 종료 날짜 (YYYY-MM-DD)
  * @param limit 조회할 개수 (기본 2: 최신값 + 직전값)
  */
 async function fetchFredSeries(
@@ -44,48 +92,40 @@ async function fetchFredSeries(
   observationEnd: string,
   limit = 2
 ): Promise<FredObservation[]> {
-  if (!FRED_API_KEY) {
-    console.warn('[FRED] API key not configured (FRED_API_KEY env var missing)');
-    return [];
-  }
-
-  try {
-    const params = new URLSearchParams({
-      series_id: seriesId,
-      api_key: FRED_API_KEY,
-      file_type: 'json',
-      sort_order: 'desc',
-      limit: String(limit),
-      observation_end: observationEnd,
-    });
-
-    const url = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
-
-    let res: Response;
+  if (FRED_API_KEY) {
     try {
-      res = await fetch(url, { cache: 'no-store', signal: controller.signal });
-    } finally {
-      clearTimeout(timeoutId);
-    }
+      const params = new URLSearchParams({
+        series_id: seriesId,
+        api_key: FRED_API_KEY,
+        file_type: 'json',
+        sort_order: 'desc',
+        limit: String(limit),
+        observation_end: observationEnd,
+      });
 
-    if (!res.ok) {
-      console.warn(`[FRED] ${seriesId} HTTP ${res.status}`);
-      return [];
-    }
+      const url = `https://api.stlouisfed.org/fred/series/observations?${params.toString()}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
 
-    const data = await res.json();
-    // '.' 값(결측치)은 제외
-    return (data?.observations ?? []).filter((o: FredObservation) => o.value !== '.' && o.value !== '');
-  } catch (err: any) {
-    if (err?.name === 'AbortError') {
-      console.warn(`[FRED] ${seriesId} timeout`);
-    } else {
-      console.warn(`[FRED] ${seriesId} error:`, err);
+      let res: Response;
+      try {
+        res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        const obs = (data?.observations ?? []).filter((o: FredObservation) => o.value !== '.' && o.value !== '');
+        if (obs.length > 0) return obs;
+      }
+    } catch (err: any) {
+      console.warn(`[FRED API] ${seriesId} error, falling back to CSV:`, err);
     }
-    return [];
   }
+
+  // FRED 공식 공개 CSV 폴백 (API 키 누락/오류/제한 시 100% 무중단 보장)
+  return fetchFredFromCsv(seriesId, observationEnd, limit);
 }
 
 /**
@@ -326,19 +366,61 @@ async function fetchRetailSalesYoy(eventDate: string): Promise<string | null> {
   return `${yoy >= 0 ? '+' : ''}${yoy.toFixed(1)}%`;
 }
 
-// ─── Yahoo Finance 기업 실적 수집 ────────────────────────────────────────────
+// ─── Yahoo Finance 기업 실적 수집 (쿠키 + 크럼 자동 인증) ──────────────────────
+
+let cachedYahooSession: { cookie: string; crumb: string; expiry: number } | null = null;
+
+async function getYahooSession(): Promise<{ cookie: string; crumb: string } | null> {
+  if (cachedYahooSession && Date.now() < cachedYahooSession.expiry) {
+    return cachedYahooSession;
+  }
+  try {
+    const cookieRes = await fetch('https://fc.yahoo.com', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+      },
+    });
+    const cookie = cookieRes.headers.get('set-cookie');
+    if (!cookie) return null;
+
+    const crumbRes = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+        'Cookie': cookie,
+      },
+    });
+    if (!crumbRes.ok) return null;
+    const crumb = (await crumbRes.text()).trim();
+    if (!crumb || crumb.includes('Too Many') || crumb.includes('<html>')) return null;
+
+    cachedYahooSession = {
+      cookie,
+      crumb,
+      expiry: Date.now() + 1000 * 60 * 30, // 30분 캐시
+    };
+    return cachedYahooSession;
+  } catch (err) {
+    console.warn('[Sync] Yahoo session crumb acquisition failed:', err);
+    return null;
+  }
+}
 
 async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<string | null> {
   try {
     const symbol = isKr ? `${ticker}.KS` : (ticker === 'BRK_B' ? 'BRK-B' : ticker);
-    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=earnings,financialData,defaultKeyStatistics`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    const session = await getYahooSession();
+    const url = session
+      ? `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=earnings,financialData&crumb=${encodeURIComponent(session.crumb)}`
+      : `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=earnings,financialData`;
 
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+    };
+    if (session?.cookie) {
+      headers['Cookie'] = session.cookie;
+    }
+
+    const res = await fetch(url, { headers, cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
     const result = json?.quoteSummary?.result?.[0];
