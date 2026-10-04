@@ -49,12 +49,12 @@ async function fetchFredFromCsv(
   try {
     const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=${seriesId}`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    const timeoutId = setTimeout(() => controller.abort(), 4000); // 4초 타임아웃
     let res: Response;
     try {
       res = await fetch(url, {
         cache: 'no-store',
-        headers: { 'User-Agent': 'jusik.app-market-sync' },
+        headers: { 'User-Agent': 'curl/8.7.1' },
         signal: controller.signal,
       });
     } finally {
@@ -664,7 +664,7 @@ async function fetchFredCpiYoY(): Promise<{ cpiYoy: string; cpiDate: string } | 
   try {
     const res = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL', {
       cache: 'no-store',
-      headers: { 'User-Agent': 'jusik.app-market-sync' },
+      headers: { 'User-Agent': 'curl/8.7.1' },
     });
     if (res.ok) {
       const text = await res.text();

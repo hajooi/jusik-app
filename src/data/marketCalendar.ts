@@ -138,16 +138,18 @@ export const MARKET_SNAPSHOT = {
   weatherMessage: WEATHER_PRESETS.rainy.message,
   weatherSubMessage: WEATHER_PRESETS.rainy.subMessage,
   indices: [
-    { name: 'S&P 500', code: 'SPX', value: '7,764.64', change: '-0.06', changePercent: '-0.00', isPositive: false },
-    { name: '나스닥 100', code: 'NDX', value: '30,732.40', change: '+250.05', changePercent: '+0.82', isPositive: true },
-    { name: '코스피', code: 'KOSPI', value: '7,017.91', change: '+10.19', changePercent: '+0.15', isPositive: true },
-    { name: '코스닥', code: 'KOSDAQ', value: '834.38', change: '-1.89', changePercent: '-0.23', isPositive: false },
+    { name: 'S&P 500', code: 'SPX', value: '7,722.72', change: '+56.27', changePercent: '+0.73', isPositive: true },
+    { name: '나스닥 100', code: 'NDX', value: '30,807.93', change: '+306.37', changePercent: '+1.00', isPositive: true },
+    { name: '다우존스 30', code: 'DJI', value: '51,176.96', change: '+250.40', changePercent: '+0.49', isPositive: true },
+    { name: '코스피', code: 'KOSPI', value: '7,003.74', change: '+32.39', changePercent: '+0.46', isPositive: true },
+    { name: '코스닥', code: 'KOSDAQ', value: '893.29', change: '-1.00', changePercent: '-0.11', isPositive: false },
   ] as MarketIndex[],
   auxiliary: [
-    { label: '달러 환율', value: '1,356원', isPositive: false },
-    { label: '미국채 10년', value: '4.97%', isPositive: true },
-    { label: '국제 금', value: '$4,376', isPositive: false },
-    { label: '국제 유가', value: '$94.6', isPositive: false },
+    { label: '달러 환율', value: '1,343원', isPositive: false },
+    { label: '미국채 10년', value: '5.28%', isPositive: true },
+    { label: '국제 금', value: '$4,162', isPositive: false },
+    { label: '국제 유가', value: '$91.1', isPositive: false },
+    { label: '비트코인', value: '$85,323', isPositive: true },
   ],
   todayNews: TODAY_MARKET_NEWS,
 };
@@ -10313,6 +10315,22 @@ export const ASSET_CHARTS: Record<string, {
     ],
     "current": "4.78%",
     "isPositive": true
+  },
+  "DJI": {
+    "label": "다우존스 30",
+    "current": "51,176.96",
+    "change": "+9.5%",
+    "isPositive": true,
+    "data": [],
+    "points": []
+  },
+  "비트코인": {
+    "label": "비트코인 (BTC)",
+    "current": "$85,323",
+    "change": "-30.4%",
+    "isPositive": false,
+    "data": [],
+    "points": []
   }
 };
 
@@ -10326,33 +10344,39 @@ export interface IndicatorMeta {
 }
 
 export const INDICATOR_METADATA: Record<string, IndicatorMeta> = {
-  // 1. 주요 지수 4종
+  // 1. 주요 지수 5종
   SPX: {
     key: 'SPX',
     name: 'S&P 500',
     period: '최근 1년 추이 (일간)',
-    summary: '미국 500개 기업',
+    summary: '미국 500개 우량 기업 지수',
   },
   NDX: {
     key: 'NDX',
     name: '나스닥 100',
     period: '최근 1년 추이 (일간)',
-    summary: '미국 기술 혁신 상위 100개 기업',
+    summary: '미국 기술 혁신 상위 100개 기업 지수',
+  },
+  DJI: {
+    key: 'DJI',
+    name: '다우존스 30',
+    period: '최근 1년 추이 (일간)',
+    summary: '미국 경제를 대표하는 30대 우량 대형 기업 지수',
   },
   KOSPI: {
     key: 'KOSPI',
     name: '코스피',
     period: '최근 1년 추이 (일간)',
-    summary: '대한민국 대표 대기업',
+    summary: '대한민국 대표 대기업 종합 주가지수',
   },
   KOSDAQ: {
     key: 'KOSDAQ',
     name: '코스닥',
     period: '최근 1년 추이 (일간)',
-    summary: '대한민국 중소형 성장 벤처 기업',
+    summary: '대한민국 중소형 성장 벤처 기업 지수',
   },
 
-  // 2. 환율 및 원자재 4종
+  // 2. 환율 및 대체자산 5종
   '달러 환율': {
     key: '달러 환율',
     name: '달러 환율',
@@ -10376,6 +10400,12 @@ export const INDICATOR_METADATA: Record<string, IndicatorMeta> = {
     name: 'WTI 국제 유가',
     period: '최근 1년 추이 (일간)',
     summary: '물가와 기업 생산에 영향을 주는 원유 가격',
+  },
+  '비트코인': {
+    key: '비트코인',
+    name: '비트코인 (BTC)',
+    period: '최근 1년 추이 (일간)',
+    summary: '글로벌 금융 시장의 대표 디지털 대체자산',
   },
 
   // 3. 핵심 경제 지표 (5년 사이클)

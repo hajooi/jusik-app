@@ -48,10 +48,12 @@ export function formatChartValue(assetKey: string, val: number): string {
   if (assetKey === 'UNEMPLOYMENT') return `${val.toFixed(1)}%`;
   if (assetKey === 'CREDIT_SPREAD') return `${val.toFixed(2)}%`;
   if (assetKey === 'SP500_EPS') return `$${val.toFixed(2)}`;
-  if (assetKey === '달러/원') return `${Math.round(val).toLocaleString()}원`;
+  if (assetKey === '달러/원' || assetKey === '달러 환율') return `${Math.round(val).toLocaleString()}원`;
   if (assetKey === '미국채 10년') return `${val.toFixed(2)}%`;
   if (assetKey === '국제 금') return `$${Math.round(val).toLocaleString()}`;
   if (assetKey === '국제 유가') return `$${val.toFixed(1)}`;
+  if (assetKey === '비트코인') return `$${Math.round(val).toLocaleString()}`;
+  if (assetKey === 'DJI') return val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -98,8 +100,8 @@ function MarketWeatherSkeleton() {
             <div className="h-3.5 w-16 rounded bg-[var(--border-color)]/30" />
             <div className="h-3 w-20 rounded bg-[var(--border-color)]/20" />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="rounded-xl p-3 bg-[var(--card-surface)]/80 border border-[var(--border-color)]/80 shadow-2xs space-y-2">
                 <div className="h-3 w-12 rounded bg-[var(--border-color)]/30" />
                 <div className="h-5 w-20 rounded bg-[var(--border-color)]/40" />
@@ -113,8 +115,8 @@ function MarketWeatherSkeleton() {
           <div className="px-0.5">
             <div className="h-3.5 w-20 rounded bg-[var(--border-color)]/30" />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="rounded-xl px-3 py-2.5 bg-[var(--card-surface)]/80 border border-[var(--border-color)]/80 shadow-2xs flex items-center justify-between">
                 <div className="h-3 w-14 rounded bg-[var(--border-color)]/30" />
                 <div className="h-3 w-12 rounded bg-[var(--border-color)]/40" />
@@ -418,16 +420,16 @@ export default function MarketWeatherSection({
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
               {indices.map((idx) => {
                 const isSelected = selectedAssetKey === idx.code;
                 return (
                   <button
                     key={idx.code}
                     onClick={() => setSelectedAssetKey(idx.code)}
-                    className={`text-left rounded-xl p-3 backdrop-blur-md border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                    className={`text-left rounded-xl p-3 backdrop-blur-md border transition-all duration-300 cursor-pointer relative overflow-hidden outline-none focus:outline-none focus-visible:outline-none ${
                       isSelected
-                        ? 'border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.24)] ring-1 ring-[var(--accent-orange)]/50 bg-[var(--accent-orange)]/10'
+                        ? 'border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.22)] bg-[var(--accent-orange)]/10'
                         : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/80 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:bg-[var(--card-hover)]'
                     }`}
                   >
@@ -456,20 +458,20 @@ export default function MarketWeatherSection({
             <div className="px-0.5">
               <span className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Coins className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                <span>환율 및 원자재</span>
+                <span>환율 및 대체자산</span>
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
               {auxiliary.map((a) => {
                 const isSelected = selectedAssetKey === a.label;
                 return (
                   <button
                     key={a.label}
                     onClick={() => setSelectedAssetKey(a.label)}
-                    className={`text-left rounded-xl px-3 py-2.5 backdrop-blur-md border transition-all duration-300 flex items-center justify-between cursor-pointer ${
+                    className={`text-left rounded-xl px-3 py-2.5 backdrop-blur-md border transition-all duration-300 flex items-center justify-between cursor-pointer outline-none focus:outline-none focus-visible:outline-none ${
                       isSelected
-                        ? 'border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.22)] ring-1 ring-[var(--accent-orange)]/50 bg-[var(--accent-orange)]/10'
+                        ? 'border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.22)] bg-[var(--accent-orange)]/10'
                         : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/80 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:bg-[var(--card-hover)]'
                     }`}
                   >
@@ -514,9 +516,9 @@ export default function MarketWeatherSection({
                   <button
                     key={item.key}
                     onClick={() => setSelectedAssetKey(item.key)}
-                    className={`text-left rounded-xl p-3 backdrop-blur-md border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                    className={`text-left rounded-xl p-3 backdrop-blur-md border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col justify-between outline-none focus:outline-none focus-visible:outline-none ${
                       isSelected
-                        ? 'border-[var(--accent-orange)] shadow-[0_0_20px_rgba(241,143,1,0.24)] ring-1 ring-[var(--accent-orange)]/50 bg-[var(--accent-orange)]/10'
+                        ? 'border-[var(--accent-orange)] shadow-[0_0_18px_rgba(241,143,1,0.22)] bg-[var(--accent-orange)]/10'
                         : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/80 shadow-2xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] hover:bg-[var(--card-hover)]'
                     }`}
                   >

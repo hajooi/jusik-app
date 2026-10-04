@@ -36,12 +36,14 @@ interface YahooChartResult {
 const YAHOO_SYMBOLS: Record<string, string> = {
   SPX: '^GSPC',
   NDX: '^NDX',
+  DJI: '^DJI',
   KOSPI: '^KS11',
   KOSDAQ: '^KQ11',
   '달러/원': 'USDKRW=X',
   '미국채 10년': '^TNX',
   '국제 금': 'GC=F',
   '국제 유가': 'CL=F',
+  '비트코인': 'BTC-USD',
 };
 
 // 안전한 서버 인메모리 일일 캐시
@@ -651,22 +653,26 @@ export async function GET(request: Request) {
     // 3. CNN Fear & Greed API 호출
     const fgData = await fetchFearGreedIndex();
 
-    // 4. Yahoo Finance 8개 지수 순차 호출 (429 Rate Limit 완전 방지)
+    // 4. Yahoo Finance 10개 지수 및 자산 순차 호출 (429 Rate Limit 완전 방지)
     const spx = await fetchYahooData(YAHOO_SYMBOLS.SPX);
-    await delay(180);
+    await delay(120);
     const ndx = await fetchYahooData(YAHOO_SYMBOLS.NDX);
-    await delay(180);
+    await delay(120);
+    const dji = await fetchYahooData(YAHOO_SYMBOLS.DJI);
+    await delay(120);
     const kospi = await fetchYahooData(YAHOO_SYMBOLS.KOSPI);
-    await delay(180);
+    await delay(120);
     const kosdaq = await fetchYahooData(YAHOO_SYMBOLS.KOSDAQ);
-    await delay(180);
+    await delay(120);
     const usdkrw = await fetchYahooData(YAHOO_SYMBOLS['달러/원']);
-    await delay(180);
+    await delay(120);
     const us10y = await fetchYahooData(YAHOO_SYMBOLS['미국채 10년']);
-    await delay(180);
+    await delay(120);
     const gold = await fetchYahooData(YAHOO_SYMBOLS['국제 금']);
-    await delay(180);
+    await delay(120);
     const oil = await fetchYahooData(YAHOO_SYMBOLS['국제 유가']);
+    await delay(120);
+    const btc = await fetchYahooData(YAHOO_SYMBOLS['비트코인']);
 
     // ── Naver 폴백: Yahoo 데이터가 비어 있거나 stale(1거래일 이상 오래됨)인 경우의 2차 공식 대비책 ──
     const fallbackNotices: string[] = [];
@@ -803,7 +809,7 @@ export async function GET(request: Request) {
     // 양국 증시가 '모두 마감 완료된 최신 공통 거래일'을 단일 진실 공급원(Single Source of Truth)으로 확정
     // 미국장이 아직 마감되지 않은 야간(KST 15:30~익일 06:00)에 한국장 단독으로 23일로 치솟아
     // 미국 지수 지연 오탐 경보를 유발하거나 데이터 불일치를 초래하는 것을 원천 방지!
-    const usAssets = [spx, ndx];
+    const usAssets = [spx, ndx, dji];
     const usDates = usAssets
       .map((a) => (a?.points && a.points.length > 0 ? a.points[a.points.length - 1].date : null))
       .filter((d): d is string => Boolean(d));
@@ -818,7 +824,7 @@ export async function GET(request: Request) {
     const latestKrClosedDate = krDates.length > 0 ? krDates[krDates.length - 1] : null;
 
     // 각 자산의 포인트가 자산 소속 시장(미국 또는 한국)의 공식 최신 마감일을 초과하지 않도록 독립 정렬 (장중 진행 캔들 혼입 방지)
-    // 미국 자산(SPX, NDX, 10년물 국채, 국제 금, 국제 유가)은 미국 최신 마감일(latestUsClosedDate) 기준,
+    // 미국 자산(SPX, NDX, DJI, 10년물 국채, 국제 금, 국제 유가, 비트코인)은 미국 최신 마감일(latestUsClosedDate) 기준,
     // 한국 자산(KOSPI, KOSDAQ, 달러 환율)은 한국 최신 마감일(latestKrClosedDate) 기준.
     // ※ 한쪽 국가가 명절/공휴일(한국 추석·설날, 미국 추수감사절 등)로 휴장하더라도
     // 정상 개장한 상대 시장의 최신 마감 데이터가 과거 날짜로 잘려나가는 것을 완벽 방지!
@@ -845,20 +851,20 @@ export async function GET(request: Request) {
     };
 
     // 글로벌 단일 기준일 확정:
-    // 글로벌 8대 자산(미국 주식 2종, 미국채, 금, 유가, 환율 등)의 기준이 되는 미국 시장 마감일(latestUsClosedDate)을
+    // 글로벌 대표 자산들의 기준이 되는 미국 시장 마감일(latestUsClosedDate)을
     // 글로벌 단일 진실 공급원(Single Source of Truth)으로 확정합니다.
-    // 미국장이 아직 마감되지 않은 야간(KST 15:30 ~ 익일 06:00)에 한국장 단독으로 익일 날짜로 치솟아
-    // 전체 마켓 인사이트의 기준일 및 자산 간 일관성이 왜곡되는 것을 원천 방지합니다.
     const latestGlobalDate = latestUsClosedDate || latestKrClosedDate || null;
 
     const resolvedSpx = alignAssetToClosedDate(spx, latestGlobalDate);
     const resolvedNdx = alignAssetToClosedDate(ndx, latestGlobalDate);
+    const resolvedDji = alignAssetToClosedDate(dji, latestGlobalDate);
     resolvedKospi = alignAssetToClosedDate(resolvedKospi, latestGlobalDate);
     resolvedKosdaq = alignAssetToClosedDate(resolvedKosdaq, latestGlobalDate);
     resolvedGold = alignAssetToClosedDate(resolvedGold, latestGlobalDate);
     resolvedOil = alignAssetToClosedDate(resolvedOil, latestGlobalDate);
     resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestGlobalDate);
     const resolvedUs10y = alignAssetToClosedDate(us10y, latestGlobalDate);
+    const resolvedBtc = alignAssetToClosedDate(btc, latestGlobalDate);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
@@ -871,7 +877,7 @@ export async function GET(request: Request) {
     }
 
 
-    // 인덱스 4종 (전일 하루 대비 변동)
+    // 인덱스 5종 (순서: S&P 500 ➔ 나스닥 100 ➔ 다우존스 30 ➔ 코스피 ➔ 코스닥)
     const indices = [
       {
         name: 'S&P 500',
@@ -890,24 +896,32 @@ export async function GET(request: Request) {
         isPositive: resolvedNdx ? resolvedNdx.changePercent >= 0 : MARKET_SNAPSHOT.indices[1].isPositive,
       },
       {
+        name: '다우존스 30',
+        code: 'DJI',
+        value: resolvedDji ? resolvedDji.current.toLocaleString('en-US', { maximumFractionDigits: 2 }) : (MARKET_SNAPSHOT.indices[2]?.value ?? '51,176.96'),
+        change: resolvedDji ? `${resolvedDji.change >= 0 ? '+' : ''}${resolvedDji.change.toFixed(2)}` : (MARKET_SNAPSHOT.indices[2]?.change ?? '+250.40'),
+        changePercent: resolvedDji ? `${resolvedDji.changePercent >= 0 ? '+' : ''}${resolvedDji.changePercent.toFixed(2)}` : (MARKET_SNAPSHOT.indices[2]?.changePercent ?? '+0.49'),
+        isPositive: resolvedDji ? resolvedDji.changePercent >= 0 : true,
+      },
+      {
         name: '코스피',
         code: 'KOSPI',
-        value: resolvedKospi ? resolvedKospi.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[2].value,
-        change: resolvedKospi ? `${resolvedKospi.change >= 0 ? '+' : ''}${resolvedKospi.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].change,
-        changePercent: resolvedKospi ? `${resolvedKospi.changePercent >= 0 ? '+' : ''}${resolvedKospi.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[2].changePercent,
-        isPositive: resolvedKospi ? resolvedKospi.changePercent >= 0 : MARKET_SNAPSHOT.indices[2].isPositive,
+        value: resolvedKospi ? resolvedKospi.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : (MARKET_SNAPSHOT.indices[3]?.value ?? '7,003.74'),
+        change: resolvedKospi ? `${resolvedKospi.change >= 0 ? '+' : ''}${resolvedKospi.change.toFixed(2)}` : (MARKET_SNAPSHOT.indices[3]?.change ?? '+32.39'),
+        changePercent: resolvedKospi ? `${resolvedKospi.changePercent >= 0 ? '+' : ''}${resolvedKospi.changePercent.toFixed(2)}` : (MARKET_SNAPSHOT.indices[3]?.changePercent ?? '+0.46'),
+        isPositive: resolvedKospi ? resolvedKospi.changePercent >= 0 : true,
       },
       {
         name: '코스닥',
         code: 'KOSDAQ',
-        value: resolvedKosdaq ? resolvedKosdaq.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : MARKET_SNAPSHOT.indices[3].value,
-        change: resolvedKosdaq ? `${resolvedKosdaq.change >= 0 ? '+' : ''}${resolvedKosdaq.change.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].change,
-        changePercent: resolvedKosdaq ? `${resolvedKosdaq.changePercent >= 0 ? '+' : ''}${resolvedKosdaq.changePercent.toFixed(2)}` : MARKET_SNAPSHOT.indices[3].changePercent,
-        isPositive: resolvedKosdaq ? resolvedKosdaq.changePercent >= 0 : MARKET_SNAPSHOT.indices[3].isPositive,
+        value: resolvedKosdaq ? resolvedKosdaq.current.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : (MARKET_SNAPSHOT.indices[4]?.value ?? '893.29'),
+        change: resolvedKosdaq ? `${resolvedKosdaq.change >= 0 ? '+' : ''}${resolvedKosdaq.change.toFixed(2)}` : (MARKET_SNAPSHOT.indices[4]?.change ?? '-1.00'),
+        changePercent: resolvedKosdaq ? `${resolvedKosdaq.changePercent >= 0 ? '+' : ''}${resolvedKosdaq.changePercent.toFixed(2)}` : (MARKET_SNAPSHOT.indices[4]?.changePercent ?? '-0.11'),
+        isPositive: resolvedKosdaq ? resolvedKosdaq.changePercent >= 0 : false,
       },
     ];
 
-    // 매크로 4종
+    // 환율 및 대체자산 5종
     const auxiliary = [
       {
         label: '달러 환율',
@@ -929,6 +943,11 @@ export async function GET(request: Request) {
         value: resolvedOil ? `$${resolvedOil.current.toFixed(1)}` : MARKET_SNAPSHOT.auxiliary[3].value,
         isPositive: resolvedOil ? resolvedOil.changePercent >= 0 : MARKET_SNAPSHOT.auxiliary[3].isPositive,
       },
+      {
+        label: '비트코인',
+        value: resolvedBtc ? `$${Math.round(resolvedBtc.current).toLocaleString('en-US')}` : (MARKET_SNAPSHOT.auxiliary[4]?.value ?? '$85,323'),
+        isPositive: resolvedBtc ? resolvedBtc.changePercent >= 0 : true,
+      },
     ];
 
     // 1년 누적 수익률 헬퍼 함수 (차트 1년 추이 우측 상단 수치)
@@ -946,12 +965,14 @@ export async function GET(request: Request) {
 
     const spx1y = calc1YearReturn(resolvedSpx?.history, { change: '+19.1%', isPositive: true });
     const ndx1y = calc1YearReturn(resolvedNdx?.history, { change: '+24.9%', isPositive: true });
+    const dji1y = calc1YearReturn(resolvedDji?.history, { change: '+9.5%', isPositive: true });
     const kospi1y = calc1YearReturn(resolvedKospi?.history, { change: '+108.6%', isPositive: true });
     const kosdaq1y = calc1YearReturn(resolvedKosdaq?.history, { change: '+0.3%', isPositive: true });
     const usdkrw1y = calc1YearReturn(resolvedUsdkrw?.history, { change: '-2.5%', isPositive: false });
     const us10y1y = calc1YearReturn(resolvedUs10y?.history, { change: '+16.9%', isPositive: true });
     const gold1y = calc1YearReturn(resolvedGold?.history, { change: '+23.9%', isPositive: true });
     const oil1y = calc1YearReturn(resolvedOil?.history, { change: '+47.4%', isPositive: true });
+    const btc1y = calc1YearReturn(resolvedBtc?.history, { change: '-30.4%', isPositive: false });
 
 
     // 1년치 차트 데이터 동적 구성 (정확한 1년치 일간 종가 및 1년 수익률)
@@ -979,9 +1000,17 @@ export async function GET(request: Request) {
         data: (resolvedNdx && resolvedNdx.history.length >= 20) ? resolvedNdx.history : (ASSET_CHARTS.NDX?.data ?? []),
         points: resolvedNdx?.points,
       },
+      DJI: {
+        label: '다우존스 30',
+        current: indices[2].value,
+        change: dji1y.change,
+        isPositive: dji1y.isPositive,
+        data: (resolvedDji && resolvedDji.history.length >= 20) ? resolvedDji.history : (ASSET_CHARTS.DJI?.data ?? []),
+        points: resolvedDji?.points,
+      },
       KOSPI: {
         label: '코스피 (KOSPI)',
-        current: indices[2].value,
+        current: indices[3].value,
         change: kospi1y.change,
         isPositive: kospi1y.isPositive,
         data: (resolvedKospi && resolvedKospi.history.length >= 20) ? resolvedKospi.history : (ASSET_CHARTS.KOSPI?.data ?? []),
@@ -989,7 +1018,7 @@ export async function GET(request: Request) {
       },
       KOSDAQ: {
         label: '코스닥 (KOSDAQ)',
-        current: indices[3].value,
+        current: indices[4].value,
         change: kosdaq1y.change,
         isPositive: kosdaq1y.isPositive,
         data: (resolvedKosdaq && resolvedKosdaq.history.length >= 20) ? resolvedKosdaq.history : (ASSET_CHARTS.KOSDAQ?.data ?? []),
@@ -1027,6 +1056,14 @@ export async function GET(request: Request) {
         data: (resolvedOil && resolvedOil.history.length >= 20) ? resolvedOil.history : (ASSET_CHARTS['국제 유가']?.data ?? []),
         points: resolvedOil?.points,
       },
+      '비트코인': {
+        label: '비트코인 (BTC)',
+        current: auxiliary[4].value,
+        change: btc1y.change,
+        isPositive: btc1y.isPositive,
+        data: (resolvedBtc && resolvedBtc.history.length >= 20) ? resolvedBtc.history : (ASSET_CHARTS['비트코인']?.data ?? []),
+        points: resolvedBtc?.points,
+      },
     };
 
 
@@ -1040,16 +1077,18 @@ export async function GET(request: Request) {
     }
     const resolvedNews = (autoNews && autoNews.length >= 4) ? autoNews : TODAY_MARKET_NEWS;
 
-    // 2) 8대 핵심 자산 시계열 수집 실패 및 최신 거래일 누락(Stale) 정밀 감지
+    // 2) 10대 핵심 자산 시계열 수집 실패 및 최신 거래일 누락(Stale) 정밀 감지
     const assetChecks: Array<{ name: string; data: any }> = [
       { name: 'S&P 500', data: resolvedSpx },
       { name: '나스닥 100', data: resolvedNdx },
+      { name: '다우존스 30', data: resolvedDji },
       { name: '코스피', data: resolvedKospi },
       { name: '코스닥', data: resolvedKosdaq },
       { name: '달러 환율', data: resolvedUsdkrw },
       { name: '미국채 10년', data: resolvedUs10y },
       { name: '국제 금', data: resolvedGold },
       { name: '국제 유가', data: resolvedOil },
+      { name: '비트코인', data: resolvedBtc },
     ];
 
     const failedAssets = assetChecks.filter((a) => !a.data || !a.data.points || a.data.points.length === 0);
@@ -1062,7 +1101,7 @@ export async function GET(request: Request) {
     // 한쪽 시장의 명절/공휴일 휴장으로 인한 상대 시장 오탐 경보 원천 차단
     const staleAssets: string[] = [];
     for (const check of assetChecks) {
-      const isUsAsset = ['SPX', 'NDX', 'S&P 500', '나스닥 100', '미국채 10년', '국제 금', '국제 유가', '달러 환율'].includes(check.name);
+      const isUsAsset = ['SPX', 'NDX', 'DJI', 'S&P 500', '나스닥 100', '다우존스 30', '미국채 10년', '국제 금', '국제 유가', '달러 환율', '비트코인'].includes(check.name);
       const targetClosedDate = isUsAsset ? latestUsClosedDate : latestKrClosedDate;
       if (!targetClosedDate) continue;
 
