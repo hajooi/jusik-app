@@ -199,12 +199,18 @@ export default function SparklineChart({
   // 단일 주황 테마
   const brandOrange = '#F18F01';
 
-  // X 좌표로부터 인덱스 역산
+  // X 좌표로부터 인덱스 역산 (내부 SVG의 PAD_X 드로잉 영역과 정확히 1:1 매핑)
   const getIndexFromClientX = (clientX: number): number => {
-    if (!containerRef.current) return 0;
+    if (!containerRef.current || sanitized.length <= 1) return 0;
     const rect = containerRef.current.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return Math.round(ratio * (sanitized.length - 1));
+    if (rect.width <= 0) return 0;
+    // SVG viewBox 상의 W = 800, PAD_X = 6px에 비례하는 실제 CSS 픽셀 마진 계산
+    const padCss = (PAD_X / W) * rect.width;
+    const activeWidth = rect.width - padCss * 2;
+    if (activeWidth <= 0) return sanitized.length - 1;
+    const clampedOffset = Math.max(0, Math.min(activeWidth, clientX - rect.left - padCss));
+    const ratio = clampedOffset / activeWidth;
+    return Math.min(sanitized.length - 1, Math.round(ratio * (sanitized.length - 1)));
   };
 
   // ── 마우스 이벤트 ──

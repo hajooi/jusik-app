@@ -139,6 +139,12 @@ async function fetchYahooData(symbol: string): Promise<{
       //    야후 메타데이터의 regEnd(23:59 EDT)로 단순 판별 시 한국 오전 9시(뉴욕 20:00 EDT)에 공식 마감 캔들이 오인 삭제되므로,
       //    뉴욕 시간 17:00 EDT 이후 시점에서는 당일 캔들을 공식 마감 종가로 확정 수용합니다.
       const isCommodityFutures = symbol === 'GC=F' || symbol === 'CL=F';
+      // 2) 24시간 연중무휴 거래 암호화폐 (비트코인 BTC-USD):
+      //    UTC 00:00~23:59 기준 세션. 오늘 UTC 일자의 캔들은 현재 진행 중인 장중 캔들이므로 제외.
+      const isCrypto = symbol === 'BTC-USD';
+      // 3) 외환 자산 (달러/원 USDKRW=X):
+      //    야후 FX 일봉은 뉴욕 17:00 EDT(KST 06:00)에 마감 정산됩니다.
+      const isFx = symbol === 'USDKRW=X';
       let isOngoingSession = false;
 
       if (isCommodityFutures) {
@@ -150,14 +156,33 @@ async function fetchYahooData(symbol: string): Promise<{
         const isAfterCmeClose = nyHour > 17 || (nyHour === 17 && nyMin >= 0);
 
         if (candleNyDate > nowNyDate) {
-          isOngoingSession = true; // 익일 야간 거래 장중 틱
+          isOngoingSession = true;
         } else if (candleNyDate === nowNyDate) {
-          isOngoingSession = !isAfterCmeClose; // 당일 17:00 이전이면 장중, 17:00 이후면 마감 확정 종가
+          isOngoingSession = !isAfterCmeClose;
         } else {
-          isOngoingSession = false; // 과거 마감 캔들은 정상 수용
+          isOngoingSession = false;
+        }
+      } else if (isCrypto) {
+        const candleUtcDate = new Date(timeMs).toLocaleDateString('en-CA', { timeZone: 'UTC' });
+        const nowUtcDate = new Date(nowTimeMs).toLocaleDateString('en-CA', { timeZone: 'UTC' });
+        isOngoingSession = candleUtcDate >= nowUtcDate;
+      } else if (isFx) {
+        const candleNyDate = new Date(timeMs).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        const nowDate = new Date(nowTimeMs);
+        const nowNyDate = nowDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        const nyTimeStr = nowDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false });
+        const [nyHour, nyMin] = nyTimeStr.split(':').map(Number);
+        const isAfterNyFxClose = nyHour > 17 || (nyHour === 17 && nyMin >= 0);
+
+        if (candleNyDate > nowNyDate) {
+          isOngoingSession = true;
+        } else if (candleNyDate === nowNyDate) {
+          isOngoingSession = !isAfterNyFxClose;
+        } else {
+          isOngoingSession = false;
         }
       } else {
-        // 주식/국채/환율 등 일반 자산
+        // 주식/국채 등 일반 자산
         isOngoingSession = ts >= regStart && nowSec >= regStart && nowSec < regEnd;
       }
 
@@ -165,12 +190,17 @@ async function fetchYahooData(symbol: string): Promise<{
         continue;
       }
 
-      // 서버(UTC) 환경에서의 일자 왜곡 방지: 한국 자산은 KST, 글로벌/미국 자산(환율 포함)은 New York 시간대 기준 일자 확정
-      const tz = (symbol === '^KS11' || symbol === '^KQ11') ? 'Asia/Seoul' : 'America/New_York';
+      // 서버(UTC) 환경에서의 일자 왜곡 방지:
+      // 한국 자산은 KST, 비트코인은 글로벌 표준 UTC, 미국/글로벌 자산(환율 포함)은 New York 시간대 기준 일자 확정
+      const tz = (symbol === '^KS11' || symbol === '^KQ11')
+        ? 'Asia/Seoul'
+        : symbol === 'BTC-USD'
+        ? 'UTC'
+        : 'America/New_York';
       const dateStr = new Date(timeMs).toLocaleDateString('en-CA', { timeZone: tz }).replace(/-/g, '.');
 
       const rawVal = rawHistory[i];
-      // 종가가 null이거나 유효하지 않은 캔들은 스킵 (직전 종가 단순 복제로 인한 동일값 왜곡 방지)
+      // 종가가 null이거나 유효하지 않은 캔들은 스킵
       if (rawVal === null || typeof rawVal !== 'number' || isNaN(rawVal)) {
         continue;
       }
@@ -184,6 +214,27 @@ async function fetchYahooData(symbol: string): Promise<{
       } else {
         points.push({ date: dateStr, value: validClose });
         history.push(validClose);
+      }
+    }
+
+    // 야후 내부 집계 지연으로 어제 마감 캔들의 일봉 종가가 null인 경우, 1시간봉에서 직전 마감 종가 정밀 복원
+    if (symbol === 'BTC-USD' || symbol === 'USDKRW=X') {
+      try {
+        const targetDate = symbol === 'BTC-USD'
+          ? new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('en-CA', { timeZone: 'UTC' }).replace(/-/g, '.')
+          : new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).replace(/-/g, '.');
+
+        const lastPointDate = points.length > 0 ? points[points.length - 1].date : '';
+        if (lastPointDate < targetDate) {
+          const hourlyVal = await fetchYahooHourlyClose(symbol, targetDate);
+          if (hourlyVal !== null && hourlyVal > 0) {
+            console.log(`[Yahoo ${symbol}] Recovered missing daily close (${targetDate}: ${hourlyVal}) via 1-hour candles`);
+            points.push({ date: targetDate, value: hourlyVal });
+            history.push(hourlyVal);
+          }
+        }
+      } catch (hourlyErr) {
+        console.warn(`[Yahoo ${symbol}] Hourly close recovery failed:`, hourlyErr);
       }
     }
 
@@ -213,6 +264,61 @@ async function fetchYahooData(symbol: string): Promise<{
     };
   } catch (err) {
     console.error(`[Yahoo fetch failed for ${symbol}]`, err);
+    return null;
+  }
+}
+
+/**
+ * 야후 파이낸스 1시간봉 캔들을 조회하여 특정 기준일의 마감 종가를 추출합니다.
+ * (일봉 데이터의 close가 정산 지연으로 null일 때의 고정밀 복구 엔진)
+ */
+async function fetchYahooHourlyClose(symbol: string, targetDateDot: string): Promise<number | null> {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=5d&interval=1h`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!res.ok) return null;
+    const json = await res.json();
+    const resItem = json?.chart?.result?.[0];
+    const timestamps: number[] = resItem?.timestamp ?? [];
+    const closes: (number | null)[] = resItem?.indicators?.quote?.[0]?.close ?? [];
+
+    let lastVal: number | null = null;
+    for (let i = 0; i < timestamps.length; i++) {
+      const t = timestamps[i];
+      const c = closes[i];
+      if (c === null || typeof c !== 'number' || isNaN(c)) continue;
+
+      if (symbol === 'BTC-USD') {
+        const dStr = new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'UTC' }).replace(/-/g, '.');
+        if (dStr === targetDateDot) {
+          lastVal = Number(c.toFixed(2));
+        }
+      } else {
+        const dt = new Date(t * 1000);
+        const dStr = dt.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).replace(/-/g, '.');
+        const nyTime = dt.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false });
+        const nyHour = parseInt(nyTime.split(':')[0], 10);
+        // 뉴욕 17:00 EDT(외환 마감) 이전의 마지막 체결봉
+        if (dStr === targetDateDot && nyHour <= 17) {
+          lastVal = Number(c.toFixed(2));
+        }
+      }
+    }
+    return lastVal;
+  } catch (e) {
     return null;
   }
 }
@@ -469,6 +575,122 @@ async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
   }
 }
 
+// ─── 비트코인(BTC) 2차 공식 안전망: 코인베이스 Exchange 공개 API ────────────────
+// 야후 파이낸스 일봉/시간봉이 모두 지연/결측일 때 100% 무료 무인증 공식 REST API로 전일 종가 수집
+async function fetchCoinbaseBitcoinFallback(): Promise<{
+  current: number;
+  change: number;
+  changePercent: number;
+  history: number[];
+  points: DailyPoint[];
+} | null> {
+  try {
+    const url = 'https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=86400';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) jusik.app' },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!res.ok) return null;
+    const raw: Array<[number, number, number, number, number, number]> = await res.json();
+    if (!Array.isArray(raw) || raw.length < 2) return null;
+
+    // raw: 최신순 [ [time, low, high, open, close, volume], ... ]
+    const chron = [...raw].sort((a, b) => a[0] - b[0]);
+    // 당일 장중 캔들(마지막 원소) 제외하고 마감 캔들만 추출
+    const closed = chron.slice(0, -1);
+    const points: DailyPoint[] = closed.map((b) => ({
+      date: new Date(b[0] * 1000).toLocaleDateString('en-CA', { timeZone: 'UTC' }).replace(/-/g, '.'),
+      value: Number(b[4].toFixed(2)),
+    }));
+    if (points.length === 0) return null;
+
+    const lastPt = points[points.length - 1];
+    const prevPt = points.length >= 2 ? points[points.length - 2] : null;
+    let change = 0;
+    let changePercent = 0;
+    if (prevPt && prevPt.value > 0) {
+      change = Number((lastPt.value - prevPt.value).toFixed(2));
+      changePercent = Number(((change / prevPt.value) * 100).toFixed(2));
+    }
+
+    return {
+      current: lastPt.value,
+      change,
+      changePercent,
+      history: points.map((p) => p.value),
+      points,
+    };
+  } catch (e) {
+    console.warn('[Coinbase BTC Fallback failed]:', e);
+    return null;
+  }
+}
+
+// ─── 비트코인(BTC) 3차 공식 안전망: 바이낸스 공개 API ────────────────────────────
+// 무인증 무료 공용 REST API로 전일 확정 종가 및 1년 시계열 보정
+async function fetchBinanceBitcoinFallback(): Promise<{
+  current: number;
+  change: number;
+  changePercent: number;
+  history: number[];
+  points: DailyPoint[];
+} | null> {
+  try {
+    const url = 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=370';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) jusik.app' },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!res.ok) return null;
+    const raw: Array<any[]> = await res.json();
+    if (!Array.isArray(raw) || raw.length < 2) return null;
+
+    // raw[-1]은 당일 장중 캔들, raw[0 ~ -2]가 마감 완료 캔들
+    const closed = raw.slice(0, -1);
+    const points: DailyPoint[] = closed.map((b) => ({
+      date: new Date(Number(b[0])).toLocaleDateString('en-CA', { timeZone: 'UTC' }).replace(/-/g, '.'),
+      value: Number(parseFloat(b[4]).toFixed(2)),
+    }));
+    if (points.length === 0) return null;
+
+    const lastPt = points[points.length - 1];
+    const prevPt = points.length >= 2 ? points[points.length - 2] : null;
+    let change = 0;
+    let changePercent = 0;
+    if (prevPt && prevPt.value > 0) {
+      change = Number((lastPt.value - prevPt.value).toFixed(2));
+      changePercent = Number(((change / prevPt.value) * 100).toFixed(2));
+    }
+
+    return {
+      current: lastPt.value,
+      change,
+      changePercent,
+      history: points.map((p) => p.value),
+      points,
+    };
+  } catch (e) {
+    console.warn('[Binance BTC Fallback failed]:', e);
+    return null;
+  }
+}
+
 // ─── Naver Finance 원자재(국제 금 GCcv1, WTI 유가 CLcv1) 폴백 ────────────────
 // 선물 롤오버 기간 등으로 Yahoo GC=F, CL=F 일봉이 누락되었을 때의 2차 공식 안전망.
 // Npay 증권의 최신 공식 백엔드 JSON REST API에서 당일 공식 마감 종가를 추출합니다.
@@ -710,24 +932,29 @@ export async function GET(request: Request) {
       }
     }
 
-    // USDKRW
-    if (isDataStale(usdkrw?.points ?? [])) {
-      console.log('[Market Daily] USDKRW stale, fetching from Naver...');
+    // 미국 대표 주가지수(SPX 또는 NDX)의 최신 확정 거래일을 기준 목표일로 설정
+    const targetUsDate = spx?.points?.slice(-1)[0]?.date || ndx?.points?.slice(-1)[0]?.date || '';
+
+    // USDKRW: 한국 또는 미국 마감일 대비 stale 여부 확인
+    const usdkrwLastDate = usdkrw?.points?.slice(-1)[0]?.date ?? '';
+    const isUsdStale = !usdkrw || usdkrw.points.length === 0 || isDataStale(usdkrw.points, 1)
+      || (Boolean(targetUsDate) && usdkrwLastDate < targetUsDate);
+
+    if (isUsdStale) {
+      console.log(`[Market Daily] USDKRW stale (last: ${usdkrwLastDate}, target: ${targetUsDate}), fetching from Naver...`);
       const naverUsd = await fetchNaverUsdKrw();
-      if (naverUsd && usdkrw && naverUsd.date > (usdkrw.points.slice(-1)[0]?.date ?? '')) {
+      if (naverUsd && usdkrw && naverUsd.date > usdkrwLastDate) {
         const updatedPoints = [...usdkrw.points, { date: naverUsd.date, value: naverUsd.value }];
         resolvedUsdkrw = { ...usdkrw, points: updatedPoints, history: updatedPoints.map(p => p.value), current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
         fallbackNotices.push(`달러 환율: 네이버 환율 마감가(${naverUsd.date} ${naverUsd.value}원) 대체 반영`);
         console.log(`[Market Daily] USDKRW updated via Naver: ${naverUsd.date} = ${naverUsd.value}`);
-      } else if (naverUsd && !usdkrw) {
+      } else if (naverUsd && (!usdkrw || usdkrw.points.length === 0)) {
         resolvedUsdkrw = { points: [{ date: naverUsd.date, value: naverUsd.value }], history: [naverUsd.value], current: naverUsd.value, change: naverUsd.change, changePercent: naverUsd.changePercent };
         fallbackNotices.push(`달러 환율: 네이버 환율 단독 수집(${naverUsd.date} ${naverUsd.value}원) 대체 반영`);
       }
     }
 
     // ── 국제 금(GC=F) & 국제 유가(CL=F) 2차 대비책: 네이버 증권 공식 마감 정산가 ──
-    // 미국 대표 주가지수(SPX 또는 NDX)의 최신 확정 거래일을 기준 목표일로 설정
-    const targetUsDate = spx?.points?.slice(-1)[0]?.date || ndx?.points?.slice(-1)[0]?.date || '';
     let resolvedGold = gold;
     let resolvedOil = oil;
 
@@ -801,6 +1028,30 @@ export async function GET(request: Request) {
       }
     }
 
+    // ── 비트코인(BTC) 2차/3차 공식 안전망: 코인베이스 Exchange 및 바이낸스 ──
+    let resolvedBtc = btc;
+    const btcLastDate = btc?.points?.slice(-1)[0]?.date ?? '';
+    const isBtcStale = !btc || btc.points.length === 0 || isDataStale(btc.points, 1)
+      || (Boolean(targetUsDate) && btcLastDate < targetUsDate);
+
+    if (isBtcStale) {
+      console.log(`[Market Daily] Bitcoin stale or missing (last: ${btcLastDate}, target: ${targetUsDate}). Triggering Coinbase BTC fallback...`);
+      const cbBtc = await fetchCoinbaseBitcoinFallback();
+      if (cbBtc && cbBtc.points.length > 0) {
+        resolvedBtc = cbBtc;
+        fallbackNotices.push(`비트코인: 야후 지연으로 코인베이스 거래소 마감가(${cbBtc.points[cbBtc.points.length - 1].date} $${Math.round(cbBtc.current).toLocaleString()}) 대체 반영`);
+        console.log(`[Market Daily] Bitcoin updated via Coinbase: ${cbBtc.points[cbBtc.points.length - 1].date} = ${cbBtc.current}`);
+      } else {
+        console.log('[Market Daily] Coinbase failed, triggering Binance BTC fallback...');
+        const bnBtc = await fetchBinanceBitcoinFallback();
+        if (bnBtc && bnBtc.points.length > 0) {
+          resolvedBtc = bnBtc;
+          fallbackNotices.push(`비트코인: 야후/코인베이스 지연으로 바이낸스 마감가(${bnBtc.points[bnBtc.points.length - 1].date} $${Math.round(bnBtc.current).toLocaleString()}) 대체 반영`);
+          console.log(`[Market Daily] Bitcoin updated via Binance: ${bnBtc.points[bnBtc.points.length - 1].date} = ${bnBtc.current}`);
+        }
+      }
+    }
+
     // 공탐지수 계산
     const fgScore = fgData?.score ?? MARKET_SNAPSHOT.fearGreedIndex;
     const weather = mapRatingToWeather(fgScore);
@@ -864,7 +1115,7 @@ export async function GET(request: Request) {
     resolvedOil = alignAssetToClosedDate(resolvedOil, latestGlobalDate);
     resolvedUsdkrw = alignAssetToClosedDate(resolvedUsdkrw, latestGlobalDate);
     const resolvedUs10y = alignAssetToClosedDate(us10y, latestGlobalDate);
-    const resolvedBtc = alignAssetToClosedDate(btc, latestGlobalDate);
+    resolvedBtc = alignAssetToClosedDate(resolvedBtc, latestGlobalDate);
 
     const now = new Date();
     let dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 마감 기준`;
