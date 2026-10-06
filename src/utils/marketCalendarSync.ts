@@ -21,6 +21,13 @@ export interface SyncCalendarResult {
     cpi?: string;
     unemployment?: string;
   };
+  overlayUpdates?: Array<{
+    title: string;
+    date: string;
+    field: string;
+    oldVal?: string;
+    newVal: string;
+  }>;
 }
 
 const FRED_API_KEY = process.env.FRED_API_KEY;
@@ -450,6 +457,162 @@ async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<strin
   }
 }
 
+// ─── Forex Factory 공식 주간 JSON 오버레이 엔진 ──────────────────────────────
+
+// 매일 크론 실행 시 이번 주(This Week)의 모든 글로벌 경제지표의
+// 최신 시장 예상치(forecast), 이전치(previous), 실제 발표치(actual)를 일괄 오버레이합니다.
+
+export interface ForexFactoryEvent {
+  title: string;
+  country: string;
+  date: string;       // ISO 8601 (예: "2026-10-05T10:00:00-04:00")
+  impact: string;     // "High" | "Medium" | "Low" | "Holiday"
+  forecast?: string;
+  previous?: string;
+  actual?: string;
+}
+
+let cachedFfEvents: { events: ForexFactoryEvent[]; expiry: number } | null = null;
+
+export async function fetchForexFactoryWeeklyEvents(): Promise<ForexFactoryEvent[]> {
+  if (cachedFfEvents && Date.now() < cachedFfEvents.expiry) {
+    return cachedFfEvents.events;
+  }
+  try {
+    const url = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!res.ok) {
+      console.warn(`[ForexFactory] HTTP ${res.status}`);
+      return [];
+    }
+
+    const data: ForexFactoryEvent[] = await res.json();
+    if (Array.isArray(data)) {
+      cachedFfEvents = {
+        events: data,
+        expiry: Date.now() + 1000 * 60 * 30, // 30분 캐시 (레이트 리밋 방지)
+      };
+      return data;
+    }
+    return [];
+  } catch (err) {
+    console.warn('[ForexFactory] Fetch failed:', err);
+    return [];
+  }
+}
+
+/**
+ * 캘린더 이벤트와 Forex Factory 주간 이벤트를 날짜 및 제목 키워드로 매칭합니다.
+ */
+export function matchForexFactoryEvent(
+  calendarTitle: string,
+  calendarDate: string,
+  ffEvents: ForexFactoryEvent[]
+): ForexFactoryEvent | null {
+  if (!ffEvents || ffEvents.length === 0) return null;
+  const t = calendarTitle.toLowerCase();
+
+  for (const item of ffEvents) {
+    const itemDate = item.date.slice(0, 10);
+    // 날짜가 일치하거나 시차(±1일) 범위 내에 있는 이벤트
+    const dateDiff = Math.abs(new Date(itemDate).getTime() - new Date(calendarDate).getTime());
+    if (dateDiff > 86400000 * 1.5) continue;
+
+    const ft = item.title.toLowerCase();
+
+    // ISM 서비스업 PMI
+    if (t.includes('서비스업') && t.includes('pmi') && ft.includes('services') && ft.includes('pmi')) {
+      return item;
+    }
+    // ISM 제조업 PMI
+    if (t.includes('제조업') && t.includes('pmi') && ft.includes('manufacturing') && ft.includes('pmi')) {
+      return item;
+    }
+    // JOLTS 구인건수
+    if (t.includes('jolts') && ft.includes('jolts')) {
+      return item;
+    }
+    // 비농업 취업자수
+    if ((t.includes('비농업') || t.includes('nfp')) && (ft.includes('non-farm') || ft.includes('nonfarm'))) {
+      return item;
+    }
+    // 실업률
+    if (t.includes('실업률') && ft.includes('unemployment rate')) {
+      return item;
+    }
+    // CPI 소비자물가
+    if (t.includes('소비자물가') && !t.includes('근원') && ft.includes('cpi') && !ft.includes('core')) {
+      return item;
+    }
+    // Core CPI 근원 소비자물가
+    if (t.includes('근원') && t.includes('소비자물가') && ft.includes('core cpi')) {
+      return item;
+    }
+    // PPI 생산자물가
+    if (t.includes('생산자물가') && ft.includes('ppi')) {
+      return item;
+    }
+    // 소매판매
+    if (t.includes('소매판매') && ft.includes('retail sales')) {
+      return item;
+    }
+  }
+
+  return null;
+}
+
+// ─── 공신력 있는 금융 뉴스 기반 발표 결과치 수집 (FRED 미제공 민간 지표 폴백) ───
+
+async function fetchActualFromFinancialNews(query: string, pattern: RegExp): Promise<string | null> {
+  try {
+    const encoded = encodeURIComponent(query);
+    const url = `https://news.google.com/rss/search?q=${encoded}&hl=ko&gl=KR&ceid=KR:ko`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)' },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (!res.ok) return null;
+    const text = await res.text();
+    // RSS <item><title>...</title> 추출
+    const titleMatches = text.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/g);
+    if (!titleMatches) return null;
+
+    for (const rawTitle of titleMatches.slice(0, 10)) {
+      const cleanTitle = rawTitle.replace(/<\/?title>/g, '').replace(/<!\[CDATA\[|\]\]>/g, '');
+      const match = cleanTitle.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+    return null;
+  } catch (e) {
+    console.warn(`[News Actual Fetch] Failed for "${query}":`, e);
+    return null;
+  }
+}
+
 // ─── 이벤트 제목 기반 FRED 수집 함수 라우터 ──────────────────────────────────
 
 async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise<string | null> {
@@ -512,6 +675,40 @@ async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise
       return await fetchGdpGrowth(eventDate);
     }
 
+    // ⑪ ISM 서비스업 PMI (FRED 미제공 민간 지표)
+    if (t.includes('서비스업') && t.includes('pmi')) {
+      const newsVal = await fetchActualFromFinancialNews(
+        `美 ${ev.title.slice(3, 7)} ISM 서비스업 PMI`,
+        /(?:PMI|지수)\s*([0-9]+\.[0-9]+|[0-9]+)/
+      );
+      if (newsVal) return newsVal;
+    }
+
+    // ⑫ ISM 제조업 PMI (FRED 미제공 민간 지표)
+    if (t.includes('제조업') && t.includes('pmi')) {
+      const newsVal = await fetchActualFromFinancialNews(
+        `美 ${ev.title.slice(3, 7)} ISM 제조업 PMI`,
+        /(?:PMI|지수)\s*([0-9]+\.[0-9]+|[0-9]+)/
+      );
+      if (newsVal) return newsVal;
+    }
+
+    // ⑬ JOLTS 구인건수 (FRED: JTSJOL 및 공신력 뉴스)
+    if (t.includes('jolts') || t.includes('구인')) {
+      const obs = await fetchFredSeries('JTSJOL', eventDate, 1);
+      if (obs.length > 0 && obs[0].value) {
+        const num = parseFloat(obs[0].value);
+        if (!isNaN(num)) {
+          return `${(num / 1000).toFixed(2)}M`;
+        }
+      }
+      const newsVal = await fetchActualFromFinancialNews(
+        `美 ${ev.title.slice(3, 7)} JOLTS 구인`,
+        /([0-9]+\.?[0-9]*\s*(?:만|M|건|개))/
+      );
+      if (newsVal) return newsVal;
+    }
+
     return null;
   } catch (err) {
     console.warn(`[Sync] fetchEconomicActual failed for ${ev.id}:`, err);
@@ -557,9 +754,46 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
 
   const newlyPublished: SyncCalendarResult['newlyPublished'] = [];
   const macroUpdates: SyncCalendarResult['macroUpdates'] = {};
+  const overlayUpdates: NonNullable<SyncCalendarResult['overlayUpdates']> = [];
+
+  // Forex Factory 주간 공식 JSON 피드 병렬 수집 (이번 주 최신 예상치/이전치/일시 오버레이)
+  const ffEvents = await fetchForexFactoryWeeklyEvents();
 
   const updatedEvents = await Promise.all(
-    currentEvents.map(async (ev) => {
+    currentEvents.map(async (baseEv) => {
+      let ev = { ...baseEv };
+
+      // ─── 0. 이번 주 Forex Factory 최신 예상치/이전치/시간 오버레이 ──────────
+      if (ffEvents && ffEvents.length > 0) {
+        const matchedFf = matchForexFactoryEvent(ev.title, ev.date, ffEvents);
+        if (matchedFf) {
+          // 최신 시장 예상치(forecast)가 있고 기존과 다르다면 덮어쓰기
+          if (matchedFf.forecast && matchedFf.forecast !== ev.expected) {
+            const oldVal = ev.expected;
+            ev.expected = matchedFf.forecast;
+            overlayUpdates.push({
+              title: ev.title,
+              date: ev.date,
+              field: '예상치',
+              oldVal,
+              newVal: matchedFf.forecast,
+            });
+          }
+          // 이전치(previous) 보정
+          if (matchedFf.previous && (!ev.previous || matchedFf.previous !== ev.previous)) {
+            const oldVal = ev.previous;
+            ev.previous = matchedFf.previous;
+            overlayUpdates.push({
+              title: ev.title,
+              date: ev.date,
+              field: '이전치',
+              oldVal,
+              newVal: matchedFf.previous,
+            });
+          }
+        }
+      }
+
       // 이미 actual이 있으면 건너뜀 (DB에 저장된 확정값 보호)
       if (ev.actual) return ev;
 
@@ -642,7 +876,7 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
     })
   );
 
-  return { updatedEvents, newlyPublished, macroUpdates };
+  return { updatedEvents, newlyPublished, macroUpdates, overlayUpdates };
 }
 
 // ─── FRED 기반 매크로 지표 현재값 수집 (route.ts forceRefresh 전용) ──────────

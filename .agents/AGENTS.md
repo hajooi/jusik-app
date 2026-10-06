@@ -107,9 +107,10 @@
   1. **[회사 규모(시총) 순위 최신화]**:
      - 미국 Top 20 및 한국 Top 10 순위 수령 ➔ 탈락/신규 종목 판별 및 순위 재배열.
      - `src/app/tools/simulate/page.tsx` (`ASSET_OPTIONS`), `src/data/backtestData.json` (`assets`), `scripts/update_market_data.py` (`SYMBOLS`), `scripts/update_historical_data.py` (`raw_meta`) 4개 파일 일괄 동기화.
-  2. **[전월 주가 마감 및 백테스트 지표 재계산]**:
+  2. **[전월 주가 마감 및 백테스트 지표 재계산 & S&P 500 EPS 점검]**:
      - `python3 scripts/update_market_data.py` 실행하여 전월 말 종가 기준 주봉·월봉 수집 (`historicalPrices.json`).
      - 50개 전체 자산의 CAGR, 연간 변동성, 이동평균선 매매 전략 지표 자동 재계산 (`backtestData.json`).
+     - **S&P 500 TTM EPS 점검**: S&P Dow Jones Indices 공식 분기 실적 보고서 확정치 또는 최신 P/E 역산 추정치를 확인하여 `src/data/marketCalendar.ts` (`MACRO_SUMMARY_ITEMS`, `MACRO_ASSET_CHARTS`) 및 안내 툴팁 최신화.
   3. **[증시 캘린더 슬라이딩 윈도우 정리 (과거 -3개월)]**:
      - 오늘 기준 3개월 이전 과거 일정 자동 삭제(Pruning). (예: 10월 1일 실행 시 6월 이전 일정 폐기)
   4. **[미래 +3개월 신규 월(New Month) 공식 일정 추가 & 실적 동기화]**:

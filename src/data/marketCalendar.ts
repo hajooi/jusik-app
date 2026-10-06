@@ -10430,8 +10430,8 @@ export const INDICATOR_METADATA: Record<string, IndicatorMeta> = {
   SP500_EPS: {
     key: 'SP500_EPS',
     name: 'S&P 500 기업 실적',
-    period: '최근 5년 추이 (월간 누적)',
-    summary: 'S&P 500 기업들의 1주당 순이익',
+    period: '최근 5년 추이 (분기별 확정 및 추정)',
+    summary: 'S&P 500 기업들의 최근 4개 분기 합산 1주당 순이익 (TTM 확정 및 추정치)',
   },
   CREDIT_SPREAD: {
     key: 'CREDIT_SPREAD',
@@ -11585,9 +11585,11 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 9월 ISM 서비스업 구매관리자지수 (PMI) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "미국 경제의 80%를 차지하는 서비스업 체감 경기를 보여주는 지표예요. 제조업 PMI와 함께 경기 방향을 가늠하는 핵심 선행지표입니다.",
+    "simpleSummary": "서비스업 경기가 54.9로 집계되어 27개월 연속 확장세를 이어갔어요.\n비용 압력이 다소 높아졌지만 미국 경제의 80%를 지탱하는 서비스업 체력은 여전히 튼튼합니다.",
     "impactTag": "관망",
     "importance": 2,
+    "actual": "54.9",
+    "expected": "55.0",
     "previous": "51.5"
   },
   {

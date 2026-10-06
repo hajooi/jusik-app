@@ -74,7 +74,7 @@ HISTORICAL_PRICES_PATH = 'src/data/historicalPrices.json'
 BACKTEST_DATA_PATH = 'src/data/backtestData.json'
 CALENDAR_PATH = 'src/data/marketCalendar.ts'
 
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7836688476:AAGJOs8nHrvRD-T1XPSIfY1wDSXKADQQS2Q')
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7836688476:AAGby8IV48pSTuRNPJBeebhxO6quSJadIMA')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '7954599592')
 
 def send_telegram_error(subject: str, message: str):
@@ -124,11 +124,12 @@ def send_telegram_success(summary: dict):
         f"  • 기준금리(상단): {summary.get('fed_latest', '4.00%')}",
         f"  • 소비자물가(YoY): {summary.get('cpi_latest', '3.35%')}",
         f"  • 미국 실업률: {summary.get('unrate_latest', '4.1%')}",
-        f"  • S&P 500 EPS: {summary.get('eps_latest', '$295.36')}",
+        f"  • S&P 500 EPS: {summary.get('eps_latest', '$295.36')} (TTM 확정/추정)",
         f"  • 신용스프레드: {summary.get('spread_latest', '0.84%')}",
         "",
         "🚨 <b>[핵심 5대 경제지표 최신화 알림 - 직접 확인 필요]</b>",
         "👉 <i>주요 경제지표가 동기화되었으니 사이트(마켓 인사이트)에서 직접 이상 유무와 5년 차트를 확인해 주세요!</i>",
+        "📌 <i>월초 확인: S&P Dow Jones Indices 분기 실적 확정 보고서 공시 여부 점검 (공시 전까지는 P/E 역산 추정치 활용)</i>",
         "🔗 https://www.jusik.app/tools/market",
         "",
         "🧮 <b>백테스트 지표 재계산</b>",

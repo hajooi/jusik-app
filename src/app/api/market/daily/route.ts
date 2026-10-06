@@ -1433,7 +1433,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const { updatedEvents, newlyPublished, macroUpdates } = await syncMarketCalendarEvents(currentCalendarEvents);
+    const { updatedEvents, newlyPublished, macroUpdates, overlayUpdates } = await syncMarketCalendarEvents(currentCalendarEvents);
     if (macroUpdates && Object.keys(macroUpdates).length > 0) {
       console.log('[Market Daily] 매크로 지표 FRED 갱신:', macroUpdates);
     }
@@ -1488,7 +1488,8 @@ export async function GET(request: Request) {
         fallbackNotice,
         macroUpdates,
         resolvedMacroSummary,
-        resolvedMacroCharts
+        resolvedMacroCharts,
+        overlayUpdates
       );
     } catch (tgErr) {
       console.warn('Telegram daily report failed:', tgErr);

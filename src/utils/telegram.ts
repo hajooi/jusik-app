@@ -87,7 +87,14 @@ export async function sendTelegramDailyReport(
     unemployment?: string;
   },
   macroSummaryItems?: MacroIndicatorSummary[],
-  macroCharts?: typeof MACRO_ASSET_CHARTS
+  macroCharts?: typeof MACRO_ASSET_CHARTS,
+  overlayUpdates?: Array<{
+    title: string;
+    date: string;
+    field: string;
+    oldVal?: string;
+    newVal: string;
+  }>
 ): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
@@ -172,7 +179,19 @@ export async function sendTelegramDailyReport(
       const sig = signals[item.key];
       const icon = sig?.status === 'emerald' ? '🟢' : '🟠';
       const label = sig?.label ? ` (${icon} ${sig.label})` : '';
-      lines.push(`• <b>${item.name}</b>: ${item.value}${label}`);
+      const isEps = item.key === 'SP500_EPS';
+      const suffix = isEps ? ' <i>(TTM 확정/추정)</i>' : '';
+      lines.push(`• <b>${item.name}</b>: ${item.value}${label}${suffix}`);
+    });
+  }
+
+  // 주간 공식 캘린더 오버레이 (Forex Factory 최신 예상치/이전치 동기화 알림)
+  if (overlayUpdates && overlayUpdates.length > 0) {
+    lines.push(``);
+    lines.push(`📅 <b>[주간 공식 캘린더 동기화 (Forex Factory 최신 반영)]</b>`);
+    overlayUpdates.forEach((item) => {
+      const prevText = item.oldVal ? ` (기존: ${item.oldVal})` : '';
+      lines.push(`• <b>${item.title}</b> (${item.date}): ${item.field} 최신화 ➔ <b>${item.newVal}</b>${prevText}`);
     });
   }
 
