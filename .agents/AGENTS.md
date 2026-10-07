@@ -7,6 +7,10 @@
   - 플랜 작성 시 `implementation_plan.md`에 **Mermaid 다이어그램**을 포함하여 시각적 구조를 직관적으로 전달.
 - **No Automatic GitHub Pushes**:
   - 사용자가 명시적으로 지시할 때만 `git push` 실행 (자동 커밋/푸시 100% 금지).
+- **Zero Secret Exposure & Strict Environment Variable Policy (비밀값/토큰 하드코딩 절대 금지 및 상시 보안 점검)**:
+  - 텔레그램 봇 토큰, Supabase 키, Gemini/FRED/BOK API 키, DB 자격증명 등 모든 비밀값(Secrets)은 코드 파일(`*.ts`, `*.tsx`, `*.py`, `*.yml`, `*.json` 등 Git 추적 대상 파일)에 절대로 직접 문자열로 적거나 기본 폴백값(fallback)으로 포함하지 않음 (100% 금지).
+  - 비밀값은 오직 `.env.local` (로컬 전용, `.gitignore` 필수), **Vercel Environment Variables**, **GitHub Actions Repository Secrets**를 통해서만 안전하게 주입받도록 구현.
+  - 모든 커밋(`git commit`) 및 푸시(`git push`) 전에는 반드시 `git diff`를 정밀 검토하여 시크릿 또는 토큰 패턴(`[0-9]{9,10}:[a-zA-Z0-9_-]{35}`, `AIza`, `sk-`, `sb_secret` 등)이 우발적으로 포함되지 않았는지 상시 점검 완료 후 진행.
 - **Autonomous Dev Server Lifecycle**:
   - 개발 서버 종료/오류/HMR 충돌 발생 시 사용자가 요청하기 전에 자율적으로 확인 및 즉시 재시작.
 

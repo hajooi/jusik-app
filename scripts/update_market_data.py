@@ -74,7 +74,25 @@ HISTORICAL_PRICES_PATH = 'src/data/historicalPrices.json'
 BACKTEST_DATA_PATH = 'src/data/backtestData.json'
 CALENDAR_PATH = 'src/data/marketCalendar.ts'
 
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7836688476:AAGby8IV48pSTuRNPJBeebhxO6quSJadIMA')
+def _load_local_env():
+    env_path = '.env.local'
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k not in os.environ:
+                            os.environ[k] = v
+        except Exception:
+            pass
+
+_load_local_env()
+
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '7954599592')
 
 def send_telegram_error(subject: str, message: str):

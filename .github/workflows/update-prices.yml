@@ -37,15 +37,15 @@ jobs:
           git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update market historical prices, backtest data, and earnings calendar" && git push)
 
       - name: Notify Telegram on Success
-        if: success()
+        if: success() && secrets.TELEGRAM_BOT_TOKEN != ''
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGby8IV48pSTuRNPJBeebhxO6quSJadIMA' }}/sendMessage" \
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -H "Content-Type: application/json" \
             -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"📈 <b>[jusik.app 월간 시뮬레이터 데이터 갱신 완료]</b>\n매월 1일 정기 백테스트 및 시뮬레이터 주가 데이터가 성공적으로 갱신되었습니다.\n\n📌 <b>월초 5대 정기 체크리스트 확인 요청:</b>\n1. 미국 Top 20 / 한국 Top 10 회사 규모 순위 점검\n2. S&P 500 TTM EPS 분기 확정 보고서 점검 (공식 확정치 입력 또는 P/E 역산 추정치 $295.39 검증)\n3. 증시 캘린더 슬라이딩 윈도우 (-3개월 정리 & +3개월 신규 월 공식 일정 추가)\n4. 주간 공식 캘린더 오버레이(Forex Factory) 정상 연동 확인","parse_mode":"HTML"}'
 
       - name: Notify Telegram on Failure
-        if: failure()
+        if: failure() && secrets.TELEGRAM_BOT_TOKEN != ''
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN || '7836688476:AAGby8IV48pSTuRNPJBeebhxO6quSJadIMA' }}/sendMessage" \
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -H "Content-Type: application/json" \
             -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"🚨 <b>[jusik.app 자동화 오류 경고]</b>\n월간 백테스트 데이터 갱신 작업(update-prices) 중 오류가 발생했습니다. 로그를 확인해 주세요.","parse_mode":"HTML"}'
