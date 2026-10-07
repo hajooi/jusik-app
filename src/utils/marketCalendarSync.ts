@@ -800,6 +800,23 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
       // 아직 발표일이 오지 않은 미래 이벤트는 건너뜀
       if (ev.date > todayStr) return ev;
 
+      // 당일 이벤트라도 발표 예정 시각(time)이 아직 지나지 않은 경우 건너뜀 (사전 실제치 노출 원천 차단)
+      if (ev.date === todayStr && ev.time) {
+        try {
+          const kstTimeStr = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour12: false });
+          const [nowH, nowM] = kstTimeStr.split(':').map(Number);
+          const [evH, evM] = ev.time.split(':').map(Number);
+          const nowMinutes = nowH * 60 + nowM;
+          const evMinutes = evH * 60 + (evM || 0);
+          if (nowMinutes < evMinutes) {
+            // 발표 시각 전이므로 실제치를 조회하지 않고 예정 상태 유지
+            return ev;
+          }
+        } catch {
+          // 시간 파싱 오류 시 기본 유지
+        }
+      }
+
       // ─── A. 경제지표 ──────────────────────────────────────────
       if (ev.type === 'economic') {
         const fetchedActual = await fetchEconomicActual(ev, todayStr);
