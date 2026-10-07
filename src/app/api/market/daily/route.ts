@@ -834,9 +834,16 @@ export async function GET(request: Request) {
               }
             }
 
+            const snapState = (snap.weatherState as WeatherState) || 'overcast';
+            const latestPreset = WEATHER_PRESETS[snapState] || WEATHER_PRESETS.overcast;
             const cachedData = {
               ...dbRecord.simulator_settings,
-              snapshot: { ...snap, todayNews: validNews },
+              snapshot: {
+                ...snap,
+                weatherMessage: latestPreset.message,
+                weatherSubMessage: latestPreset.subMessage,
+                todayNews: validNews,
+              },
               calendarEvents: pruneOldCalendarEvents(mergedEvents),
               weeklyBriefing: WEEKLY_BRIEFING,
               macroSummaryItems: mergedMacroSummary,

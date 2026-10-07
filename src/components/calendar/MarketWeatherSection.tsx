@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   MARKET_SNAPSHOT,
   ASSET_CHARTS,
+  WEATHER_PRESETS,
   TODAY_MARKET_NEWS,
   MarketNewsItem,
   INDICATOR_METADATA,
@@ -38,7 +39,7 @@ const FG_BAR_COLOR = (value: number) =>
   value >= 25 ? '#FB7185' : // 공포 (Soft Rose / Coral)
   '#F43F5E';                // 극도의 공포 (Signal Crimson)
 
-const CACHE_KEY = 'jusik_market_daily_cache_v2';
+const CACHE_KEY = 'jusik_market_daily_cache_v3';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1시간 (오래된 과거 데이터 노출 방지)
 
 // 차트 호버/드래그 툴팁용 지표별 공식 정밀 자릿수 및 단위 통일 포맷터
@@ -273,8 +274,11 @@ export default function MarketWeatherSection({
     );
   }
 
-  const { weatherState, fearGreedIndex, fearGreedLabel, weatherMessage, weatherSubMessage, indices, auxiliary } =
+  const { weatherState, fearGreedIndex, fearGreedLabel, indices, auxiliary } =
     snapshot;
+  const currentPreset = WEATHER_PRESETS[weatherState] || WEATHER_PRESETS.overcast;
+  const weatherMessage = currentPreset.message || snapshot.weatherMessage;
+  const weatherSubMessage = currentPreset.subMessage || snapshot.weatherSubMessage;
   const newsList: MarketNewsItem[] = (snapshot as any)?.todayNews || TODAY_MARKET_NEWS;
 
   const currentMeta = INDICATOR_METADATA[selectedAssetKey] ?? INDICATOR_METADATA.SPX;
@@ -351,9 +355,9 @@ export default function MarketWeatherSection({
               />
             </div>
             <div className="flex justify-between text-[var(--text-secondary)]/60 text-[10px] font-semibold px-0.5">
-              <span>0 (극단적 공포)</span>
+              <span>0 (극도의 공포)</span>
               <span>50 (중립)</span>
-              <span>100 (극단적 탐욕)</span>
+              <span>100 (극도의 탐욕)</span>
             </div>
           </div>
         </div>
@@ -420,7 +424,7 @@ export default function MarketWeatherSection({
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {indices.map((idx) => {
                 const isSelected = selectedAssetKey === idx.code;
                 return (
@@ -462,7 +466,7 @@ export default function MarketWeatherSection({
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {auxiliary.map((a) => {
                 const isSelected = selectedAssetKey === a.label;
                 return (
@@ -507,7 +511,7 @@ export default function MarketWeatherSection({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {macroSummary.map((item) => {
                 const isSelected = selectedAssetKey === item.key;
                 const signal = signals[item.key] ?? { status: 'emerald', label: '안정', detail: '' };

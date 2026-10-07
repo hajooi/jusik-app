@@ -511,13 +511,6 @@ export default function MarketCalendarSection() {
               );
             })}
           </div>
-
-          {/* 캘린더 하단 안내 캡션 (좌우 높이 완벽 일치 및 시각적 안정감) */}
-          <div className="pt-3 text-center border-t border-[var(--border-color)]/50 mt-2">
-            <span className="text-[11px] text-[var(--text-secondary)]">
-              날짜를 누르면 하단에서 해당 일자의 일정을 바로 확인할 수 있어요.
-            </span>
-          </div>
         </div>
         </RevealOnScroll>
       </div>
