@@ -655,9 +655,14 @@ async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise
       return await fetchPpiYoy(eventDate);
     }
 
-    // ⑦ 비농업 취업자수 (NFP)
+    // ⑦ 비농업 취업자수 (NFP) 및 실업률
     if (t.includes('비농업') || t.includes('nonfarm') || t.includes('payroll')) {
-      return await fetchNonfarmPayrolls(eventDate);
+      const nfp = await fetchNonfarmPayrolls(eventDate);
+      if (t.includes('실업률')) {
+        const unrate = await fetchUnemploymentRate(eventDate);
+        if (nfp && unrate) return `${nfp} / ${unrate}`;
+      }
+      return nfp;
     }
 
     // ⑧ 실업률
@@ -693,13 +698,20 @@ async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise
       if (newsVal) return newsVal;
     }
 
-    // ⑬ JOLTS 구인건수 (FRED: JTSJOL 및 공신력 뉴스)
+    // ⑬ JOLTS 구인건수 (FRED: JTSJOL - 대상 월 기준 정확한 관측치 조회)
     if (t.includes('jolts') || t.includes('구인')) {
-      const obs = await fetchFredSeries('JTSJOL', eventDate, 1);
+      const monthMatch = ev.title.match(/(\d{1,2})월/);
+      let refDate = eventDate;
+      if (monthMatch) {
+        const targetMonth = parseInt(monthMatch[1], 10);
+        const evYear = new Date(eventDate).getFullYear();
+        refDate = `${evYear}-${String(targetMonth).padStart(2, '0')}-01`;
+      }
+      const obs = await fetchFredSeries('JTSJOL', refDate, 1);
       if (obs.length > 0 && obs[0].value) {
         const num = parseFloat(obs[0].value);
         if (!isNaN(num)) {
-          return `${(num / 1000).toFixed(2)}M`;
+          return `${(num / 1000).toFixed(1)}M (${Math.round(num / 10).toLocaleString()}만 개)`;
         }
       }
       const newsVal = await fetchActualFromFinancialNews(
