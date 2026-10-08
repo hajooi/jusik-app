@@ -66,6 +66,7 @@ EXCLUDED_TERM_FILES = {
     "src/components/StockTradeGuide.tsx",           # 실제 매수/매도 주문 화면 가이드
     "src/components/StockDcaMotionSimulator.tsx",   # 적립식 매수 실습 시뮬레이터
     "src/components/StockDcaGuide.tsx",             # 적립식 매수 실습 가이드
+    "src/utils/aiSummary.ts",                       # AI 프롬프트 금지어 지침 (단어 자체가 명시됨)
 }
 
 def get_git_modified_files() -> List[str]:
