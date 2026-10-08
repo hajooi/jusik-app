@@ -11281,7 +11281,7 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 연준 9월 FOMC 회의록 공개",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "연준 위원들이 9월 금리 인상 당시 나눈 구체적인 물가와 경제 진단 내용이 공개돼요.",
+    "simpleSummary": "미국 연준 위원들은 연말까지 한 차례 더 금리를 올리는 것이 적절하다는 의견에 대체로 뜻을 모았어요.\n추가 긴축 우려에 시장이 긴장하고 있으니, 단기 변동성에 흔들리지 말고 차분하게 흐름을 지켜보는 것이 좋습니다.",
     "impactTag": "관망",
     "importance": 2
   },
@@ -11292,8 +11292,9 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "삼성전자 3분기 잠정 실적 발표",
     "type": "earnings",
     "region": "kr",
-    "simpleSummary": "국내 대표 반도체 기업의 3분기 성적표가 공개돼요. 메모리 사업의 수익성 회복 여부가 주목됩니다.",
-    "impactTag": "핵심지표",
+    "actual": "매출 195조원, 영업이익 107.4조원",
+    "simpleSummary": "삼성전자가 분기 영업이익 100조 원을 돌파하며 국내 기업 최초의 대기록을 세웠어요.\n반도체 시장의 강력한 회복세가 입증된 만큼, 장기적인 관점에서 우량 기업의 가치를 믿고 지켜볼 만합니다.",
+    "impactTag": "호재 가능성",
     "importance": 3,
     "ticker": "005930"
   },

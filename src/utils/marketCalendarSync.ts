@@ -868,6 +868,36 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
           return { ...ev, actual: fetchedActual, simpleSummary: aiSummary };
         }
 
+        // 비수치형 정책 문서/회의록/보고서의 경우 발표 시각 경과 시 실제 뉴스 기사를 수집해 해설 갱신
+        const isDocumentOrReport =
+          ev.title.includes('회의록') ||
+          ev.title.includes('의사록') ||
+          ev.title.includes('보고서') ||
+          ev.title.includes('성명');
+
+        const isSummaryInFutureTense =
+          ev.simpleSummary.includes('공개돼요') ||
+          ev.simpleSummary.includes('발표돼요') ||
+          ev.simpleSummary.includes('예정');
+
+        if (isDocumentOrReport && isSummaryInFutureTense) {
+          console.log(`[Sync] 📰 비수치 문서형 이벤트 뉴스 기반 요약 생성: ${ev.id} (${ev.title})`);
+          const aiSummary = await generateEasyEventSummary({
+            title: ev.title,
+            ticker: ev.ticker,
+            region: ev.region,
+          });
+
+          newlyPublished.push({
+            title: ev.title,
+            ticker: ev.ticker,
+            actual: '공개 완료',
+            summary: aiSummary,
+          });
+
+          return { ...ev, simpleSummary: aiSummary };
+        }
+
         console.warn(`[Sync] ⚠️ ${ev.id} (${ev.date}): FRED 수집 실패 또는 유효하지 않은 값, 기존 유지`);
         return ev;
       }
@@ -895,6 +925,36 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
           });
 
           return { ...ev, actual: fetchedActual, simpleSummary: aiSummary };
+        }
+
+        // 한국 기업 실적 발표 시각이 지났는데 야후에 미반영된 경우 최신 뉴스에서 수치 탐색
+        if (ev.region === 'kr' && (ev.simpleSummary.includes('공개돼요') || ev.simpleSummary.includes('발표돼요') || ev.simpleSummary.includes('예정'))) {
+          const newsActual = await fetchActualFromFinancialNews(
+            `${ev.title.slice(0, 4)} 3분기 잠정 실적 영업이익`,
+            /영업이익\s*([0-9]+\.?[0-9]*\s*(?:조|조원|억|억원))/
+          );
+          if (newsActual) {
+            const formattedActual = `영업이익 ${newsActual}`;
+            console.log(`[Sync] 📰 뉴스 기반 실적 수치 확인: ${ev.id} -> ${formattedActual}`);
+            const aiSummary = await generateEasyEventSummary({
+              title: ev.title,
+              ticker: ev.ticker,
+              region: ev.region,
+              actual: formattedActual,
+              expected: ev.expected,
+              previous: ev.previous,
+            });
+
+            newlyPublished.push({
+              title: ev.title,
+              ticker: ev.ticker,
+              actual: formattedActual,
+              expected: ev.expected,
+              summary: aiSummary,
+            });
+
+            return { ...ev, actual: formattedActual, simpleSummary: aiSummary };
+          }
         }
 
         console.warn(`[Sync] ⚠️ ${ev.id} (${ev.date}): Yahoo 실적 수집 실패, 기존 유지`);

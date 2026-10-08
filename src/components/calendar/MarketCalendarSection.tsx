@@ -67,31 +67,123 @@ function PillToggle<T extends string>({
   );
 }
 
+function getEventTiming(event: CalendarEvent, todayStr: string) {
+  const isPastDate = event.date < todayStr;
+  const isFutureDate = event.date > todayStr;
+
+  const isDocumentOrReport =
+    event.title.includes('회의록') ||
+    event.title.includes('의사록') ||
+    event.title.includes('보고서') ||
+    event.title.includes('성명');
+
+  const completedLabel = isDocumentOrReport ? '공개 완료' : '발표 완료';
+
+  if (isPastDate) {
+    return {
+      isPast: true,
+      isTodayPassed: false,
+      statusLabel: completedLabel,
+      badgeBg: 'bg-slate-500/15',
+      badgeText: 'text-[var(--text-secondary)]',
+    };
+  }
+
+  if (isFutureDate) {
+    return {
+      isPast: false,
+      isTodayPassed: false,
+      statusLabel: '예정',
+      badgeBg: 'bg-[var(--accent-orange)]/15',
+      badgeText: 'text-[var(--accent-orange)]',
+    };
+  }
+
+  // 오늘인 경우 (isToday)
+  if (!event.time) {
+    if (event.isHoliday) {
+      return {
+        isPast: false,
+        isTodayPassed: false,
+        statusLabel: '휴장',
+        badgeBg: 'bg-rose-500/15',
+        badgeText: 'text-rose-500',
+      };
+    }
+    return {
+      isPast: false,
+      isTodayPassed: false,
+      statusLabel: '예정',
+      badgeBg: 'bg-[var(--accent-orange)]/15',
+      badgeText: 'text-[var(--accent-orange)]',
+    };
+  }
+
+  try {
+    const kstTimeStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(new Date());
+    const [nowH, nowM] = kstTimeStr.split(':').map(Number);
+    const [evH, evM] = event.time.split(':').map(Number);
+    const nowMinutes = nowH * 60 + (nowM || 0);
+    const evMinutes = evH * 60 + (evM || 0);
+
+    if (nowMinutes >= evMinutes) {
+      return {
+        isPast: false,
+        isTodayPassed: true,
+        statusLabel: completedLabel,
+        badgeBg: 'bg-[var(--fintech-emerald)]/15',
+        badgeText: 'text-emerald-600 dark:text-emerald-400',
+      };
+    }
+  } catch {
+    // time parsing fallback
+  }
+
+  return {
+    isPast: false,
+    isTodayPassed: false,
+    statusLabel: '예정',
+    badgeBg: 'bg-[var(--accent-orange)]/15',
+    badgeText: 'text-[var(--accent-orange)]',
+  };
+}
+
 interface EventCardProps {
   event: CalendarEvent;
+  todayStr?: string;
   isPast?: boolean;
 }
-function EventCard({ event, isPast }: EventCardProps) {
+function EventCard({ event, todayStr, isPast: isPastProp }: EventCardProps) {
   const typeCfg = EVENT_TYPE_CONFIG[event.type];
   const impactCfg = IMPACT_TAG_CONFIG[event.impactTag];
+  const timing = getEventTiming(event, todayStr || new Date().toISOString().slice(0, 10));
+  const isPast = isPastProp !== undefined ? isPastProp : timing.isPast;
+
   return (
     <div className={`p-4 rounded-2xl border ${
       isPast 
         ? 'border-[var(--border-color)]/60 bg-[var(--bg-main)]/60 opacity-80' 
+        : timing.isTodayPassed
+        ? 'border-[var(--border-color)]/80 bg-[var(--card-surface)]/90 shadow-2xs'
         : 'border-[var(--border-color)]/90 bg-[var(--bg-main)]/80 shadow-2xs'
     }`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {isPast && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-500">
-              발표 완료
-            </span>
-          )}
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${timing.badgeBg} ${timing.badgeText}`}>
+            {timing.statusLabel}
+          </span>
           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${typeCfg.badgeBg} ${typeCfg.badgeText}`}>
             {typeCfg.label}
           </span>
           {event.time && (
-            <span className="text-xs text-[var(--text-secondary)] font-mono flex items-center gap-0.5">
+            <span className={`text-xs font-mono flex items-center gap-0.5 ${
+              timing.isPast || timing.isTodayPassed ? 'text-[var(--text-secondary)]/60' : 'text-[var(--text-secondary)]'
+            }`}>
               <Clock className="w-3 h-3" />
               {event.time}
             </span>
@@ -143,15 +235,32 @@ function EventCard({ event, isPast }: EventCardProps) {
 }
 
 export default function MarketCalendarSection() {
-  // 매일 오늘 날짜로 자동 동적 세팅 (접속 당일 기준)
-  const todayObj = new Date();
-  const currentTotalMonth = todayObj.getFullYear() * 12 + todayObj.getMonth();
+  // 한국 시간(KST, Asia/Seoul) 기준으로 오늘 날짜 및 현재 월 세팅 (해외 접속자도 국내 증시 일정 정확도 보장)
+  const kstDateParts = useMemo(() => {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      }).formatToParts(new Date());
+      const y = parseInt(parts.find((p) => p.type === 'year')?.value || '2026', 10);
+      const m = parseInt(parts.find((p) => p.type === 'month')?.value || '10', 10) - 1;
+      const d = parseInt(parts.find((p) => p.type === 'day')?.value || '8', 10);
+      return { y, m, d };
+    } catch {
+      const now = new Date();
+      return { y: now.getFullYear(), m: now.getMonth(), d: now.getDate() };
+    }
+  }, []);
+
+  const currentTotalMonth = kstDateParts.y * 12 + kstDateParts.m;
 
   // 월 단위 동적 롤링: 현재 달 기준 과거 3개월 ~ 미래 3개월 (총 7개월 윈도우)
   const MIN_MONTH_VAL = currentTotalMonth - 3;
   const MAX_MONTH_VAL = currentTotalMonth + 3;
 
-  const TODAY_STR = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+  const TODAY_STR = `${kstDateParts.y}-${String(kstDateParts.m + 1).padStart(2, '0')}-${String(kstDateParts.d).padStart(2, '0')}`;
 
   // 롤링 윈도우 시작일 (과거 3개월 전 1일) 및 종료일 (미래 3개월 후 말일)
   const minYear = Math.floor(MIN_MONTH_VAL / 12);
@@ -163,8 +272,8 @@ export default function MarketCalendarSection() {
   const maxDays = getDaysInMonth(maxYear, maxMonth);
   const maxDateLimitStr = `${maxYear}-${String(maxMonth + 1).padStart(2, '0')}-${String(maxDays).padStart(2, '0')}`;
 
-  const [currentYear, setCurrentYear] = useState(todayObj.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(todayObj.getMonth()); // 0-indexed
+  const [currentYear, setCurrentYear] = useState(kstDateParts.y);
+  const [currentMonth, setCurrentMonth] = useState(kstDateParts.m); // 0-indexed
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [expandedKeyId, setExpandedKeyId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('전체');
@@ -345,7 +454,7 @@ export default function MarketCalendarSection() {
                 const keyEvents = [...upcomingKeyEvents, ...pastKeyEvents].slice(0, 3);
 
                 return keyEvents.map((keyEv) => {
-                  const isUpcoming = keyEv.date >= TODAY_STR;
+                  const timing = getEventTiming(keyEv, TODAY_STR);
                   const isExpanded = expandedKeyId === keyEv.id;
 
                   return (
@@ -368,15 +477,9 @@ export default function MarketCalendarSection() {
                         <div className="flex items-center justify-between text-[11px] font-mono">
                           <span className="font-bold text-[var(--accent-orange)]">{keyEv.date.replace(/-/g, '.')}</span>
                           <div className="flex items-center gap-1.5">
-                            {isUpcoming ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]">
-                                예정
-                              </span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-500/15 text-[var(--text-secondary)]">
-                                발표완료
-                              </span>
-                            )}
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${timing.badgeBg} ${timing.badgeText}`}>
+                              {timing.statusLabel}
+                            </span>
                             <span className="text-[10px] text-[var(--text-secondary)] font-medium">
                               {keyEv.region === 'kr' ? '국내' : '미국'}
                             </span>
@@ -619,7 +722,7 @@ export default function MarketCalendarSection() {
                         </span>
                       </div>
                       <div className={isPast ? 'opacity-65' : ''}>
-                        <EventCard event={ev} />
+                        <EventCard event={ev} todayStr={TODAY_STR} />
                       </div>
                     </RevealOnScroll>
                   </div>
