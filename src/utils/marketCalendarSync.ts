@@ -980,12 +980,12 @@ export interface FredMacroSnapshot {
 }
 
 /**
- * FRED 공식 CSV에서 CPIAUCSL 원천 지수를 다운로드하여
+ * FRED 공식 CSV에서 CPIAUCNS(계절 비조정) 원천 지수를 다운로드하여
  * 전년 동월 대비(YoY) 정밀 성장률(소수점 둘째 자리)을 산출합니다.
  */
 async function fetchFredCpiYoY(): Promise<{ cpiYoy: string; cpiDate: string } | null> {
   try {
-    const res = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL', {
+    const res = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCNS', {
       cache: 'no-store',
       headers: { 'User-Agent': 'curl/8.7.1' },
     });
@@ -1018,7 +1018,7 @@ async function fetchFredCpiYoY(): Promise<{ cpiYoy: string; cpiDate: string } | 
       }
     }
   } catch (e) {
-    console.warn('[FRED] CPIAUCSL fetch failed:', e);
+    console.warn('[FRED] CPIAUCNS fetch failed:', e);
   }
   return null;
 }
@@ -1035,7 +1035,7 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
     fetchFredSeries('DFEDTARU', todayStr, 1),
     fetchFredCpiYoY(),
     fetchFredSeries('UNRATE', todayStr, 1),
-    fetchFredSeries('BAMLC0A0CM', todayStr, 5),
+    fetchFredSeries('BAMLH0A0HYM2', todayStr, 5),
   ]);
 
   const result: FredMacroSnapshot = {};

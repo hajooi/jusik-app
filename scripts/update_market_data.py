@@ -537,8 +537,8 @@ def update_macro_indicators():
                 fed_month_map[ym] = val
         fed_points = [{'date': ym, 'value': fed_month_map[ym]} for ym in sorted(fed_month_map.keys())]
 
-        # 2. 소비자물가 CPI YoY
-        cpi_raw = fetch_fred_csv('CPIAUCSL')
+        # 2. 소비자물가 CPI YoY (공식 비조정 CPIAUCNS)
+        cpi_raw = fetch_fred_csv('CPIAUCNS')
         cpi_map = {date: val for date, val in cpi_raw}
         cpi_points = []
         for date, val in cpi_raw:
@@ -612,10 +612,10 @@ def update_macro_indicators():
             calendar_code, 'UNEMPLOYMENT', '미국 실업률', unrate_cur, unrate_change, unrate_diff >= 0, unrate_points
         )
 
-        # 4. 신용스프레드 BAMLC0A0CM (5년 일별 슬라이딩)
-        spread_raw = fetch_fred_csv('BAMLC0A0CM')
+        # 4. 미국 하이일드 신용스프레드 BAMLH0A0HYM2 (5년 일별 슬라이딩)
+        spread_raw = fetch_fred_csv('BAMLH0A0HYM2')
         spread_json_path = os.path.join(ROOT_DIR, 'src/data/creditSpreadDaily.json')
-        spread_cur = "0.84%"
+        spread_cur = "3.03%"
         if os.path.exists(spread_json_path):
             with open(spread_json_path, 'r', encoding='utf-8') as f:
                 existing_spread = json.load(f)

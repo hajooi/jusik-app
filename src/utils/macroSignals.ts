@@ -2,7 +2,7 @@
  * 5대 핵심 거시경제 지표 신호등 판정 엔진 (jusik.app Cockpit Signal Engine)
  *
  * [판정 원칙 및 공신력 있는 기준]
- * 1. 신용스프레드: 최근 5년 롤링 데이터 상위 20% (80th 백분위) 이상이거나, 최근 3개월간 +0.30%p 이상 급등(기울기 튐) 시 주황 (자금경색 경계)
+ * 1. 신용스프레드: 미국 하이일드 스프레드(BAMLH0A0HYM2) 기준 최근 5년 상위 20% (80th 백분위, 약 4.3%) 이상이거나, 최근 3개월간 +0.60%p 이상 급등 시 주황 (자금경색 주의)
  * 2. 미국 기준금리: 연준 공식 중립금리(3.0%) 및 직전 변동 방향 결합. 직전 변동이 인상(+)이거나 고금리 동결 지속 시 주황 (금리 인상 기조 / 고금리 지속)
  * 3. 소비자물가: 연준 2% 목표치 기준 1.0% ~ 3.0% 구간 초록 (안정), 3.0% 초과 또는 1.0% 미만 시 주황 (물가 경계)
  * 4. 미국 실업률: 샴의 법칙(Sahm Rule, 저점 대비 +0.50%p 급증) 발동 또는 자연실업률(4.4%) 초과 시 주황 (고용 냉각)
@@ -27,19 +27,22 @@ export function evaluateCreditSpreadSignal(
   const current = points[points.length - 1].value;
   const values = points.map((p) => p.value).sort((a, b) => a - b);
   
-  // 5년 80th 백분위 (상위 20% 위험선)
+  // 하이일드 5년 80th 백분위 (상위 20% 자금경색 위험선, 약 4.32%)
   const p80Index = Math.floor(values.length * 0.8);
-  const p80 = values[p80Index] ?? 1.37;
+  const p80 = values[p80Index] ?? 4.32;
 
   // 최근 60거래일(약 3개월) 변동폭 추적
   const past60 = points[Math.max(0, points.length - 61)]?.value ?? current;
   const change60d = Number((current - past60).toFixed(2));
 
-  if (current >= p80 || change60d >= 0.30) {
+  if (current >= p80 || change60d >= 0.60) {
+    const isSpike = change60d >= 0.60;
     return {
       status: 'orange',
       label: '자금 주의',
-      detail: `스프레드 ${current.toFixed(2)}% (기업 대출 위험 증가)`,
+      detail: isSpike
+        ? `스프레드 ${current.toFixed(2)}% (최근 3개월 +${change60d.toFixed(2)}%p 급등)`
+        : `스프레드 ${current.toFixed(2)}% (기업 대출 위험 증가)`,
     };
   }
 
