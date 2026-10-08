@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     '경제 지표 발표 일정',
     '주식 날씨',
     'jusik.app',
+    '주식부엉',
   ],
   alternates: {
     canonical: 'https://jusik.app/tools/market',
@@ -45,5 +46,35 @@ export default function MarketLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const webAppJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '마켓 인사이트 (증시 캘린더 & 증시 날씨)',
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'All',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+    },
+    description: '오늘의 미국 증시 날씨부터 주간 결산 브리핑, 주요 경제 지표 및 기업 실적 발표 증시 캘린더를 한눈에 확인하는 무료 거시 경제 분석 도구',
+    url: 'https://jusik.app/tools/market',
+    author: {
+      '@type': 'EducationalOrganization',
+      name: '주식앱 (주식부엉)',
+      url: 'https://jusik.app',
+      sameAs: 'https://youtube.com/@주식부엉',
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+      />
+      {children}
+    </>
+  );
 }

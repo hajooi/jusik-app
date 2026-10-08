@@ -11,6 +11,13 @@
   - 텔레그램 봇 토큰, Supabase 키, Gemini/FRED/BOK API 키, DB 자격증명 등 모든 비밀값(Secrets)은 코드 파일(`*.ts`, `*.tsx`, `*.py`, `*.yml`, `*.json` 등 Git 추적 대상 파일)에 절대로 직접 문자열로 적거나 기본 폴백값(fallback)으로 포함하지 않음 (100% 금지).
   - 비밀값은 오직 `.env.local` (로컬 전용, `.gitignore` 필수), **Vercel Environment Variables**, **GitHub Actions Repository Secrets**를 통해서만 안전하게 주입받도록 구현.
   - 모든 커밋(`git commit`) 및 푸시(`git push`) 전에는 반드시 `git diff`를 정밀 검토하여 시크릿 또는 토큰 패턴(`[0-9]{9,10}:[a-zA-Z0-9_-]{35}`, `AIza`, `sk-`, `sb_secret` 등)이 우발적으로 포함되지 않았는지 상시 점검 완료 후 진행.
+- **Loop Engineering & Continuous Verification (루프 엔지니어링 및 자동 검증 의무화)**:
+  - 모든 코드 수정 후 사용자에게 완료를 보고하기 전 반드시 루프 엔지니어링 검증(`npm run verify` 또는 `python3 scripts/verify_loop.py`)을 통과해야 함.
+  - `.agents/hooks.json`의 `Stop` 훅이 연동되어 있어 보안 누출, 도메인 금지어(매수/매도/주가/시가총액/수관형사), TypeScript 타입 오류 발견 시 시스템이 작업 종료를 강제 차단하고 에이전트가 통과할 때까지 자율 자가 수정(Self-Correction)을 수행함.
+  - 배포 및 프로덕션 빌드 전에는 `npm run verify:full`로 37개 전체 라우트 빌드 무결성을 최종 검증.
+- **100% Transparent Change Sharing (코드 변경 시 모든 수정 내용 전수 보고 의무화)**:
+  - 어떤 파일이든 수정 완료 후에는 변경된 모든 파일 목록과 '수정 전 ➔ 수정 후' 세부 내용을 빠짐없이 사용자에게 100% 투명하게 공유해야 함.
+  - 실제 증권사 앱(MTS) 모션 실습 화면(`StockTradeMotionSimulator.tsx` 등)이나 퀴즈 데이터(`termsQuizData.ts` 등) 맥락상 '매수/매도'가 필요한 고유 콘텐츠는 절대 임의로 변경하지 않음.
 - **Autonomous Dev Server Lifecycle**:
   - 개발 서버 종료/오류/HMR 충돌 발생 시 사용자가 요청하기 전에 자율적으로 확인 및 즉시 재시작.
 

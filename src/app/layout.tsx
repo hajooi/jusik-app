@@ -103,12 +103,36 @@ export default function RootLayout({
 }) {
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: '주식앱',
-    alternateName: ['jusik.app', '주식 앱'],
-    url: 'https://jusik.app',
-    description: '주식 초보를 위한 가장 쉬운 설명서',
-    inLanguage: 'ko-KR',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': 'https://jusik.app/#website',
+        name: '주식앱',
+        alternateName: ['jusik.app', '주식부엉', '주식 앱'],
+        url: 'https://jusik.app',
+        description: '주식 초보를 위한 가장 쉬운 설명서 - 기초 강좌와 실전 투자 시뮬레이터 플랫폼',
+        publisher: {
+          '@id': 'https://jusik.app/#organization',
+        },
+        inLanguage: 'ko-KR',
+      },
+      {
+        '@type': 'EducationalOrganization',
+        '@id': 'https://jusik.app/#organization',
+        name: '주식앱 (주식부엉)',
+        alternateName: ['주식부엉', 'jusik.app'],
+        url: 'https://jusik.app',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://jusik.app/icon.png',
+        },
+        sameAs: [
+          'https://youtube.com/@주식부엉',
+          'https://www.youtube.com/channel/UCnFnsb1jfgAHSdviaNSaUwA',
+        ],
+        description: '주식 초보를 위한 단계별 강좌 및 20년 백테스트 투자 전략 시뮬레이터를 제공하는 금융 교육 플랫폼',
+      },
+    ],
   };
 
   return (

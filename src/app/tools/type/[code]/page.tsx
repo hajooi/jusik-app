@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         '주식 성향 테스트',
         '포트폴리오 추천',
         'jusik.app',
+        '주식부엉',
       ],
       alternates: {
         canonical: canonicalUrl,

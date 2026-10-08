@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     '투자 위험 감수도',
     '포트폴리오 추천',
     'jusik.app',
+    '주식부엉',
   ],
   alternates: {
     canonical: 'https://jusik.app/tools/type',
@@ -44,7 +45,37 @@ export default function TypeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const webAppJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '투자 성향 진단 (주식 MBTI)',
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'All',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+    },
+    description: '손실 위험 감수 성향부터 투자 목표까지 40문항으로 알아보는 나의 주식 투자 성향 및 맞춤형 위험 관리법 무료 진단 도구',
+    url: 'https://jusik.app/tools/type',
+    author: {
+      '@type': 'EducationalOrganization',
+      name: '주식앱 (주식부엉)',
+      url: 'https://jusik.app',
+      sameAs: 'https://youtube.com/@주식부엉',
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+      />
+      {children}
+    </>
+  );
 }
 
 

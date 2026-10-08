@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     '금융 퀴즈',
     '주식 백분위',
     'jusik.app',
+    '주식부엉',
   ],
   alternates: {
     canonical: 'https://jusik.app/tools/terms',
@@ -45,5 +46,35 @@ export default function TermsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const webAppJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: '주식 용어 퀴즈',
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'All',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'KRW',
+    },
+    description: '기초 필수 개념부터 실전 매매, 거시경제까지 단계별 실전 주식 용어 퀴즈를 풀고 나의 백분위 랭킹을 확인하는 무료 학습 퀴즈 도구',
+    url: 'https://jusik.app/tools/terms',
+    author: {
+      '@type': 'EducationalOrganization',
+      name: '주식앱 (주식부엉)',
+      url: 'https://jusik.app',
+      sameAs: 'https://youtube.com/@주식부엉',
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+      />
+      {children}
+    </>
+  );
 }

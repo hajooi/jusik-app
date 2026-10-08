@@ -1,0 +1,12 @@
+{
+  "loop-engineering-gate": {
+    "enabled": true,
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 -c \"import os, sys, subprocess; script = 'scripts/verify_loop.py' if os.path.exists('scripts/verify_loop.py') else '../scripts/verify_loop.py'; sys.exit(subprocess.run(['python3', script, '--hook']).returncode)\"",
+        "timeout": 45
+      }
+    ]
+  }
+}

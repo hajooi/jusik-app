@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getLessonById, getAllLessons } from '@/data/curriculum';
 import LessonVideoSection from '@/components/LessonVideoSection';
 import ClassDetectorQuiz from '@/components/ClassDetectorQuiz';
@@ -87,6 +88,76 @@ function renderStepIcon(iconName?: string) {
   }
 }
 
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const data = getLessonById(params.id);
+  if (!data || data.lesson.isComingSoon || data.lesson.isInactive) {
+    return {
+      title: '레슨 안내 | 주식앱',
+      description: '주식 초보를 위한 가장 쉬운 설명서 - jusik.app',
+    };
+  }
+
+  const { lesson, level } = data;
+  const pageTitle = `${lesson.title} - Lv.${level.levelNumber} ${level.title}`;
+  const pageDescription = lesson.subtitle
+    ? `${lesson.subtitle}${lesson.summary?.length ? ` · ${lesson.summary.slice(0, 2).join(' ')}` : ''}`.trim()
+    : (lesson.summary?.[0] || '주식 초보를 위한 가장 쉬운 설명서 및 단계별 강좌');
+  const pageUrl = `https://jusik.app/lesson/${lesson.id}`;
+  const videoThumb = lesson.youtubeId ? `https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg` : '/og-image.png';
+  const isUnlisted = lesson.id === 'lv1-3';
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    ...(isUnlisted && {
+      robots: {
+        index: false,
+        follow: false,
+        nocache: true,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
+      },
+    }),
+    keywords: [
+      lesson.title,
+      level.title,
+      '주식 기초',
+      '주식 초보',
+      '주식 공부',
+      '주식부엉',
+      'jusik.app',
+      ...(lesson.cardNewsTitles || []),
+    ],
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title: `${pageTitle} | 주식앱`,
+      description: pageDescription,
+      url: pageUrl,
+      siteName: '주식앱',
+      images: [
+        {
+          url: videoThumb,
+          width: 1280,
+          height: 720,
+          alt: lesson.title,
+        },
+      ],
+      locale: 'ko_KR',
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${pageTitle} | 주식앱`,
+      description: pageDescription,
+      images: [videoThumb],
+    },
+  };
+}
+
 export async function generateStaticParams() {
   const lessons = getAllLessons().filter((l) => !l.isComingSoon && !l.isInactive);
   return lessons.map((lesson) => ({
@@ -111,14 +182,15 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   const courseJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Course',
-    name: `${lesson.title} (Lv.${level.levelNumber})`,
+    name: `${lesson.title} (Lv.${level.levelNumber} ${level.title})`,
     description: lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.',
     provider: {
-      '@type': 'Organization',
-      name: '주식앱',
+      '@type': 'EducationalOrganization',
+      name: '주식앱 (주식부엉)',
       url: 'https://jusik.app',
+      sameAs: 'https://youtube.com/@주식부엉',
     },
-    educationalLevel: `Lv.${level.levelNumber}`,
+    educationalLevel: `Lv.${level.levelNumber} ${level.title}`,
     isAccessibleForFree: true,
     inLanguage: 'ko-KR',
   };
@@ -148,9 +220,83 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
     ],
   };
 
+  const videoJsonLd = lesson.youtubeId ? {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: `${lesson.title} - 주식부엉`,
+    description: lesson.subtitle || lesson.summary?.[0] || lesson.title,
+    thumbnailUrl: [
+      `https://img.youtube.com/vi/${lesson.youtubeId}/maxresdefault.jpg`,
+      `https://img.youtube.com/vi/${lesson.youtubeId}/hqdefault.jpg`,
+    ],
+    uploadDate: '2024-01-01T00:00:00+09:00',
+    contentUrl: `https://www.youtube.com/watch?v=${lesson.youtubeId}`,
+    embedUrl: `https://www.youtube.com/embed/${lesson.youtubeId}`,
+    author: {
+      '@type': 'Person',
+      name: '주식부엉',
+      url: 'https://youtube.com/@주식부엉',
+    },
+    publisher: {
+      '@type': 'EducationalOrganization',
+      name: '주식앱',
+      url: 'https://jusik.app',
+    },
+  } : null;
+
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: lesson.title,
+    alternativeHeadline: lesson.subtitle,
+    description: lesson.subtitle || lesson.summary?.[0] || lesson.title,
+    author: {
+      '@type': 'Person',
+      name: '주식부엉',
+      url: 'https://youtube.com/@주식부엉',
+    },
+    publisher: {
+      '@type': 'EducationalOrganization',
+      name: '주식앱',
+      url: 'https://jusik.app',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://jusik.app/icon.png',
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://jusik.app/lesson/${lesson.id}`,
+    },
+    inLanguage: 'ko-KR',
+  };
+
+  const faqJsonLd = lesson.summary && lesson.summary.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `${lesson.title}의 핵심 요약은 무엇인가요?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: lesson.summary.join(' '),
+        },
+      },
+      ...(lesson.subtitle ? [{
+        '@type': 'Question',
+        name: `${lesson.title}에서 무엇을 배우나요?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${lesson.subtitle} (Lv.${level.levelNumber} ${level.title} 과정)`,
+        },
+      }] : []),
+    ],
+  } : null;
+
   return (
     <>
-      {/* JSON-LD Educational & Breadcrumb Structured Data for Search Bots */}
+      {/* JSON-LD Educational, Video, Article & Breadcrumb Structured Data for AI & Search Bots */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
@@ -159,6 +305,22 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {videoJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }}
+        />
+      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Unified Clean Minimal Hero Header */}
@@ -681,57 +843,3 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   );
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  const result = getLessonById(resolvedParams.id);
-  if (!result || result.lesson.isInactive || result.lesson.isComingSoon) return {};
-  const { lesson } = result;
-
-  const title = lesson.title;
-  const fullTitle = `${lesson.title} | 주식앱`;
-  const description = lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.';
-  const url = `https://jusik.app/lesson/${lesson.id}`;
-
-  const isUnlisted = lesson.id === 'lv1-3';
-
-  return {
-    title,
-    description,
-    ...(isUnlisted && {
-      robots: {
-        index: false,
-        follow: false,
-        nocache: true,
-        googleBot: {
-          index: false,
-          follow: false,
-        },
-      },
-    }),
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      title: fullTitle,
-      description,
-      url,
-      siteName: '주식앱',
-      images: [
-        {
-          url: '/og-image.png',
-          width: 1024,
-          height: 537,
-          alt: `${lesson.title} - 주식앱`,
-        },
-      ],
-      locale: 'ko_KR',
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: fullTitle,
-      description,
-      images: ['/og-image.png'],
-    },
-  };
-}

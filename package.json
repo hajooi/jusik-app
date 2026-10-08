@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "verify": "python3 scripts/verify_loop.py",
+    "verify:full": "python3 scripts/verify_loop.py --full",
     "update-data": "python3 scripts/update_historical_data.py"
   },
   "dependencies": {
