@@ -53,7 +53,7 @@ const TOOLS_DIRECTORY = [
   {
     id: 'type',
     title: '투자 성향 진단',
-    description: '손실 걱정형부터 성장 추구형까지! 나에게 맞는 16가지 투자 스타일',
+    description: '손실 걱정형부터 성장 추구형까지! 나에게 맞는 열여섯 가지 투자 스타일',
     href: '/tools/type',
     icon: Sparkles,
     tag: '40문항 진단',

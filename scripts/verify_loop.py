@@ -67,6 +67,7 @@ EXCLUDED_TERM_FILES = {
     "src/components/StockDcaMotionSimulator.tsx",   # 적립식 매수 실습 시뮬레이터
     "src/components/StockDcaGuide.tsx",             # 적립식 매수 실습 가이드
     "src/utils/aiSummary.ts",                       # AI 프롬프트 금지어 지침 (단어 자체가 명시됨)
+    "src/components/CiscoManiaGame.tsx",            # 2000년 닷컴버블 시스코 실시간 모의투자 시뮬레이터
 }
 
 def get_git_modified_files() -> List[str]:
@@ -145,7 +146,7 @@ def check_vocabulary_rules(target_files: List[str] = None) -> List[str]:
     errors = []
     
     files_to_scan = []
-    if target_files:
+    if target_files is not None:
         files_to_scan = [
             f for f in target_files 
             if f.startswith("src/") and f.endswith((".ts", ".tsx")) and f not in EXCLUDED_TERM_FILES
@@ -370,13 +371,13 @@ def check_next_build() -> Tuple[bool, str]:
 # ==============================================================================
 def run_loop_verification(full: bool = False, hook_mode: bool = False):
     modified_files = get_git_modified_files()
-    target_files = modified_files if modified_files else None
+    target_files = modified_files if not full else None
 
     # 1. 보안 루프
     sec_errors = check_security(target_files)
     
     # 2. 규칙 루프
-    vocab_errors = check_vocabulary_rules(target_files if target_files else [])
+    vocab_errors = check_vocabulary_rules(target_files)
     
     # 3. 금융 데이터 루프
     fin_errors = check_financial_data_integrity()

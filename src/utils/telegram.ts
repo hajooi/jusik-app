@@ -145,7 +145,7 @@ export async function sendTelegramDailyReport(
   lines.push(`🌡️ <b>공포와 탐욕 지수</b>: ${snapshot.fearGreedIndex}점 (${snapshot.fearGreedLabel})`);
   lines.push(`<i>\"${snapshot.weatherMessage}\"</i>`);
   lines.push(``);
-  lines.push(`📊 <b>핵심 주가지수</b>`);
+  lines.push(`📊 <b>핵심 시장 지수</b>`);
 
   snapshot.indices.forEach((idx) => {
     lines.push(`• <b>${idx.name}</b>: ${idx.value} (${idx.changePercent}% ${getIcon(idx.isPositive)})`);
