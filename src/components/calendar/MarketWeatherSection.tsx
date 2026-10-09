@@ -185,6 +185,7 @@ export default function MarketWeatherSection({
     const mergeMacroSummary = (incoming?: any[]) => {
       if (!Array.isArray(incoming) || incoming.length === 0) return MACRO_SUMMARY_ITEMS;
       return MACRO_SUMMARY_ITEMS.map((base) => {
+        if (base.key === 'SP500_EPS') return base;
         const found = incoming.find((item: any) => item?.key === base.key);
         return found ? { ...base, ...found } : base;
       });
@@ -194,6 +195,7 @@ export default function MarketWeatherSection({
       const merged: Record<string, any> = {
         ...MACRO_ASSET_CHARTS,
         ...(incoming || {}),
+        SP500_EPS: MACRO_ASSET_CHARTS.SP500_EPS,
       };
       for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
         if (merged[k]) {

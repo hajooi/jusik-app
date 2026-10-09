@@ -856,6 +856,7 @@ export async function GET(request: Request) {
 
             const cachedMacroItems: any[] = dbRecord.simulator_settings?.macroSummaryItems || [];
             const mergedMacroSummary = MACRO_SUMMARY_ITEMS.map((base) => {
+              if (base.key === 'SP500_EPS') return base;
               const found = cachedMacroItems.find((c: any) => c.key === base.key);
               if (!found) return base;
               if (base.key === 'CPI_YOY' && (found.value === '3.4%' || found.value === '3.4')) return base;
@@ -865,6 +866,7 @@ export async function GET(request: Request) {
             const mergedMacroCharts: Record<string, any> = {
               ...MACRO_ASSET_CHARTS,
               ...(dbRecord.simulator_settings?.macroAssetCharts || {}),
+              SP500_EPS: MACRO_ASSET_CHARTS.SP500_EPS,
             };
             for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
               if (mergedMacroCharts[k]) {
