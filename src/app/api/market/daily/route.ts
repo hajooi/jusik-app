@@ -328,13 +328,21 @@ async function fetchFearGreedIndex(): Promise<{
   rating: string;
 } | null> {
   try {
-    const res = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-        'Referer': 'https://www.cnn.com/markets/fear-and-greed',
-      },
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          'Referer': 'https://www.cnn.com/markets/fear-and-greed',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) return null;
     const data = await res.json();
@@ -387,12 +395,20 @@ async function fetchRealKoreanMarketNews(): Promise<Array<{
 }> | null> {
   try {
     const googleNewsUrl = 'https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ko&gl=KR&ceid=KR:ko';
-    const res = await fetch(googleNewsUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(googleNewsUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       console.warn(`[Google News fetch HTTP ${res.status}]`);
@@ -492,10 +508,17 @@ interface NaverIndexPoint { date: string; value: number; change: number; changeP
 
 async function fetchNaverIndex(indexCode: 'KOSPI' | 'KOSDAQ'): Promise<NaverIndexPoint | null> {
   try {
-    const res = await fetch(
-      `https://m.stock.naver.com/api/index/${indexCode}/price?pageSize=5&page=1`,
-      { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' }
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://m.stock.naver.com/api/index/${indexCode}/price?pageSize=5&page=1`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store', signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) return null;
     const data: Array<{
       localTradedAt: string;
@@ -536,10 +559,17 @@ async function fetchNaverIndex(indexCode: 'KOSPI' | 'KOSDAQ'): Promise<NaverInde
 
 async function fetchNaverUsdKrw(): Promise<NaverIndexPoint | null> {
   try {
-    const res = await fetch(
-      'https://m.stock.naver.com/front-api/marketIndex/prices?category=exchange&reutersCode=FX_USDKRW&pageSize=10&page=1',
-      { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store' }
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(
+        'https://m.stock.naver.com/front-api/marketIndex/prices?category=exchange&reutersCode=FX_USDKRW&pageSize=10&page=1',
+        { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store', signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) return null;
     const json = await res.json();
     const data: Array<{
@@ -704,12 +734,20 @@ async function fetchNaverCommodity(type: 'OIL_CL' | 'CMDT_GC'): Promise<NaverInd
 
   try {
     const url = `https://stock.naver.com/api/securityService/marketindex/${target.category}/${target.code}/prices?page=1&pageSize=5`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-      },
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) {
       console.warn(`[Naver ${type} HTTP ${res.status}]`);
       return null;

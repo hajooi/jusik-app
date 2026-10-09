@@ -108,9 +108,17 @@ async function getLatestFlashModel(apiKey: string): Promise<string> {
   }
 
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (res.ok) {
       const data = await res.json();
       const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data?.models || [];
@@ -228,27 +236,38 @@ ${newsSection}
   const targetModel = await getLatestFlashModel(GEMINI_API_KEY);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${GEMINI_API_KEY}`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      system_instruction: {
-        parts: [{ text: systemInstruction }],
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      contents: [
-        {
-          parts: [{ text: userPrompt }],
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: systemInstruction }],
         },
-      ],
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 600,
-      },
-    }),
-    cache: 'no-store',
-  });
+        contents: [
+          {
+            parts: [{ text: userPrompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 600,
+        },
+      }),
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) return null;
 

@@ -199,7 +199,14 @@ async function fetchBokRate(eventDate: string): Promise<{ actual: string; previo
     const endStr = eventDate.replace(/-/g, '');
 
     const url = `https://ecos.bok.or.kr/api/StatisticSearch/${BOK_API_KEY}/json/kr/1/5/722Y001/DD/${startStr}/${endStr}/0101000`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) return null;
 
     const data = await res.json();
@@ -382,20 +389,36 @@ async function getYahooSession(): Promise<{ cookie: string; crumb: string } | nu
     return cachedYahooSession;
   }
   try {
-    const cookieRes = await fetch('https://fc.yahoo.com', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
-      },
-    });
+    const controller1 = new AbortController();
+    const timeout1 = setTimeout(() => controller1.abort(), 8000);
+    let cookieRes: Response;
+    try {
+      cookieRes = await fetch('https://fc.yahoo.com', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+        },
+        signal: controller1.signal,
+      });
+    } finally {
+      clearTimeout(timeout1);
+    }
     const cookie = cookieRes.headers.get('set-cookie');
     if (!cookie) return null;
 
-    const crumbRes = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
-        'Cookie': cookie,
-      },
-    });
+    const controller2 = new AbortController();
+    const timeout2 = setTimeout(() => controller2.abort(), 8000);
+    let crumbRes: Response;
+    try {
+      crumbRes = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)',
+          'Cookie': cookie,
+        },
+        signal: controller2.signal,
+      });
+    } finally {
+      clearTimeout(timeout2);
+    }
     if (!crumbRes.ok) return null;
     const crumb = (await crumbRes.text()).trim();
     if (!crumb || crumb.includes('Too Many') || crumb.includes('<html>')) return null;
@@ -427,7 +450,14 @@ async function fetchEarningsResult(ticker: string, isKr: boolean): Promise<strin
       headers['Cookie'] = session.cookie;
     }
 
-    const res = await fetch(url, { headers, cache: 'no-store' });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(url, { headers, cache: 'no-store', signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) return null;
     const json = await res.json();
     const result = json?.quoteSummary?.result?.[0];
@@ -623,8 +653,9 @@ async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise
   if (eventDate > todayStr) return null;
 
   try {
-    // ① FOMC / 미국 기준금리
-    if (t.includes('fomc') || (t.includes('기준금리') && (t.includes('미국') || t.includes('연준')))) {
+    // ① FOMC / 미국 기준금리 (회의록/의사록/보고서/연설 제외)
+    const isMinutesOrReport = t.includes('회의록') || t.includes('의사록') || t.includes('보고서') || t.includes('연설');
+    if (!isMinutesOrReport && ((t.includes('fomc') && (t.includes('기준금리') || t.includes('금리 결정') || t.includes('rate'))) || (t.includes('기준금리') && (t.includes('미국') || t.includes('연준'))))) {
       const result = await fetchFomcRate(eventDate);
       return result?.actual ?? null;
     }
@@ -735,8 +766,9 @@ function isValidEconomicValue(title: string, value: string): boolean {
   const t = title.toLowerCase();
   const clean = value.trim();
 
-  // 기준금리: 0% ~ 20%
-  if (t.includes('fomc') || t.includes('기준금리')) {
+  // 기준금리: 0% ~ 20% (회의록/의사록/보고서 제외)
+  const isMinutes = t.includes('회의록') || t.includes('의사록') || t.includes('보고서');
+  if (!isMinutes && (t.includes('fomc') || t.includes('기준금리'))) {
     if (clean.startsWith('-')) return false;
     const num = parseFloat(clean.replace(/[^0-9.]/g, ''));
     return !isNaN(num) && num >= 0 && num <= 20;
@@ -855,7 +887,8 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
 
           // 핵심 매크로 지표 업데이트 기록 (route.ts에서 MACRO_SUMMARY_ITEMS 갱신용)
           const t = ev.title.toLowerCase();
-          if (t.includes('fomc') || (t.includes('기준금리') && t.includes('미국'))) {
+          const isMinutes = t.includes('회의록') || t.includes('의사록') || t.includes('보고서');
+          if (!isMinutes && ((t.includes('fomc') && (t.includes('기준금리') || t.includes('금리 결정'))) || (t.includes('기준금리') && t.includes('미국')))) {
             macroUpdates.fedRate = fetchedActual;
           }
           if (t.includes('소비자물가') && !t.includes('근원') && !t.includes('core')) {
