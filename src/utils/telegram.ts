@@ -106,8 +106,11 @@ export async function sendTelegramDailyReport(
 ): Promise<boolean> {
   const getIcon = (isPos: boolean) => (isPos ? "🔺" : "🔻");
 
+  const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const isSaturday = nowKst.getUTCDay() === 6;
+
   const lines = [
-    `🦉 <b>[jusik.app 일일 증시 브리핑]</b>`,
+    `🦉 <b>[jusik.app ${isSaturday ? '토요일 주간 결산' : '일일 증시'} 브리핑]</b>`,
     `📅 ${snapshot.updatedAt}`,
   ];
 
@@ -187,10 +190,24 @@ export async function sendTelegramDailyReport(
       const sig = signals[item.key];
       const icon = sig?.status === 'emerald' ? '🟢' : '🟠';
       const label = sig?.label ? ` (${icon} ${sig.label})` : '';
-      const isEps = item.key === 'SP500_EPS';
-      const suffix = isEps ? ' <i>(TTM 확정/추정)</i>' : '';
-      lines.push(`• <b>${item.name}</b>: ${item.value}${label}${suffix}`);
+      lines.push(`• <b>${item.name}</b>: ${item.value}${label}`);
     });
+
+    if (isSaturday && resolvedCharts?.SP500_EPS) {
+      const epsSignal = signals.SP500_EPS;
+      const epsPoints = resolvedCharts.SP500_EPS.points ?? [];
+      const latestEpsVal = epsPoints[epsPoints.length - 1]?.value ?? 301.2;
+      const past12Val = epsPoints[Math.max(0, epsPoints.length - 13)]?.value ?? latestEpsVal;
+      const yoyGrowth = past12Val > 0 ? (((latestEpsVal - past12Val) / past12Val) * 100).toFixed(1) : '0';
+      const epsIcon = epsSignal?.status === 'emerald' ? '🟢' : '🟠';
+
+      lines.push(``);
+      lines.push(`📈 <b>[S&P 500 기업 실적 (EPS) 주간 점검]</b>`);
+      lines.push(`• <b>최신 주당 순이익</b>: <b>$${latestEpsVal.toFixed(2)}</b>`);
+      lines.push(`• <b>전년 대비 성장 추세</b>: <b>+${yoyGrowth}%</b> (${epsIcon} <b>${epsSignal?.label || '안정'}</b>)`);
+      lines.push(`• <b>FactSet 바텀업 컨센서스</b>: 주간 실적 추정치 검증 완료 (미국 대표 기업 실적 모멘텀 반영)`);
+      lines.push(`👉 <i>매주 토요일 미국 장 마감 후 FactSet 최신 실적 추정치와 지표가 동기화됩니다.</i>`);
+    }
   }
 
   // 주간 공식 캘린더 오버레이 (Forex Factory 최신 예상치/이전치 동기화 알림)

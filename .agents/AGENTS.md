@@ -91,7 +91,9 @@
 ## 8. 증시 캘린더 운영 및 자동화 라이프사이클
 - **타임라인 범위**: 최근 3개월 과거 실적/지표부터 향후 3개월 미래 일정까지 총 6~7개월 연속 타임라인 유지.
 - **월간 롤링 (매월 말)**: 가장 오래된 지난 1개월 폐기 + 새로운 1개월 추가 (일정 슬라이딩 윈도우 유지).
-- **주간 동기화 (매주 토요일 오전)**: 차주 및 다가오는 이벤트의 세부 일정/발표 시간/예상치 변동 사항 점검 및 동기화.
+- **주간 동기화 (매주 토요일 오전 07:35 KST)**:
+  - 차주 및 다가오는 이벤트의 세부 일정/발표 시간/예상치 변동 사항 점검 및 동기화.
+  - **S&P 500 기업 실적 (EPS) 주간 자동 점검**: 미국 금요일 장 마감 후 FactSet 최신 주간 실적 리포트(Earnings Insight) 발행 상태를 점검하여 텔레그램 주간 결산 브리핑에 기업 실적 모멘텀 및 지표 신호등 자동 보고.
 - **과거~미래 양방향 탐색 UX**: '오늘' 기준점을 중심으로 위로 스크롤 시 과거 발표 결과 확인, 아래로 스크롤 시 미래 일정 확인 가능하도록 구현.
 
 ## 9. Book Quality Copywriting & Anti-AI Directives (출판 도서급 정밀 원고 및 탈(脫)AI 텍스트 지침)
@@ -118,10 +120,12 @@
   1. **[회사 규모(시총) 순위 최신화]**:
      - 미국 Top 20 및 한국 Top 10 순위 수령 ➔ 탈락/신규 종목 판별 및 순위 재배열.
      - `src/app/tools/simulate/page.tsx` (`ASSET_OPTIONS`), `src/data/backtestData.json` (`assets`), `scripts/update_market_data.py` (`SYMBOLS`), `scripts/update_historical_data.py` (`raw_meta`) 4개 파일 일괄 동기화.
-  2. **[전월 주가 마감 및 백테스트 지표 재계산 & S&P 500 EPS 점검]**:
+  2. **[전월 주식 가격 마감 및 백테스트 지표 재계산 & S&P 500 EPS 점검]**:
      - `python3 scripts/update_market_data.py` 실행하여 전월 말 종가 기준 주봉·월봉 수집 (`historicalPrices.json`).
      - 50개 전체 자산의 CAGR, 연간 변동성, 이동평균선 매매 전략 지표 자동 재계산 (`backtestData.json`).
-     - **S&P 500 TTM EPS 점검**: S&P Dow Jones Indices 공식 분기 실적 보고서 확정치 또는 최신 P/E 역산 추정치를 확인하여 `src/data/marketCalendar.ts` (`MACRO_SUMMARY_ITEMS`, `MACRO_ASSET_CHARTS`) 및 안내 툴팁 최신화.
+     - **S&P 500 TTM EPS 점검 (FactSet & S&P 공식 이중 파이프라인)**:
+       - **분기 공식 확정월 (2월, 5월, 8월, 11월)**: S&P Dow Jones Indices 공식 분기 실적 보고서 확정치로 갱신.
+       - **실적 집계 대기월 (그 외 기간, 예: 10월)**: FactSet 공식 'Earnings Insight' 주간 보고서(John Butters 부사장 공식 집계)의 500개 기업 바텀업(Bottom-Up) TTM EPS 컨센서스를 확인하여 `src/data/marketCalendar.ts` (`MACRO_SUMMARY_ITEMS`, `MACRO_ASSET_CHARTS`) 및 안내 문구 최신화. (불안정한 스크래핑 대신 공인 리포트 수치 직접 검증 반영).
   3. **[증시 캘린더 슬라이딩 윈도우 정리 (과거 -3개월)]**:
      - 오늘 기준 3개월 이전 과거 일정 자동 삭제(Pruning). (예: 10월 1일 실행 시 6월 이전 일정 폐기)
   4. **[미래 +3개월 신규 월(New Month) 공식 일정 추가 & 실적 동기화]**:

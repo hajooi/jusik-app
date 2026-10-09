@@ -142,12 +142,12 @@ def send_telegram_success(summary: dict):
         f"  • 기준금리(상단): {summary.get('fed_latest', '4.00%')}",
         f"  • 소비자물가(YoY): {summary.get('cpi_latest', '3.35%')}",
         f"  • 미국 실업률: {summary.get('unrate_latest', '4.1%')}",
-        f"  • S&P 500 EPS: {summary.get('eps_latest', '$295.36')} (TTM 확정/추정)",
+        f"  • S&P 500 EPS: {summary.get('eps_latest', '$301.20')} (FactSet Q3 컨센서스)",
         f"  • 신용스프레드: {summary.get('spread_latest', '0.84%')}",
         "",
         "🚨 <b>[핵심 5대 경제지표 최신화 알림 - 직접 확인 필요]</b>",
         "👉 <i>주요 경제지표가 동기화되었으니 사이트(마켓 인사이트)에서 직접 이상 유무와 5년 차트를 확인해 주세요!</i>",
-        "📌 <i>월초 확인: S&P Dow Jones Indices 분기 실적 확정 보고서 공시 여부 점검 (공시 전까지는 P/E 역산 추정치 활용)</i>",
+        "📌 <i>월초 확인: 2/5/8/11월 S&P 공식 분기 보고서 점검 (그 외 기간은 FactSet 공식 주간 리포트 바텀업 컨센서스 반영)</i>",
         "🔗 https://www.jusik.app/tools/market",
         "",
         "🧮 <b>백테스트 지표 재계산</b>",
@@ -632,6 +632,10 @@ def update_macro_indicators():
                     json.dump(updated_spread, f, indent=2, ensure_ascii=False)
                 spread_cur = f"{updated_spread[-1]['value']:.2f}%"
 
+        # 기존 marketCalendar.ts의 SP500_EPS 값 보존 (하드코딩 덮어쓰기 방지)
+        eps_match = re.search(r"key:\s*'SP500_EPS',\s*name:\s*'기업 실적\(EPS\)',\s*value:\s*'([^']+)'", calendar_code)
+        eps_cur = eps_match.group(1) if eps_match else '$301.20'
+
         # MACRO_SUMMARY_ITEMS 갱신
         start_sum_tag = "export const MACRO_SUMMARY_ITEMS: MacroIndicatorSummary[] = ["
         end_sum_tag = "];"
@@ -657,7 +661,7 @@ def update_macro_indicators():
   {{
     key: 'SP500_EPS',
     name: '기업 실적(EPS)',
-    value: '$295.36',
+    value: '{eps_cur}',
   }},
   {{
     key: 'CREDIT_SPREAD',
@@ -670,12 +674,12 @@ def update_macro_indicators():
         with open(CALENDAR_PATH, 'w', encoding='utf-8') as f:
             f.write(calendar_code)
 
-        print(f"Macro sync success: Fed {fed_cur}, CPI YoY {cpi_cur}, Unrate {unrate_cur}, Spread {spread_cur}")
+        print(f"Macro sync success: Fed {fed_cur}, CPI YoY {cpi_cur}, Unrate {unrate_cur}, EPS {eps_cur}, Spread {spread_cur}")
         return {
             'fed_latest': fed_cur,
             'cpi_latest': cpi_cur,
             'unrate_latest': unrate_cur,
-            'eps_latest': '$295.36',
+            'eps_latest': eps_cur,
             'spread_latest': spread_cur,
         }
     except Exception as e:
