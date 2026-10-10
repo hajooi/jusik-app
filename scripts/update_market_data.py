@@ -1,6 +1,7 @@
 import json
 import math
 import datetime
+from datetime import datetime, timedelta
 import os
 import sys
 import re
@@ -73,6 +74,7 @@ SYMBOLS = {
 HISTORICAL_PRICES_PATH = 'src/data/historicalPrices.json'
 BACKTEST_DATA_PATH = 'src/data/backtestData.json'
 CALENDAR_PATH = 'src/data/marketCalendar.ts'
+SPREAD_JSON_PATH = 'src/data/creditSpreadDaily.json'
 
 def _load_local_env():
     env_path = '.env.local'
@@ -528,16 +530,16 @@ def update_macro_indicators():
                     rows.append((r[0], float(r[1])))
             return rows
 
-        # 1. 기준금리 DFEDTARU
+        # 1. 기준금리 DFEDTARU (최근 60개월/5년 슬라이딩)
         fed_raw = fetch_fred_csv('DFEDTARU')
         fed_month_map = {}
         for date, val in fed_raw:
-            if date >= '2021-01-01':
-                ym = date[:7].replace('-', '.')
-                fed_month_map[ym] = val
+            ym = date[:7].replace('-', '.')
+            fed_month_map[ym] = val
         fed_points = [{'date': ym, 'value': fed_month_map[ym]} for ym in sorted(fed_month_map.keys())]
+        fed_points = fed_points[-60:]
 
-        # 2. 소비자물가 CPI YoY (공식 비조정 CPIAUCNS)
+        # 2. 소비자물가 CPI YoY (공식 비조정 CPIAUCNS, 최근 60개월/5년 슬라이딩)
         cpi_raw = fetch_fred_csv('CPIAUCNS')
         cpi_map = {date: val for date, val in cpi_raw}
         cpi_points = []
@@ -545,18 +547,19 @@ def update_macro_indicators():
             parts = date.split('-')
             prev_year = str(int(parts[0]) - 1)
             prev_date = f'{prev_year}-{parts[1]}-{parts[2]}'
-            if prev_date in cpi_map and date >= '2021-01-01':
+            if prev_date in cpi_map:
                 prev_val = cpi_map[prev_date]
                 yoy = round(((val - prev_val) / prev_val) * 100, 2)
                 cpi_points.append({'date': f'{parts[0]}.{parts[1]}', 'value': yoy})
+        cpi_points = cpi_points[-60:]
 
-        # 3. 실업률 UNRATE
+        # 3. 실업률 UNRATE (최근 60개월/5년 슬라이딩)
         unrate_raw = fetch_fred_csv('UNRATE')
         unrate_points = []
         for date, val in unrate_raw:
-            if date >= '2021-01-01':
-                ym = date[:7].replace('-', '.')
-                unrate_points.append({'date': ym, 'value': val})
+            ym = date[:7].replace('-', '.')
+            unrate_points.append({'date': ym, 'value': val})
+        unrate_points = unrate_points[-60:]
 
         if not fed_points or not cpi_points or not unrate_points:
             print("Warning: Macro indicator points are empty.")
@@ -614,7 +617,7 @@ def update_macro_indicators():
 
         # 4. 미국 하이일드 신용스프레드 BAMLH0A0HYM2 (5년 일별 슬라이딩)
         spread_raw = fetch_fred_csv('BAMLH0A0HYM2')
-        spread_json_path = os.path.join(ROOT_DIR, 'src/data/creditSpreadDaily.json')
+        spread_json_path = SPREAD_JSON_PATH
         spread_cur = "3.03%"
         if os.path.exists(spread_json_path):
             with open(spread_json_path, 'r', encoding='utf-8') as f:

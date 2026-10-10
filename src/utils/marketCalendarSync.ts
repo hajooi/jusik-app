@@ -1174,6 +1174,10 @@ export function resolveUpdatedMacroIndicators(
           } else {
             pts.push({ date: ym, value: numRate });
             resolvedCharts.DFEDTARU.data.push(numRate);
+            if (pts.length > 60) {
+              pts.splice(0, pts.length - 60);
+              resolvedCharts.DFEDTARU.data.splice(0, resolvedCharts.DFEDTARU.data.length - 60);
+            }
           }
           if (pts.length > 0) {
             const baseVal = pts[0].value;
@@ -1239,6 +1243,10 @@ export function resolveUpdatedMacroIndicators(
           } else {
             pts.push({ date: ym, value: numCpi });
             resolvedCharts.CPI_YOY.data.push(numCpi);
+            if (pts.length > 60) {
+              pts.splice(0, pts.length - 60);
+              resolvedCharts.CPI_YOY.data.splice(0, resolvedCharts.CPI_YOY.data.length - 60);
+            }
           }
           if (pts.length > 0) {
             const baseVal = pts[0].value;
@@ -1296,6 +1304,10 @@ export function resolveUpdatedMacroIndicators(
           } else {
             pts.push({ date: ym, value: numUnrate });
             resolvedCharts.UNEMPLOYMENT.data.push(numUnrate);
+            if (pts.length > 60) {
+              pts.splice(0, pts.length - 60);
+              resolvedCharts.UNEMPLOYMENT.data.splice(0, resolvedCharts.UNEMPLOYMENT.data.length - 60);
+            }
           }
           if (pts.length > 0) {
             const baseVal = pts[0].value;

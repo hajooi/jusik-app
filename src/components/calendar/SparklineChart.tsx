@@ -27,6 +27,22 @@ function formatChartDate(rawDate?: string): string {
   return dotDate.replace(/^\d{2}(\d{2}\.)/, '$1');
 }
 
+/**
+ * 차트 날짜 문자열(예: '2026-10-01', '2026.10.01', '2026.01')에서
+ * 일자를 제외하고 오직 '연도.월'('26.10', '26.01') 형식으로 일관되게 정규화합니다.
+ */
+function formatChartMonth(rawDate?: string): string {
+  if (!rawDate) return '';
+  const dotDate = rawDate.replace(/[-/]/g, '.');
+  const match = dotDate.match(/^(?:20)?(\d{2})\.(\d{1,2})/);
+  if (match) {
+    const yy = match[1];
+    const mm = match[2].padStart(2, '0');
+    return `${yy}.${mm}`;
+  }
+  return formatChartDate(rawDate);
+}
+
 export default function SparklineChart({
   data,
   points,
@@ -322,18 +338,55 @@ export default function SparklineChart({
   const lastNorm = displayNorms[lastIdx] ?? normTarget[lastIdx] ?? 0.5;
   const lastY = toYFromNorm(lastNorm);
 
-  // 하단 X축 중간 날짜 틱 (양끝 강제 노출 제거, 겹침 방지 및 자연스러운 4개 균등 분할 날짜 20%, 40%, 60%, 80%)
+  // 하단 X축 월초(1일) 기준 날짜 틱 (일자 제거, YY.MM 통일, 월초 첫 거래일 핀포인트 정렬)
   const xTicks = useMemo(() => {
     if (!points || points.length < 5) return [];
-    // 20%, 40%, 60%, 80% 지점의 내부 날짜 4개 선택 (양끝값 억지 출력 방지)
+
+    // 1. 각 월이 시작되는 첫 거래일(월초/1일) 데이터 포인트들의 인덱스 수집
+    const monthFirstIndices: number[] = [];
+    let lastYm = '';
+    for (let i = 0; i < points.length; i++) {
+      const ym = formatChartMonth(points[i].date);
+      if (ym && ym !== lastYm) {
+        monthFirstIndices.push(i);
+        lastYm = ym;
+      }
+    }
+
+    // 2. 월초 인덱스가 4개 이상이면, 균등 분할 위치(20%, 40%, 60%, 80%)에 가장 가까운 월초 포인트를 선택
     const fractions = [0.2, 0.4, 0.6, 0.8];
-    return fractions.map((frac) => {
-      const idx = Math.min(points.length - 1, Math.round((points.length - 1) * frac));
-      return {
-        date: formatChartDate(points[idx].date),
-        ratio: idx / (points.length - 1),
-      };
-    });
+    const selectedMonthIndices: number[] = [];
+    const seenYm = new Set<string>();
+
+    if (monthFirstIndices.length >= 4) {
+      for (const frac of fractions) {
+        const targetPtIdx = (points.length - 1) * frac;
+        let closestIdx = monthFirstIndices[0];
+        let minDiff = Math.abs(closestIdx - targetPtIdx);
+        for (const mIdx of monthFirstIndices) {
+          const diff = Math.abs(mIdx - targetPtIdx);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = mIdx;
+          }
+        }
+        const ym = formatChartMonth(points[closestIdx].date);
+        if (!seenYm.has(ym)) {
+          seenYm.add(ym);
+          selectedMonthIndices.push(closestIdx);
+        }
+      }
+    }
+
+    // 3. 선택된 인덱스들을 바탕으로 틱 구성 (월초 인덱스가 부족하면 기본 틱으로 폴백)
+    const finalIndices = selectedMonthIndices.length >= 2
+      ? selectedMonthIndices
+      : fractions.map((frac) => Math.min(points.length - 1, Math.round((points.length - 1) * frac)));
+
+    return finalIndices.map((idx) => ({
+      date: formatChartMonth(points[idx].date),
+      ratio: idx / (points.length - 1),
+    }));
   }, [points]);
 
   return (

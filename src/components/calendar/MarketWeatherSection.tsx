@@ -39,7 +39,7 @@ const FG_BAR_COLOR = (value: number) =>
   value >= 25 ? '#FB7185' : // 공포 (Soft Rose / Coral)
   '#F43F5E';                // 극도의 공포 (Signal Crimson)
 
-const CACHE_KEY = 'jusik_market_daily_cache_v3';
+const CACHE_KEY = 'jusik_market_daily_cache_v4';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1시간 (오래된 과거 데이터 노출 방지)
 
 // 차트 호버/드래그 툴팁용 지표별 공식 정밀 자릿수 및 단위 통일 포맷터
@@ -200,6 +200,12 @@ export default function MarketWeatherSection({
       for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
         if (merged[k]) {
           merged[k] = { ...merged[k], label: MACRO_ASSET_CHARTS[k].label };
+          if (k !== 'CREDIT_SPREAD' && Array.isArray(merged[k].points) && merged[k].points.length > 60) {
+            merged[k].points = merged[k].points.slice(-60);
+            if (Array.isArray(merged[k].data)) {
+              merged[k].data = merged[k].data.slice(-60);
+            }
+          }
         }
       }
       return merged;

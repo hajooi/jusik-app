@@ -871,6 +871,12 @@ export async function GET(request: Request) {
             for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
               if (mergedMacroCharts[k]) {
                 mergedMacroCharts[k] = { ...mergedMacroCharts[k], label: MACRO_ASSET_CHARTS[k].label };
+                if (k !== 'CREDIT_SPREAD' && Array.isArray(mergedMacroCharts[k].points) && mergedMacroCharts[k].points.length > 60) {
+                  mergedMacroCharts[k].points = mergedMacroCharts[k].points.slice(-60);
+                  if (Array.isArray(mergedMacroCharts[k].data)) {
+                    mergedMacroCharts[k].data = mergedMacroCharts[k].data.slice(-60);
+                  }
+                }
               }
             }
 
