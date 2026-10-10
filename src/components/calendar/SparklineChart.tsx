@@ -338,54 +338,77 @@ export default function SparklineChart({
   const lastNorm = displayNorms[lastIdx] ?? normTarget[lastIdx] ?? 0.5;
   const lastY = toYFromNorm(lastNorm);
 
-  // 하단 X축 월초(1일) 기준 날짜 틱 (일자 제거, YY.MM 통일, 월초 첫 거래일 핀포인트 정렬)
+  // 하단 X축 월초(1일) 기준 날짜 틱 (일정한 월 간격 등간격 정렬: 1년=3개월 주기, 5년=12개월 주기)
   const xTicks = useMemo(() => {
     if (!points || points.length < 5) return [];
 
-    // 1. 각 월이 시작되는 첫 거래일(월초/1일) 데이터 포인트들의 인덱스 수집
-    const monthFirstIndices: number[] = [];
+    // 1. 각 월이 시작되는 첫 거래일(월초/1일) 데이터 포인트들의 인덱스와 연·월 정보 수집
+    const monthFirstItems: Array<{ ym: string; idx: number; year: number; month: number }> = [];
     let lastYm = '';
+
     for (let i = 0; i < points.length; i++) {
-      const ym = formatChartMonth(points[i].date);
-      if (ym && ym !== lastYm) {
-        monthFirstIndices.push(i);
-        lastYm = ym;
-      }
-    }
-
-    // 2. 월초 인덱스가 4개 이상이면, 균등 분할 위치(20%, 40%, 60%, 80%)에 가장 가까운 월초 포인트를 선택
-    const fractions = [0.2, 0.4, 0.6, 0.8];
-    const selectedMonthIndices: number[] = [];
-    const seenYm = new Set<string>();
-
-    if (monthFirstIndices.length >= 4) {
-      for (const frac of fractions) {
-        const targetPtIdx = (points.length - 1) * frac;
-        let closestIdx = monthFirstIndices[0];
-        let minDiff = Math.abs(closestIdx - targetPtIdx);
-        for (const mIdx of monthFirstIndices) {
-          const diff = Math.abs(mIdx - targetPtIdx);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = mIdx;
-          }
-        }
-        const ym = formatChartMonth(points[closestIdx].date);
-        if (!seenYm.has(ym)) {
-          seenYm.add(ym);
-          selectedMonthIndices.push(closestIdx);
+      const raw = points[i].date.replace(/[-/]/g, '.');
+      const match = raw.match(/^(?:20)?(\d{2})\.(\d{1,2})/);
+      if (match) {
+        const yy = match[1];
+        const mm = match[2].padStart(2, '0');
+        const ym = `${yy}.${mm}`;
+        if (ym !== lastYm) {
+          const fullYear = parseInt(match[1], 10) + (match[1].length === 2 ? 2000 : 0);
+          monthFirstItems.push({
+            ym,
+            idx: i,
+            year: fullYear,
+            month: parseInt(match[2], 10),
+          });
+          lastYm = ym;
         }
       }
     }
 
-    // 3. 선택된 인덱스들을 바탕으로 틱 구성 (월초 인덱스가 부족하면 기본 틱으로 폴백)
-    const finalIndices = selectedMonthIndices.length >= 2
-      ? selectedMonthIndices
-      : fractions.map((frac) => Math.min(points.length - 1, Math.round((points.length - 1) * frac)));
+    const totalMonths = monthFirstItems.length;
+    if (totalMonths < 2) return [];
 
-    return finalIndices.map((idx) => ({
-      date: formatChartMonth(points[idx].date),
-      ratio: idx / (points.length - 1),
+    // 2. 전체 기간에 따른 자연스러운 일정한 월 간격(stepMonths) 결정
+    // - 5년 (총 36개월 초과): 12개월(1년) 등간격
+    // - 1년 (총 36개월 이하): 3개월(분기) 등간격
+    const isFiveYear = totalMonths > 36;
+    let selectedItems: typeof monthFirstItems = [];
+
+    if (isFiveYear) {
+      // 5년 차트: 종료월(이번 달)과 동일한 월 기준으로 매년 12개월 등간격 (예: 이번 달이 10월이면 22.10, 23.10, 24.10, 25.10)
+      const targetMonth = monthFirstItems[monthFirstItems.length - 1].month;
+      selectedItems = monthFirstItems.filter((item) => item.month === targetMonth);
+    } else {
+      // 1년 차트: 종료월(현재 시점) 기준으로 3개월씩 역산하여 정확히 3개월 등간격 월초 매칭
+      const endItem = monthFirstItems[monthFirstItems.length - 1];
+      const targetYmSet = new Set<string>();
+      let y = endItem.year;
+      let m = endItem.month;
+      for (let i = 0; i < 6; i++) {
+        const yy = String(y).slice(-2);
+        const mm = String(m).padStart(2, '0');
+        targetYmSet.add(`${yy}.${mm}`);
+        m -= 3;
+        if (m <= 0) {
+          m += 12;
+          y -= 1;
+        }
+      }
+      selectedItems = monthFirstItems.filter((item) => targetYmSet.has(item.ym));
+    }
+
+    // 3. 차트 좌우 테두리와 겹쳐 라벨이 잘리는 현상을 방지하기 위해 너무 극단적인 가장자리(0~4%, 96~100%) 필터
+    const filteredItems = selectedItems.filter((item) => {
+      const ratio = item.idx / (points.length - 1);
+      return ratio >= 0.04 && ratio <= 0.96;
+    });
+
+    const finalItems = filteredItems.length >= 2 ? filteredItems : selectedItems;
+
+    return finalItems.map((item) => ({
+      date: item.ym,
+      ratio: item.idx / (points.length - 1),
     }));
   }, [points]);
 
