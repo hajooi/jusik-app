@@ -18,16 +18,16 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/market',
   },
   openGraph: {
-    title: '마켓 인사이트 | 주식앱',
+    title: '마켓 인사이트 | jusik.app',
     description: '오늘의 미국 증시 날씨부터 주간 결산 브리핑, 주요 경제 지표 및 실적 발표 증시 캘린더까지 한눈에 확인하세요.',
     url: 'https://jusik.app/tools/market',
-    siteName: '주식앱',
+    siteName: 'jusik.app',
     images: [
       {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: '주식앱 - 마켓 인사이트',
+        alt: 'jusik.app - 마켓 인사이트',
       },
     ],
     locale: 'ko_KR',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '마켓 인사이트 | 주식앱',
+    title: '마켓 인사이트 | jusik.app',
     description: '오늘의 미국 증시 날씨부터 주간 결산 브리핑, 주요 경제 지표 및 실적 발표 증시 캘린더까지 한눈에 확인하세요.',
     images: ['/og-image.png'],
   },
@@ -62,7 +62,7 @@ export default function MarketLayout({
     url: 'https://jusik.app/tools/market',
     author: {
       '@type': 'EducationalOrganization',
-      name: '주식앱 (주식부엉)',
+      name: 'jusik.app (주식부엉)',
       url: 'https://jusik.app',
       sameAs: 'https://youtube.com/@주식부엉',
     },

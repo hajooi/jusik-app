@@ -1,7 +1,10 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '투자 성향 진단',
+  title: {
+    default: '투자 성향 진단',
+    template: '%s | jusik.app',
+  },
   description: '손실 위험 감수 성향부터 투자 목표까지! 40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단',
   keywords: [
     '투자 성향 진단',
@@ -17,16 +20,16 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/type',
   },
   openGraph: {
-    title: '투자 성향 진단 | 주식앱',
+    title: '투자 성향 진단 | jusik.app',
     description: '40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단',
     url: 'https://jusik.app/tools/type',
-    siteName: '주식앱',
+    siteName: 'jusik.app',
     images: [
       {
         url: 'https://jusik.app/og-image.png',
         width: 1200,
         height: 630,
-        alt: '투자 성향 진단 | 주식앱',
+        alt: '투자 성향 진단 | jusik.app',
       },
     ],
     locale: 'ko_KR',
@@ -34,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '투자 성향 진단 | 주식앱',
+    title: '투자 성향 진단 | jusik.app',
     description: '40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단',
     images: ['https://jusik.app/og-image.png'],
   },
@@ -61,7 +64,7 @@ export default function TypeLayout({
     url: 'https://jusik.app/tools/type',
     author: {
       '@type': 'EducationalOrganization',
-      name: '주식앱 (주식부엉)',
+      name: 'jusik.app (주식부엉)',
       url: 'https://jusik.app',
       sameAs: 'https://youtube.com/@주식부엉',
     },

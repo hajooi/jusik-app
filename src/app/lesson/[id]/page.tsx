@@ -94,13 +94,14 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const data = getLessonById(params.id);
   if (!data || data.lesson.isComingSoon || data.lesson.isInactive) {
     return {
-      title: '레슨 안내 | 주식앱',
+      title: '레슨 안내 | jusik.app',
       description: '주식 초보를 위한 가장 쉬운 설명서 - jusik.app',
     };
   }
 
   const { lesson, level } = data;
-  const pageTitle = `${lesson.title} - Lv.${level.levelNumber} ${level.title}`;
+  const cleanTitle = lesson.title.replace(/^\d+강[\.:\s]*/, '').trim() || lesson.title;
+  const pageTitle = cleanTitle;
   const pageDescription = lesson.subtitle
     ? `${lesson.subtitle}${lesson.summary?.length ? ` · ${lesson.summary.slice(0, 2).join(' ')}` : ''}`.trim()
     : (lesson.summary?.[0] || '주식 초보를 위한 가장 쉬운 설명서 및 단계별 강좌');
@@ -123,6 +124,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       },
     }),
     keywords: [
+      cleanTitle,
       lesson.title,
       level.title,
       '주식 기초',
@@ -136,16 +138,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       canonical: pageUrl,
     },
     openGraph: {
-      title: `${pageTitle} | 주식앱`,
+      title: `${pageTitle} | jusik.app`,
       description: pageDescription,
       url: pageUrl,
-      siteName: '주식앱',
+      siteName: 'jusik.app',
       images: [
         {
           url: videoThumb,
           width: 1280,
           height: 720,
-          alt: lesson.title,
+          alt: cleanTitle,
         },
       ],
       locale: 'ko_KR',
@@ -153,7 +155,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${pageTitle} | 주식앱`,
+      title: `${pageTitle} | jusik.app`,
       description: pageDescription,
       images: [videoThumb],
     },
@@ -175,6 +177,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   }
 
   const { lesson, level } = data;
+  const cleanTitle = lesson.title.replace(/^\d+강[\.:\s]*/, '').trim() || lesson.title;
   const openLessons = getAllLessons().filter((l) => !l.isComingSoon && !l.isInactive);
   const currentIndex = openLessons.findIndex((l) => l.id === lesson.id);
 
@@ -184,11 +187,11 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   const courseJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Course',
-    name: `${lesson.title} (Lv.${level.levelNumber} ${level.title})`,
+    name: `${cleanTitle} (Lv.${level.levelNumber} ${level.title})`,
     description: lesson.subtitle || lesson.summary?.[0] || '주식 초보를 위한 단계별 강좌입니다.',
     provider: {
       '@type': 'EducationalOrganization',
-      name: '주식앱 (주식부엉)',
+      name: 'jusik.app (주식부엉)',
       url: 'https://jusik.app',
       sameAs: 'https://youtube.com/@주식부엉',
     },
@@ -216,7 +219,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
       {
         '@type': 'ListItem',
         position: 3,
-        name: lesson.title,
+        name: cleanTitle,
         item: `https://jusik.app/lesson/${lesson.id}`,
       },
     ],
@@ -241,7 +244,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
     },
     publisher: {
       '@type': 'EducationalOrganization',
-      name: '주식앱',
+      name: 'jusik.app',
       url: 'https://jusik.app',
     },
   } : null;
@@ -249,8 +252,8 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: lesson.title,
-    alternativeHeadline: lesson.subtitle,
+    headline: cleanTitle,
+    alternativeHeadline: lesson.title,
     description: lesson.subtitle || lesson.summary?.[0] || lesson.title,
     author: {
       '@type': 'Person',
@@ -259,7 +262,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
     },
     publisher: {
       '@type': 'EducationalOrganization',
-      name: '주식앱',
+      name: 'jusik.app',
       url: 'https://jusik.app',
       logo: {
         '@type': 'ImageObject',

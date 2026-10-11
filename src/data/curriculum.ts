@@ -1417,7 +1417,7 @@ export const CURRICULUM_DATA: Level[] = [
               },
               {
                 stepNumber: 2,
-                title: "주식앱에서 5대 지표 한눈에 확인하기",
+                title: "jusik.app에서 5대 지표 한눈에 확인하기",
                 icon: "Layers",
                 bullets: [
                   "번거롭게 여러 사이트를 찾아다니지 않고도 [마켓 인사이트] 도구에서 5대 핵심 지표를 한 화면에 실시간 비교",

@@ -18,16 +18,16 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/terms',
   },
   openGraph: {
-    title: '주식 용어 퀴즈 | 주식앱',
+    title: '주식 용어 퀴즈 | jusik.app',
     description: '기초 필수 개념부터 실전 매매·거시경제까지! 단계별 주식 용어 퀴즈 풀고 랭킹 확인하기',
     url: 'https://jusik.app/tools/terms',
-    siteName: '주식앱',
+    siteName: 'jusik.app',
     images: [
       {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: '주식앱 - 주식 용어 퀴즈',
+        alt: 'jusik.app - 주식 용어 퀴즈',
       },
     ],
     locale: 'ko_KR',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '주식 용어 퀴즈 | 주식앱',
+    title: '주식 용어 퀴즈 | jusik.app',
     description: '기초 필수 개념부터 실전 매매·거시경제까지! 단계별 주식 용어 퀴즈 풀고 랭킹 확인하기',
     images: ['/og-image.png'],
   },
@@ -62,7 +62,7 @@ export default function TermsLayout({
     url: 'https://jusik.app/tools/terms',
     author: {
       '@type': 'EducationalOrganization',
-      name: '주식앱 (주식부엉)',
+      name: 'jusik.app (주식부엉)',
       url: 'https://jusik.app',
       sameAs: 'https://youtube.com/@주식부엉',
     },

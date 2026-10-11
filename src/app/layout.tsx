@@ -17,13 +17,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://jusik.app'),
   title: {
-    default: '주식앱',
-    template: '%s | 주식앱',
+    default: 'jusik.app',
+    template: '%s | jusik.app',
   },
   description: '기초부터 차근차근 배우는 단계별 주식 강좌와 실전 투자를 돕는 투자 도구 플랫폼! 주식 초보를 위한 가장 쉬운 설명서',
   keywords: [
-    '주식앱',
     'jusik.app',
+    '주식앱',
     '주식 초보',
     '주식 설명서',
     '주식 기초',
@@ -59,16 +59,16 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: '주식앱',
+    title: 'jusik.app',
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
     url: 'https://jusik.app',
-    siteName: '주식앱',
+    siteName: 'jusik.app',
     images: [
       {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: '주식앱 - 주식 초보를 위한 가장 쉬운 설명서',
+        alt: 'jusik.app - 주식 초보를 위한 가장 쉬운 설명서',
       },
     ],
     locale: 'ko_KR',
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '주식앱',
+    title: 'jusik.app',
     description: '단계별 주식 강좌와 실전 투자를 돕는 투자 도구 모음 플랫폼',
     images: ['/og-image.png'],
   },
@@ -107,8 +107,8 @@ export default function RootLayout({
       {
         '@type': 'WebSite',
         '@id': 'https://jusik.app/#website',
-        name: '주식앱',
-        alternateName: ['jusik.app', '주식부엉', '주식 앱'],
+        name: 'jusik.app',
+        alternateName: ['주식앱', '주식부엉', '주식 앱'],
         url: 'https://jusik.app',
         description: '주식 초보를 위한 가장 쉬운 설명서 - 기초 강좌와 실전 투자 시뮬레이터 플랫폼',
         publisher: {
@@ -119,8 +119,8 @@ export default function RootLayout({
       {
         '@type': 'EducationalOrganization',
         '@id': 'https://jusik.app/#organization',
-        name: '주식앱 (주식부엉)',
-        alternateName: ['주식부엉', 'jusik.app'],
+        name: 'jusik.app (주식부엉)',
+        alternateName: ['주식부엉', '주식앱'],
         url: 'https://jusik.app',
         logo: {
           '@type': 'ImageObject',

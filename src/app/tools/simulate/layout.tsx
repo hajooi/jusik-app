@@ -19,16 +19,16 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/simulate',
   },
   openGraph: {
-    title: '투자 전략 시뮬레이터 | 주식앱',
+    title: '투자 전략 시뮬레이터 | jusik.app',
     description: '과거 시장 데이터 기반 적립식 투자 수익률, CAGR, MDD 및 하락장 방어 전략 백테스터',
     url: 'https://jusik.app/tools/simulate',
-    siteName: '주식앱',
+    siteName: 'jusik.app',
     images: [
       {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: '주식앱 - 투자 전략 시뮬레이터',
+        alt: 'jusik.app - 투자 전략 시뮬레이터',
       },
     ],
     locale: 'ko_KR',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '투자 전략 시뮬레이터 | 주식앱',
+    title: '투자 전략 시뮬레이터 | jusik.app',
     description: '과거 시장 데이터 기반 적립식 투자 수익률 및 하락장 방어 백테스터',
     images: ['/og-image.png'],
   },
@@ -63,7 +63,7 @@ export default function SimulateLayout({
     url: 'https://jusik.app/tools/simulate',
     author: {
       '@type': 'EducationalOrganization',
-      name: '주식앱 (주식부엉)',
+      name: 'jusik.app (주식부엉)',
       url: 'https://jusik.app',
       sameAs: 'https://youtube.com/@주식부엉',
     },

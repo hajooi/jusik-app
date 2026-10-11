@@ -185,7 +185,7 @@ export default function MacroDataGuide() {
           </div>
         </div>
 
-        {/* 2단계: 주식앱에서 5대 지표 한눈에 확인하기 */}
+        {/* 2단계: jusik.app에서 5대 지표 한눈에 확인하기 */}
         <div className="p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[var(--accent-orange)]/12 via-[var(--card-surface)]/80 to-[var(--accent-orange)]/6 backdrop-blur-xl border border-[var(--accent-orange)]/35 space-y-3.5 sm:space-y-4 shadow-2xs">
           <div className="flex items-center gap-2 sm:gap-2.5">
             <span className="p-1 sm:p-1.5 rounded-lg bg-[var(--accent-orange)] text-white font-mono font-bold text-xs inline-flex items-center justify-center shrink-0 shadow-sm">
@@ -193,12 +193,12 @@ export default function MacroDataGuide() {
             </span>
             <h4 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] flex items-center gap-1.5 sm:gap-2 break-keep">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--accent-orange)] shrink-0" />
-              <span>주식앱에서 5대 지표 한눈에 확인하기</span>
+              <span>jusik.app에서 5대 지표 한눈에 확인하기</span>
             </h4>
           </div>
 
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-medium pl-1 sm:pl-2 break-keep">
-            위 5개 사이트를 매번 일일이 찾아다니며 점검하는 것은 번거롭습니다. 그래서 주식앱에서는 <strong>기준금리, 소비자물가, 실업률, 하이일드 스프레드, S&P 500 기업 실적</strong> 5대 지표의 현재 상태와 핵심 일정을 <strong>한 화면에서 실시간 신호등으로 비교할 수 있도록 모두 모아두었습니다.</strong>
+            위 5개 사이트를 매번 일일이 찾아다니며 점검하는 것은 번거롭습니다. 그래서 jusik.app에서는 <strong>기준금리, 소비자물가, 실업률, 하이일드 스프레드, S&P 500 기업 실적</strong> 5대 지표의 현재 상태와 핵심 일정을 <strong>한 화면에서 실시간 신호등으로 비교할 수 있도록 모두 모아두었습니다.</strong>
           </p>
 
           <div className="pt-0.5">
@@ -216,7 +216,7 @@ export default function MacroDataGuide() {
                   </div>
                 </div>
                 <div className="text-[11px] sm:text-xs text-[var(--text-secondary)] font-medium pl-4 break-keep">
-                  주식앱 마켓 인사이트 도구에서 5대 핵심 지표 실시간 신호등 비교
+                  jusik.app 마켓 인사이트 도구에서 5대 핵심 지표 실시간 신호등 비교
                 </div>
               </div>
               <div className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2.5 rounded-xl sm:rounded-full bg-[var(--accent-orange)] text-white font-extrabold text-xs shadow-md group-hover:shadow-[0_0_18px_rgba(241,143,1,0.45)] transition-all duration-200 active:scale-95 shrink-0">

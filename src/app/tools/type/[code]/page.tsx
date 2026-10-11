@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (profile) {
     const title = `${profile.name} (${profile.code})`;
-    const fullTitle = `${profile.name} (${profile.code}) | 주식앱`;
+    const fullTitle = `${profile.name} (${profile.code}) | jusik.app`;
     const description = `"${profile.tagline}" - 40문항으로 알아보는 나의 주식 투자 성향과 맞춤형 위험 관리법 진단`;
     const imageUrl = `https://jusik.app/types/og/${profile.code}.png`;
     const canonicalUrl = `https://jusik.app/tools/type/${profile.code}`;
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: fullTitle,
         description,
         url: canonicalUrl,
-        siteName: '주식앱',
+        siteName: 'jusik.app',
         images: [
           {
             url: imageUrl,
