@@ -50,7 +50,7 @@ export interface BookSection {
   };
   paragraphs: string[];
   callout?: string;
-  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania' | 'basic_terms_quiz' | 'fee_comparison' | 'jpmorgan_chart' | 'dca_simulator' | 'portfolio_recipes' | 'inline_simulator_cta' | 'rebalance_backtest' | 'representative_etf_cards' | 'isa_tax_calc' | 'pension_tax_simulator' | 'capital_gains_harvest_sim' | 'macro_timeline';
+  interactiveTool?: 'labor_simulator' | 'wealth_chart' | 'class_detector' | 'cisco_mania' | 'basic_terms_quiz' | 'fee_comparison' | 'jpmorgan_chart' | 'dca_simulator' | 'portfolio_recipes' | 'inline_simulator_cta' | 'rebalance_backtest' | 'representative_etf_cards' | 'isa_tax_calc' | 'pension_tax_simulator' | 'capital_gains_harvest_sim' | 'macro_timeline' | 'ai_secretary_simulator' | 'ai_prompt_copier';
 }
 
 export type LessonModule = GuideStepsModule | ResourcesModule | CTAModule;
@@ -1626,7 +1626,19 @@ export const CURRICULUM_DATA: Level[] = [
           "대화로 만드는 비서 코드",
           "비용 0원의 자동화 시스템"
         ],
-        isComingSoon: false
+        isComingSoon: false,
+        bookSections: [
+          {
+            title: "시세창에 휘둘리는 아침 대신, 객관적 비서를 고용하라",
+            paragraphs: [
+              "아침에 눈을 뜨자마자 스마트폰을 켜고 초조한 마음으로 주식 가격 창을 들여다보는 일상이 반복되곤 합니다. 빨갛게 물든 하락 숫자를 마주하며 하루의 기분을 망치거나, 가파르게 치솟는 특정 종목을 보며 나만 빠질까 봐 생기는 조급함에 충동적인 구매 버튼을 누르는 순간을 우리는 한 번쯤 겪어보았습니다.",
+              "초보 투자자가 시장에서 쉽게 지치고 실수를 반복하는 이유는 지식이나 정보가 부족해서가 아닙니다. 매 순간 요동치는 숫자의 파도 속에서 원초적인 감정이 앞서기 때문입니다.",
+              "진짜 자본가의 아침은 달라야 합니다. 시장의 요란한 소음에 일희일비하지 않고, 내가 보유한 1등 기업들의 실적과 객관적인 시장 지표만을 차분하게 보고받는 것입니다.",
+              "인공지능의 시대는 평범한 개인에게도 전속 비서를 둘 수 있는 특별한 기회를 선물했습니다. 복잡한 코딩이나 유료 서버 비용 없이, 구글 안티그래비티와 깃허브 액션만으로 매일 아침 내가 원하는 종목의 시세와 환율, 핵심 뉴스를 배달해 주는 나만의 주식 비서를 무료로 만들어봅니다."
+            ],
+            interactiveTool: "ai_secretary_simulator"
+          }
+        ]
       },
       {
         id: "lv5-2",

@@ -18,6 +18,7 @@ import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
 import StockDcaGuide from '@/components/StockDcaGuide';
 import MacroDataGuide from '@/components/MacroDataGuide';
+import AiSecretarySection from '@/components/AiSecretarySection';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -392,6 +393,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'isa_tax_calc' && <IsaTaxCalculator />}
                     {section.interactiveTool === 'pension_tax_simulator' && <PensionTaxSimulator />}
                     {section.interactiveTool === 'macro_timeline' && <MacroTimelineSimulator />}
+                    {section.interactiveTool === 'ai_secretary_simulator' && <AiSecretarySection />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
