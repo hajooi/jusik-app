@@ -524,32 +524,39 @@ export default function MacroTimelineSimulator() {
   return (
     <div className="w-full my-6 rounded-2xl sm:rounded-3xl border border-[var(--border-color)] bg-[var(--card-surface)]/90 backdrop-blur-md overflow-hidden shadow-2xs select-none">
       {/* ── Top Title Bar ── */}
-      <div className="px-4 sm:px-6 pt-5 pb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
-            <Building2 className="w-4 h-4 stroke-[2.2]" />
-          </span>
-          <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight truncate">
-            거시경제 사령관의 결단
-          </h3>
+      <div className="px-4 sm:px-6 pt-5 pb-2 space-y-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0">
+              <Building2 className="w-4 h-4 stroke-[2.2]" />
+            </span>
+            <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)] tracking-tight truncate">
+              거시경제 사령관의 결단
+            </h3>
+          </div>
+
+          {/* 턴 진행도 & 리셋 */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="px-3 py-1.5 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs font-mono font-bold text-[var(--text-primary)] shrink-0 whitespace-nowrap flex items-center gap-1">
+              <span className="text-[var(--accent-orange)]">{currentTurn}</span>
+              <span className="text-[var(--text-secondary)]">/</span>
+              <span>{TOTAL_TURNS}</span>
+            </div>
+            <button
+              type="button"
+              onClick={initGame}
+              className="p-1.5 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shrink-0 cursor-pointer"
+              title="새 게임 시작"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* 턴 진행도 & 리셋 */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="px-3 py-1.5 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-xs font-mono font-bold text-[var(--text-primary)] shrink-0 whitespace-nowrap flex items-center gap-1">
-            <span className="text-[var(--accent-orange)]">{currentTurn}</span>
-            <span className="text-[var(--text-secondary)]">/</span>
-            <span>{TOTAL_TURNS}</span>
-          </div>
-          <button
-            type="button"
-            onClick={initGame}
-            className="p-1.5 rounded-xl bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shrink-0 cursor-pointer"
-            title="새 게임 시작"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
+        {/* 소제목 가이드 */}
+        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed pl-1 sm:pl-2 break-keep">
+          모든 것을 만족시키는 완벽한 선택은 없습니다. 12번의 위기 속에서 4대 지표의 균형을 지켜내세요.
+        </p>
       </div>
 
       <div className="p-3 sm:p-6 pt-1">
