@@ -13,9 +13,11 @@ import RebalanceBacktestChart from '@/components/RebalanceBacktestChart';
 import RepresentativeEtfCards from '@/components/RepresentativeEtfCards';
 import IsaTaxCalculator from '@/components/IsaTaxCalculator';
 import PensionTaxSimulator from '@/components/PensionTaxSimulator';
+import MacroTimelineSimulator from '@/components/MacroTimelineSimulator';
 import AccountOpenGuide from '@/components/AccountOpenGuide';
 import StockTradeGuide from '@/components/StockTradeGuide';
 import StockDcaGuide from '@/components/StockDcaGuide';
+import MacroDataGuide from '@/components/MacroDataGuide';
 import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import Link from 'next/link';
@@ -386,6 +388,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     {section.interactiveTool === 'representative_etf_cards' && <RepresentativeEtfCards />}
                     {section.interactiveTool === 'isa_tax_calc' && <IsaTaxCalculator />}
                     {section.interactiveTool === 'pension_tax_simulator' && <PensionTaxSimulator />}
+                    {section.interactiveTool === 'macro_timeline' && <MacroTimelineSimulator />}
 
                     {/* Callout Box if present */}
                     {section.callout && (
@@ -407,7 +410,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                       const flushBullets = () => {
                         if (currentBulletGroup.length > 0) {
                           const avgLen = currentBulletGroup.reduce((acc, item) => acc + (item.desc ? item.desc.length : item.content.length), 0) / currentBulletGroup.length;
-                          const isGrid = currentBulletGroup.length >= 2 && avgLen <= 140;
+                          const isGrid = currentBulletGroup.length === 2 && avgLen <= 90;
                           groupedParagraphs.push({
                             type: 'bulletGroup',
                             items: [...currentBulletGroup],
@@ -471,14 +474,11 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                                   }
                                 >
                                   {group.items.map((item, bIdx) => {
-                                    const isThreeGridHero = group.isGrid && group.items.length === 3 && bIdx === 0;
                                     if (item.label && item.desc) {
                                       return (
                                         <div
                                           key={bIdx}
-                                          className={`p-4 sm:p-4.5 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex flex-col justify-start gap-2 shadow-2xs ${
-                                            isThreeGridHero ? "sm:col-span-2" : ""
-                                          }`}
+                                          className="p-4 sm:p-4.5 rounded-xl sm:rounded-2xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex flex-col justify-start gap-2 shadow-2xs"
                                         >
                                           <div className="flex items-center gap-2.5">
                                             <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] shrink-0" />
@@ -495,9 +495,7 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                                     return (
                                       <div
                                         key={bIdx}
-                                        className={`p-3.5 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs ${
-                                          isThreeGridHero ? "sm:col-span-2" : ""
-                                        }`}
+                                        className="p-3.5 sm:p-4 rounded-xl bg-[var(--bg-main)]/90 border border-[var(--border-color)] flex items-start gap-2.5 shadow-2xs"
                                       >
                                         <span className="w-2 h-2 rounded-full bg-[var(--accent-orange)] shadow-[0_0_8px_rgba(241,143,1,0.6)] mt-1.5 shrink-0" />
                                         <p className="text-sm sm:text-base text-[var(--text-primary)] font-medium leading-relaxed break-keep">
@@ -549,6 +547,13 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
                     return (
                       <RevealOnScroll key={index}>
                         <StockDcaGuide />
+                      </RevealOnScroll>
+                    );
+                  }
+                  if (lesson.id === 'lv4-1') {
+                    return (
+                      <RevealOnScroll key={index}>
+                        <MacroDataGuide />
                       </RevealOnScroll>
                     );
                   }

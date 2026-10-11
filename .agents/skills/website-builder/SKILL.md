@@ -12,7 +12,16 @@ This skill guides the development and UI/UX maintenance of `jusik.app`, a minima
 ### 1. Terminology & Easy Language Rule
 - **No '매수'**: Always use **'주식 구매'** or **'구매'**. Never use '매수'.
 - **No '매도'**: Always use **'주식 판매'** or **'팔기'**.
+- **No '주가'**: Always use **'주식 가격'** or **'가격'**. Never use '주가'.
+- **No '시가총액'**: Always use **'회사 몸값'** or **'회사 규모'**. Never use '시가총액'.
+- **Pure Korean Numerical Determiners**: Use '한 가지', '두 가지', '세 가지', '네 가지' (never '1가지', '2가지', '3가지').
 - **No Jargon/FOMO**: Always translate technical jargon like FOMO into easy Korean phrases like **'나만 빠질까 봐 생기는 조급함'**.
+
+### 1.1 Precision Prose Directives (소설 작법서 기반 4대 정밀 문체 원칙)
+1. **구체성 원칙 (Show, Don't Tell)**: 추상적 형용사 대신 체감 수치와 일상의 생생한 장면 제시.
+2. **동사 강화 및 수식어 다이어트**: 부사는 형용사로, 형용사는 동사로 치환. 과장된 3중 수식어를 빼고 간결한 능동태 동사 활용.
+3. **토시·조사 정제**: 늘어지는 번역투 및 중복 토시를 쳐내어 소리 내어 읽었을 때 혀가 꼬이지 않는 낭독 리듬감 확보.
+4. **김칫국물 무결성**: 하얀 한복에 김칫국물 한 방울이 옷 전체를 망치듯, 단어 하나하나의 품격과 쉬운 우리말 원칙을 철저히 준수.
 
 ### 2. Color Palette & Dark/Light Mode
 Always use predefined CSS variables from `src/app/globals.css`:
