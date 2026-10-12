@@ -42,15 +42,6 @@ const LEVEL_ICON_MAP: Record<string, any> = {
 
 const TOOLS_DIRECTORY = [
   {
-    id: 'terms',
-    title: '주식 용어 퀴즈',
-    description: '주식 시장 필수 기초 용어! 퀴즈로 쉽고 재미있게 실력 점검',
-    href: '/tools/terms',
-    icon: HelpCircle,
-    tag: '15문항 랭킹전',
-    isComingSoon: false,
-  },
-  {
     id: 'type',
     title: '투자 성향 진단',
     description: '손실 걱정형부터 성장 추구형까지! 나에게 맞는 열여섯 가지 투자 스타일',
@@ -69,6 +60,15 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'etf-fee',
+    title: 'ETF 수수료',
+    description: '숨은 비용까지 합산한 ETF 실부담 비용 한눈에 비교',
+    href: '/tools/fees',
+    icon: Receipt,
+    tag: '실부담 비용',
+    isComingSoon: false,
+  },
+  {
     id: 'market',
     title: '마켓 인사이트',
     description: '오늘의 증시 현황과 주요 증시 일정 한눈에 보기',
@@ -78,13 +78,13 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
-    id: 'etf-fee',
-    title: 'ETF 수수료 정리',
-    description: '표시된 보수 말고 진짜 떼어가는 실질 수수료 완벽 비교 분석',
-    href: '#',
-    icon: Receipt,
-    tag: '실질 수수료',
-    isComingSoon: true,
+    id: 'terms',
+    title: '주식 용어 퀴즈',
+    description: '주식 시장 필수 기초 용어! 퀴즈로 쉽고 재미있게 실력 점검',
+    href: '/tools/terms',
+    icon: HelpCircle,
+    tag: '15문항 랭킹전',
+    isComingSoon: false,
   },
   {
     id: 'journal',

@@ -19,14 +19,6 @@ interface ToolItem {
 
 const RAW_TOOLS: ToolItem[] = [
   {
-    id: 'terms',
-    title: '주식 용어 퀴즈',
-    description: '주식 시장 필수 기초 용어 퀴즈',
-    href: '/tools/terms',
-    icon: HelpCircle,
-    isComingSoon: false,
-  },
-  {
     id: 'type',
     title: '투자 성향 진단',
     description: '나에게 딱 맞는 투자 스타일 찾기',
@@ -43,6 +35,14 @@ const RAW_TOOLS: ToolItem[] = [
     isComingSoon: false,
   },
   {
+    id: 'etf-fee',
+    title: 'ETF 수수료',
+    description: '숨은 비용까지 합산한 ETF 실부담 비용 비교',
+    href: '/tools/fees',
+    icon: Receipt,
+    isComingSoon: false,
+  },
+  {
     id: 'market',
     title: '마켓 인사이트',
     description: '오늘의 증시 현황과 주요 증시 일정',
@@ -51,12 +51,12 @@ const RAW_TOOLS: ToolItem[] = [
     isComingSoon: false,
   },
   {
-    id: 'etf-fee',
-    title: 'ETF 수수료 정리',
-    description: 'ETF 실질 수수료 정리',
-    href: '#',
-    icon: Receipt,
-    isComingSoon: true,
+    id: 'terms',
+    title: '주식 용어 퀴즈',
+    description: '주식 시장 필수 기초 용어 퀴즈',
+    href: '/tools/terms',
+    icon: HelpCircle,
+    isComingSoon: false,
   },
   {
     id: 'journal',
