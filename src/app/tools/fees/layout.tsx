@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ETF 수수료 비교 (실부담 비용 & 총보수) | jusik.app',
+  title: 'ETF 수수료',
   description: '금융투자협회 공식 공시 기준! 표기된 총보수 뒤에 숨겨진 기타비용과 매매·중개수수료율을 합산한 국내 및 미국 대표 120여 개 ETF의 진짜 실부담 비용을 한눈에 비교하세요.',
   keywords: [
     'ETF 수수료',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/fees',
   },
   openGraph: {
-    title: 'ETF 수수료 비교 (실부담 비용 & 총보수) | jusik.app',
+    title: 'ETF 수수료 | jusik.app',
     description: '금융투자협회 공식 공시 기준! 숨은 기타비용과 매매중개수수료율까지 합산한 진짜 실부담 비용을 한눈에 비교해 보세요.',
     url: 'https://jusik.app/tools/fees',
     siteName: 'jusik.app',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: 'jusik.app - ETF 수수료 비교',
+        alt: 'jusik.app - ETF 수수료',
       },
     ],
     locale: 'ko_KR',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ETF 수수료 비교 (실부담 비용 & 총보수) | jusik.app',
+    title: 'ETF 수수료 | jusik.app',
     description: '금융투자협회 공식 공시 기준! 숨은 기타비용과 매매중개수수료율까지 합산한 진짜 실부담 비용을 한눈에 비교해 보세요.',
     images: ['/og-image.png'],
   },
