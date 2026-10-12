@@ -325,9 +325,6 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                       <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
                       <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
                     </div>
-                    <div className="text-[10px] text-[var(--accent-orange)] font-medium pt-0.5">
-                      제휴 증권사 계좌 개설 시 무료 (거래 시 1년 단위 연장)
-                    </div>
                   </div>
 
                   {/* Badge Preview */}
