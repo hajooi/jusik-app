@@ -130,27 +130,62 @@ export default function EtfFeesPage() {
   
   // 30년 PRO 스타일 팝오버 고유 식별자 상태 (item.id 기반 단독 팝업)
   const [activeTipId, setActiveTipId] = useState<string | null>(null);
+  const [closingTipId, setClosingTipId] = useState<string | null>(null);
+
+  const closeTip = () => {
+    if (!activeTipId || closingTipId) return;
+    setClosingTipId(activeTipId);
+    setTimeout(() => {
+      setActiveTipId(null);
+      setClosingTipId(null);
+    }, 240);
+  };
+
+  const toggleTip = (tipId: string) => {
+    if (activeTipId === tipId) {
+      closeTip();
+    } else {
+      if (closingTipId) {
+        setClosingTipId(null);
+      }
+      setActiveTipId(tipId);
+    }
+  };
 
   const activeTabIndex = TABS.findIndex((t) => t.id === currentTab);
 
-  // ESC 키로 팝오버 닫기
+  // ESC 키 및 바깥 클릭으로 팝오버 닫기 (DOM overlay 없이 document 이벤트로 처리하여 네비바 backdrop-blur 100% 보존)
   useEffect(() => {
+    if (!activeTipId) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && activeTipId) {
-        setActiveTipId(null);
+      if (e.key === 'Escape') {
+        closeTip();
       }
     };
-    if (activeTipId) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTipId]);
+
+    const handlePointerDown = (e: PointerEvent | MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-popover-container]')) {
+        return;
+      }
+      closeTip();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [activeTipId, closingTipId]);
 
   const handleTabChange = (tab: EtfTab) => {
     setCurrentTab(tab);
     setSelectedCategory('sp500');
     setSelectedSubCategory('all');
     setActiveTipId(null);
+    setClosingTipId(null);
   };
 
   const handleSortClick = (field: SortField) => {
@@ -339,12 +374,12 @@ export default function EtfFeesPage() {
       </RevealOnScroll>
 
       {/* ── 테이블 컬럼 헤더 바 (수직 1:1 칼정렬) ── */}
-      <RevealOnScroll delayIndex={4}>
+      <RevealOnScroll 
+        delayIndex={4}
+        className={activeTipId === 'header_fee' || closingTipId === 'header_fee' ? 'relative z-30' : 'relative z-10'}
+      >
         <div 
-          style={{ zIndex: activeTipId === 'header_fee' ? 45 : undefined }}
-          className={`flex items-center justify-between px-3 sm:px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] border-b border-[var(--border-color)]/80 border-x border-transparent tracking-tight select-none transition-all ${
-            activeTipId === 'header_fee' ? 'relative z-45' : 'relative z-0'
-          }`}
+          className="flex items-center justify-between px-3 sm:px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)] border-b border-[var(--border-color)]/80 border-x border-transparent tracking-tight select-none transition-all relative z-20"
         >
           {/* 종목명 컬럼 */}
           <div 
@@ -364,7 +399,7 @@ export default function EtfFeesPage() {
           {/* 우측 수치 컬럼들 (모바일: 134px 고정, 데스크톱: 전체 5개 열 1:1 수직 칼정렬) */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 text-center whitespace-nowrap">
             {/* 1. 실부담 비용 */}
-            <div className="w-16 sm:w-24 relative flex items-center justify-center">
+            <div className="w-16 sm:w-24 relative flex items-center justify-center" data-popover-container="true">
               <div 
                 onClick={() => handleSortClick('fee')}
                 className={`flex items-center justify-center gap-0.5 cursor-pointer transition-colors whitespace-nowrap select-none ${
@@ -382,20 +417,24 @@ export default function EtfFeesPage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveTipId(activeTipId === 'header_fee' ? null : 'header_fee');
+                  toggleTip('header_fee');
                 }}
                 title="실부담 비용 설명 보기"
-                className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] cursor-pointer"
+                className={`absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 cursor-pointer transition-colors ${
+                  activeTipId === 'header_fee' || closingTipId === 'header_fee' ? 'text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                }`}
               >
-                <HelpCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 opacity-70" />
+                <HelpCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 opacity-80" />
               </button>
 
-              {/* 30년 PRO 스타일 팝오버: animate-popover-expand (왼쪽 위 시작) */}
-              {activeTipId === 'header_fee' && (
+              {/* 30년 PRO 스타일 팝오버 (오른쪽 위 시작 & 모바일 100% 안전 안착) */}
+              {(activeTipId === 'header_fee' || closingTipId === 'header_fee') && (
                 <div 
                   onClick={(e) => e.stopPropagation()}
-                  style={{ transformOrigin: 'top left' }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans animate-popover-expand origin-top-left pointer-events-auto select-text"
+                  style={{ transformOrigin: 'top right' }}
+                  className={`absolute top-full right-0 mt-2 z-30 w-[270px] sm:w-[320px] max-w-[calc(100vw-32px)] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans origin-top-right pointer-events-auto select-text whitespace-normal ${
+                    closingTipId === 'header_fee' ? 'animate-popover-shrink-right pointer-events-none' : 'animate-popover-expand-right'
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
@@ -404,13 +443,13 @@ export default function EtfFeesPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setActiveTipId(null); }}
+                      onClick={(e) => { e.stopPropagation(); closeTip(); }}
                       className="p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] cursor-pointer transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
+                  <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal whitespace-normal break-keep">
                     {MINI_TIPS.fee.desc}
                   </p>
                 </div>
@@ -474,7 +513,10 @@ export default function EtfFeesPage() {
       </RevealOnScroll>
 
       {/* ── ETF 리스트 (종목명 1열, 코드 2열 배치로 이름 잘림 방지, 마우스 호버 없는 정적 카드) ── */}
-      <RevealOnScroll delayIndex={5}>
+      <RevealOnScroll 
+        delayIndex={5}
+        className={(activeTipId && activeTipId !== 'header_fee') || (closingTipId && closingTipId !== 'header_fee') ? 'relative z-20' : 'relative z-10'}
+      >
         <div className="space-y-1.5">
           {currentTab === 'kr' ? (
             /* 국내 ETF 리스트 */
@@ -482,7 +524,7 @@ export default function EtfFeesPage() {
               filteredKrEtfs.map((item, idx) => {
                 const isTr = item.name.includes('TR');
                 const subKey = item.subCategory && item.subCategory !== 'standard' ? item.subCategory : null;
-                const isRowActive = activeTipId ? activeTipId.startsWith(item.id) : false;
+                const isRowActive = (activeTipId && activeTipId.startsWith(item.id)) || (closingTipId && closingTipId.startsWith(item.id));
 
                 return (
                   <div
@@ -490,45 +532,48 @@ export default function EtfFeesPage() {
                     style={{
                       animation: 'etfRowReveal 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both',
                       animationDelay: `${Math.min(idx * 16, 240)}ms`,
-                      zIndex: isRowActive ? 45 : undefined,
+                      zIndex: isRowActive ? 25 : undefined,
                     }}
                     className={`px-3 sm:px-4 py-3 rounded-xl border border-[var(--border-color)]/80 bg-[var(--card-surface)]/80 shadow-2xs transition-all ${
-                      isRowActive ? 'relative z-45' : 'relative z-0'
+                      isRowActive ? 'relative z-25' : 'relative z-0'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-3">
-                      {/* 좌측 종목 정보: 1열 종목명+뱃지, 2열 단축코드 (두 줄 분리로 긴 종목명 잘림 완전 방지) */}
+                      {/* 좌측 종목 정보: 1열 종목명+물음표버튼, 2열 단축코드 */}
                       <div className="flex-1 min-w-0 pr-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-xs sm:text-sm text-[var(--text-primary)] leading-tight break-words sm:break-keep">
                             {item.name}
                           </span>
 
-                          {/* 특성 뱃지 & ? 클릭 시 팝오버 (고유 ID로 단 1개만 팝업, 좌상단 시작 & 최상위 노출) */}
+                          {/* 특성 물음표 버튼 & 클릭 시 팝오버 (물음표만 심플하게 부착) */}
                           {subKey && MINI_TIPS[subKey] && (() => {
                             const tipId = `${item.id}_${subKey}`;
+                            const isTipActive = activeTipId === tipId || closingTipId === tipId;
                             return (
-                              <span className="relative inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--card-surface)] border border-[var(--border-color)] text-[var(--text-secondary)] shrink-0">
-                                <span>
-                                  {subKey === 'hedged' ? '환헤지' : subKey === 'covered_call' ? '커버드콜' : subKey === 'active' ? '액티브' : '레버리지'}
-                                </span>
+                              <span className="static sm:relative inline-flex items-center shrink-0" data-popover-container="true">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setActiveTipId(activeTipId === tipId ? null : tipId);
+                                    toggleTip(tipId);
                                   }}
-                                  className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] cursor-pointer"
+                                  title={`${MINI_TIPS[subKey].title} 설명 보기`}
+                                  className={`p-0.5 rounded-full hover:bg-[var(--card-hover)] cursor-pointer transition-colors ${
+                                    isTipActive ? 'text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                                  }`}
                                 >
-                                  <HelpCircle className="w-2.5 h-2.5 opacity-70" />
+                                  <HelpCircle className="w-3 h-3 opacity-80" />
                                 </button>
 
-                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작) */}
-                                {activeTipId === tipId && (
+                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작, 모바일 100% 안착) */}
+                                {isTipActive && (
                                   <div 
                                     onClick={(e) => e.stopPropagation()}
                                     style={{ transformOrigin: 'top left' }}
-                                    className="absolute top-full left-0 mt-2 z-50 w-64 sm:w-72 max-w-[calc(100vw-48px)] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans animate-popover-expand origin-top-left pointer-events-auto select-text"
+                                    className={`absolute top-full left-3 sm:left-0 mt-1.5 z-30 w-[calc(100%-24px)] sm:w-[320px] max-w-[340px] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans origin-top-left pointer-events-auto select-text whitespace-normal ${
+                                      closingTipId === tipId ? 'animate-popover-shrink-left pointer-events-none' : 'animate-popover-expand-left'
+                                    }`}
                                   >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
@@ -537,13 +582,13 @@ export default function EtfFeesPage() {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setActiveTipId(null); }}
+                                        onClick={(e) => { e.stopPropagation(); closeTip(); }}
                                         className="p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] cursor-pointer transition-colors"
                                       >
                                         <X className="w-3.5 h-3.5" />
                                       </button>
                                     </div>
-                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
+                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal whitespace-normal break-keep">
                                       {MINI_TIPS[subKey].desc}
                                     </p>
                                   </div>
@@ -552,29 +597,34 @@ export default function EtfFeesPage() {
                             );
                           })()}
 
-                          {/* TR 뱃지 (고유 ID로 단 1개만 팝업, 좌상단 시작 & 최상위 노출) */}
+                          {/* TR 물음표 버튼 & 팝오버 (물음표만 심플하게 부착) */}
                           {isTr && (() => {
                             const tipId = `${item.id}_tr`;
+                            const isTipActive = activeTipId === tipId || closingTipId === tipId;
                             return (
-                              <span className="relative inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 border border-purple-500/25 text-purple-600 dark:text-purple-400 shrink-0">
-                                <span>TR</span>
+                              <span className="static sm:relative inline-flex items-center shrink-0" data-popover-container="true">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setActiveTipId(activeTipId === tipId ? null : tipId);
+                                    toggleTip(tipId);
                                   }}
-                                  className="text-purple-600 dark:text-purple-400 hover:text-[var(--accent-orange)] cursor-pointer"
+                                  title="TR (배당 재투자) 설명 보기"
+                                  className={`p-0.5 rounded-full hover:bg-[var(--card-hover)] cursor-pointer transition-colors ${
+                                    isTipActive ? 'text-purple-500' : 'text-purple-500/80 hover:text-[var(--accent-orange)]'
+                                  }`}
                                 >
-                                  <HelpCircle className="w-2.5 h-2.5 opacity-70" />
+                                  <HelpCircle className="w-3 h-3 opacity-80" />
                                 </button>
 
-                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작) */}
-                                {activeTipId === tipId && (
+                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작, 모바일 100% 안착) */}
+                                {isTipActive && (
                                   <div 
                                     onClick={(e) => e.stopPropagation()}
                                     style={{ transformOrigin: 'top left' }}
-                                    className="absolute top-full left-0 mt-2 z-50 w-64 sm:w-72 max-w-[calc(100vw-48px)] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans animate-popover-expand origin-top-left pointer-events-auto select-text"
+                                    className={`absolute top-full left-3 sm:left-0 mt-1.5 z-30 w-[calc(100%-24px)] sm:w-[320px] max-w-[340px] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans origin-top-left pointer-events-auto select-text whitespace-normal ${
+                                      closingTipId === tipId ? 'animate-popover-shrink-left pointer-events-none' : 'animate-popover-expand-left'
+                                    }`}
                                   >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
@@ -583,13 +633,13 @@ export default function EtfFeesPage() {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setActiveTipId(null); }}
+                                        onClick={(e) => { e.stopPropagation(); closeTip(); }}
                                         className="p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] cursor-pointer transition-colors"
                                       >
                                         <X className="w-3.5 h-3.5" />
                                       </button>
                                     </div>
-                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
+                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal whitespace-normal break-keep">
                                       {MINI_TIPS.tr.desc}
                                     </p>
                                   </div>
@@ -652,7 +702,7 @@ export default function EtfFeesPage() {
             filteredUsEtfs.length > 0 ? (
               filteredUsEtfs.map((item, idx) => {
                 const subKey = item.subCategory && item.subCategory !== 'standard' ? item.subCategory : null;
-                const isRowActive = activeTipId ? activeTipId.startsWith(item.id) : false;
+                const isRowActive = (activeTipId && activeTipId.startsWith(item.id)) || (closingTipId && closingTipId.startsWith(item.id));
 
                 return (
                   <div
@@ -660,45 +710,48 @@ export default function EtfFeesPage() {
                     style={{
                       animation: 'etfRowReveal 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both',
                       animationDelay: `${Math.min(idx * 16, 240)}ms`,
-                      zIndex: isRowActive ? 45 : undefined,
+                      zIndex: isRowActive ? 25 : undefined,
                     }}
                     className={`px-3 sm:px-4 py-3 rounded-xl border border-[var(--border-color)]/80 bg-[var(--card-surface)]/80 shadow-2xs transition-all ${
-                      isRowActive ? 'relative z-45' : 'relative z-0'
+                      isRowActive ? 'relative z-25' : 'relative z-0'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-3">
-                      {/* 좌측 미국 종목 정보: 1열 티커 + 뱃지, 2열 종목 풀네임 */}
+                      {/* 좌측 미국 종목 정보: 1열 티커 + 물음표버튼, 2열 종목 풀네임 */}
                       <div className="flex-1 min-w-0 pr-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono text-xs font-bold text-[var(--text-primary)] shrink-0">
                             {item.displayTicker}
                           </span>
 
-                          {/* 특성 뱃지 & ? 클릭 시 팝오버 (고유 ID로 단 1개만 팝업, 좌상단 시작 & 최상위 노출) */}
+                          {/* 특성 물음표 버튼 & 클릭 시 팝오버 (물음표만 심플하게 부착) */}
                           {subKey && MINI_TIPS[subKey] && (() => {
                             const tipId = `${item.id}_${subKey}`;
+                            const isTipActive = activeTipId === tipId || closingTipId === tipId;
                             return (
-                              <span className="relative inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--card-surface)] border border-[var(--border-color)] text-[var(--text-secondary)] shrink-0">
-                                <span>
-                                  {subKey === 'covered_call' ? '커버드콜' : subKey === 'active' ? '액티브' : '레버리지'}
-                                </span>
+                              <span className="static sm:relative inline-flex items-center shrink-0" data-popover-container="true">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setActiveTipId(activeTipId === tipId ? null : tipId);
+                                    toggleTip(tipId);
                                   }}
-                                  className="text-[var(--text-secondary)] hover:text-[var(--accent-orange)] cursor-pointer"
+                                  title={`${MINI_TIPS[subKey].title} 설명 보기`}
+                                  className={`p-0.5 rounded-full hover:bg-[var(--card-hover)] cursor-pointer transition-colors ${
+                                    isTipActive ? 'text-[var(--accent-orange)]' : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                                  }`}
                                 >
-                                  <HelpCircle className="w-2.5 h-2.5 opacity-70" />
+                                  <HelpCircle className="w-3 h-3 opacity-80" />
                                 </button>
 
-                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작) */}
-                                {activeTipId === tipId && (
+                                {/* 30년 PRO 스타일 팝오버 (왼쪽 위 시작, 모바일 100% 안착) */}
+                                {isTipActive && (
                                   <div 
                                     onClick={(e) => e.stopPropagation()}
                                     style={{ transformOrigin: 'top left' }}
-                                    className="absolute top-full left-0 mt-2 z-50 w-64 sm:w-72 max-w-[calc(100vw-48px)] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans animate-popover-expand origin-top-left pointer-events-auto select-text"
+                                    className={`absolute top-full left-3 sm:left-0 mt-1.5 z-30 w-[calc(100%-24px)] sm:w-[320px] max-w-[340px] p-3.5 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-2 text-left font-sans origin-top-left pointer-events-auto select-text whitespace-normal ${
+                                      closingTipId === tipId ? 'animate-popover-shrink-left pointer-events-none' : 'animate-popover-expand-left'
+                                    }`}
                                   >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
@@ -707,13 +760,13 @@ export default function EtfFeesPage() {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setActiveTipId(null); }}
+                                        onClick={(e) => { e.stopPropagation(); closeTip(); }}
                                         className="p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] cursor-pointer transition-colors"
                                       >
                                         <X className="w-3.5 h-3.5" />
                                       </button>
                                     </div>
-                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal">
+                                    <p className="text-[11.5px] sm:text-xs text-[var(--text-secondary)] leading-relaxed font-normal whitespace-normal break-keep">
                                       {MINI_TIPS[subKey].desc}
                                     </p>
                                   </div>
@@ -775,7 +828,7 @@ export default function EtfFeesPage() {
       </RevealOnScroll>
 
       {/* ── 하단 공식 공시 기준 & 최근 갱신 알약 캡슐 ── */}
-      <RevealOnScroll delayIndex={6}>
+      <RevealOnScroll delayIndex={6} className="relative z-0">
         <div className="flex items-center justify-center pt-2 pb-6">
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-[var(--border-color)]/70 bg-[var(--card-surface)]/60 backdrop-blur-md text-[11px] sm:text-xs text-[var(--text-secondary)]/90 shadow-2xs font-medium">
             <span>공식 공시 기준 <span className="font-mono tabular-nums font-semibold">{etfData.kofiaBaseDate}</span></span>
@@ -785,13 +838,6 @@ export default function EtfFeesPage() {
         </div>
       </RevealOnScroll>
 
-      {/* ── 바깥 클릭 닫기 투명 레이어 (화면 어두움 0%, 100% 완전 투명) ── */}
-      {activeTipId && (
-        <div 
-          className="fixed inset-0 z-40 bg-transparent cursor-default pointer-events-auto"
-          onClick={() => setActiveTipId(null)}
-        />
-      )}
 
       {/* ── 순차 등장 애니메이션 ── */}
       <style jsx global>{`

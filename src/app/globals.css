@@ -474,13 +474,33 @@ html {
 }
 
 .animate-popover-expand {
-  animation: popoverExpand 0.5s cubic-bezier(0.32, 1.56, 0.5, 1) forwards;
+  animation: popoverExpand 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   transform-origin: top right;
 }
 
 .animate-popover-shrink {
-  animation: popoverShrink 0.26s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  animation: popoverShrink 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   transform-origin: top right;
+}
+
+.animate-popover-expand-left {
+  animation: popoverExpand 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: top left !important;
+}
+
+.animate-popover-shrink-left {
+  animation: popoverShrink 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: top left !important;
+}
+
+.animate-popover-expand-right {
+  animation: popoverExpand 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: top right !important;
+}
+
+.animate-popover-shrink-right {
+  animation: popoverShrink 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: top right !important;
 }
 
 .animate-slide-in-left {

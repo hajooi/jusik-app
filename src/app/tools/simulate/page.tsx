@@ -73,6 +73,54 @@ function SimulatorContent() {
   const { user, isPro, updateSimulatorSettings, openAuthPopover, redeemPromoCode } = useAuth();
 
   const [proPopoverOpen, setProPopoverOpen] = useState<boolean>(false);
+  const [isProPopoverClosing, setIsProPopoverClosing] = useState<boolean>(false);
+
+  const closeProPopover = () => {
+    if (isProPopoverClosing || !proPopoverOpen) return;
+    setIsProPopoverClosing(true);
+    setTimeout(() => {
+      setProPopoverOpen(false);
+      setIsProPopoverClosing(false);
+    }, 240);
+  };
+
+  const toggleProPopover = () => {
+    if (proPopoverOpen) {
+      closeProPopover();
+    } else {
+      if (isProPopoverClosing) {
+        setIsProPopoverClosing(false);
+      }
+      setProPopoverOpen(true);
+    }
+  };
+
+  // ESC 키 및 바깥 클릭으로 PRO 팝오버 닫기 (DOM overlay 없이 document 이벤트로 처리하여 네비바 backdrop-blur 100% 보존)
+  useEffect(() => {
+    if (!proPopoverOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeProPopover();
+      }
+    };
+
+    const handlePointerDown = (e: PointerEvent | MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-pro-popover]')) {
+        return;
+      }
+      closeProPopover();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [proPopoverOpen, isProPopoverClosing]);
+
   const [promoCodeInput, setPromoCodeInput] = useState<string>('');
   const [promoCodeLoading, setPromoCodeLoading] = useState<boolean>(false);
   const [promoCodeMessage, setPromoCodeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -1589,7 +1637,7 @@ function SimulatorContent() {
                     </button>
                   </div>
                 ) : (
-                  <div key="duration-pill-wrapper" className="w-full h-full relative shrink-0 animate-fade-in">
+                  <div key="duration-pill-wrapper" className="w-full h-full relative shrink-0 animate-fade-in" data-pro-popover="true">
                     {/* Unified Segmented Pill Design matching Scale Switch */}
                     {isPro ? (
                       <div className="w-full h-full relative flex items-center p-0.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)] shadow-2xs text-xs font-sans">
@@ -1640,7 +1688,7 @@ function SimulatorContent() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setProPopoverOpen(!proPopoverOpen)}
+                          onClick={toggleProPopover}
                           className="w-1/2 flex items-center justify-center gap-1 py-0.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer font-sans text-[11px] font-extrabold whitespace-nowrap"
                         >
                           <Lock className="w-3 h-3 text-[var(--accent-orange)]" />
@@ -1649,9 +1697,15 @@ function SimulatorContent() {
                       </div>
                     )}
 
-                  {/* Floating Pro Popover anchored to Top Right Button (Optimized for Mobile/Desktop to avoid overflow) */}
-                  {proPopoverOpen && !isPro && (
-                    <div className="absolute top-full right-0 mt-2 z-50 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 animate-popover-expand text-left font-sans">
+                  {/* Floating Pro Popover anchored to Top Right Button (Optimized for Mobile/Desktop to avoid overflow, with closing animation) */}
+                  {(proPopoverOpen || isProPopoverClosing) && !isPro && (
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ transformOrigin: 'top right' }}
+                      className={`absolute top-full right-0 mt-2 z-30 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--border-color)] shadow-2xl space-y-3 text-left font-sans origin-top-right pointer-events-auto select-text whitespace-normal ${
+                        isProPopoverClosing ? 'animate-popover-shrink-right pointer-events-none' : 'animate-popover-expand-right'
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
                           <Crown className="w-4 h-4" />
@@ -1659,7 +1713,7 @@ function SimulatorContent() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setProPopoverOpen(false)}
+                          onClick={closeProPopover}
                           className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -1672,7 +1726,7 @@ function SimulatorContent() {
                         <button
                           type="button"
                           onClick={() => {
-                            setProPopoverOpen(false);
+                            closeProPopover();
                             openAuthPopover();
                           }}
                           className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
@@ -1684,7 +1738,7 @@ function SimulatorContent() {
                         <button
                           type="button"
                           onClick={() => {
-                            setProPopoverOpen(false);
+                            closeProPopover();
                             openAuthPopover();
                           }}
                           className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
@@ -1695,6 +1749,7 @@ function SimulatorContent() {
                       )}
                     </div>
                   )}
+
                 </div>
               )}
             </div>
@@ -1913,7 +1968,7 @@ function SimulatorContent() {
             {!isPro && !customStartDate && (
               <g
                 className="cursor-pointer group"
-                onClick={() => setProPopoverOpen(!proPopoverOpen)}
+                onClick={toggleProPopover}
               >
                 {/* Default neutral slit */}
                 <rect
