@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Building2, 
   Sparkles, 
@@ -375,6 +375,11 @@ export default function MacroTimelineSimulator() {
   const [profit, setProfit] = useState<number>(50); // 기업 실적
   const [market, setMarket] = useState<number>(50); // 주식 시장
 
+  // 직전 결정으로 인한 4대 지표 변동 폭 (Reigns 플로팅 변동 뱃지 연출용)
+  const [recentDeltas, setRecentDeltas] = useState<{ cpi: number; job: number; profit: number; market: number } | null>(null);
+  const [recentDeltaKey, setRecentDeltaKey] = useState<number>(0);
+  const deltaTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const [currentTurn, setCurrentTurn] = useState<number>(1);
   const [deck, setDeck] = useState<EventCard[]>([]);
   const [gameState, setGameState] = useState<'playing' | 'gameover' | 'victory'>('playing');
@@ -391,6 +396,10 @@ export default function MacroTimelineSimulator() {
     setJob(50);
     setProfit(50);
     setMarket(50);
+    setRecentDeltas(null);
+    if (deltaTimerRef.current) {
+      clearTimeout(deltaTimerRef.current);
+    }
     setCurrentTurn(1);
     setGameState('playing');
     setDragOffset(0);
@@ -407,12 +416,23 @@ export default function MacroTimelineSimulator() {
   const handleDecision = (choice: 'A' | 'B') => {
     if (gameState !== 'playing' || isSwipingOut) return;
 
+    const selectedChoice = choice === 'A' ? currentCard.choiceA : currentCard.choiceB;
+    const { deltas } = selectedChoice;
+
+    // Reigns 시그니처: 선택 즉시 4대 지표 변동 뱃지 팝핑 애니메이션 가동 (약 2.1초 유지)
+    setRecentDeltas(deltas);
+    setRecentDeltaKey(prev => prev + 1);
+
+    if (deltaTimerRef.current) {
+      clearTimeout(deltaTimerRef.current);
+    }
+    deltaTimerRef.current = setTimeout(() => {
+      setRecentDeltas(null);
+    }, 2100);
+
     setIsSwipingOut(choice === 'A' ? 'left' : 'right');
 
     setTimeout(() => {
-      const selectedChoice = choice === 'A' ? currentCard.choiceA : currentCard.choiceB;
-      const { deltas } = selectedChoice;
-
       const nextCpi = Math.max(0, Math.min(100, cpi + deltas.cpi));
       const nextJob = Math.max(0, Math.min(100, job + deltas.job));
       const nextProfit = Math.max(0, Math.min(100, profit + deltas.profit));
@@ -598,24 +618,32 @@ export default function MacroTimelineSimulator() {
                       value={cpi}
                       icon={Flame}
                       hasImpact={activeDeltas ? activeDeltas.cpi !== 0 : false}
+                      delta={recentDeltas?.cpi}
+                      deltaKey={recentDeltaKey}
                     />
                     <ReignsIconGauge
                       label="고용"
                       value={job}
                       icon={Briefcase}
                       hasImpact={activeDeltas ? activeDeltas.job !== 0 : false}
+                      delta={recentDeltas?.job}
+                      deltaKey={recentDeltaKey}
                     />
                     <ReignsIconGauge
                       label="실적"
                       value={profit}
                       icon={Layers}
                       hasImpact={activeDeltas ? activeDeltas.profit !== 0 : false}
+                      delta={recentDeltas?.profit}
+                      deltaKey={recentDeltaKey}
                     />
                     <ReignsIconGauge
                       label="시장"
                       value={market}
                       icon={BarChart3}
                       hasImpact={activeDeltas ? activeDeltas.market !== 0 : false}
+                      delta={recentDeltas?.market}
+                      deltaKey={recentDeltaKey}
                     />
                   </div>
 
@@ -776,21 +804,37 @@ function ReignsIconGauge({
   value,
   icon: Icon,
   hasImpact = false,
+  delta,
+  deltaKey,
 }: {
   label: string;
   value: number;
   icon: React.ElementType;
   hasImpact?: boolean;
+  delta?: number;
+  deltaKey?: number;
 }) {
   const isDanger = value <= 20 || value >= 80;
   const clampedValue = Math.max(0, Math.min(100, value));
   const CIRCLE_CIRCUMFERENCE = 125.66; // 2 * Math.PI * 20 (r=20)
+  const hasDelta = delta !== undefined && delta !== 0;
 
   return (
-    <div className="flex flex-col items-center gap-1 select-none pointer-events-none">
-      {/* 1. Reigns 상단 임팩트 점 - 스와이프 영향 실시간 암시 */}
-      <div className="h-2 flex items-center justify-center">
-        {hasImpact ? (
+    <div className="flex flex-col items-center gap-1 select-none pointer-events-none relative">
+      {/* 1. Reigns 상단 임팩트 점 or 결정 즉시 튀어오르는 플로팅 델타 변동 뱃지 */}
+      <div className="h-4 flex items-center justify-center relative">
+        {hasDelta ? (
+          <span
+            key={`delta-${deltaKey}-${delta}`}
+            className={`px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-tight whitespace-nowrap shadow-lg border backdrop-blur-md animate-reigns-delta ${
+              delta! > 0
+                ? 'bg-emerald-500 text-white border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.85)]'
+                : 'bg-rose-500 text-white border-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.85)]'
+            }`}
+          >
+            {delta! > 0 ? `▲+${delta}` : `▼${delta}`}
+          </span>
+        ) : hasImpact ? (
           <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_#f59e0b] animate-ping" />
         ) : (
           <span className="w-1.5 h-1.5 opacity-0" />
@@ -823,9 +867,13 @@ function ReignsIconGauge({
             strokeDashoffset={CIRCLE_CIRCUMFERENCE * (1 - clampedValue / 100)}
             className="transition-all duration-300"
             style={{
-              filter: isDanger 
-                ? 'drop-shadow(0 0 6px rgba(244, 63, 94, 0.75))' 
-                : 'drop-shadow(0 0 6px rgba(241, 143, 1, 0.65))'
+              filter: hasDelta
+                ? delta! > 0
+                  ? 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.9))'
+                  : 'drop-shadow(0 0 8px rgba(244, 63, 94, 0.9))'
+                : isDanger 
+                  ? 'drop-shadow(0 0 6px rgba(244, 63, 94, 0.75))' 
+                  : 'drop-shadow(0 0 6px rgba(241, 143, 1, 0.65))'
             }}
           />
         </svg>
@@ -850,6 +898,31 @@ function ReignsIconGauge({
       >
         {label}
       </span>
+
+      {/* Reigns 시그니처 플로팅 델타 뱃지 애니메이션 키프레임 */}
+      <style>{`
+        @keyframes reignsDeltaFloat {
+          0% {
+            opacity: 0;
+            transform: translateY(6px) scale(0.75);
+          }
+          15% {
+            opacity: 1;
+            transform: translateY(0px) scale(1.08);
+          }
+          75% {
+            opacity: 1;
+            transform: translateY(-2px) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.85);
+          }
+        }
+        .animate-reigns-delta {
+          animation: reignsDeltaFloat 2.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
     </div>
   );
 }

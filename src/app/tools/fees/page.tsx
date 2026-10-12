@@ -122,7 +122,7 @@ const MINI_TIPS: Record<string, { title: string; desc: string }> = {
 
 export default function EtfFeesPage() {
   const [currentTab, setCurrentTab] = useState<EtfTab>('kr');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('sp500');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('fee');
@@ -148,7 +148,7 @@ export default function EtfFeesPage() {
 
   const handleTabChange = (tab: EtfTab) => {
     setCurrentTab(tab);
-    setSelectedCategory('all');
+    setSelectedCategory('sp500');
     setSelectedSubCategory('all');
     setActiveTipId(null);
   };
