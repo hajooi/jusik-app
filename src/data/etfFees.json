@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-13 22:11:09",
+  "updatedAt": "2026-10-13 15:03:01",
   "kofiaBaseDate": "2026.09.30",
   "categories": [
     {
@@ -66,7 +66,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 5.44,
+      "dividendYield": 5.48,
       "totalFee": 0.015,
       "etcFee": 0.03,
       "ter": 0.05,
@@ -526,7 +526,7 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 4.78,
+      "dividendYield": 4.85,
       "totalFee": 0.05,
       "etcFee": 0.07,
       "ter": 0.12,
@@ -756,7 +756,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 4.32,
+      "dividendYield": 4.35,
       "totalFee": 0.05,
       "etcFee": 0.07,
       "ter": 0.12,
@@ -986,7 +986,7 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 5.41,
+      "dividendYield": 5.5,
       "totalFee": 0.05,
       "etcFee": 0.09,
       "ter": 0.14,
@@ -1216,7 +1216,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.65,
+      "dividendYield": 3.7,
       "totalFee": 0.15,
       "etcFee": 0.03,
       "ter": 0.18,
@@ -1446,7 +1446,7 @@
       "category": "bonds",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.58,
+      "dividendYield": 0.59,
       "totalFee": 0.15,
       "etcFee": 0.05,
       "ter": 0.2,
@@ -1676,7 +1676,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.69,
+      "dividendYield": 3.75,
       "totalFee": 0.15,
       "etcFee": 0.09,
       "ter": 0.24,
@@ -1906,7 +1906,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.55,
+      "dividendYield": 13.64,
       "totalFee": 0.25,
       "etcFee": 0.07,
       "ter": 0.32,
@@ -2136,7 +2136,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 11.49,
+      "dividendYield": 11.64,
       "totalFee": 0.25,
       "etcFee": 0.07,
       "ter": 0.32,
@@ -2366,7 +2366,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.3,
+      "dividendYield": 13.51,
       "totalFee": 0.25,
       "etcFee": 0.1,
       "ter": 0.35,
@@ -2596,7 +2596,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.83,
+      "dividendYield": 13.93,
       "totalFee": 0.39,
       "etcFee": 0.08,
       "ter": 0.47,
@@ -3056,7 +3056,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.05,
+      "dividendYield": 0.99,
       "totalFee": 0.017,
       "etcFee": 0.02,
       "ter": 0.04,
@@ -3286,7 +3286,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.12,
+      "dividendYield": 1.05,
       "totalFee": 0.01,
       "etcFee": 0.03,
       "ter": 0.04,
@@ -3746,7 +3746,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.02,
+      "dividendYield": 0.95,
       "totalFee": 0.017,
       "etcFee": 0.02,
       "ter": 0.03,
@@ -4206,7 +4206,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.93,
+      "dividendYield": 0.87,
       "totalFee": 0.036,
       "etcFee": 0.02,
       "ter": 0.05,
@@ -4896,7 +4896,7 @@
       "category": "kospi200",
       "subCategory": "active",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.39,
+      "dividendYield": 1.3,
       "totalFee": 0.01,
       "etcFee": 0.02,
       "ter": 0.03,
@@ -5126,7 +5126,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.97,
+      "dividendYield": 0.91,
       "totalFee": 0.05,
       "etcFee": 0.02,
       "ter": 0.07,
@@ -5356,7 +5356,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.0,
+      "dividendYield": 0.94,
       "totalFee": 0.017,
       "etcFee": 0.02,
       "ter": 0.04,
@@ -6276,7 +6276,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.89,
+      "dividendYield": 0.84,
       "totalFee": 0.15,
       "etcFee": 0.01,
       "ter": 0.16,
@@ -6506,7 +6506,7 @@
       "category": "kospi200",
       "subCategory": "active",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.94,
+      "dividendYield": 0.88,
       "totalFee": 0.15,
       "etcFee": 0.01,
       "ter": 0.16,
@@ -6736,7 +6736,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 6.71,
+      "dividendYield": 6.3,
       "totalFee": 0.25,
       "etcFee": 0.03,
       "ter": 0.28,
@@ -6966,7 +6966,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 11.52,
+      "dividendYield": 10.84,
       "totalFee": 0.3,
       "etcFee": 0.02,
       "ter": 0.32,
@@ -7112,7 +7112,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.4,
+      "dividendYield": 1.39,
       "totalFee": 0.25,
       "etcFee": 0.03,
       "ter": 0.28,
@@ -7342,7 +7342,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.92,
+      "dividendYield": 1.88,
       "totalFee": 0.25,
       "etcFee": 0.03,
       "ter": 0.28,
@@ -7572,7 +7572,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 17.48,
+      "dividendYield": 16.37,
       "totalFee": 0.39,
       "etcFee": 0.03,
       "ter": 0.42,
@@ -7802,7 +7802,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 6.84,
+      "dividendYield": 6.4,
       "totalFee": 0.5,
       "etcFee": 0.01,
       "ter": 0.51,
@@ -7880,7 +7880,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 6.91,
+      "dividendYield": 6.5,
       "totalFee": 0.491,
       "etcFee": 0.01,
       "ter": 0.5,
@@ -7970,7 +7970,7 @@
       "category": "kospi200",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.7,
+      "dividendYield": 0.61,
       "totalFee": 0.3,
       "etcFee": 0.02,
       "ter": 0.32,
@@ -8430,7 +8430,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 7.71,
+      "dividendYield": 7.37,
       "totalFee": 0.38,
       "etcFee": 0.04,
       "ter": 0.42,
@@ -8660,7 +8660,7 @@
       "category": "kospi200",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.56,
+      "dividendYield": 0.49,
       "totalFee": 0.022,
       "etcFee": 0.02,
       "ter": 0.04,
@@ -9120,7 +9120,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.6,
+      "dividendYield": 0.59,
       "totalFee": 0.0062,
       "etcFee": 0.09,
       "ter": 0.1,
@@ -9350,7 +9350,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.52,
+      "dividendYield": 0.51,
       "totalFee": 0.0062,
       "etcFee": 0.09,
       "ter": 0.1,
@@ -9580,7 +9580,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.52,
+      "dividendYield": 0.51,
       "totalFee": 0.0068,
       "etcFee": 0.09,
       "ter": 0.1,
@@ -9810,7 +9810,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.04,
+      "dividendYield": 1.03,
       "totalFee": 0.0062,
       "etcFee": 0.09,
       "ter": 0.1,
@@ -10040,7 +10040,7 @@
       "category": "nasdaq100",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.52,
+      "dividendYield": 0.51,
       "totalFee": 0.0099,
       "etcFee": 0.11,
       "ter": 0.12,
@@ -10500,7 +10500,7 @@
       "category": "nasdaq100",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.48,
+      "dividendYield": 0.47,
       "totalFee": 0.07,
       "etcFee": 0.11,
       "ter": 0.18,
@@ -10960,7 +10960,7 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.94,
+      "dividendYield": 0.93,
       "totalFee": 0.25,
       "etcFee": 0.09,
       "ter": 0.34,
@@ -11190,7 +11190,7 @@
       "category": "nasdaq100",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.47,
+      "dividendYield": 0.46,
       "totalFee": 0.04,
       "etcFee": 0.13,
       "ter": 0.17,
@@ -11420,7 +11420,7 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.58,
+      "dividendYield": 0.56,
       "totalFee": 0.3,
       "etcFee": 0.09,
       "ter": 0.39,
@@ -11650,7 +11650,7 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 15.81,
+      "dividendYield": 15.68,
       "totalFee": 0.25,
       "etcFee": 0.09,
       "ter": 0.34,
@@ -12110,7 +12110,7 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 22.81,
+      "dividendYield": 22.62,
       "totalFee": 0.25,
       "etcFee": 0.1,
       "ter": 0.35,
@@ -12340,7 +12340,7 @@
       "category": "nasdaq100",
       "subCategory": "active",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.07,
+      "dividendYield": 0.06,
       "totalFee": 0.8,
       "etcFee": 0.09,
       "ter": 0.89,
@@ -12570,7 +12570,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.05,
+      "dividendYield": 3.1,
       "totalFee": 0.01,
       "etcFee": 0.05,
       "ter": 0.06,
@@ -12800,7 +12800,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.04,
+      "dividendYield": 3.09,
       "totalFee": 0.01,
       "etcFee": 0.06,
       "ter": 0.07,
@@ -13030,7 +13030,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.13,
+      "dividendYield": 3.18,
       "totalFee": 0.01,
       "etcFee": 0.06,
       "ter": 0.07,
@@ -13260,7 +13260,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.99,
+      "dividendYield": 3.05,
       "totalFee": 0.0099,
       "etcFee": 0.07,
       "ter": 0.08,
@@ -13490,7 +13490,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.08,
+      "dividendYield": 3.13,
       "totalFee": 0.01,
       "etcFee": 0.08,
       "ter": 0.09,
@@ -13720,7 +13720,7 @@
       "category": "schd",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.87,
+      "dividendYield": 2.89,
       "totalFee": 0.05,
       "etcFee": 0.07,
       "ter": 0.12,
@@ -13950,7 +13950,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.52,
+      "dividendYield": 12.75,
       "totalFee": 0.25,
       "etcFee": 0.07,
       "ter": 0.32,
@@ -14180,7 +14180,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 10.59,
+      "dividendYield": 10.75,
       "totalFee": 0.39,
       "etcFee": 0.06,
       "ter": 0.45,
@@ -14410,7 +14410,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.98,
+      "dividendYield": 13.19,
       "totalFee": 0.39,
       "etcFee": 0.08,
       "ter": 0.47,
@@ -14640,7 +14640,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 6.22,
+      "dividendYield": 6.33,
       "totalFee": 0.39,
       "etcFee": 0.08,
       "ter": 0.47,
@@ -15100,7 +15100,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.97,
+      "dividendYield": 0.98,
       "totalFee": 0.0068,
       "etcFee": 0.06,
       "ter": 0.06,
@@ -17630,7 +17630,7 @@
       "category": "sp500",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.74,
+      "dividendYield": 0.73,
       "totalFee": 0.25,
       "etcFee": 0.06,
       "ter": 0.31,
@@ -18320,7 +18320,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.51,
+      "dividendYield": 1.52,
       "totalFee": 0.2,
       "etcFee": 0.12,
       "ter": 0.32,
@@ -18550,7 +18550,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 10.61,
+      "dividendYield": 10.65,
       "totalFee": 0.25,
       "etcFee": 0.07,
       "ter": 0.32,
@@ -18780,7 +18780,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.95,
+      "dividendYield": 0.94,
       "totalFee": 0.04,
       "etcFee": 0.23,
       "ter": 0.27,
@@ -19240,7 +19240,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 16.23,
+      "dividendYield": 16.27,
       "totalFee": 0.25,
       "etcFee": 0.11,
       "ter": 0.36,
@@ -20190,7 +20190,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.12,
+      "dividendYield": 1.1,
       "totalFee": 0.15,
       "etcFee": 0.71,
       "ter": 0.86,
@@ -20653,14 +20653,14 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "Bloomberg U.S. Aggregate Float",
-      "dividendYield": 4.19,
+      "dividendYield": 4.18,
       "expenseRatio": 0.03,
       "dividendSchedule": "월배당",
-      "price": 70.25,
+      "price": 70.28,
       "aumBillions": 389.1,
-      "return1m": -0.54,
-      "return3m": -2.85,
-      "return1y": -6.18,
+      "return1m": 0.5,
+      "return3m": -2.69,
+      "return1y": -6.13,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -20873,6 +20873,10 @@
         {
           "date": "20261012",
           "close": 70.25
+        },
+        {
+          "date": "20261013",
+          "close": 70.29
         }
       ],
       "isDomestic": false
@@ -20889,11 +20893,11 @@
       "dividendYield": 4.19,
       "expenseRatio": 0.03,
       "dividendSchedule": "월배당",
-      "price": 94.66,
+      "price": 94.69,
       "aumBillions": 135.7,
-      "return1m": -0.48,
-      "return3m": -2.87,
-      "return1y": -6.24,
+      "return1m": 0.47,
+      "return3m": -2.75,
+      "return1y": -6.21,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -21106,6 +21110,10 @@
         {
           "date": "20261012",
           "close": 94.66
+        },
+        {
+          "date": "20261013",
+          "close": 94.69
         }
       ],
       "isDomestic": false
@@ -21124,8 +21132,8 @@
       "dividendSchedule": "월배당",
       "price": 100.52,
       "aumBillions": 112.3,
-      "return1m": -0.14,
-      "return3m": -0.12,
+      "return1m": 0.08,
+      "return3m": -0.19,
       "return1y": -0.05,
       "weeklyPrices": [
         {
@@ -21339,6 +21347,10 @@
         {
           "date": "20261012",
           "close": 100.52
+        },
+        {
+          "date": "20261013",
+          "close": 100.52
         }
       ],
       "isDomestic": false
@@ -21355,11 +21367,11 @@
       "dividendYield": 3.66,
       "expenseRatio": 0.1353,
       "dividendSchedule": "월배당",
-      "price": 91.5,
+      "price": 91.51,
       "aumBillions": 49.8,
-      "return1m": -0.13,
-      "return3m": -0.12,
-      "return1y": -0.13,
+      "return1m": 0.09,
+      "return3m": -0.19,
+      "return1y": -0.12,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -21572,6 +21584,10 @@
         {
           "date": "20261012",
           "close": 91.5
+        },
+        {
+          "date": "20261013",
+          "close": 91.51
         }
       ],
       "isDomestic": false
@@ -21590,8 +21606,8 @@
       "dividendSchedule": "월배당",
       "price": 110.17,
       "aumBillions": 22.8,
-      "return1m": -0.09,
-      "return3m": -0.11,
+      "return1m": 0.09,
+      "return3m": -0.21,
       "return1y": -0.17,
       "weeklyPrices": [
         {
@@ -21805,6 +21821,10 @@
         {
           "date": "20261012",
           "close": 110.17
+        },
+        {
+          "date": "20261013",
+          "close": 110.17
         }
       ],
       "isDomestic": false
@@ -21818,14 +21838,14 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "ICE US Treasury 20+ Year",
-      "dividendYield": 4.99,
+      "dividendYield": 4.97,
       "expenseRatio": 0.15,
       "dividendSchedule": "월배당",
-      "price": 78.05,
+      "price": 78.33,
       "aumBillions": 46.2,
-      "return1m": -1.6,
-      "return3m": -6.25,
-      "return1y": -14.42,
+      "return1m": 1.08,
+      "return3m": -4.78,
+      "return1y": -14.12,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22038,6 +22058,10 @@
         {
           "date": "20261012",
           "close": 78.05
+        },
+        {
+          "date": "20261013",
+          "close": 78.32
         }
       ],
       "isDomestic": false
@@ -22054,11 +22078,11 @@
       "dividendYield": 4.15,
       "expenseRatio": 0.15,
       "dividendSchedule": "월배당",
-      "price": 89.43,
+      "price": 89.53,
       "aumBillions": 41.6,
-      "return1m": -0.63,
-      "return3m": -3.87,
-      "return1y": -8.17,
+      "return1m": 0.54,
+      "return3m": -3.68,
+      "return1y": -8.07,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22271,6 +22295,10 @@
         {
           "date": "20261012",
           "close": 89.43
+        },
+        {
+          "date": "20261013",
+          "close": 89.53
         }
       ],
       "isDomestic": false
@@ -22284,14 +22312,14 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe TLT BuyWrite",
-      "dividendYield": 11.85,
+      "dividendYield": 11.81,
       "expenseRatio": 0.35,
       "dividendSchedule": "월배당",
-      "price": 20.14,
+      "price": 20.2,
       "aumBillions": 1.7,
-      "return1m": -2.38,
-      "return3m": -6.59,
-      "return1y": -15.52,
+      "return1m": 1.1,
+      "return3m": -5.16,
+      "return1y": -15.27,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22504,6 +22532,10 @@
         {
           "date": "20261012",
           "close": 20.14
+        },
+        {
+          "date": "20261013",
+          "close": 20.2
         }
       ],
       "isDomestic": false
@@ -22517,14 +22549,14 @@
       "category": "bonds",
       "subCategory": "leverage",
       "trackingIndex": "ICE US Treasury 20+ Year 3X",
-      "dividendYield": 5.36,
+      "dividendYield": 5.31,
       "expenseRatio": 0.9,
       "dividendSchedule": "분기",
-      "price": 26.08,
+      "price": 26.34,
       "aumBillions": 2.0,
-      "return1m": -4.15,
-      "return3m": -18.12,
-      "return1y": -39.18,
+      "return1m": 3.01,
+      "return3m": -13.86,
+      "return1y": -38.55,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22737,6 +22769,10 @@
         {
           "date": "20261012",
           "close": 26.08
+        },
+        {
+          "date": "20261013",
+          "close": 26.35
         }
       ],
       "isDomestic": false
@@ -22750,14 +22786,14 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "S&P 500 Covered Call",
-      "dividendYield": 8.01,
+      "dividendYield": 8.03,
       "expenseRatio": 0.35,
       "dividendSchedule": "월배당",
-      "price": 56.96,
+      "price": 56.84,
       "aumBillions": 45.3,
-      "return1m": 0.35,
-      "return3m": 0.28,
-      "return1y": 0.18,
+      "return1m": 1.3,
+      "return3m": -1.04,
+      "return1y": -0.05,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22970,6 +23006,10 @@
         {
           "date": "20261012",
           "close": 56.96
+        },
+        {
+          "date": "20261013",
+          "close": 56.83
         }
       ],
       "isDomestic": false
@@ -22983,14 +23023,14 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "Nasdaq-100 Covered Call",
-      "dividendYield": 11.3,
+      "dividendYield": 11.33,
       "expenseRatio": 0.35,
       "dividendSchedule": "월배당",
-      "price": 60.93,
+      "price": 60.78,
       "aumBillions": 44.3,
-      "return1m": -0.51,
-      "return3m": 5.12,
-      "return1y": 6.0,
+      "return1m": -0.43,
+      "return3m": 4.34,
+      "return1y": 5.74,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -23203,6 +23243,10 @@
         {
           "date": "20261012",
           "close": 60.93
+        },
+        {
+          "date": "20261013",
+          "close": 60.78
         }
       ],
       "isDomestic": false
@@ -23219,10 +23263,10 @@
       "dividendYield": 6.34,
       "expenseRatio": 0.56,
       "dividendSchedule": "월배당",
-      "price": 47.58,
+      "price": 47.59,
       "aumBillions": 7.7,
-      "return1m": 0.61,
-      "return3m": 1.95,
+      "return1m": 1.8,
+      "return3m": 1.47,
       "return1y": 7.48,
       "weeklyPrices": [
         {
@@ -23436,6 +23480,10 @@
         {
           "date": "20261012",
           "close": 47.58
+        },
+        {
+          "date": "20261013",
+          "close": 47.58
         }
       ],
       "isDomestic": false
@@ -23452,10 +23500,10 @@
       "dividendYield": 0.11,
       "expenseRatio": 0.05,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 25.27,
+      "price": 25.12,
       "aumBillions": 0.5,
-      "return1m": 0.2,
-      "return3m": 9.02,
+      "return1m": -1.06,
+      "return3m": 7.81,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23525,6 +23573,10 @@
         {
           "date": "20261012",
           "close": 25.27
+        },
+        {
+          "date": "20261013",
+          "close": 25.12
         }
       ],
       "isDomestic": false
@@ -23539,12 +23591,12 @@
       "subCategory": "standard",
       "trackingIndex": "NASDAQ-100",
       "dividendYield": 0.08,
-      "expenseRatio": 0.05,
+      "expenseRatio": 0.1,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 25.24,
-      "aumBillions": 0.3,
-      "return1m": 0.2,
-      "return3m": 9.03,
+      "price": 25.09,
+      "aumBillions": 0.6,
+      "return1m": -1.1,
+      "return3m": 7.78,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23606,6 +23658,10 @@
         {
           "date": "20261012",
           "close": 25.24
+        },
+        {
+          "date": "20261013",
+          "close": 25.08
         }
       ],
       "isDomestic": false
@@ -23622,11 +23678,11 @@
       "dividendYield": 0.43,
       "expenseRatio": 0.15,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 307.19,
+      "price": 305.35,
       "aumBillions": 109.8,
-      "return1m": 0.21,
-      "return3m": 9.06,
-      "return1y": 23.56,
+      "return1m": -1.08,
+      "return3m": 7.79,
+      "return1y": 22.82,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -23839,6 +23895,10 @@
         {
           "date": "20261012",
           "close": 307.19
+        },
+        {
+          "date": "20261013",
+          "close": 305.35
         }
       ],
       "isDomestic": false
@@ -23852,14 +23912,14 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "NASDAQ-100",
-      "dividendYield": 0.41,
+      "dividendYield": 0.42,
       "expenseRatio": 0.18,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 746.04,
+      "price": 741.58,
       "aumBillions": 498.9,
-      "return1m": 0.21,
-      "return3m": 9.03,
-      "return1y": 23.53,
+      "return1m": -1.07,
+      "return3m": 7.79,
+      "return1y": 22.79,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24072,6 +24132,10 @@
         {
           "date": "20261012",
           "close": 746.04
+        },
+        {
+          "date": "20261013",
+          "close": 741.58
         }
       ],
       "isDomestic": false
@@ -24090,8 +24154,8 @@
       "dividendSchedule": "월배당",
       "price": 18.68,
       "aumBillions": 8.5,
-      "return1m": 0.7,
-      "return3m": 6.38,
+      "return1m": 0.27,
+      "return3m": 5.3,
       "return1y": 8.1,
       "weeklyPrices": [
         {
@@ -24305,6 +24369,10 @@
         {
           "date": "20261012",
           "close": 18.68
+        },
+        {
+          "date": "20261013",
+          "close": 18.68
         }
       ],
       "isDomestic": false
@@ -24318,14 +24386,14 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "Nasdaq-100 High Income",
-      "dividendYield": 13.65,
+      "dividendYield": 13.71,
       "expenseRatio": 0.68,
       "dividendSchedule": "월배당",
-      "price": 56.0,
+      "price": 55.75,
       "aumBillions": 14.9,
-      "return1m": 0.43,
-      "return3m": 6.2,
-      "return1y": 2.79,
+      "return1m": -0.59,
+      "return3m": 5.11,
+      "return1y": 2.33,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24538,6 +24606,10 @@
         {
           "date": "20261012",
           "close": 56.0
+        },
+        {
+          "date": "20261013",
+          "close": 55.75
         }
       ],
       "isDomestic": false
@@ -24551,14 +24623,14 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "NASDAQ-100 3X",
-      "dividendYield": 0.61,
+      "dividendYield": 0.62,
       "expenseRatio": 0.78,
       "dividendSchedule": "분기",
-      "price": 79.61,
+      "price": 78.17,
       "aumBillions": 37.9,
-      "return1m": 0.01,
-      "return3m": 24.39,
-      "return1y": 53.13,
+      "return1m": -3.51,
+      "return3m": 20.97,
+      "return1y": 50.36,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24771,6 +24843,10 @@
         {
           "date": "20261012",
           "close": 79.61
+        },
+        {
+          "date": "20261013",
+          "close": 78.17
         }
       ],
       "isDomestic": false
@@ -24787,11 +24863,11 @@
       "dividendYield": 0.13,
       "expenseRatio": 0.89,
       "dividendSchedule": "분기",
-      "price": 97.08,
+      "price": 95.9,
       "aumBillions": 15.1,
-      "return1m": 0.13,
-      "return3m": 16.96,
-      "return1y": 40.53,
+      "return1m": -2.27,
+      "return3m": 14.62,
+      "return1y": 38.82,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25004,6 +25080,10 @@
         {
           "date": "20261012",
           "close": 97.08
+        },
+        {
+          "date": "20261013",
+          "close": 95.9
         }
       ],
       "isDomestic": false
@@ -25020,11 +25100,11 @@
       "dividendYield": 1.52,
       "expenseRatio": 0.04,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 240.04,
+      "price": 239.59,
       "aumBillions": 127.6,
-      "return1m": 1.04,
-      "return3m": 0.58,
-      "return1y": 11.26,
+      "return1m": 1.93,
+      "return3m": 0.18,
+      "return1y": 11.05,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25237,6 +25317,10 @@
         {
           "date": "20261012",
           "close": 240.04
+        },
+        {
+          "date": "20261013",
+          "close": 239.59
         }
       ],
       "isDomestic": false
@@ -25255,8 +25339,8 @@
       "dividendSchedule": "분기 (3,6,9,12월)",
       "price": 33.26,
       "aumBillions": 107.9,
-      "return1m": 0.15,
-      "return3m": -0.09,
+      "return1m": 1.65,
+      "return3m": -0.63,
       "return1y": 24.15,
       "weeklyPrices": [
         {
@@ -25470,6 +25554,10 @@
         {
           "date": "20261012",
           "close": 33.26
+        },
+        {
+          "date": "20261013",
+          "close": 33.26
         }
       ],
       "isDomestic": false
@@ -25483,14 +25571,14 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "Morningstar US Div Growth",
-      "dividendYield": 1.92,
+      "dividendYield": 1.93,
       "expenseRatio": 0.08,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 77.79,
+      "price": 77.61,
       "aumBillions": 41.9,
-      "return1m": 1.59,
-      "return3m": -0.06,
-      "return1y": 14.6,
+      "return1m": 2.43,
+      "return3m": -0.51,
+      "return1y": 14.33,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25703,6 +25791,10 @@
         {
           "date": "20261012",
           "close": 77.79
+        },
+        {
+          "date": "20261013",
+          "close": 77.61
         }
       ],
       "isDomestic": false
@@ -25716,14 +25808,14 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 0.99,
+      "dividendYield": 1.0,
       "expenseRatio": 0.02,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 91.58,
+      "price": 91.44,
       "aumBillions": 173.6,
-      "return1m": 0.86,
-      "return3m": 5.31,
-      "return1y": 17.17,
+      "return1m": 0.93,
+      "return3m": 4.03,
+      "return1y": 16.99,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25936,6 +26028,10 @@
         {
           "date": "20261012",
           "close": 91.58
+        },
+        {
+          "date": "20261013",
+          "close": 91.44
         }
       ],
       "isDomestic": false
@@ -25952,11 +26048,11 @@
       "dividendYield": 1.04,
       "expenseRatio": 0.03,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 715.13,
+      "price": 714.18,
       "aumBillions": 1729.3,
-      "return1m": 0.61,
-      "return3m": 5.3,
-      "return1y": 17.09,
+      "return1m": 0.94,
+      "return3m": 4.01,
+      "return1y": 16.93,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26169,6 +26265,10 @@
         {
           "date": "20261012",
           "close": 715.13
+        },
+        {
+          "date": "20261013",
+          "close": 714.18
         }
       ],
       "isDomestic": false
@@ -26182,14 +26282,14 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 1.07,
+      "dividendYield": 1.08,
       "expenseRatio": 0.03,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 781.44,
+      "price": 780.42,
       "aumBillions": 881.3,
-      "return1m": 0.85,
-      "return3m": 5.26,
-      "return1y": 17.04,
+      "return1m": 0.95,
+      "return3m": 4.01,
+      "return1y": 16.88,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26402,6 +26502,10 @@
         {
           "date": "20261012",
           "close": 781.44
+        },
+        {
+          "date": "20261013",
+          "close": 780.42
         }
       ],
       "isDomestic": false
@@ -26415,14 +26519,14 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 0.97,
+      "dividendYield": 0.98,
       "expenseRatio": 0.0945,
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 778.1,
+      "price": 777.05,
       "aumBillions": 809.2,
-      "return1m": 0.88,
-      "return3m": 5.3,
-      "return1y": 17.11,
+      "return1m": 0.96,
+      "return3m": 4.02,
+      "return1y": 16.96,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26635,6 +26739,10 @@
         {
           "date": "20261012",
           "close": 778.1
+        },
+        {
+          "date": "20261013",
+          "close": 777.05
         }
       ],
       "isDomestic": false
@@ -26651,11 +26759,11 @@
       "dividendYield": 10.31,
       "expenseRatio": 0.6,
       "dividendSchedule": "월배당",
-      "price": 41.95,
+      "price": 41.94,
       "aumBillions": 3.4,
-      "return1m": 0.7,
-      "return3m": 2.92,
-      "return1y": 5.48,
+      "return1m": 0.5,
+      "return3m": 1.87,
+      "return1y": 5.46,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26868,6 +26976,10 @@
         {
           "date": "20261012",
           "close": 41.95
+        },
+        {
+          "date": "20261013",
+          "close": 41.94
         }
       ],
       "isDomestic": false
@@ -26881,14 +26993,14 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "S&P 500 High Income",
-      "dividendYield": 11.72,
+      "dividendYield": 11.73,
       "expenseRatio": 0.68,
       "dividendSchedule": "월배당",
-      "price": 54.1,
+      "price": 54.05,
       "aumBillions": 12.2,
-      "return1m": 0.84,
-      "return3m": 3.44,
-      "return1y": 3.62,
+      "return1m": 0.86,
+      "return3m": 2.27,
+      "return1y": 3.54,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27101,6 +27213,10 @@
         {
           "date": "20261012",
           "close": 54.1
+        },
+        {
+          "date": "20261013",
+          "close": 54.06
         }
       ],
       "isDomestic": false
@@ -27117,11 +27233,11 @@
       "dividendYield": 0.66,
       "expenseRatio": 0.84,
       "dividendSchedule": "분기",
-      "price": 72.04,
+      "price": 71.83,
       "aumBillions": 8.4,
-      "return1m": 1.49,
-      "return3m": 9.7,
-      "return1y": 29.73,
+      "return1m": 1.77,
+      "return3m": 7.22,
+      "return1y": 29.35,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27334,6 +27450,10 @@
         {
           "date": "20261012",
           "close": 72.04
+        },
+        {
+          "date": "20261013",
+          "close": 71.83
         }
       ],
       "isDomestic": false
@@ -27350,11 +27470,11 @@
       "dividendYield": 0.73,
       "expenseRatio": 0.88,
       "dividendSchedule": "분기",
-      "price": 155.46,
+      "price": 154.82,
       "aumBillions": 5.3,
-      "return1m": 2.14,
-      "return3m": 14.08,
-      "return1y": 41.79,
+      "return1m": 2.61,
+      "return3m": 10.36,
+      "return1y": 41.21,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27567,6 +27687,10 @@
         {
           "date": "20261012",
           "close": 155.46
+        },
+        {
+          "date": "20261013",
+          "close": 154.82
         }
       ],
       "isDomestic": false
