@@ -4,6 +4,7 @@ on:
   schedule:
     # 월~금 07:15 UTC = 한국 시간(KST) 월~금 16:15 (장 마감 15:30 및 시간외/순자산 정산 완료 후)
     # ▸ 국내 ETF 당일 종가, 순자산(AUM), 1년 수익률, 배당률 최신화
+    # ▸ KOFIA 공식 공시 수수료: 매 실행마다 최신 공시 기준일을 조회해 갱신분 자동 반영
     # ▸ 정각(:00)을 피해 15분 지정으로 GitHub Actions 큐 지연 없는 정시 실행 보장
     - cron: '15 7 * * 1-5'
   workflow_dispatch: # 깃허브 Actions 탭에서 수동 실행 가능
@@ -27,7 +28,13 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas
+
       - name: Run ETF fees and market data scraper
+        id: sync
         run: |
           python scripts/update_etf_fees.py
 
@@ -36,26 +43,33 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add src/data/etfFees.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: daily sync ETF market prices, 1y returns, and AUM [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: daily sync ETF prices, dividends, AUM, fees [skip ci]" && git pull --rebase origin main && git push)
 
       - name: Notify Telegram on Success
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SYNC_SUMMARY: ${{ steps.sync.outputs.summary }}
         run: |
-          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              -H "Content-Type: application/json" \
-              -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"📊 <b>[jusik.app ETF 일일 시세 & 수수료 동기화 완료]</b>\n한국 장 마감 정산(16:15 KST) 기준 118개 ETF의 당일 종가, 1년 수익률, 순자산 및 실공시 수수료가 성공적으로 최신화되었습니다.","parse_mode":"HTML"}'
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "parse_mode=HTML" \
+              --data-urlencode "text=📊 <b>[jusik.app ETF 일일 동기화 완료]</b>
+          ${SYNC_SUMMARY}"
           fi
 
       - name: Notify Telegram on Failure
         if: failure()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              -H "Content-Type: application/json" \
-              -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID || '7954599592' }}","text":"🚨 <b>[jusik.app 자동화 오류 경고]</b>\nETF 일일 동기화 작업(etf-daily-sync) 중 오류가 발생했습니다. GitHub Actions 로그를 확인해 주세요.","parse_mode":"HTML"}'
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "parse_mode=HTML" \
+              --data-urlencode "text=🚨 <b>[jusik.app 자동화 오류 경고]</b>
+          ETF 일일 동기화 작업(etf-daily-sync) 중 오류가 발생했습니다. GitHub Actions 로그를 확인해 주세요."
           fi

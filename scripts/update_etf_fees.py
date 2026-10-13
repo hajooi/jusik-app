@@ -12,7 +12,18 @@ import os
 import subprocess
 import urllib.request
 import xml.etree.ElementTree as ET
+import sys
 from datetime import datetime
+
+TARGET_JSON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/data/etfFees.json"))
+
+def load_previous_payload():
+    """이전 실행 결과(etfFees.json)를 읽어 조회 실패 시 대체값으로 사용."""
+    try:
+        with open(TARGET_JSON_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
 # -------------------------------------------------------------
 # 1. 대상 종목 정의 (국내 상장 ETF & 미국 직투 ETF)
@@ -227,7 +238,8 @@ def get_kofia_latest_date():
             return dt_list[0]
     except Exception as e:
         print(f"[KOFIA Date Error] {e}")
-    return "20260930"
+    prev_date = load_previous_payload().get("kofiaBaseDate", "")
+    return prev_date.replace(".", "") if prev_date else datetime.now().strftime("%Y%m%d")
 
 def fetch_kofia_fees(std_date):
     keywords = ["미국S&P500", "미국나스닥100", "미국배당다우존스", "200", "미국30년국채", "레버리지", "KODEX레버리지", "PLUS200", "HANARO200", "TIGERS&P500", "PLUSS&P500", "KODEX 미국나스닥100"]
@@ -378,9 +390,68 @@ def fetch_yahoo_stock_data(ticker):
     return result
 
 # -------------------------------------------------------------
+# 4-1. yfinance 기반 배당률 / 순자산(AUM) / 운용보수 수집 (실패 시 None → 이전값 유지)
+# -------------------------------------------------------------
+def fetch_trailing_dividend_yield(symbol):
+    """최근 12개월 분배금 합계 ÷ 현재 가격 × 100. 조회 실패·이상치면 None."""
+    try:
+        import yfinance as yf
+        import pandas as pd
+        tk = yf.Ticker(symbol)
+        hist = tk.history(period="5d")
+        if hist is None or hist.empty:
+            return None
+        price = float(hist["Close"].dropna().iloc[-1])
+        divs = tk.dividends
+        if price <= 0 or divs is None or len(divs) == 0:
+            return None
+        cutoff = pd.Timestamp.now(tz=divs.index.tz) - pd.Timedelta(days=365)
+        total = float(divs[divs.index >= cutoff].sum())
+        if total <= 0:
+            return None
+        value = round(total / price * 100, 2)
+        return value if 0 < value <= 40 else None
+    except Exception as e:
+        print(f"[yfinance Dividend Error {symbol}] {e}")
+        return None
+
+def fetch_us_fund_profile(ticker):
+    """미국 ETF 순자산(십억 달러)과 운용보수(%). 항목별로 실패 시 None."""
+    profile = {"aumBillions": None, "expenseRatio": None}
+    try:
+        import yfinance as yf
+        info = yf.Ticker(ticker).info or {}
+        assets = info.get("totalAssets")
+        if assets and float(assets) > 0:
+            profile["aumBillions"] = round(float(assets) / 1e9, 1)
+        net = info.get("netExpenseRatio")
+        annual = info.get("annualReportExpenseRatio")
+        if net is not None and 0 < float(net) < 3:
+            profile["expenseRatio"] = round(float(net), 4)
+        elif annual is not None and 0 < float(annual) < 0.03:
+            profile["expenseRatio"] = round(float(annual) * 100, 4)
+    except Exception as e:
+        print(f"[yfinance Profile Error {ticker}] {e}")
+    return profile
+
+def write_github_output(summary):
+    """GitHub Actions 단계 출력(텔레그램 알림용)."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"summary={summary}\n")
+
+# -------------------------------------------------------------
 # 5. 메인 함수
 # -------------------------------------------------------------
 def main():
+    prev = load_previous_payload()
+    prev_kr = {e["code"]: e for e in prev.get("krEtfs", [])}
+    prev_us = {e["ticker"]: e for e in prev.get("usEtfs", [])}
+    stats = {"fee_kofia": 0, "fee_prev": 0, "fee_default": 0, "div_live": 0, "div_kept": 0,
+             "us_aum_live": 0, "us_aum_kept": 0, "us_fee_live": 0, "us_fee_kept": 0}
+    fee_fallback_names = []
+
     print("▶ [1/4] KOFIA 최신 공시 기준일자 확인 중...")
     std_date = get_kofia_latest_date()
     formatted_date = f"{std_date[:4]}.{std_date[4:6]}.{std_date[6:8]}"
@@ -408,19 +479,52 @@ def main():
                     matched_fee = f_data
                     break
 
-        market_info = naver_etf_map.get(code, {"price": 0, "marketCap": 0, "return3m": 0.0})
+        prev_item = prev_kr.get(code, {})
+        market_info = naver_etf_map.get(code)
+        if not market_info:
+            market_info = {
+                "price": prev_item.get("price", 0),
+                "marketCap": prev_item.get("marketCap", 0),
+                "return3m": prev_item.get("return3m", 0.0),
+            }
         weekly_prices = fetch_naver_weekly_prices(code)
 
         # 1년 수익률 계산 (52주 기준)
         return1y = 0.0
         if weekly_prices and len(weekly_prices) >= 20 and weekly_prices[0]["close"] > 0:
             return1y = round(((weekly_prices[-1]["close"] / weekly_prices[0]["close"]) - 1) * 100, 2)
+        else:
+            return1y = prev_item.get("return1y", 0.0)
+            weekly_prices = prev_item.get("weeklyPrices", weekly_prices)
 
-        total_fee = matched_fee["total_fee"] if matched_fee else 0.007
-        etc_fee = matched_fee["etc_fee"] if matched_fee else 0.06
-        ter = matched_fee["ter"] if matched_fee else (total_fee + etc_fee)
-        trade_fee = matched_fee["trade_fee"] if matched_fee else 0.03
-        actual_fee = matched_fee["actual_fee"] if matched_fee else round(ter + trade_fee, 4)
+        # 수수료: KOFIA 공시 → 실패 시 이전 공시값 유지 → 이전값도 없을 때만 기본값
+        if matched_fee:
+            total_fee, etc_fee = matched_fee["total_fee"], matched_fee["etc_fee"]
+            ter, trade_fee = matched_fee["ter"], matched_fee["trade_fee"]
+            actual_fee = matched_fee["actual_fee"]
+            stats["fee_kofia"] += 1
+        elif "actualFee" in prev_item:
+            total_fee, etc_fee = prev_item["totalFee"], prev_item["etcFee"]
+            ter, trade_fee = prev_item["ter"], prev_item["tradeFee"]
+            actual_fee = prev_item["actualFee"]
+            stats["fee_prev"] += 1
+            fee_fallback_names.append(name)
+        else:
+            total_fee, etc_fee, trade_fee = 0.007, 0.06, 0.03
+            ter = total_fee + etc_fee
+            actual_fee = round(ter + trade_fee, 4)
+            stats["fee_default"] += 1
+            fee_fallback_names.append(name)
+
+        # 배당률: yfinance 최근 12개월 분배금 기준 → 실패 시 이전값 → 코드 기본값
+        live_div = fetch_trailing_dividend_yield(f"{code}.KS")
+        if live_div is not None:
+            dividend_yield = live_div
+            stats["div_live"] += 1
+        else:
+            dividend_yield = prev_item.get("dividendYield", item.get("dividendYield", 1.2))
+            stats["div_kept"] += 1
+        item = {**item, "dividendYield": dividend_yield}
 
         kr_etfs.append({
             "id": f"kr-{code}",
@@ -452,6 +556,31 @@ def main():
     for item in US_ETF_TARGETS:
         ticker = item["ticker"]
         y_data = fetch_yahoo_stock_data(ticker)
+        prev_item = prev_us.get(ticker, {})
+        if not y_data["price"] and prev_item:
+            y_data = {k: prev_item.get(k, v) for k, v in y_data.items()}
+
+        profile = fetch_us_fund_profile(ticker)
+        if profile["aumBillions"] is not None:
+            aum = profile["aumBillions"]
+            stats["us_aum_live"] += 1
+        else:
+            aum = prev_item.get("aumBillions", item.get("aumBillions", 0.0))
+            stats["us_aum_kept"] += 1
+        if profile["expenseRatio"] is not None:
+            expense = profile["expenseRatio"]
+            stats["us_fee_live"] += 1
+        else:
+            expense = prev_item.get("expenseRatio", item["expenseRatio"])
+            stats["us_fee_kept"] += 1
+
+        live_div = fetch_trailing_dividend_yield(ticker)
+        if live_div is not None:
+            dividend_yield = live_div
+            stats["div_live"] += 1
+        else:
+            dividend_yield = prev_item.get("dividendYield", item.get("dividendYield", 1.2))
+            stats["div_kept"] += 1
 
         us_etfs.append({
             "id": f"us-{ticker.lower()}",
@@ -462,18 +591,18 @@ def main():
             "category": item["category"],
             "subCategory": item.get("subCategory", "standard"),
             "trackingIndex": item.get("trackingIndex", "기초지수"),
-            "dividendYield": item.get("dividendYield", 1.2),
-            "expenseRatio": item["expenseRatio"],
+            "dividendYield": dividend_yield,
+            "expenseRatio": expense,
             "dividendSchedule": item["dividendSchedule"],
             "price": y_data["price"],
-            "aumBillions": item.get("aumBillions", 0.0),
+            "aumBillions": aum,
             "return1m": y_data["return1m"],
             "return3m": y_data["return3m"],
             "return1y": y_data["return1y"],
             "weeklyPrices": y_data["weeklyPrices"],
             "isDomestic": False,
         })
-        print(f"   ✓ [{item.get('subCategory', 'std'):12}] {ticker:6}: 보수 {item['expenseRatio']}% | 현재가 ${y_data['price']} | 1년수익률 {y_data['return1y']}% | 배당률 {item.get('dividendYield')}% | AUM ${item.get('aumBillions')}B")
+        print(f"   ✓ [{item.get('subCategory', 'std'):12}] {ticker:6}: 보수 {expense}% | 현재가 ${y_data['price']} | 1년수익률 {y_data['return1y']}% | 배당률 {dividend_yield}% | AUM ${aum}B")
 
     us_etfs.sort(key=lambda x: (x["category"], x["expenseRatio"]))
 
@@ -507,6 +636,22 @@ def main():
         json.dump(output_payload, f, ensure_ascii=False, indent=2)
 
     print(f"\n✨ 완료! 총 국내 {len(kr_etfs)}개 + 미국 {len(us_etfs)}개 ETF 데이터가 {target_path} 에 성공적으로 저장되었습니다.")
+
+    total = len(kr_etfs) + len(us_etfs)
+    summary = (
+        f"총 {total}개 ETF(국내 {len(kr_etfs)}·미국 {len(us_etfs)}) 동기화 완료. "
+        f"KOFIA 공시 기준일 {formatted_date}, 공시 수수료 반영 {stats['fee_kofia']}/{len(kr_etfs)}개, "
+        f"배당률 실시간 {stats['div_live']}/{total}개, 미국 순자산 {stats['us_aum_live']}/{len(us_etfs)}개, "
+        f"미국 운용보수 {stats['us_fee_live']}/{len(us_etfs)}개 최신화."
+    )
+    if fee_fallback_names:
+        summary += f" ⚠ 공시 미매칭으로 이전 값 유지 {len(fee_fallback_names)}개: " + ", ".join(fee_fallback_names[:5])
+    print(summary)
+    write_github_output(summary)
+
+    if stats["fee_kofia"] == 0:
+        print("❌ KOFIA 공시 수수료를 한 건도 가져오지 못했습니다.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
