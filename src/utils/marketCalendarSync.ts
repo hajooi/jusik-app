@@ -547,59 +547,118 @@ export async function fetchForexFactoryWeeklyEvents(): Promise<ForexFactoryEvent
 
 /**
  * 캘린더 이벤트와 Forex Factory 주간 이벤트를 날짜 및 제목 키워드로 매칭합니다.
+ * 타국가(독일, 스위스, 일본 등) 지표 혼입을 원천 방지하기 위해 미국 지표는 반드시 USD 통화 이벤트만 매칭하며,
+ * 소비자물가지수(CPI) 등은 시장의 핵심 헤드라인인 전년 동기 대비(YoY, y/y)를 최우선으로 매칭합니다.
  */
 export function matchForexFactoryEvent(
   calendarTitle: string,
   calendarDate: string,
-  ffEvents: ForexFactoryEvent[]
+  ffEvents: ForexFactoryEvent[],
+  region?: 'kr' | 'us'
 ): ForexFactoryEvent | null {
   if (!ffEvents || ffEvents.length === 0) return null;
   const t = calendarTitle.toLowerCase();
 
-  for (const item of ffEvents) {
+  // 한국 이벤트는 Forex Factory 글로벌 피드 매칭 대상에서 완전 제외
+  if (region === 'kr' || t.includes('한국') || t.includes('금통위')) {
+    return null;
+  }
+
+  // 미국 지표 매칭을 위해 USD 이벤트만 선별 (독일, 스위스, 일본 등 타국가 오매칭 원천 차단)
+  const isUsEvent = region === 'us' || t.includes('미국') || t.includes('fomc') || t.includes('연준') || t.includes('cpi') || t.includes('ppi');
+  const targetCountry = isUsEvent ? 'USD' : null;
+
+  // 날짜 범위(±1.5일) 내의 유효 국가 이벤트 선별
+  const candidates = ffEvents.filter((item) => {
+    if (targetCountry && item.country !== targetCountry) return false;
     const itemDate = item.date.slice(0, 10);
-    // 날짜가 일치하거나 시차(±1일) 범위 내에 있는 이벤트
     const dateDiff = Math.abs(new Date(itemDate).getTime() - new Date(calendarDate).getTime());
-    if (dateDiff > 86400000 * 1.5) continue;
+    return dateDiff <= 86400000 * 1.5;
+  });
 
-    const ft = item.title.toLowerCase();
+  if (candidates.length === 0) return null;
 
-    // ISM 서비스업 PMI
-    if (t.includes('서비스업') && t.includes('pmi') && ft.includes('services') && ft.includes('pmi')) {
-      return item;
-    }
-    // ISM 제조업 PMI
-    if (t.includes('제조업') && t.includes('pmi') && ft.includes('manufacturing') && ft.includes('pmi')) {
-      return item;
-    }
-    // JOLTS 구인건수
-    if (t.includes('jolts') && ft.includes('jolts')) {
-      return item;
-    }
-    // 비농업 취업자수
-    if ((t.includes('비농업') || t.includes('nfp')) && (ft.includes('non-farm') || ft.includes('nonfarm'))) {
-      return item;
-    }
-    // 실업률
-    if (t.includes('실업률') && ft.includes('unemployment rate')) {
-      return item;
-    }
-    // CPI 소비자물가
-    if (t.includes('소비자물가') && !t.includes('근원') && ft.includes('cpi') && !ft.includes('core')) {
-      return item;
-    }
-    // Core CPI 근원 소비자물가
-    if (t.includes('근원') && t.includes('소비자물가') && ft.includes('core cpi')) {
-      return item;
-    }
-    // PPI 생산자물가
-    if (t.includes('생산자물가') && ft.includes('ppi')) {
-      return item;
-    }
-    // 소매판매
-    if (t.includes('소매판매') && ft.includes('retail sales')) {
-      return item;
-    }
+  // 1) CPI (헤드라인 소비자물가지수): 시장 핵심인 YoY(y/y) 최우선 매칭, 없을 때 m/m 폴백
+  if (t.includes('소비자물가') && !t.includes('근원')) {
+    const cpiCandidates = candidates.filter(
+      (c) => c.title.toLowerCase().includes('cpi') && !c.title.toLowerCase().includes('core')
+    );
+    const yoy = cpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
+    if (yoy) return yoy;
+    const mom = cpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
+    if (mom) return mom;
+    return cpiCandidates[0] || null;
+  }
+
+  // 2) Core CPI (근원 소비자물가지수): YoY(y/y) 최우선 매칭
+  if (t.includes('근원') && t.includes('소비자물가')) {
+    const coreCpiCandidates = candidates.filter((c) => c.title.toLowerCase().includes('core cpi'));
+    const yoy = coreCpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
+    if (yoy) return yoy;
+    const mom = coreCpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
+    if (mom) return mom;
+    return coreCpiCandidates[0] || null;
+  }
+
+  // 3) PPI (생산자물가지수): y/y 우선, 없으면 m/m
+  if (t.includes('생산자물가') && !t.includes('근원')) {
+    const ppiCandidates = candidates.filter(
+      (c) => c.title.toLowerCase().includes('ppi') && !c.title.toLowerCase().includes('core')
+    );
+    const yoy = ppiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
+    if (yoy) return yoy;
+    const mom = ppiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
+    if (mom) return mom;
+    return ppiCandidates[0] || null;
+  }
+
+  // 4) Core PPI (근원 생산자물가지수)
+  if (t.includes('근원') && t.includes('생산자물가')) {
+    const corePpiCandidates = candidates.filter((c) => c.title.toLowerCase().includes('core ppi'));
+    const yoy = corePpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
+    if (yoy) return yoy;
+    const mom = corePpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
+    if (mom) return mom;
+    return corePpiCandidates[0] || null;
+  }
+
+  // 5) ISM 서비스업 PMI
+  if (t.includes('서비스업') && t.includes('pmi')) {
+    return candidates.find((c) => {
+      const ft = c.title.toLowerCase();
+      return ft.includes('services') && ft.includes('pmi');
+    }) || null;
+  }
+
+  // 6) ISM 제조업 PMI
+  if (t.includes('제조업') && t.includes('pmi')) {
+    return candidates.find((c) => {
+      const ft = c.title.toLowerCase();
+      return ft.includes('manufacturing') && ft.includes('pmi');
+    }) || null;
+  }
+
+  // 7) JOLTS 구인건수
+  if (t.includes('jolts')) {
+    return candidates.find((c) => c.title.toLowerCase().includes('jolts')) || null;
+  }
+
+  // 8) 비농업 취업자수
+  if (t.includes('비농업') || t.includes('nfp')) {
+    return candidates.find((c) => {
+      const ft = c.title.toLowerCase();
+      return ft.includes('non-farm') || ft.includes('nonfarm');
+    }) || null;
+  }
+
+  // 9) 실업률
+  if (t.includes('실업률')) {
+    return candidates.find((c) => c.title.toLowerCase().includes('unemployment rate')) || null;
+  }
+
+  // 10) 소매판매
+  if (t.includes('소매판매')) {
+    return candidates.find((c) => c.title.toLowerCase().includes('retail sales')) || null;
   }
 
   return null;
@@ -809,7 +868,7 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
 
       // ─── 0. 이번 주 Forex Factory 최신 예상치/이전치/시간 오버레이 ──────────
       if (ffEvents && ffEvents.length > 0) {
-        const matchedFf = matchForexFactoryEvent(ev.title, ev.date, ffEvents);
+        const matchedFf = matchForexFactoryEvent(ev.title, ev.date, ffEvents, ev.region);
         if (matchedFf) {
           // 최신 시장 예상치(forecast)가 있고 기존과 다르다면 덮어쓰기
           if (matchedFf.forecast && matchedFf.forecast !== ev.expected) {

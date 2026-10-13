@@ -835,7 +835,7 @@ export async function GET(request: Request) {
               ? snap.todayNews
               : TODAY_MARKET_NEWS;
 
-            // 캘린더: 코드 정의 기준으로 DB의 actual/simpleSummary만 오버레이
+            // 캘린더: 코드 정의 기준으로 DB의 actual/simpleSummary/expected/previous 오버레이 병합
             const dbEvents = dbRecord.simulator_settings?.calendarEvents;
             let mergedEvents = CALENDAR_EVENTS;
             if (Array.isArray(dbEvents) && dbEvents.length > 0) {
@@ -843,10 +843,12 @@ export async function GET(request: Request) {
               dbEvents.forEach((e: CalendarEvent) => { if (e?.id) dbMap.set(e.id, e); });
               mergedEvents = CALENDAR_EVENTS.map((base) => {
                 const cached = dbMap.get(base.id);
-                if (cached && (cached.actual || cached.simpleSummary)) {
+                if (cached && (cached.actual || cached.simpleSummary || cached.expected || cached.previous)) {
                   return {
                     ...base,
                     ...(cached.actual ? { actual: cached.actual } : {}),
+                    ...(cached.expected ? { expected: cached.expected } : {}),
+                    ...(cached.previous ? { previous: cached.previous } : {}),
                     ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
                   };
                 }
