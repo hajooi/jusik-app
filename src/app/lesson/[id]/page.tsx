@@ -331,11 +331,11 @@ export default function LessonDetailPage({ params }: { params: { id: string } })
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Unified Clean Minimal Hero Header */}
         <div className="py-2 px-1 space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
             {lesson.title}
           </h1>
           {lesson.subtitle && (
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
               {lesson.subtitle}
             </p>
           )}

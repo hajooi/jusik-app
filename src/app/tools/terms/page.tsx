@@ -532,7 +532,7 @@ function TermsQuizContent() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
           주식 용어 퀴즈
         </h1>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+        <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
           점수와 스피드로 겨루는 실전 금융 용어 랭킹전! 내 진짜 실력을 측정해 보세요.
         </p>
       </div>

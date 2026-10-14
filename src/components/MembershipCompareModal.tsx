@@ -255,7 +255,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>주식 기초 커리큘럼 전 강좌 평생 무료 수강</span>
+                      <span>기초~실전 주식 강좌 및 단행본 에세이 무료 학습</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
@@ -263,15 +263,15 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>15년 주식 전략 시뮬레이터 제공</span>
+                      <span>15년 과거 주식 전략 시뮬레이터 제공</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>계좌 관리 및 주문 수량 자동 계산</span>
+                      <span>나의 투자일지 계좌 관리 및 구매 수량 자동 계산</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>전 종목 지표 스크리너 무료 열람</span>
+                      <span>숨은 비용 포함 ETF 수수료 실부담 비교</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
@@ -314,7 +314,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     프로 실전 플랜
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    자산 배분 히스토리 추적과 스마트 프리셋 스크리너
+                    웹사이트 내 모든 실전 도구와 분석 기능을 무제한으로 이용
                   </p>
                 </div>
 
@@ -322,7 +322,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                 <div className="py-2.5 border-y border-[var(--border-color)]/60 flex items-center justify-between">
                   <div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">1,390원</span>
                       <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
                     </div>
                   </div>
@@ -343,23 +343,11 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>주식 심화 커리큘럼 전 강좌 수강</span>
+                      <span>30년 장기 주식 전략 시뮬레이터 무제한 이용</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>30년 주식 전략 시뮬레이터 제공</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>월별 자산 배분 히스토리 추적</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>보유 종목 목표 비중 이탈 알림</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>저평가 TOP 20 등 원클릭 프리셋 스크리너</span>
+                      <span>나의 투자일지 다중 계좌 관리 & 거래 기록 평생 보관</span>
                     </li>
                   </ul>
                 </div>
@@ -388,11 +376,11 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
               </div>
             </div>
 
-            {/* 3. PRO+ Plan Card */}
-            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-amber-500/[0.06] to-[var(--card-hover)]/70 border relative transition-all duration-300 ${
+            {/* 3. PRO+ Plan Card (Coming Soon) */}
+            <div className={`flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-amber-500/[0.04] to-[var(--card-hover)]/70 border relative transition-all duration-300 ${
               proTier === 'pro_plus' 
                 ? 'border-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.25)]' 
-                : 'border-amber-500/40 hover:border-amber-400 hover:shadow-[0_0_22px_rgba(245,158,11,0.18)]'
+                : 'border-amber-500/30 hover:border-amber-500/50'
             }`}>
               
               <div className="space-y-4">
@@ -403,18 +391,15 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>PRO+</span>
                     </span>
-                    {proTier === 'pro_plus' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-amber-500 bg-amber-500/15 border border-amber-500/50">
-                        <Check className="w-3 h-3" />
-                        <span>현재 이용 중</span>
-                      </span>
-                    )}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30">
+                      출시 예정
+                    </span>
                   </div>
                   <h3 className="text-xl font-black text-[var(--text-primary)]">
                     프로+ VIP 플랜
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    증권사 원클릭 주문 연동과 포트폴리오 최적 배분기
+                    유튜브 VIP 실전 특강 영상 및 심화 콘텐츠
                   </p>
                 </div>
 
@@ -422,17 +407,17 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                 <div className="py-2.5 border-y border-amber-500/30 flex items-center justify-between">
                   <div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">12,000원</span>
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
                       <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
                     </div>
                     <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold pt-0.5">
-                      최고 등급 전용 도구
+                      오픈 준비 중
                     </div>
                   </div>
 
                   {/* PRO+ Supreme Badge Preview */}
                   <span 
-                    className="animate-pro-plus-badge inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-black font-mono text-amber-600 dark:text-amber-300 border select-none shadow-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-black font-mono text-amber-600 dark:text-amber-300 border border-amber-500/30 select-none shadow-2xs opacity-80"
                     title="PRO+ 프리즘 골드 뱃지"
                   >
                     <Sparkles className="w-3 h-3 stroke-[2.4] fill-amber-400" />
@@ -440,21 +425,17 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                   </span>
                 </div>
 
-                {/* Features List (User Specified Order) */}
+                {/* Features List */}
                 <div className="space-y-2.5 text-xs text-[var(--text-primary)] pt-1">
                   <div className="font-bold text-amber-600 dark:text-amber-400 text-[11px]">PRO 혜택 포함 +</div>
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <span>PRO의 모든 혜택 기본 포함</span>
+                      <span>PRO의 웹사이트 모든 혜택 기본 포함</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <span>증권사 원클릭 주문 연동</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <span>포트폴리오 최적 배분기</span>
+                      <span>유튜브 PRO+ 회원 전용 실전 심화 특강 영상</span>
                     </li>
                   </ul>
                 </div>
@@ -462,20 +443,9 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
 
               {/* Action Button */}
               <div className="pt-6">
-                {proTier === 'pro_plus' ? (
-                  <div className="w-full py-2.5 px-3 rounded-full text-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 select-none">
-                    현재 이용 중
-                  </div>
-                ) : (
-                  <a
-                    href={YOUTUBE_MEMBERSHIP_JOIN_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-3 rounded-full text-center text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white shadow-sm hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] active:scale-95 transition-all flex items-center justify-center border border-amber-400/50 cursor-pointer"
-                  >
-                    PRO+ 시작하기
-                  </a>
-                )}
+                <div className="w-full py-2.5 px-3 rounded-full text-center text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 select-none cursor-default">
+                  출시 예정
+                </div>
               </div>
             </div>
 

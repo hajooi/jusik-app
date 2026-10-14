@@ -578,48 +578,40 @@ export function matchForexFactoryEvent(
 
   if (candidates.length === 0) return null;
 
-  // 1) CPI (헤드라인 소비자물가지수): 시장 핵심인 YoY(y/y) 최우선 매칭, 없을 때 m/m 폴백
+  // 1) CPI (헤드라인 소비자물가지수): 시장 핵심인 YoY(y/y)만 엄격 매칭 (m/m 오염 원천 차단)
   if (t.includes('소비자물가') && !t.includes('근원')) {
     const cpiCandidates = candidates.filter(
       (c) => c.title.toLowerCase().includes('cpi') && !c.title.toLowerCase().includes('core')
     );
     const yoy = cpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
     if (yoy) return yoy;
-    const mom = cpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
-    if (mom) return mom;
-    return cpiCandidates[0] || null;
+    return null;
   }
 
-  // 2) Core CPI (근원 소비자물가지수): YoY(y/y) 최우선 매칭
+  // 2) Core CPI (근원 소비자물가지수): YoY(y/y)만 엄격 매칭
   if (t.includes('근원') && t.includes('소비자물가')) {
     const coreCpiCandidates = candidates.filter((c) => c.title.toLowerCase().includes('core cpi'));
     const yoy = coreCpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
     if (yoy) return yoy;
-    const mom = coreCpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
-    if (mom) return mom;
-    return coreCpiCandidates[0] || null;
+    return null;
   }
 
-  // 3) PPI (생산자물가지수): y/y 우선, 없으면 m/m
+  // 3) PPI (생산자물가지수): 시장 핵심인 YoY(y/y)만 엄격 매칭 (m/m 오염 원천 차단)
   if (t.includes('생산자물가') && !t.includes('근원')) {
     const ppiCandidates = candidates.filter(
       (c) => c.title.toLowerCase().includes('ppi') && !c.title.toLowerCase().includes('core')
     );
     const yoy = ppiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
     if (yoy) return yoy;
-    const mom = ppiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
-    if (mom) return mom;
-    return ppiCandidates[0] || null;
+    return null;
   }
 
-  // 4) Core PPI (근원 생산자물가지수)
+  // 4) Core PPI (근원 생산자물가지수): YoY(y/y)만 엄격 매칭
   if (t.includes('근원') && t.includes('생산자물가')) {
     const corePpiCandidates = candidates.filter((c) => c.title.toLowerCase().includes('core ppi'));
     const yoy = corePpiCandidates.find((c) => c.title.toLowerCase().includes('y/y'));
     if (yoy) return yoy;
-    const mom = corePpiCandidates.find((c) => c.title.toLowerCase().includes('m/m'));
-    if (mom) return mom;
-    return corePpiCandidates[0] || null;
+    return null;
   }
 
   // 5) ISM 서비스업 PMI
@@ -702,7 +694,34 @@ async function fetchActualFromFinancialNews(query: string, pattern: RegExp): Pro
   }
 }
 
+/**
+ * 지표 발표 직후 외신 속보 기사 헤드라인에서 시장 예상치(YoY)를 파싱합니다.
+ * (외환 캘린더 피드에 YoY 컨센서스가 누락된 경우 발표 직후 속보를 통해 expected를 자동 보강)
+ */
+async function fetchExpectedFromFinancialNews(title: string, date: string): Promise<string | null> {
+  try {
+    const isPpi = title.includes('생산자물가') || title.toLowerCase().includes('ppi');
+    const isCpi = title.includes('소비자물가') || title.toLowerCase().includes('cpi');
+    if (!isPpi && !isCpi) return null;
+
+    const keyword = isPpi ? '미국 생산자물가 PPI' : '미국 소비자물가 CPI';
+    const query = `${keyword} 예상치 OR 전망치 OR 컨센서스`;
+    // 패턴: "예상치 5.4%", "전망치 3.6%", "컨센서스(5.4%)" 등
+    const pattern = /(?:전망치|예상치|컨센서스|전망|예상)\s*(?:는|가|대비|\(|:)?\s*([0-9.]+)%/;
+
+    const matchVal = await fetchActualFromFinancialNews(query, pattern);
+    if (matchVal && !isNaN(parseFloat(matchVal))) {
+      return `${parseFloat(matchVal).toFixed(1)}%`;
+    }
+    return null;
+  } catch (e) {
+    console.warn(`[Expected News Fetch] Failed for "${title}":`, e);
+    return null;
+  }
+}
+
 // ─── 이벤트 제목 기반 FRED 수집 함수 라우터 ──────────────────────────────────
+
 
 async function fetchEconomicActual(ev: CalendarEvent, todayStr: string): Promise<string | null> {
   const t = ev.title.toLowerCase();
@@ -897,6 +916,39 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
         }
       }
 
+      // ─── 0-1. 물가 지표(PPI, CPI) MoM 오염 제거 및 이전치(previous) 자동 계승 ───
+      const isInflationEvent = ev.title.includes('소비자물가') || ev.title.includes('생산자물가');
+      if (isInflationEvent) {
+        const isPpi = ev.title.includes('생산자물가');
+        // 공식 피드에 YoY가 없어 잘못 주입되었던 MoM 수치(0.4%, 0.6%) 비우기
+        if (isPpi && (ev.expected === '0.4%' || ev.expected === '0.6%')) {
+          delete ev.expected;
+        }
+
+        // 이전치(previous)가 비어있거나 과거 MoM 수치(0.4%, 0.6%, 0.7%)인 경우 직전 달 확정치(actual) 자동 계승
+        const isMoMPrevious = ev.previous === '0.4%' || ev.previous === '0.6%' || ev.previous === '0.7%';
+        if (!ev.previous || isMoMPrevious) {
+          const isCore = ev.title.includes('근원') || ev.title.toLowerCase().includes('core');
+          const priorEvents = currentEvents
+            .filter((other) => {
+              if (other.id === ev.id) return false;
+              if (other.date >= ev.date) return false;
+              if (!other.actual) return false;
+              const otherIsCore = other.title.includes('근원') || other.title.toLowerCase().includes('core');
+              if (isCore !== otherIsCore) return false;
+              if (isPpi) return other.title.includes('생산자물가');
+              return other.title.includes('소비자물가');
+            })
+            .sort((a, b) => b.date.localeCompare(a.date));
+
+          if (priorEvents[0]?.actual) {
+            ev.previous = priorEvents[0].actual;
+          } else if (isMoMPrevious) {
+            delete ev.previous;
+          }
+        }
+      }
+
       // 이미 actual이 있으면 건너뜀 (DB에 저장된 확정값 보호)
       if (ev.actual) return ev;
 
@@ -926,6 +978,14 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
 
         if (fetchedActual && isValidEconomicValue(ev.title, fetchedActual)) {
           console.log(`[Sync] ✅ ${ev.id} (${ev.date}): actual = ${fetchedActual}`);
+
+          // 발표 직후 만약 ev.expected가 비어있다면 공식 속보 기사에서 시장 예상치(YoY)를 파싱하여 보강
+          if (!ev.expected && (ev.title.includes('생산자물가') || ev.title.includes('소비자물가'))) {
+            const parsedExpected = await fetchExpectedFromFinancialNews(ev.title, ev.date);
+            if (parsedExpected) {
+              ev.expected = parsedExpected;
+            }
+          }
 
           const aiSummary = await generateEasyEventSummary({
             title: ev.title,

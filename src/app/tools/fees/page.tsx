@@ -268,7 +268,7 @@ export default function EtfFeesPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
             ETF 수수료
           </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
             숨은 비용까지 합산한 ETF 실부담 비용을 한눈에 비교해 보세요.
           </p>
         </div>

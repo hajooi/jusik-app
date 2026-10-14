@@ -1472,11 +1472,16 @@ export async function GET(request: Request) {
           currentCalendarEvents = CALENDAR_EVENTS.map((baseEvent) => {
             const cached = dbEventMap.get(baseEvent.id);
             if (cached && (cached.actual || cached.simpleSummary || cached.expected)) {
+              // 물가 지표(PPI 등)에 과거 잘못 캐시된 MoM 값(0.4%, 0.6%, 0.7%)이 DB에 남아있는 경우 필터링
+              const isPpi = baseEvent.title.includes('생산자물가');
+              const sanitizedExpected = isPpi && (cached.expected === '0.4%' || cached.expected === '0.6%') ? undefined : cached.expected;
+              const sanitizedPrevious = isPpi && (cached.previous === '0.4%' || cached.previous === '0.6%' || cached.previous === '0.7%') ? undefined : cached.previous;
+
               return {
                 ...baseEvent,
                 ...(cached.actual ? { actual: cached.actual } : {}),
-                ...(cached.expected ? { expected: cached.expected } : {}),
-                ...(cached.previous ? { previous: cached.previous } : {}),
+                ...(sanitizedExpected ? { expected: sanitizedExpected } : {}),
+                ...(sanitizedPrevious ? { previous: sanitizedPrevious } : {}),
                 ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
               };
             }

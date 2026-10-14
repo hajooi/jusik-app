@@ -47,6 +47,7 @@ export interface ServerUserRecord {
   hasCompletedCourse?: boolean;
   maxCompletedLessonsCount?: number;
   favoriteTools?: string[];
+  journal?: any; // 투자일지(계좌/목표 비율/보유 수량). API 키 등 비밀값은 절대 저장하지 않음
   termsQuizBest?: {
     level?: number;
     score?: number;
@@ -171,7 +172,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
 
           // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록, 즐겨찾기 도구)를 안전하게 분리 Unpack
           const rowSettings = (row.simulator_settings && typeof row.simulator_settings === 'object') ? row.simulator_settings : {};
-          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, favoriteTools: _fav, ...pureSim } = rowSettings;
+          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, favoriteTools: _fav, journal: _jr, ...pureSim } = rowSettings;
           const cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
 
           const effectiveActiveBadge = (rowSettings.activeBadge !== undefined && rowSettings.activeBadge !== null)
@@ -214,6 +215,7 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             hasCompletedCourse: effectiveHasCompletedCourse,
             maxCompletedLessonsCount: effectiveMaxCompleted,
             favoriteTools: effectiveFavoriteTools,
+            journal: rowSettings.journal || undefined,
           };
         });
 
@@ -267,7 +269,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
         // 순수 시뮬레이터 설정 추출
         let pureSimulatorSettings = u.simulatorSettings || {};
         if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
-          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, favoriteTools: _f, ...pureSim } = pureSimulatorSettings;
+          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, favoriteTools: _f, journal: _j, ...pureSim } = pureSimulatorSettings;
           pureSimulatorSettings = pureSim;
         }
 
@@ -280,6 +282,7 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
           isPro: u.isPro || false,
           proExpiresAt: u.proExpiresAt || null,
           favoriteTools: u.favoriteTools || null,
+          journal: u.journal || null,
           hasCompletedCourse: u.hasCompletedCourse || false,
           maxCompletedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length),
         };

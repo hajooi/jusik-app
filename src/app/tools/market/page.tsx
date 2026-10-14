@@ -45,7 +45,7 @@ export default function MarketRadarPage() {
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
               마켓 인사이트
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
               증시 현황부터 주요 증시 일정까지 한눈에 확인해보세요.
             </p>
           </div>

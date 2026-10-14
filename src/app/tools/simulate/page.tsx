@@ -1394,7 +1394,7 @@ function SimulatorContent() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
           투자 전략 시뮬레이터
         </h1>
-        <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+        <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
           내 투자 성향 및 목표에 적합한 전략을 검증하고, 나만의 성과를 데이터로 비교해보세요.
         </p>
       </div>
