@@ -517,6 +517,21 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
     alloc = gaps.slice();
   }
 
+  // 매매 수수료 및 환전 비용을 감안한 실질 1단위 비용 계산 헬퍼
+  const getUnitCost = (sym: string): number => {
+    const p = priceKrw(sym, q);
+    if (p === null || p <= 0) return 0;
+    const isCrypto = isCryptoSymbol(sym);
+    const norm = normalizeSymbol(sym);
+    const isUsd = !isCrypto && !/^\d{6}$/.test(norm);
+    const feePct = isUsd ? (account.fees?.usFeePct ?? 0.07) : (account.fees?.krFeePct ?? 0.015);
+    const feeFactor = 1 + feePct / 100;
+    const fxDiscountPct = account.fees?.fxDiscountPct ?? 95;
+    const fxSpreadPct = isUsd ? 1 * (1 - fxDiscountPct / 100) : 0;
+    const fxFactor = 1 + fxSpreadPct / 100;
+    return p * feeFactor * fxFactor;
+  };
+
   const lines: PlanLine[] = [];
   const boughtQty = groups.map(() => 0);
   let spent = 0;
@@ -524,7 +539,8 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
   groups.forEach((gr, i) => {
     const p = priceKrw(gr.buySymbol, q);
     if (p === null || p <= 0) return;
-    const raw = alloc[i] / p;
+    const unitCost = getUnitCost(gr.buySymbol);
+    const raw = alloc[i] / (unitCost > 0 ? unitCost : p);
     const allowFractional = isFractionalAllowed(gr.buySymbol, account.fractional);
     const isCrypto = isCryptoSymbol(gr.buySymbol);
     const digits = isCrypto ? 8 : 4;
@@ -534,7 +550,7 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
       : allowFractional ? -floorTo(-raw, digits) : -Math.floor(-raw + 1e-9);
 
     boughtQty[i] = qty;
-    spent += qty * p;
+    spent += qty * (unitCost > 0 ? unitCost : p);
   });
 
   // 정수 주 종목: 가용 자금 한도 내에서 부족한 자산군부터 1주씩 추가
@@ -549,7 +565,10 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
       if (allowFractional) return; // 소수점 종목은 이미 완벽 배분됨
 
       const p = priceKrw(gr.buySymbol, q);
-      if (p === null || p <= 0 || p > remainingCash + 1e-6) return;
+      if (p === null || p <= 0) return;
+      const unitCost = getUnitCost(gr.buySymbol);
+      const costToCheck = unitCost > 0 ? unitCost : p;
+      if (costToCheck > remainingCash + 1e-6) return;
 
       const remainingGap = gaps[i] - boughtQty[i] * p;
       if (remainingGap > bestGap) {
@@ -559,9 +578,10 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
     });
 
     if (best < 0) break;
+    const unitCost = getUnitCost(groups[best].buySymbol);
     const p = priceKrw(groups[best].buySymbol, q) as number;
     boughtQty[best] += 1;
-    spent += p;
+    spent += unitCost > 0 ? unitCost : p;
   }
 
   groups.forEach((gr, i) => {
@@ -648,4 +668,195 @@ export function calcTWR(snapshots: AssetSnapshot[]): number | null {
   }
 
   return (cumulative - 1) * 100;
+}
+
+export interface TradeSettlementResult {
+  isUsd: boolean;
+  feePct: number;
+  feeKrw: number;
+  feeUsd: number;
+  tradeAmountKrw: number; // 순 체결금액 (원)
+  tradeAmountUsd: number; // 순 체결금액 (달러)
+  totalCostKrw: number; // 수수료 및 자동환전 포함 총 원화 지출액(구매 시) 또는 순 입금액(판매 시)
+  nextCash: number; // 거래 후 원화 예수금
+  nextCashUsd: number; // 거래 후 달러 예수금
+  appliedFxRate: number; // 적용된 실질 환율
+  newAvgKrw: number; // 수수료 가산 이동평균단가 (원)
+  newAvgUsd?: number; // 수수료 가산 이동평균단가 (달러)
+  realizedProfitKrw?: number; // 실현 손익 (원)
+  realizedProfitRate?: number; // 실현 수익률 (%)
+  shortageKrw?: number; // 가용 잔액 부족 시 자동 입금되어야 할 부족액 (원)
+}
+
+// 매매 수수료 및 자동 환전(통합증거금) 정밀 결제 계산기
+export function calculateTradeSettlement({
+  symbol,
+  tradeQty,
+  price,
+  currentHoldings = 0,
+  currentAvgKrw = 0,
+  currentAvgUsd = 0,
+  currentCashKrw = 0,
+  currentCashUsd = 0,
+  fees,
+  usdRate = 1350,
+}: {
+  symbol: string;
+  tradeQty: number;
+  price: number;
+  currentHoldings?: number;
+  currentAvgKrw?: number;
+  currentAvgUsd?: number;
+  currentCashKrw?: number;
+  currentCashUsd?: number;
+  fees?: JournalAccount['fees'];
+  usdRate?: number;
+}): TradeSettlementResult {
+  const isCrypto = isCryptoSymbol(symbol);
+  const isUsd = !isCrypto && symbol !== 'GOLD_1G' && !/^\d{6}$/.test(symbol);
+  const absQty = Math.abs(tradeQty);
+  const isBuy = tradeQty > 0;
+
+  // 1. 거래 수수료율 결정 (해외 vs 국내)
+  const feePct = isUsd
+    ? (fees?.usFeePct !== undefined ? fees.usFeePct : 0.07)
+    : (fees?.krFeePct !== undefined ? fees.krFeePct : 0.015);
+  const feeRate = Math.max(0, feePct) / 100;
+
+  // 2. 환율 우대율 및 자동 환전 스프레드 적용
+  const fxDiscountPct = fees?.fxDiscountPct !== undefined ? fees.fxDiscountPct : 95;
+  // 기준 스프레드 1.0% (전신환 매도/매수율 기준)
+  const spreadFactor = ((1 - Math.min(100, Math.max(0, fxDiscountPct)) / 100) * 1.0) / 100;
+  // 달러 구매 시 실질 환율 (원화 -> 달러)
+  const buyUsdRate = usdRate * (1 + spreadFactor);
+  // 달러 판매 시 실질 환율 (달러 -> 원화)
+  const sellUsdRate = usdRate * (1 - spreadFactor);
+
+  let nextCash = currentCashKrw;
+  let nextCashUsd = currentCashUsd;
+  let tradeAmountKrw = 0;
+  let tradeAmountUsd = 0;
+  let feeKrw = 0;
+  let feeUsd = 0;
+  let totalCostKrw = 0;
+  let appliedFxRate = usdRate;
+  let newAvgKrw = currentAvgKrw || (isUsd ? Math.round(price * usdRate) : Math.round(price));
+  let newAvgUsd = currentAvgUsd || (isUsd ? price : 0);
+  let realizedProfitKrw: number | undefined = undefined;
+  let realizedProfitRate: number | undefined = undefined;
+
+  let shortageKrw = 0;
+
+  if (isUsd) {
+    tradeAmountUsd = Math.round(absQty * price * 100) / 100;
+    feeUsd = Math.round(tradeAmountUsd * feeRate * 100) / 100;
+    appliedFxRate = isBuy ? buyUsdRate : sellUsdRate;
+
+    if (isBuy) {
+      // 매수: 취득원가에 수수료 가산
+      const totalBuyAmountUsd = tradeAmountUsd + feeUsd;
+      const totalBuyAmountKrw = Math.round(totalBuyAmountUsd * buyUsdRate);
+      tradeAmountKrw = Math.round(tradeAmountUsd * buyUsdRate);
+      feeKrw = Math.round(feeUsd * buyUsdRate);
+      totalCostKrw = totalBuyAmountKrw;
+
+      // 신규 이동평균단가 (수수료 포함 취득원가 기준)
+      const totalQty = currentHoldings + absQty;
+      if (totalQty > 0) {
+        newAvgUsd = Math.round(((currentHoldings * (currentAvgUsd || price) + totalBuyAmountUsd) / totalQty) * 100) / 100;
+        newAvgKrw = Math.round((currentHoldings * (currentAvgKrw || Math.round(price * buyUsdRate)) + totalBuyAmountKrw) / totalQty);
+      }
+
+      // 결제: 달러 예수금 우선 차감 ➔ 부족분 원화 자동 환전
+      if (nextCashUsd >= totalBuyAmountUsd) {
+        nextCashUsd = Math.round((nextCashUsd - totalBuyAmountUsd) * 100) / 100;
+      } else {
+        const shortageUsd = totalBuyAmountUsd - nextCashUsd;
+        nextCashUsd = 0;
+        const autoFxCostKrw = Math.round(shortageUsd * buyUsdRate);
+        if (nextCash >= autoFxCostKrw) {
+          nextCash = Math.round(nextCash - autoFxCostKrw);
+        } else {
+          shortageKrw = autoFxCostKrw - nextCash;
+          nextCash = 0;
+        }
+      }
+    } else {
+      // 판매: 수수료 차감 후 순 입금액
+      const netProceedUsd = Math.max(0, tradeAmountUsd - feeUsd);
+      tradeAmountKrw = Math.round(tradeAmountUsd * sellUsdRate);
+      feeKrw = Math.round(feeUsd * sellUsdRate);
+      totalCostKrw = Math.round(netProceedUsd * sellUsdRate);
+
+      // 달러 예수금으로 입금
+      nextCashUsd = Math.round((nextCashUsd + netProceedUsd) * 100) / 100;
+
+      // 실현 손익 계산: (판매단가 - 평단가) * 판매수량 - 수수료
+      const sellProceedKrw = tradeAmountKrw - feeKrw;
+      const costBasisKrw = Math.round(absQty * (currentAvgKrw || Math.round(price * sellUsdRate)));
+      realizedProfitKrw = sellProceedKrw - costBasisKrw;
+      realizedProfitRate = costBasisKrw > 0 ? (realizedProfitKrw / costBasisKrw) * 100 : 0;
+      newAvgKrw = currentAvgKrw;
+      newAvgUsd = currentAvgUsd;
+    }
+  } else {
+    // 국내 자산 (KRW)
+    tradeAmountKrw = Math.round(absQty * price);
+    feeKrw = Math.round(tradeAmountKrw * feeRate);
+
+    if (isBuy) {
+      // 매수: 취득원가에 수수료 가산
+      const totalBuyAmountKrw = tradeAmountKrw + feeKrw;
+      totalCostKrw = totalBuyAmountKrw;
+
+      const totalQty = currentHoldings + absQty;
+      if (totalQty > 0) {
+        newAvgKrw = Math.round((currentHoldings * (currentAvgKrw || price) + totalBuyAmountKrw) / totalQty);
+      }
+
+      if (nextCash >= totalBuyAmountKrw) {
+        nextCash = Math.round(nextCash - totalBuyAmountKrw);
+      } else {
+        // 원화 부족 시 달러 예수금 자동 환전 (달러 매도하여 원화 충당)
+        const shortageKrwNeeded = totalBuyAmountKrw - nextCash;
+        nextCash = 0;
+        const neededUsdToSell = Math.round((shortageKrwNeeded / sellUsdRate) * 100) / 100;
+        if (nextCashUsd >= neededUsdToSell) {
+          nextCashUsd = Math.round((nextCashUsd - neededUsdToSell) * 100) / 100;
+        } else {
+          const shortageUsd = neededUsdToSell - nextCashUsd;
+          nextCashUsd = 0;
+          shortageKrw = Math.round(shortageUsd * sellUsdRate);
+        }
+      }
+    } else {
+      // 판매: 수수료 차감 후 순 입금
+      const netProceedKrw = Math.max(0, tradeAmountKrw - feeKrw);
+      totalCostKrw = netProceedKrw;
+      nextCash = Math.round(nextCash + netProceedKrw);
+
+      const costBasisKrw = Math.round(absQty * (currentAvgKrw || price));
+      realizedProfitKrw = netProceedKrw - costBasisKrw;
+      realizedProfitRate = costBasisKrw > 0 ? (realizedProfitKrw / costBasisKrw) * 100 : 0;
+      newAvgKrw = currentAvgKrw;
+    }
+  }
+
+  return {
+    isUsd,
+    feePct,
+    feeKrw,
+    feeUsd,
+    tradeAmountKrw: isBuy ? tradeAmountKrw : -tradeAmountKrw,
+    tradeAmountUsd: isBuy ? tradeAmountUsd : -tradeAmountUsd,
+    totalCostKrw,
+    nextCash,
+    nextCashUsd,
+    appliedFxRate,
+    newAvgKrw,
+    newAvgUsd,
+    realizedProfitKrw,
+    realizedProfitRate,
+    shortageKrw: shortageKrw > 0 ? shortageKrw : undefined,
+  };
 }

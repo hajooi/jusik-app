@@ -82,9 +82,24 @@
     outline: none !important;
   }
 
-  :focus-visible {
+  input:focus, input:focus-visible, textarea:focus, textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  :focus-visible:not(input):not(textarea) {
     outline: none !important;
     box-shadow: 0 0 0 1.5px rgba(241, 143, 1, 0.5) !important;
+  }
+
+  .no-focus-outline,
+  .no-focus-outline:focus,
+  .no-focus-outline:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
   }
 
   html {
