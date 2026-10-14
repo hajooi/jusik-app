@@ -58,23 +58,19 @@ const RAW_TOOLS: ToolItem[] = [
     icon: HelpCircle,
     isComingSoon: false,
   },
-  // {
-  //   id: 'journal',
-  //   title: '나의 투자일지',
-  //   description: '계좌별 목표 비율과 구매 수량 자동 계산',
-  //   href: '/tools/journal',
-  //   icon: BookOpen,
-  //   isComingSoon: false,
-  // },
   {
-    id: 'patterns',
-    title: '차트 패턴 트레이닝',
-    description: '차트 패턴으로 익히는 실전 훈련',
-    href: '#',
-    icon: CandlestickChart,
+    id: 'journal',
+    title: '나의 투자일지',
+    description: '계좌별 목표 비율과 구매 수량 자동 계산',
+    href: '/tools/journal',
+    icon: BookOpen,
     isComingSoon: true,
   },
 ];
+
+const getEffectiveTools = (): ToolItem[] => {
+  return RAW_TOOLS;
+};
 
 const sortToolsWithFavorites = (tools: ToolItem[], favList: string[]) => {
   return [...tools].sort((a, b) => {
@@ -91,15 +87,18 @@ const sortToolsWithFavorites = (tools: ToolItem[], favList: string[]) => {
 };
 
 export default function ToolsPage() {
-  const { favoriteTools, isFavoriteTool, toggleFavoriteTool } = useAuth();
+  const { user, favoriteTools, isFavoriteTool, toggleFavoriteTool } = useAuth();
+  const isAdmin = user?.nickname === '주식부엉';
   const [animatingId, setAnimatingId] = useState<string | null>(null);
 
   // SSR Hydration 불일치 원천 방지 및 마운트 시 촤라락 스태거 애니메이션 적용
-  const [displayTools, setDisplayTools] = useState<ToolItem[]>(RAW_TOOLS);
+  const effectiveRawTools = getEffectiveTools();
+  const [displayTools, setDisplayTools] = useState<ToolItem[]>(effectiveRawTools);
   const [isMounted, setIsMounted] = useState(false);
   const isInitialSortDoneRef = useRef(false);
 
   useEffect(() => {
+    const tools = getEffectiveTools();
     // 최초 마운트 시 1회: 로컬 캐시 또는 favoriteTools 기준으로 정렬 적용 후 isMounted 활성화
     if (!isInitialSortDoneRef.current) {
       isInitialSortDoneRef.current = true;
@@ -112,14 +111,14 @@ export default function ToolsPage() {
           }
         } catch {}
       }
-      setDisplayTools(sortToolsWithFavorites(RAW_TOOLS, effectiveFavs));
+      setDisplayTools(sortToolsWithFavorites(tools, effectiveFavs));
       setIsMounted(true);
       return;
     }
 
-    // 이후 AuthContext의 favoriteTools가 서버에서 비동기로 갱신되었을 때 반영
-    setDisplayTools(sortToolsWithFavorites(RAW_TOOLS, favoriteTools));
-  }, [favoriteTools]);
+    // 이후 AuthContext의 favoriteTools나 관리자 로그인 상태가 변경되었을 때 반영
+    setDisplayTools(sortToolsWithFavorites(tools, favoriteTools));
+  }, [favoriteTools, isAdmin]);
 
   // 전역 쿨다운 락: 어떤 도구든 즐겨찾기 버튼이 눌리면 애니메이션과 재정렬이 끝날 때까지 추가 클릭 차단
   const globalFavLockRef = useRef(false);
@@ -170,6 +169,41 @@ export default function ToolsPage() {
               };
 
           if (tool.isComingSoon) {
+            // 관리자인 경우 뱃지는 동일하게 '오픈 준비 중'이지만 클릭하여 진입 가능!
+            if (tool.id === 'journal' && isAdmin) {
+              return (
+                <div
+                  key={tool.id}
+                  style={cardWrapperStyle}
+                  className={isMounted ? 'animate-card-glide h-full' : 'h-full'}
+                >
+                  <Link
+                    href={tool.href}
+                    className="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full gap-3 relative overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 group-hover:scale-105 transition-all shrink-0 border border-[var(--border-color)]/60">
+                        <Icon className="w-5 h-5 stroke-[1.8]" />
+                      </div>
+                      <div className="min-w-0 space-y-0.5">
+                        <h3 className="text-sm sm:text-base font-bold tracking-tight text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
+                          {tool.title}
+                        </h3>
+                        <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
+                          {tool.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-xs font-semibold text-[var(--text-secondary)] font-mono gap-1 shrink-0">
+                      <Clock className="w-3.5 h-3.5 stroke-[1.7]" />
+                      <span>오픈 준비 중</span>
+                    </div>
+                  </Link>
+                </div>
+              );
+            }
+
             return (
               <div
                 key={tool.id}

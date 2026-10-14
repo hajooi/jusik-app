@@ -407,7 +407,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                 <div className="py-2.5 border-y border-amber-500/30 flex items-center justify-between">
                   <div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">6,900원</span>
                       <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
                     </div>
                     <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold pt-0.5">

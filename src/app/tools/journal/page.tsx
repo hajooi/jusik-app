@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import {
   Plus,
   Trash2,
@@ -30,9 +31,13 @@ import {
   Loader2,
   AlertCircle,
   ArrowLeftRight,
+  Crown,
+  Lock,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SmoothHeight from '@/components/SmoothHeight';
+import historicalPrices from '@/data/historicalPrices.json';
 import {
   JournalAccount,
   JournalGroup,
@@ -260,6 +265,68 @@ interface AssetTrendPoint {
   profitRate: number;
 }
 
+// 시뮬레이터 규격 프리미엄 Glassmorphic PRO 미니 팝오버 컴포넌트
+function ProMiniPopover({
+  title,
+  description,
+  ctaText = 'PRO 혜택 확인하기',
+  align = 'left',
+  onClose,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  ctaText?: string;
+  align?: 'left' | 'right' | 'center';
+  onClose: () => void;
+  onAction: () => void;
+}) {
+  const alignClass =
+    align === 'right'
+      ? 'right-0 origin-top-right'
+      : align === 'center'
+      ? 'left-1/2 -translate-x-1/2 origin-top'
+      : 'left-0 origin-top-left';
+
+  return (
+    <div
+      data-pro-popover
+      onClick={(e) => e.stopPropagation()}
+      className={`absolute top-full mt-2.5 z-40 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--accent-orange)]/40 shadow-[0_0_24px_rgba(241,143,1,0.18)] space-y-3 text-left font-sans select-text whitespace-normal animate-popover-expand ${alignClass}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
+          <Crown className="w-4 h-4" />
+          <span>{title}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-full hover:bg-[var(--card-hover)] transition-all cursor-pointer"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
+        {description}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onAction();
+        }}
+        className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+      >
+        <Crown className="w-3.5 h-3.5" />
+        {ctaText}
+      </button>
+    </div>
+  );
+}
+
 // 적응형 투자 원금 vs 총 자산 추이 SVG 차트 컴포넌트 (30일 이내: 일별, 1년 이내: 주별, 1년 초과: 월별 자동 분기)
 function AdaptiveAssetTrendChart({
   summary,
@@ -341,33 +408,63 @@ function AdaptiveAssetTrendChart({
         });
       }
     } else {
-      const monthSet = new Set<string>();
-      allDates.forEach((d) => monthSet.add(d.slice(0, 7)));
-      monthSet.add(todayStr.slice(0, 7));
-      const sortedMonths = Array.from(monthSet).sort((a, b) => a.localeCompare(b));
+      // 1년 초과: 시작 연월부터 오늘 연월까지 매월 1달 단위로 단 한 달도 건너뛰지 않는 100% 연속 타임라인 생성
+      const startParts = earliestDateStr.slice(0, 7).split('-');
+      let curYear = parseInt(startParts[0], 10);
+      let curMonth = parseInt(startParts[1], 10);
 
-      if (sortedMonths.length === 1) {
-        const [yStr, mStr] = sortedMonths[0].split('-');
-        const y = parseInt(yStr, 10);
-        const m = parseInt(mStr, 10);
-        const prev = new Date(y, m - 2, 1);
-        const prevStr = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
-        sortedMonths.unshift(prevStr);
+      const endYear = now.getFullYear();
+      const endMonth = now.getMonth() + 1;
+
+      // 최소 4개 월 이상이 되도록 보정 (시작과 끝이 너무 가까운 경우)
+      const totalMonthDiff = (endYear - curYear) * 12 + (endMonth - curMonth);
+      if (totalMonthDiff < 3) {
+        const adjustedStart = new Date(endYear, endMonth - 4, 1);
+        curYear = adjustedStart.getFullYear();
+        curMonth = adjustedStart.getMonth() + 1;
       }
 
-      sortedMonths.forEach((m) => {
-        const [y, mm] = m.split('-');
+      while (curYear < endYear || (curYear === endYear && curMonth <= endMonth)) {
+        const mKey = `${curYear}-${String(curMonth).padStart(2, '0')}`;
         timeKeys.push({
-          key: m,
-          label: `${y}.${mm}`,
+          key: mKey,
+          label: `${curYear}.${String(curMonth).padStart(2, '0')}`,
         });
-      });
+        curMonth++;
+        if (curMonth > 12) {
+          curMonth = 1;
+          curYear++;
+        }
+      }
     }
 
-    // 2. 단일 일관 회계 기준 (원금 꺾임 왜곡 완전 차단)
+    // 2. 단일 일관 회계 기준 & historicalPrices 과거 월봉 매핑
     const currentTotalAssets = summary.totalAssetsKrw;
     const baseInvest = summary.hasInvestData ? summary.totalInvestKrw : summary.totalStockEvalKrw;
     const currentInvested = baseInvest + summary.cashKrw;
+
+    // 종목별 과거 시점 상대 등락률 헬퍼 (historicalPrices.monthly 연동)
+    const getHistoricalMultiplier = (symbol: string, targetMonth: string): number => {
+      const normSym = symbol.trim().toUpperCase();
+      let lookupSym = normSym;
+      if (normSym === 'QQQM') lookupSym = 'QQQ';
+      else if (normSym === 'SPLG' || normSym === 'VOO' || normSym === 'IVV') lookupSym = 'SPY';
+      else if (normSym === 'SOXQ') lookupSym = 'SOXX';
+
+      const monthlyData = (historicalPrices.monthly as Record<string, Array<{ date: string; price: number }>>)[lookupSym];
+      if (!monthlyData || monthlyData.length === 0) return 1;
+
+      const latestPrice = monthlyData[monthlyData.length - 1]?.price || 1;
+      let targetPrice: number | null = null;
+      for (let i = monthlyData.length - 1; i >= 0; i--) {
+        if (monthlyData[i].date <= targetMonth) {
+          targetPrice = monthlyData[i].price;
+          break;
+        }
+      }
+      if (targetPrice === null) targetPrice = monthlyData[0].price;
+      return targetPrice / latestPrice;
+    };
 
     const snapshotMap = new Map<string, { invested: number; totalAssets: number }>();
     snapshots.forEach((s) => snapshotMap.set(s.date, s));
@@ -379,17 +476,36 @@ function AdaptiveAssetTrendChart({
     timeKeys.forEach((tk, idx) => {
       const isLast = idx === timeKeys.length - 1;
 
-      const logsUpToThis = sortedLogs.filter((l) => l.date.slice(0, 10) <= tk.key);
-      const buySum = logsUpToThis.reduce((acc, l) => {
-        const itemSum = (l.items || []).reduce((s, it) => s + (it.qty > 0 ? it.amountKrw : 0), 0);
-        return acc + itemSum;
-      }, 0);
+      // 해당 시점까지의 매매 기록 필터링
+      const logsUpToThis = sortedLogs.filter((l) => l.date.slice(0, tk.key.length) <= tk.key);
+
+      // 종목별 누적 보유 수량 및 매수 원금 합계
+      const holdingMap: Record<string, { qty: number; buyAmountKrw: number }> = {};
+      let totalBuySum = 0;
+      let totalSellSum = 0;
+
+      logsUpToThis.forEach((l) => {
+        (l.items || []).forEach((it) => {
+          if (!holdingMap[it.symbol]) {
+            holdingMap[it.symbol] = { qty: 0, buyAmountKrw: 0 };
+          }
+          holdingMap[it.symbol].qty += it.qty;
+          if (it.qty > 0) {
+            holdingMap[it.symbol].buyAmountKrw += it.amountKrw;
+            totalBuySum += it.amountKrw;
+          } else {
+            totalSellSum += Math.abs(it.amountKrw);
+          }
+        });
+      });
+
+      const netInvestedFromTrades = Math.max(0, totalBuySum - totalSellSum);
 
       const snap = snapshotMap.get(tk.key);
       if (snap) {
         runningInvested = Math.max(runningInvested, snap.invested);
-      } else if (buySum > 0) {
-        runningInvested = Math.max(runningInvested, buySum);
+      } else if (netInvestedFromTrades > 0) {
+        runningInvested = Math.max(runningInvested, netInvestedFromTrades);
       } else {
         const ratio = (idx + 1) / timeKeys.length;
         runningInvested = Math.max(runningInvested, Math.round(currentInvested * ratio));
@@ -414,9 +530,29 @@ function AdaptiveAssetTrendChart({
       if (snap) {
         pointAssets = snap.totalAssets;
       } else {
-        const unrealized = currentTotalAssets - currentInvested;
-        const ratio = (idx + 1) / timeKeys.length;
-        pointAssets = Math.max(0, Math.round(runningInvested + unrealized * ratio));
+        // 비거래월에도 historicalPrices를 통한 주가 등락 매핑
+        const monthKey = tk.key.slice(0, 7);
+        let stockEvalAtPoint = 0;
+        let hasHoldings = false;
+
+        Object.entries(holdingMap).forEach(([sym, data]) => {
+          if (data.qty > 0) {
+            hasHoldings = true;
+            const mult = getHistoricalMultiplier(sym, monthKey);
+            // 매수 원금에 과거 시점 상대 등락률을 곱하여 해당 시점 평가액 추정
+            stockEvalAtPoint += Math.round(data.buyAmountKrw * mult);
+          }
+        });
+
+        if (hasHoldings && stockEvalAtPoint > 0) {
+          // 해당 시점 총자산 = 주식 평가액 + 보존된 현금 잔액
+          const cashPortion = Math.round(summary.cashKrw * ((idx + 1) / timeKeys.length));
+          pointAssets = stockEvalAtPoint + cashPortion;
+        } else {
+          const unrealized = currentTotalAssets - currentInvested;
+          const ratio = (idx + 1) / timeKeys.length;
+          pointAssets = Math.max(0, Math.round(runningInvested + unrealized * ratio));
+        }
       }
 
       const profit = pointAssets - runningInvested;
@@ -945,6 +1081,13 @@ function OverviewReportView({
 
 export default function JournalPage() {
   const { user, isPro, openAuthPopover } = useAuth();
+  const isAdmin = user?.nickname === '주식부엉';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [data, setData] = useState<JournalData>({ accounts: [], logs: [] });
   // 'ALL'은 전체 오버뷰 탭
   const [activeId, setActiveId] = useState<string>('ALL');
@@ -954,6 +1097,28 @@ export default function JournalPage() {
   const [quoteAt, setQuoteAt] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
   const [appliedLineGroupIds, setAppliedLineGroupIds] = useState<string[]>([]);
+
+  // PRO 미니 팝오버 상태 ('account' 계좌 추가 제한 | 'report' 수익률 리포트 제한 | null)
+  const [proPopoverTarget, setProPopoverTarget] = useState<'account' | 'report' | null>(null);
+
+  // ESC 키 및 바깥 클릭으로 PRO 미니 팝오버 닫기
+  useEffect(() => {
+    if (!proPopoverTarget) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProPopoverTarget(null);
+    };
+    const handlePointerDown = (e: PointerEvent | MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-pro-popover]')) return;
+      setProPopoverTarget(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [proPopoverTarget]);
 
   // 방금 수행한 매매 반영 실행 취소(되돌리기) 스냅샷
   const [lastUndoSnapshot, setLastUndoSnapshot] = useState<{
@@ -1456,13 +1621,7 @@ export default function JournalPage() {
 
   const addAccount = () => {
     if (!isPro && data.accounts.length >= 2) {
-      if (
-        window.confirm(
-          '기본 플랜에서는 최대 2개 계좌까지 지원됩니다.\n무제한 다중 계좌(연금, ISA, 코인 등)를 관리하려면 PRO 멤버십을 확인해 보세요.\n\n멤버십 코드를 확인하시겠습니까?'
-        )
-      ) {
-        openAuthPopover();
-      }
+      setProPopoverTarget('account');
       return;
     }
     const a = newAccount();
@@ -1620,9 +1779,10 @@ export default function JournalPage() {
   };
 
   const handleRemoveLog = (logId: string) => {
+    const baseId = logId.includes('-') && /-\d+$/.test(logId) ? logId.replace(/-\d+$/, '') : logId;
     setData((d) => ({
       ...d,
-      logs: d.logs.filter((l) => l.id !== logId),
+      logs: d.logs.filter((l) => l.id !== logId && l.id !== baseId),
     }));
   };
 
@@ -1681,36 +1841,29 @@ export default function JournalPage() {
     return segs;
   }, [currentSummary]);
 
-  // 한국 주식 구매 시 원화 부족 및 달러 맞춤 부분 환전 추천 계산
-  const krwShortageInfo = useMemo(() => {
+  // 전체 계획 반영 시 필요한 총 구매 금액 및 현금 부족 종합 판별
+  const cashShortageState = useMemo(() => {
     if (!account || !plan || plan.lines.length === 0) return null;
     const usdRate = quotes.usdKrw || 1350;
-    const availableKrwCash = account.cash || 0;
-    const availableUsdCash = account.cashUsd || 0;
+    const availableTotalCashKrw = (account.cash || 0) + Math.floor((account.cashUsd || 0) * usdRate);
 
-    if (availableUsdCash <= 0) return null;
-
-    // 한국 주식/ETF/금/코인(원화 필요 자산) 중 구매할 항목들의 총 필요 원화 계산
-    let neededKrwForLocal = 0;
+    // 아직 반영되지 않은 구매 항목들의 총 필요 원화 계산
+    let totalNeededKrw = 0;
     for (const l of plan.lines) {
       if (appliedLineGroupIds.includes(l.groupId)) continue;
-      const isCrypto = isCryptoSymbol(l.symbol);
-      const isUsd =
-        quotes.quotes[l.symbol]?.currency === 'USD' ||
-        (!isCrypto && l.symbol !== 'GOLD_1G' && !/^\d{6}$/.test(l.symbol));
-      if (!isUsd && l.qty > 0) {
+      if (l.qty > 0) {
         const customVal = customQuantities[l.groupId];
         const effectiveQty = customVal !== undefined ? customVal : l.qty;
-        neededKrwForLocal += Math.round(effectiveQty * l.priceKrw);
+        totalNeededKrw += Math.round(effectiveQty * l.priceKrw);
       }
     }
 
-    if (neededKrwForLocal > availableKrwCash) {
-      const shortageKrw = neededKrwForLocal - availableKrwCash;
-      const neededUsd = Math.ceil((shortageKrw / usdRate) * 10) / 10;
+    if (totalNeededKrw > availableTotalCashKrw) {
       return {
-        shortageKrw,
-        neededUsd: Math.min(availableUsdCash, neededUsd),
+        isShortage: true,
+        neededKrw: totalNeededKrw,
+        availableKrw: availableTotalCashKrw,
+        shortageKrw: totalNeededKrw - availableTotalCashKrw,
       };
     }
     return null;
@@ -2258,6 +2411,45 @@ export default function JournalPage() {
     return Object.values(map).sort((a, b) => b.monthStr.localeCompare(a.monthStr));
   }, [account, data.accounts]);
 
+  // 마운트 전 깜빡임 방지
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] px-4 py-16 flex flex-col items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-orange)]" />
+      </div>
+    );
+  }
+
+  // 관리자(주식부엉)가 아닌 일반 사용자의 직접 URL 진입 차단 및 오픈 준비 중 화면 렌더링
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] px-4 py-12 sm:py-20 flex flex-col items-center justify-center">
+        <div className="max-w-md w-full text-center space-y-5 p-8 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xl">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 flex items-center justify-center text-[var(--accent-orange)]">
+            <Sparkles className="w-7 h-7" />
+          </div>
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-3 py-1 rounded-full border border-[var(--accent-orange)]/25">
+              오픈 준비 중
+            </span>
+            <h1 className="text-xl font-extrabold text-[var(--text-primary)]">
+              나의 투자일지
+            </h1>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              보다 정밀하고 안정적인 포트폴리오 관리 경험을 제공해 드리기 위해 마지막 점검을 진행하고 있습니다. 오픈 시 공지사항을 통해 안내해 드리겠습니다.
+            </p>
+          </div>
+          <Link
+            href="/tools"
+            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 shadow-md transition-all active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" /> 투자 도구로 돌아가기
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 pb-32">
       {/* 헤더 */}
@@ -2341,10 +2533,10 @@ export default function JournalPage() {
             {data.accounts.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-1.5 bg-[var(--card-surface)] border border-[var(--accent-orange)]/70 rounded-full px-3 py-1.5 shadow-2xs"
+                className="flex items-center gap-1.5 bg-[var(--card-surface)] border border-[var(--accent-orange)]/70 rounded-full px-3 py-1.5 shadow-2xs focus-within:ring-2 focus-within:ring-[var(--accent-orange)]/40 focus-within:border-[var(--accent-orange)] transition-all"
               >
                 <input
-                  className="bg-transparent text-xs font-bold text-[var(--text-primary)] outline-none w-20 sm:w-24 text-center"
+                  className="bg-transparent text-xs font-bold text-[var(--text-primary)] outline-none focus:outline-none focus:ring-0 border-none rounded-full w-20 sm:w-24 text-center"
                   value={a.name}
                   onChange={(e) => renameAccount(a.id, e.target.value)}
                   placeholder="계좌 이름"
@@ -2364,13 +2556,25 @@ export default function JournalPage() {
               </div>
             ))}
 
-            <button
-              type="button"
-              onClick={addAccount}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-primary)] hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <Plus className="w-3 h-3" /> 계좌 추가
-            </button>
+            <div className="relative inline-block">
+              <button
+                type="button"
+                onClick={addAccount}
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-primary)] hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3 h-3" /> 계좌 추가
+              </button>
+
+              {proPopoverTarget === 'account' && (
+                <ProMiniPopover
+                  title="PRO 전용 (다중 계좌 무제한)"
+                  description="기본 플랜에서는 최대 2개 계좌까지 지원됩니다. 연금저축, ISA, 해외 직투, 가상자산 등 목적별 무제한 다중 계좌를 관리해 보세요."
+                  align="left"
+                  onClose={() => setProPopoverTarget(null)}
+                  onAction={openAuthPopover}
+                />
+              )}
+            </div>
 
             <button
               type="button"
@@ -2404,39 +2608,57 @@ export default function JournalPage() {
 
                   <div className="flex items-center justify-between sm:justify-end gap-2.5">
                     {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
-                    <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
-                      <div
-                        className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
-                        style={{
-                          width: 'calc((100% - 4px) / 2)',
-                          transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
-                          transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setOverviewReportTab('asset')}
-                        className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                          overviewReportTab === 'asset'
-                            ? 'text-[var(--accent-orange)] font-extrabold'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        <PieChart className="w-3 h-3 shrink-0" />
-                        <span>자산 현황</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOverviewReportTab('report')}
-                        className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                          overviewReportTab === 'report'
-                            ? 'text-[var(--accent-orange)] font-extrabold'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        <FileText className="w-3 h-3 shrink-0" />
-                        <span>수익률 리포트</span>
-                      </button>
+                    <div className="relative">
+                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                        <div
+                          className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
+                          style={{
+                            width: 'calc((100% - 4px) / 2)',
+                            transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
+                            transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setOverviewReportTab('asset')}
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                            overviewReportTab === 'asset'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          <PieChart className="w-3 h-3 shrink-0" />
+                          <span>자산 현황</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isPro) {
+                              setProPopoverTarget('report');
+                              return;
+                            }
+                            setOverviewReportTab('report');
+                          }}
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                            overviewReportTab === 'report'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          <FileText className="w-3 h-3 shrink-0" />
+                          <span>수익률 리포트</span>
+                        </button>
+                      </div>
+
+                      {proPopoverTarget === 'report' && (
+                        <ProMiniPopover
+                          title="PRO 전용 (수익률 종합 리포트)"
+                          description="투자 원금 대비 총자산 변동 차트, 월별 실현손익 및 거래 통계 등 실전 투자 분석 리포트를 확인해 보세요."
+                          align="right"
+                          onClose={() => setProPopoverTarget(null)}
+                          onAction={openAuthPopover}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2834,39 +3056,57 @@ export default function JournalPage() {
 
                   <div className="flex items-center justify-between sm:justify-end gap-2.5">
                     {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
-                    <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
-                      <div
-                        className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
-                        style={{
-                          width: 'calc((100% - 4px) / 2)',
-                          transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
-                          transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setOverviewReportTab('asset')}
-                        className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                          overviewReportTab === 'asset'
-                            ? 'text-[var(--accent-orange)] font-extrabold'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        <PieChart className="w-3 h-3 shrink-0" />
-                        <span>자산 현황</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOverviewReportTab('report')}
-                        className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                          overviewReportTab === 'report'
-                            ? 'text-[var(--accent-orange)] font-extrabold'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        <FileText className="w-3 h-3 shrink-0" />
-                        <span>수익률 리포트</span>
-                      </button>
+                    <div className="relative">
+                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                        <div
+                          className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
+                          style={{
+                            width: 'calc((100% - 4px) / 2)',
+                            transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
+                            transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setOverviewReportTab('asset')}
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                            overviewReportTab === 'asset'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          <PieChart className="w-3 h-3 shrink-0" />
+                          <span>자산 현황</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isPro) {
+                              setProPopoverTarget('report');
+                              return;
+                            }
+                            setOverviewReportTab('report');
+                          }}
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                            overviewReportTab === 'report'
+                              ? 'text-[var(--accent-orange)] font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          <FileText className="w-3 h-3 shrink-0" />
+                          <span>수익률 리포트</span>
+                        </button>
+                      </div>
+
+                      {proPopoverTarget === 'report' && (
+                        <ProMiniPopover
+                          title="PRO 전용 (수익률 종합 리포트)"
+                          description="투자 원금 대비 총자산 변동 차트, 월별 실현손익 및 거래 통계 등 실전 투자 분석 리포트를 확인해 보세요."
+                          align="right"
+                          onClose={() => setProPopoverTarget(null)}
+                          onAction={openAuthPopover}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -4569,13 +4809,18 @@ export default function JournalPage() {
                     가격을 불러오지 못한 종목: {plan.missingSymbols.join(', ')}
                   </p>
                 ) : null}
-                {/* 한국 주식 구매 시 원화 부족 자동 차감 안내 팁 */}
-                {krwShortageInfo && (
-                  <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--accent-orange)]/30 flex items-center gap-2 text-xs">
-                    <span className="text-[var(--accent-orange)] text-sm shrink-0">💡</span>
-                    <p className="text-[var(--text-secondary)] leading-relaxed">
-                      한국 주식 구매에 원화가 약 <b className="text-[var(--text-primary)] font-mono">{won(krwShortageInfo.shortageKrw)}</b> 부족하여, 매매 반영 시 보유 달러에서 약 <b className="text-[var(--text-primary)] font-mono">${krwShortageInfo.neededUsd}</b>가 자동으로 함께 차감됩니다.
-                    </p>
+                {/* 보유 현금 부족 경고 배너 */}
+                {cashShortageState?.isShortage && (
+                  <div className="p-3.5 rounded-xl bg-[#F43F5E]/10 border border-[#F43F5E]/30 flex items-start gap-2.5 text-xs animate-fadeIn">
+                    <AlertCircle className="w-4 h-4 text-[#F43F5E] shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="font-bold text-[#F43F5E]">
+                        보유 현금이 부족하여 구매를 진행할 수 없습니다.
+                      </p>
+                      <p className="text-[var(--text-secondary)] leading-relaxed">
+                        필요 금액: <b className="text-[var(--text-primary)] font-mono">{won(cashShortageState.neededKrw)}</b> · 부족 금액: 약 <b className="text-[#F43F5E] font-mono">{won(cashShortageState.shortageKrw)}</b>
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -4678,9 +4923,18 @@ export default function JournalPage() {
                             ) : (
                               <button
                                 type="button"
+                                disabled={effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))}
                                 onClick={() => applySingleLine(l, effectiveQty, effectiveAmountKrw)}
-                                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 shadow-2xs cursor-pointer active:scale-95 transition-all"
-                                title="이 수량으로 체결 내역을 계좌에 반영"
+                                className={`inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs transition-all ${
+                                  effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))
+                                    ? 'bg-[var(--border-color)] text-[var(--text-secondary)] opacity-50 cursor-not-allowed'
+                                    : 'bg-[var(--accent-orange)] text-white hover:brightness-105 cursor-pointer active:scale-95'
+                                }`}
+                                title={
+                                  effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))
+                                    ? '보유 현금이 부족하여 체결할 수 없습니다'
+                                    : '이 수량으로 체결 내역을 계좌에 반영'
+                                }
                               >
                                 반영
                               </button>
@@ -4725,8 +4979,13 @@ export default function JournalPage() {
                       ) : (
                         <button
                           type="button"
+                          disabled={Boolean(cashShortageState?.isShortage)}
                           onClick={applyRemainingPlan}
-                          className={`${btnPrimaryPillCls} py-3 w-full justify-center text-sm`}
+                          className={
+                            cashShortageState?.isShortage
+                              ? 'inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-full text-sm font-bold bg-[var(--border-color)] text-[var(--text-secondary)] opacity-50 cursor-not-allowed w-full border-0'
+                              : `${btnPrimaryPillCls} py-3 w-full justify-center text-sm`
+                          }
                         >
                           <Check className="w-4 h-4" />
                           전체 매매 반영

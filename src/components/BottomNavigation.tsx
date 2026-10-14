@@ -86,22 +86,13 @@ const TOOLS_DIRECTORY = [
     tag: '15문항 랭킹전',
     isComingSoon: false,
   },
-  // {
-  //   id: 'journal',
-  //   title: '나의 투자일지',
-  //   description: '내가 만든 포트폴리오를 저장하고 주기적으로 관리하는 투자 기록장',
-  //   href: '#',
-  //   icon: BookOpen,
-  //   tag: '투자 기록',
-  //   isComingSoon: true,
-  // },
   {
-    id: 'patterns',
-    title: '차트 패턴 트레이닝',
-    description: '다음 캔들은 상승할까, 하락할까? 핵심 패턴으로 익히는 실전 훈련',
-    href: '#',
-    icon: CandlestickChart,
-    tag: '실전 훈련',
+    id: 'journal',
+    title: '나의 투자일지',
+    description: '계좌별 목표 비율과 구매 수량 자동 계산',
+    href: '/tools/journal',
+    icon: BookOpen,
+    tag: '투자 기록',
     isComingSoon: true,
   },
 ];
@@ -119,11 +110,16 @@ export default function BottomNavigation() {
   // Active Tab View: 'curriculum' | 'tools'
   const [activeTab, setActiveTab] = useState<'curriculum' | 'tools'>('curriculum');
 
-  // 바텀시트 내부 도구 목록 (SSR Hydration 불일치 방지)
-  const [displayNavTools, setDisplayNavTools] = useState(TOOLS_DIRECTORY);
+  // 바텀시트 내부 도구 목록 (SSR Hydration 불일치 방지 및 관리자 권한 연동)
+  const isAdmin = user?.nickname === '주식부엉';
+  const getNavTools = () => {
+    return TOOLS_DIRECTORY;
+  };
+
+  const [displayNavTools, setDisplayNavTools] = useState(() => getNavTools());
   const [animatingToolId, setAnimatingToolId] = useState<string | null>(null);
 
-  // 서랍이 열릴 때(isExpanded) 또는 favoriteTools가 변경될 때 최신 정렬 반영
+  // 서랍이 열릴 때(isExpanded) 또는 favoriteTools, isAdmin이 변경될 때 최신 정렬 반영
   useEffect(() => {
     if (isExpanded) {
       let effectiveFavs = favoriteTools;
@@ -135,7 +131,8 @@ export default function BottomNavigation() {
           }
         } catch {}
       }
-      const sorted = [...TOOLS_DIRECTORY].sort((a, b) => {
+      const raw = getNavTools();
+      const sorted = [...raw].sort((a, b) => {
         if (a.isComingSoon !== b.isComingSoon) {
           return a.isComingSoon ? 1 : -1;
         }
@@ -148,7 +145,7 @@ export default function BottomNavigation() {
       });
       setDisplayNavTools(sorted);
     }
-  }, [isExpanded, favoriteTools]);
+  }, [isExpanded, favoriteTools, isAdmin]);
 
   // 전역 쿨다운 락: 애니메이션 및 재정렬 중 추가 클릭 차단
   const globalNavFavLockRef = useRef(false);
@@ -979,6 +976,33 @@ export default function BottomNavigation() {
                   const isAnimating = animatingToolId === tool.id;
                   
                   if (tool.isComingSoon) {
+                    // 관리자인 경우 뱃지는 동일하게 '오픈 예정'이지만 클릭하여 진입 가능!
+                    if (tool.id === 'journal' && isAdmin) {
+                      return (
+                        <Link
+                          key={tool.id}
+                          href={tool.href}
+                          onClick={() => {
+                            setIsExpanded(false);
+                            setDragY(null);
+                          }}
+                          className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all duration-250 cursor-pointer relative group glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                            <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 transition-all shrink-0">
+                              <ToolIcon className="w-4 h-4 stroke-[1.8]" />
+                            </div>
+                            <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
+                              {tool.title}
+                            </h3>
+                          </div>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] shrink-0">
+                            오픈 예정
+                          </span>
+                        </Link>
+                      );
+                    }
+
                     return (
                       <div
                         key={tool.id}
