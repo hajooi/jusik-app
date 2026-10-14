@@ -171,7 +171,7 @@ US_ETF_TARGETS = [
     {"ticker": "UPRO", "displayTicker": "UPRO", "name": "ProShares UltraPro S&P 500 (3X)", "company": "ProShares", "category": "sp500", "subCategory": "leverage", "trackingIndex": "S&P 500 3X", "expenseRatio": 0.91, "dividendSchedule": "분기", "dividendYield": 0.72, "aumBillions": 5.4},
 
     # 나스닥 100 (기본 패시브)
-    {"ticker": "QNDX", "displayTicker": "QNDX", "name": "SPDR Portfolio Nasdaq 100 ETF", "company": "State Street", "category": "nasdaq100", "subCategory": "standard", "trackingIndex": "NASDAQ-100", "expenseRatio": 0.05, "dividendSchedule": "분기 (3,6,9,12월)", "dividendYield": 0.58, "aumBillions": 0.5},
+    {"ticker": "QNDX", "displayTicker": "QNDX", "name": "SPDR Portfolio Nasdaq 100 ETF", "company": "State Street", "category": "nasdaq100", "subCategory": "standard", "trackingIndex": "NASDAQ-100", "expenseRatio": 0.10, "dividendSchedule": "분기 (3,6,9,12월)", "dividendYield": 0.58, "aumBillions": 0.5},
     {"ticker": "IQQ", "displayTicker": "IQQ", "name": "iShares Nasdaq 100 ETF", "company": "BlackRock", "category": "nasdaq100", "subCategory": "standard", "trackingIndex": "NASDAQ-100", "expenseRatio": 0.05, "dividendSchedule": "분기 (3,6,9,12월)", "dividendYield": 0.58, "aumBillions": 0.3},
     {"ticker": "QQQM", "displayTicker": "QQQM", "name": "Invesco NASDAQ 100 ETF", "company": "Invesco", "category": "nasdaq100", "subCategory": "standard", "trackingIndex": "NASDAQ-100", "expenseRatio": 0.15, "dividendSchedule": "분기 (3,6,9,12월)", "dividendYield": 0.58, "aumBillions": 109.8},
     {"ticker": "QQQ", "displayTicker": "QQQ", "name": "Invesco QQQ Trust", "company": "Invesco", "category": "nasdaq100", "subCategory": "standard", "trackingIndex": "NASDAQ-100", "expenseRatio": 0.20, "dividendSchedule": "분기 (3,6,9,12월)", "dividendYield": 0.58, "aumBillions": 498.9},
@@ -516,14 +516,19 @@ def main():
             stats["fee_default"] += 1
             fee_fallback_names.append(name)
 
-        # 배당률: yfinance 최근 12개월 분배금 기준 → 실패 시 이전값 → 코드 기본값
-        live_div = fetch_trailing_dividend_yield(f"{code}.KS")
-        if live_div is not None:
-            dividend_yield = live_div
+        # 배당률: TR(토탈리턴)·레버리지 등 무배당 확정 상품은 0.0% 정상 처리, 그 외는 yfinance 최근 12개월 분배금 기준
+        is_zero_div_product = "TR" in name or item.get("subCategory") == "leverage" or item.get("dividendYield") == 0.0
+        if is_zero_div_product:
+            dividend_yield = 0.0
             stats["div_live"] += 1
         else:
-            dividend_yield = prev_item.get("dividendYield", item.get("dividendYield", 1.2))
-            stats["div_kept"] += 1
+            live_div = fetch_trailing_dividend_yield(f"{code}.KS")
+            if live_div is not None:
+                dividend_yield = live_div
+                stats["div_live"] += 1
+            else:
+                dividend_yield = prev_item.get("dividendYield", item.get("dividendYield", 1.2))
+                stats["div_kept"] += 1
         item = {**item, "dividendYield": dividend_yield}
 
         kr_etfs.append({
