@@ -311,7 +311,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     )}
                   </div>
                   <h3 className="text-xl font-black text-[var(--text-primary)]">
-                    프로 실전 플랜
+                    jusik.app PRO
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     웹사이트 내 모든 실전 도구와 분석 기능을 무제한으로 이용
@@ -322,7 +322,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                 <div className="py-2.5 border-y border-[var(--border-color)]/60 flex items-center justify-between">
                   <div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">1,390원</span>
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">3,990원</span>
                       <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
                     </div>
                   </div>
@@ -396,7 +396,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     </span>
                   </div>
                   <h3 className="text-xl font-black text-[var(--text-primary)]">
-                    프로+ VIP 플랜
+                    jusik.app PRO+
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     유튜브 VIP 실전 특강 영상 및 심화 콘텐츠

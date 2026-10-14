@@ -212,7 +212,7 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
       }
 
       // 프로모션 코드 정책:
-      // JU25: 유튜브 1,390원 멤버십용 PRO 코드 (사전 오픈 특례: ~10/31까지)
+      // JU25: 유튜브 3,990원 멤버십용 PRO 코드 (사전 오픈 특례: ~10/31까지)
       // JU26: 유튜브 4,900원 멤버십용 PRO+ 코드 (사전 오픈 특례: ~10/31까지)
       if (cleanCode !== 'JU25' && cleanCode !== 'JU26') {
         return NextResponse.json({ 

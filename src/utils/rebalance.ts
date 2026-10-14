@@ -63,6 +63,12 @@ export interface JournalAccount {
   groups: JournalGroup[];
   deposits?: CashDepositLog[]; // 입출금 기록
   snapshots?: AssetSnapshot[]; // 시간가중수익률 추적용 스냅샷
+  fees?: {
+    krFeePct?: number; // 국내 주식 거래 수수료 (%) 기본 0.015
+    usFeePct?: number; // 해외 주식 거래 수수료 (%) 기본 0.07
+    fxFeePct?: number; // 환전 비용 실질 스프레드 (%) 호환 유지
+    fxDiscountPct?: number; // 환율 우대율 (%) 기본 95
+  };
 }
 
 export interface QuoteMap {

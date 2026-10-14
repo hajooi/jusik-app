@@ -59,11 +59,12 @@ async function fetchUpbitQuote(coinSymbol: string): Promise<QuoteEntry | null> {
   }
 }
 
-// 2. 한국 주식/ETF (6자리 숫자) 실시간 시세 (네이버 증권 API)
+// 2. 한국 주식/ETF (6자리 숫자) 실시간 시세 (네이버 증권 API 3중 폴백)
 async function fetchKrQuote(code: string): Promise<QuoteEntry | null> {
   const hit = cache.get(code);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit;
 
+  // 1차: 네이버 증권 모바일 API
   try {
     const res = await fetch(`https://m.stock.naver.com/api/stock/${encodeURIComponent(code)}/basic`, {
       headers: {
@@ -73,25 +74,79 @@ async function fetchKrQuote(code: string): Promise<QuoteEntry | null> {
       },
       cache: 'no-store',
     });
-    if (!res.ok) return hit ?? null;
-    const json = await res.json();
-    const rawPrice = json?.closePrice;
-    if (!rawPrice) return hit ?? null;
-
-    const price = Number(String(rawPrice).replace(/,/g, ''));
-    if (!Number.isFinite(price) || price <= 0) return hit ?? null;
-
-    const entry: QuoteEntry = {
-      price,
-      currency: 'KRW',
-      name: json?.stockName ? String(json.stockName) : undefined,
-      at: Date.now(),
-    };
-    cache.set(code, entry);
-    return entry;
+    if (res.ok) {
+      const json = await res.json();
+      const rawPrice = json?.closePrice;
+      if (rawPrice) {
+        const price = Number(String(rawPrice).replace(/,/g, ''));
+        if (Number.isFinite(price) && price > 0) {
+          const entry: QuoteEntry = {
+            price,
+            currency: 'KRW',
+            name: json?.stockName ? String(json.stockName) : undefined,
+            at: Date.now(),
+          };
+          cache.set(code, entry);
+          return entry;
+        }
+      }
+    }
   } catch {
-    return hit ?? null;
+    // 1차 실패 시 2차 폴백 진행
   }
+
+  // 2차: 네이버 실시간 폴링 API
+  try {
+    const res = await fetch(`https://polling.finance.naver.com/api/realtime/service/item/${encodeURIComponent(code)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const item = json?.result?.areas?.[0]?.datas?.[0];
+      const rawPrice = item?.nv;
+      const rawName = item?.nm;
+      if (rawPrice) {
+        const price = Number(rawPrice);
+        if (Number.isFinite(price) && price > 0) {
+          const entry: QuoteEntry = {
+            price,
+            currency: 'KRW',
+            name: rawName ? String(rawName) : undefined,
+            at: Date.now(),
+          };
+          cache.set(code, entry);
+          return entry;
+        }
+      }
+    }
+  } catch {
+    // 2차 실패 시 3차 폴백 진행
+  }
+
+  // 3차: 야후 파이낸스 코스피(.KS) 및 코스닥(.KQ) 폴백
+  for (const suffix of ['.KS', '.KQ']) {
+    try {
+      const entry = await fetchGlobalQuote(`${code}${suffix}`);
+      if (entry && entry.price > 0) {
+        const krwEntry: QuoteEntry = {
+          price: entry.price,
+          currency: 'KRW',
+          name: entry.name,
+          at: Date.now(),
+        };
+        cache.set(code, krwEntry);
+        return krwEntry;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return hit ?? null;
 }
 
 // 3. 글로벌/미국 종목 및 환율 (Yahoo Finance)

@@ -27,6 +27,9 @@ import {
   ChevronUp,
   ChevronDown,
   FileText,
+  Loader2,
+  AlertCircle,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import SmoothHeight from '@/components/SmoothHeight';
@@ -62,6 +65,7 @@ interface JournalLog {
 interface JournalData {
   accounts: JournalAccount[];
   logs: JournalLog[];
+  snapshots?: { date: string; invested: number; totalAssets: number }[];
 }
 
 // 다중 종목 묶음 로그를 1종목 1로그로 자동 분해(Flattening)하여 독립 관리 지원
@@ -248,181 +252,693 @@ interface MonthlyDepositStat {
   netAmount: number;
 }
 
-function OverviewReportView({
+interface AssetTrendPoint {
+  monthStr: string;
+  investedKrw: number;
+  totalAssetsKrw: number;
+  profitKrw: number;
+  profitRate: number;
+}
+
+// 적응형 투자 원금 vs 총 자산 추이 SVG 차트 컴포넌트 (30일 이내: 일별, 1년 이내: 주별, 1년 초과: 월별 자동 분기)
+function AdaptiveAssetTrendChart({
   summary,
   monthlyTradeStats,
   monthlyDepositStats,
-  isPro,
-  onExportCsv,
+  logs = [],
+  snapshots = [],
 }: {
   summary: PortfolioSummary;
   monthlyTradeStats: MonthlyTradeStat[];
   monthlyDepositStats: MonthlyDepositStat[];
-  isPro: boolean;
-  onExportCsv: () => void;
+  logs?: JournalLog[];
+  snapshots?: { date: string; invested: number; totalAssets: number }[];
 }) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  // 1. 기간 분석 및 적응형 주기 결정 (30일 이내: 일별, 1년 이내: 주별, 1년 초과: 월별)
+  const { points, periodMode } = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+
+    const allDates: string[] = [];
+    logs.forEach((l) => allDates.push(l.date.slice(0, 10)));
+    snapshots.forEach((s) => allDates.push(s.date.slice(0, 10)));
+    monthlyTradeStats.forEach((t) => allDates.push(`${t.monthStr.replace('.', '-')}-01`));
+    monthlyDepositStats.forEach((d) => allDates.push(`${d.monthStr.replace('.', '-')}-01`));
+    allDates.push(todayStr);
+
+    allDates.sort((a, b) => a.localeCompare(b));
+    const earliestDateStr = allDates[0] || todayStr;
+    const earliestTime = new Date(earliestDateStr).getTime();
+    const nowTime = now.getTime();
+    const daySpan = Math.max(1, Math.round((nowTime - earliestTime) / (1000 * 60 * 60 * 24)));
+
+    let mode: 'daily' | 'weekly' | 'monthly' = 'monthly';
+    if (daySpan <= 30) {
+      mode = 'daily';
+    } else if (daySpan <= 365) {
+      mode = 'weekly';
+    } else {
+      mode = 'monthly';
+    }
+
+    const timeKeys: { key: string; label: string }[] = [];
+
+    if (mode === 'daily') {
+      const cur = new Date(earliestTime);
+      if (daySpan < 4) {
+        cur.setDate(cur.getDate() - (4 - daySpan));
+      }
+      while (cur <= now) {
+        const dStr = cur.toISOString().slice(0, 10);
+        const label = `${cur.getMonth() + 1}.${String(cur.getDate()).padStart(2, '0')}`;
+        timeKeys.push({ key: dStr, label });
+        cur.setDate(cur.getDate() + 1);
+      }
+      if (timeKeys[timeKeys.length - 1]?.key !== todayStr) {
+        timeKeys.push({
+          key: todayStr,
+          label: `${now.getMonth() + 1}.${String(now.getDate()).padStart(2, '0')}`,
+        });
+      }
+    } else if (mode === 'weekly') {
+      const cur = new Date(earliestTime);
+      const day = cur.getDay();
+      const diff = cur.getDate() - day + (day === 0 ? -6 : 1);
+      cur.setDate(diff);
+
+      while (cur <= now) {
+        const dStr = cur.toISOString().slice(0, 10);
+        const label = `${cur.getMonth() + 1}.${String(cur.getDate()).padStart(2, '0')}`;
+        timeKeys.push({ key: dStr, label });
+        cur.setDate(cur.getDate() + 7);
+      }
+      if (timeKeys[timeKeys.length - 1]?.key !== todayStr) {
+        timeKeys.push({
+          key: todayStr,
+          label: `${now.getMonth() + 1}.${String(now.getDate()).padStart(2, '0')}`,
+        });
+      }
+    } else {
+      const monthSet = new Set<string>();
+      allDates.forEach((d) => monthSet.add(d.slice(0, 7)));
+      monthSet.add(todayStr.slice(0, 7));
+      const sortedMonths = Array.from(monthSet).sort((a, b) => a.localeCompare(b));
+
+      if (sortedMonths.length === 1) {
+        const [yStr, mStr] = sortedMonths[0].split('-');
+        const y = parseInt(yStr, 10);
+        const m = parseInt(mStr, 10);
+        const prev = new Date(y, m - 2, 1);
+        const prevStr = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+        sortedMonths.unshift(prevStr);
+      }
+
+      sortedMonths.forEach((m) => {
+        const [y, mm] = m.split('-');
+        timeKeys.push({
+          key: m,
+          label: `${y}.${mm}`,
+        });
+      });
+    }
+
+    // 2. 단일 일관 회계 기준 (원금 꺾임 왜곡 완전 차단)
+    const currentTotalAssets = summary.totalAssetsKrw;
+    const baseInvest = summary.hasInvestData ? summary.totalInvestKrw : summary.totalStockEvalKrw;
+    const currentInvested = baseInvest + summary.cashKrw;
+
+    const snapshotMap = new Map<string, { invested: number; totalAssets: number }>();
+    snapshots.forEach((s) => snapshotMap.set(s.date, s));
+
+    const sortedLogs = [...logs].sort((a, b) => a.date.localeCompare(b.date));
+    let runningInvested = 0;
+    const resultPoints: AssetTrendPoint[] = [];
+
+    timeKeys.forEach((tk, idx) => {
+      const isLast = idx === timeKeys.length - 1;
+
+      const logsUpToThis = sortedLogs.filter((l) => l.date.slice(0, 10) <= tk.key);
+      const buySum = logsUpToThis.reduce((acc, l) => {
+        const itemSum = (l.items || []).reduce((s, it) => s + (it.qty > 0 ? it.amountKrw : 0), 0);
+        return acc + itemSum;
+      }, 0);
+
+      const snap = snapshotMap.get(tk.key);
+      if (snap) {
+        runningInvested = Math.max(runningInvested, snap.invested);
+      } else if (buySum > 0) {
+        runningInvested = Math.max(runningInvested, buySum);
+      } else {
+        const ratio = (idx + 1) / timeKeys.length;
+        runningInvested = Math.max(runningInvested, Math.round(currentInvested * ratio));
+      }
+
+      if (isLast) {
+        const finalInvested = Math.max(runningInvested, currentInvested);
+        const finalAssets = currentTotalAssets;
+        const profit = finalAssets - finalInvested;
+        const pRate = finalInvested > 0 ? (profit / finalInvested) * 100 : 0;
+        resultPoints.push({
+          monthStr: tk.label,
+          investedKrw: finalInvested,
+          totalAssetsKrw: finalAssets,
+          profitKrw: profit,
+          profitRate: pRate,
+        });
+        return;
+      }
+
+      let pointAssets = runningInvested;
+      if (snap) {
+        pointAssets = snap.totalAssets;
+      } else {
+        const unrealized = currentTotalAssets - currentInvested;
+        const ratio = (idx + 1) / timeKeys.length;
+        pointAssets = Math.max(0, Math.round(runningInvested + unrealized * ratio));
+      }
+
+      const profit = pointAssets - runningInvested;
+      const pRate = runningInvested > 0 ? (profit / runningInvested) * 100 : 0;
+
+      resultPoints.push({
+        monthStr: tk.label,
+        investedKrw: runningInvested,
+        totalAssetsKrw: pointAssets,
+        profitKrw: profit,
+        profitRate: pRate,
+      });
+    });
+
+    return { points: resultPoints, periodMode: mode };
+  }, [summary, monthlyTradeStats, monthlyDepositStats, logs, snapshots]);
+
+  const activeIndex = hoverIdx !== null ? hoverIdx : points.length - 1;
+  const activePoint = points[activeIndex] || points[points.length - 1];
+
+  const width = 600;
+  const height = 180;
+  const padding = { top: 20, right: 25, bottom: 30, left: 55 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+
+  const maxVal = Math.max(...points.map((p) => Math.max(p.totalAssetsKrw, p.investedKrw)), 100000);
+  const minVal = 0;
+  const yRange = maxVal - minVal;
+
+  const getX = (idx: number) => {
+    if (points.length <= 1) return padding.left + chartW / 2;
+    return padding.left + (idx / (points.length - 1)) * chartW;
+  };
+
+  const getY = (val: number) => {
+    return padding.top + chartH - ((val - minVal) / (yRange || 1)) * chartH;
+  };
+
+  const assetCoords = points.map((p, idx) => ({ x: getX(idx), y: getY(p.totalAssetsKrw) }));
+  const investCoords = points.map((p, idx) => ({ x: getX(idx), y: getY(p.investedKrw) }));
+
+  const assetLinePath = assetCoords.reduce(
+    (acc, c, i) => (i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`),
+    ''
+  );
+
+  const assetAreaPath = assetCoords.length > 0
+    ? `${assetLinePath} L ${assetCoords[assetCoords.length - 1].x} ${padding.top + chartH} L ${assetCoords[0].x} ${padding.top + chartH} Z`
+    : '';
+
+  const investLinePath = investCoords.reduce(
+    (acc, c, i) => (i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`),
+    ''
+  );
+
+  const yTicks = [
+    { val: maxVal, label: won(maxVal) },
+    { val: Math.round(maxVal / 2), label: won(Math.round(maxVal / 2)) },
+    { val: 0, label: '0원' },
+  ];
+
+  // X축 라벨 필터링 (점이 많을 때 5~7개만 선별 노출하여 겹침 방지)
+  const shouldShowLabel = (idx: number) => {
+    if (points.length <= 7) return true;
+    if (idx === 0 || idx === points.length - 1) return true;
+    const step = Math.ceil(points.length / 5);
+    return idx % step === 0;
+  };
+
   return (
-    <div className="space-y-4 pt-1 animate-fadeIn">
-      {/* 3대 핵심 성과 카드 */}
-      <div className="grid sm:grid-cols-3 gap-3">
-        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-orange)]" /> 전체 자산 기준 수익률
+    <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
+      <style>{`
+        @keyframes trendDraw {
+          from { stroke-dashoffset: 1400; }
+          to { stroke-dashoffset: 0; }
+        }
+        .animate-trend-line {
+          stroke-dasharray: 1400;
+          stroke-dashoffset: 0;
+          animation: trendDraw 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+      `}</style>
+
+      {/* 헤더 & 활성 포인트 요약 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <TrendingUp className="w-4 h-4 text-[var(--accent-orange)]" />
+          <span className="text-xs font-extrabold text-[var(--text-primary)]">
+            자산 추이
           </span>
-          <p
-            className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-              summary.totalProfitRate === null
-                ? 'text-[var(--text-secondary)]'
-                : summary.totalProfitRate >= 0
-                ? 'text-[var(--accent-emerald,#10B981)]'
-                : 'text-[#F43F5E]'
-            }`}
-          >
-            {summary.totalProfitRate !== null
-              ? `${summary.totalProfitRate >= 0 ? '+' : ''}${summary.totalProfitRate.toFixed(2)}%`
-              : '-'}
-          </p>
-          <span className="text-[10px] text-[var(--text-secondary)] block">
-            예수금 포함 전체 자본 대비 실질 수익률
+          <span className="text-[10px] text-[var(--text-secondary)]">
+            (투자 원금 대비 순자산 변동)
+          </span>
+          <span className="text-[10px] font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-2 py-0.5 rounded-full border border-[var(--accent-orange)]/20">
+            {periodMode === 'daily' ? '일별' : periodMode === 'weekly' ? '주별' : '월별'}
           </span>
         </div>
 
-        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-blue-500" /> 보유 자산 순수 수익률
-          </span>
-          <p
-            className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-              summary.stockProfitRate === null || summary.stockProfitRate === undefined
-                ? 'text-[var(--text-secondary)]'
-                : summary.stockProfitRate >= 0
-                ? 'text-[var(--accent-emerald,#10B981)]'
-                : 'text-[#F43F5E]'
-            }`}
-          >
-            {summary.stockProfitRate !== null && summary.stockProfitRate !== undefined
-              ? `${summary.stockProfitRate >= 0 ? '+' : ''}${summary.stockProfitRate.toFixed(2)}%`
-              : '-'}
-          </p>
-          <span className="text-[10px] text-[var(--text-secondary)] block">
-            보유 주식/코인 투자 원금 대비 평가 손익률
-          </span>
-        </div>
-
-        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> 총 평가 손익금
-          </span>
-          <p
-            className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-              summary.totalProfitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
-            }`}
-          >
-            {summary.totalProfitRate !== null
-              ? `${summary.totalProfitKrw >= 0 ? '+' : ''}${won(summary.totalProfitKrw)}`
-              : '-'}
-          </p>
-          <span className="text-[10px] text-[var(--text-secondary)] block">
-            총 평가 자산: {won(summary.totalAssetsKrw)}
-          </span>
-        </div>
-      </div>
-
-      {/* 월별 매매 실적 */}
-      <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-extrabold text-[var(--text-primary)]">
-              월별 매매 실적
+        {activePoint && (
+          <div className="flex items-center gap-2.5 sm:gap-3 text-xs font-mono flex-wrap">
+            <span className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--bg-main)] px-2 py-0.5 rounded-md border border-[var(--border-color)]/60">
+              {activePoint.monthStr}
             </span>
-            <span className="text-[10px] text-[var(--text-secondary)]">
-              (실제 등록된 거래 기록 기준 집계)
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-[var(--text-secondary)]">순자산</span>
+              <span className="font-extrabold text-[var(--text-primary)]">
+                {won(activePoint.totalAssetsKrw)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-[var(--text-secondary)]">원금</span>
+              <span className="font-bold text-[var(--text-secondary)]">
+                {won(activePoint.investedKrw)}
+              </span>
+            </div>
+            <span
+              className={`font-bold ${
+                activePoint.profitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
+              }`}
+            >
+              ({activePoint.profitKrw >= 0 ? '+' : ''}{activePoint.profitRate.toFixed(1)}%)
             </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={onExportCsv}
-            className="px-3 py-1 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)] transition-colors flex items-center gap-1 cursor-pointer"
-            title="전체 매매 기록 CSV 다운로드"
-          >
-            <Download className="w-3 h-3" /> CSV 내보내기 {isPro && <span className="text-[9px] text-[var(--accent-orange)] font-extrabold">PRO</span>}
-          </button>
-        </div>
-
-        {monthlyTradeStats.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[var(--text-secondary)] border border-dashed border-[var(--border-color)]/60 rounded-lg">
-            아직 등록된 거래 기록이 없습니다. 종목 카드에서 거래를 기록하면 월별 실적이 자동으로 집계됩니다.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
-                  <th className="py-2 px-2.5">기준월</th>
-                  <th className="py-2 px-2.5 text-right">구매 금액</th>
-                  <th className="py-2 px-2.5 text-right">판매 금액</th>
-                  <th className="py-2 px-2.5 text-right">확정 실현손익</th>
-                  <th className="py-2 px-2.5 text-right">거래 횟수</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
-                {monthlyTradeStats.map((st) => (
-                  <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
-                    <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
-                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.buyAmount > 0 ? won(st.buyAmount) : '-'}</td>
-                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.sellAmount > 0 ? won(st.sellAmount) : '-'}</td>
-                    <td className={`py-2.5 px-2.5 text-right font-bold ${
-                      st.realizedProfit > 0
-                        ? 'text-[var(--accent-emerald,#10B981)]'
-                        : st.realizedProfit < 0
-                        ? 'text-[#F43F5E]'
-                        : 'text-[var(--text-secondary)]'
-                    }`}>
-                      {st.realizedProfit !== 0 ? `${st.realizedProfit > 0 ? '+' : ''}${won(st.realizedProfit)}` : '-'}
-                    </td>
-                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.tradeCount}건</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
       </div>
 
-      {/* 월별 입출금 현황 */}
-      {monthlyDepositStats.length > 0 && (
-        <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-extrabold text-[var(--text-primary)]">
-              월별 입출금 현황
-            </span>
-          </div>
+      {/* SVG 인터랙티브 차트 */}
+      <div className="relative w-full overflow-hidden select-none">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-44 sm:h-52 overflow-visible"
+          onMouseLeave={() => setHoverIdx(null)}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const mouseX = ((e.clientX - rect.left) / rect.width) * width;
+            let closestIdx = 0;
+            let minDist = Infinity;
+            points.forEach((p, i) => {
+              const x = getX(i);
+              const dist = Math.abs(x - mouseX);
+              if (dist < minDist) {
+                minDist = dist;
+                closestIdx = i;
+              }
+            });
+            setHoverIdx(closestIdx);
+          }}
+          onTouchMove={(e) => {
+            if (e.touches.length > 0) {
+              const touch = e.touches[0];
+              const rect = e.currentTarget.getBoundingClientRect();
+              const touchX = ((touch.clientX - rect.left) / rect.width) * width;
+              let closestIdx = 0;
+              let minDist = Infinity;
+              points.forEach((p, i) => {
+                const x = getX(i);
+                const dist = Math.abs(x - touchX);
+                if (dist < minDist) {
+                  minDist = dist;
+                  closestIdx = i;
+                }
+              });
+              setHoverIdx(closestIdx);
+            }
+          }}
+        >
+          <defs>
+            <linearGradient id="assetTrendGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent-orange)" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="var(--accent-orange)" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
-                  <th className="py-2 px-2.5">기준월</th>
-                  <th className="py-2 px-2.5 text-right">입금액</th>
-                  <th className="py-2 px-2.5 text-right">출금액</th>
-                  <th className="py-2 px-2.5 text-right">순 입금액</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
-                {monthlyDepositStats.map((st) => (
-                  <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
-                    <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
-                    <td className="py-2.5 px-2.5 text-right text-[var(--accent-emerald,#10B981)]">+{won(st.inAmount)}</td>
-                    <td className="py-2.5 px-2.5 text-right text-[#F43F5E]">-{won(st.outAmount)}</td>
-                    <td className="py-2.5 px-2.5 text-right font-bold text-[var(--text-primary)]">{won(st.netAmount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* 수평 눈금 그리드선 */}
+          {yTicks.map((tick, i) => {
+            const y = getY(tick.val);
+            return (
+              <g key={i}>
+                <line
+                  x1={padding.left}
+                  y1={y}
+                  x2={padding.left + chartW}
+                  y2={y}
+                  stroke="var(--border-color)"
+                  strokeOpacity="0.5"
+                  strokeDasharray={i === 2 ? undefined : '3 3'}
+                />
+                <text
+                  x={padding.left - 8}
+                  y={y + 3.5}
+                  textAnchor="end"
+                  fontSize="9"
+                  fontFamily="monospace"
+                  fill="var(--text-secondary)"
+                >
+                  {tick.label}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* 총 자산 영역 채우기 */}
+          {assetAreaPath && <path d={assetAreaPath} fill="url(#assetTrendGradient)" className="animate-fadeIn" />}
+
+          {/* 투자 원금 점선 */}
+          {investLinePath && (
+            <path
+              d={investLinePath}
+              fill="none"
+              stroke="#94A3B8"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+              strokeLinecap="round"
+              className="animate-trend-line"
+            />
+          )}
+
+          {/* 총 자산 실선 (물리 드로잉 애니메이션 적용) */}
+          {assetLinePath && (
+            <path
+              d={assetLinePath}
+              fill="none"
+              stroke="var(--accent-orange)"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              className="animate-trend-line"
+            />
+          )}
+
+          {/* X축 라벨 */}
+          {points.map((p, i) => {
+            if (!shouldShowLabel(i)) return null;
+            const x = getX(i);
+            const isSelected = i === activeIndex;
+            return (
+              <text
+                key={`${p.monthStr}-${i}`}
+                x={x}
+                y={height - 8}
+                textAnchor="middle"
+                fontSize="10"
+                fontFamily="monospace"
+                fontWeight={isSelected ? 'bold' : 'normal'}
+                fill={isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'}
+              >
+                {p.monthStr}
+              </text>
+            );
+          })}
+
+          {/* 마우스 호버 가이드라인 & 포인트 도트 */}
+          {activeIndex !== null && (
+            <g>
+              <line
+                x1={getX(activeIndex)}
+                y1={padding.top}
+                x2={getX(activeIndex)}
+                y2={padding.top + chartH}
+                stroke="var(--accent-orange)"
+                strokeOpacity="0.4"
+                strokeWidth="1"
+                strokeDasharray="2 2"
+              />
+              <circle
+                cx={getX(activeIndex)}
+                cy={getY(activePoint.investedKrw)}
+                r="3.5"
+                fill="#94A3B8"
+                stroke="var(--bg-main)"
+                strokeWidth="2"
+              />
+              <circle
+                cx={getX(activeIndex)}
+                cy={getY(activePoint.totalAssetsKrw)}
+                r="4.5"
+                fill="var(--accent-orange)"
+                stroke="var(--bg-main)"
+                strokeWidth="2"
+              />
+            </g>
+          )}
+        </svg>
+      </div>
+
+      {/* 범례 */}
+      <div className="flex items-center justify-end gap-4 text-[11px] text-[var(--text-secondary)] font-medium pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-1 rounded-full bg-[var(--accent-orange)] inline-block" />
+          <span>총 자산 (평가액 + 현금)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-0.5 border-t border-dashed border-[#94A3B8] inline-block" />
+          <span>투자 원금 (누적)</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewReportView({
+  summary,
+  monthlyTradeStats,
+  monthlyDepositStats,
+  logs = [],
+  snapshots = [],
+  isPro,
+  onExportCsv,
+  onOpenProModal,
+}: {
+  summary: PortfolioSummary;
+  monthlyTradeStats: MonthlyTradeStat[];
+  monthlyDepositStats: MonthlyDepositStat[];
+  logs?: JournalLog[];
+  snapshots?: { date: string; invested: number; totalAssets: number }[];
+  isPro: boolean;
+  onExportCsv: () => void;
+  onOpenProModal?: () => void;
+}) {
+  return (
+    <div className="relative pt-1 animate-fadeIn">
+      {/* PRO 멤버십 프리미엄 블러 오버레이 카드 */}
+      {!isPro && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-[var(--card-surface)]/95 backdrop-blur-xl border border-[var(--accent-orange)]/40 rounded-2xl p-6 sm:p-7 shadow-[0_0_32px_rgba(241,143,1,0.22)] text-center space-y-4 animate-scaleUp">
+            <div className="w-12 h-12 mx-auto rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 flex items-center justify-center text-[var(--accent-orange)]">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)]">
+                PRO 멤버십 전용 리포트
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                투자 원금 대비 실질 자산 성장 그래프, 확정 실현손익 리포트, CSV 엑셀 다운로드를 무제한으로 이용하실 수 있습니다.
+              </p>
+            </div>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={onOpenProModal}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-extrabold bg-[var(--accent-orange)] text-white hover:brightness-105 transition-all shadow-[0_0_16px_rgba(241,143,1,0.35)] flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>PRO 멤버십 무료 등록하기</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* 리포트 본문 (무료 사용자는 블러 처리되어 은은하게 비침) */}
+      <div className={`space-y-4 ${!isPro ? 'filter blur-[5px] pointer-events-none select-none opacity-50' : ''}`}>
+        {/* 3대 핵심 성과 카드 */}
+        <div className="grid sm:grid-cols-3 gap-3">
+          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
+            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-orange)]" /> 전체 자산 기준 수익률
+            </span>
+            <p
+              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
+                summary.totalProfitRate === null
+                  ? 'text-[var(--text-secondary)]'
+                  : summary.totalProfitRate >= 0
+                  ? 'text-[var(--accent-emerald,#10B981)]'
+                  : 'text-[#F43F5E]'
+              }`}
+            >
+              {summary.totalProfitRate !== null
+                ? `${summary.totalProfitRate >= 0 ? '+' : ''}${summary.totalProfitRate.toFixed(2)}%`
+                : '-'}
+            </p>
+            <span className="text-[10px] text-[var(--text-secondary)] block">
+              예수금 포함 전체 자본 대비 실질 수익률
+            </span>
+          </div>
+
+          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
+            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-blue-500" /> 보유 자산 순수 수익률
+            </span>
+            <p
+              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
+                summary.stockProfitRate === null || summary.stockProfitRate === undefined
+                  ? 'text-[var(--text-secondary)]'
+                  : summary.stockProfitRate >= 0
+                  ? 'text-[var(--accent-emerald,#10B981)]'
+                  : 'text-[#F43F5E]'
+              }`}
+            >
+              {summary.stockProfitRate !== null && summary.stockProfitRate !== undefined
+                ? `${summary.stockProfitRate >= 0 ? '+' : ''}${summary.stockProfitRate.toFixed(2)}%`
+                : '-'}
+            </p>
+            <span className="text-[10px] text-[var(--text-secondary)] block">
+              보유 주식/코인 투자 원금 대비 평가 손익률
+            </span>
+          </div>
+
+          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
+            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> 총 평가 손익금
+            </span>
+            <p
+              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
+                summary.totalProfitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
+              }`}
+            >
+              {summary.totalProfitRate !== null
+                ? `${summary.totalProfitKrw >= 0 ? '+' : ''}${won(summary.totalProfitKrw)}`
+                : '-'}
+            </p>
+            <span className="text-[10px] text-[var(--text-secondary)] block">
+              총 평가 자산: {won(summary.totalAssetsKrw)}
+            </span>
+          </div>
+        </div>
+
+        {/* 적응형 자산 추이 그래프 (투자 원금 vs 순자산 변동) */}
+        <AdaptiveAssetTrendChart
+          summary={summary}
+          monthlyTradeStats={monthlyTradeStats}
+          monthlyDepositStats={monthlyDepositStats}
+          logs={logs}
+          snapshots={snapshots}
+        />
+
+        {/* 월별 매매 실적 */}
+        <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-extrabold text-[var(--text-primary)]">
+                월별 매매 실적
+              </span>
+              <span className="text-[10px] text-[var(--text-secondary)]">
+                (실제 등록된 거래 기록 기준 집계)
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={onExportCsv}
+              className="px-3 py-1 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:border-[var(--accent-orange)] transition-colors flex items-center gap-1 cursor-pointer"
+              title="전체 매매 기록 CSV 다운로드"
+            >
+              <Download className="w-3 h-3" /> CSV 내보내기
+            </button>
+          </div>
+
+          {monthlyTradeStats.length === 0 ? (
+            <div className="py-6 text-center text-xs text-[var(--text-secondary)] border border-dashed border-[var(--border-color)]/60 rounded-lg">
+              아직 등록된 거래 기록이 없습니다. 종목 카드에서 거래를 기록하면 월별 실적이 자동으로 집계됩니다.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
+                    <th className="py-2 px-2.5">기준월</th>
+                    <th className="py-2 px-2.5 text-right">구매 금액</th>
+                    <th className="py-2 px-2.5 text-right">판매 금액</th>
+                    <th className="py-2 px-2.5 text-right">확정 실현손익</th>
+                    <th className="py-2 px-2.5 text-right">거래 횟수</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
+                  {monthlyTradeStats.map((st) => (
+                    <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
+                      <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
+                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.buyAmount > 0 ? won(st.buyAmount) : '-'}</td>
+                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.sellAmount > 0 ? won(st.sellAmount) : '-'}</td>
+                      <td className={`py-2.5 px-2.5 text-right font-bold ${
+                        st.realizedProfit > 0
+                          ? 'text-[var(--accent-emerald,#10B981)]'
+                          : st.realizedProfit < 0
+                          ? 'text-[#F43F5E]'
+                          : 'text-[var(--text-secondary)]'
+                      }`}>
+                        {st.realizedProfit !== 0 ? `${st.realizedProfit > 0 ? '+' : ''}${won(st.realizedProfit)}` : '-'}
+                      </td>
+                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.tradeCount}건</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* 월별 입출금 현황 */}
+        {monthlyDepositStats.length > 0 && (
+          <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-extrabold text-[var(--text-primary)]">
+                월별 입출금 현황
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
+                    <th className="py-2 px-2.5">기준월</th>
+                    <th className="py-2 px-2.5 text-right">입금액</th>
+                    <th className="py-2 px-2.5 text-right">출금액</th>
+                    <th className="py-2 px-2.5 text-right">순 입금액</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
+                  {monthlyDepositStats.map((st) => (
+                    <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
+                      <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
+                      <td className="py-2.5 px-2.5 text-right text-[var(--accent-emerald,#10B981)]">+{won(st.inAmount)}</td>
+                      <td className="py-2.5 px-2.5 text-right text-[#F43F5E]">-{won(st.outAmount)}</td>
+                      <td className="py-2.5 px-2.5 text-right font-bold text-[var(--text-primary)]">{won(st.netAmount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -477,11 +993,41 @@ export default function JournalPage() {
   const [isReorderingGroups, setIsReorderingGroups] = useState(false);
   const [draggedGroupIndex, setDraggedGroupIndex] = useState<number | null>(null);
 
-  // 예수금 인라인 편집 및 슬림 1줄 입출금 상태
+  // 현금 인라인 편집 및 슬림 1줄 입출금 / 환전 상태
   const [isEditingCash, setIsEditingCash] = useState(false);
   const [isInlineDepositOpen, setIsInlineDepositOpen] = useState(false);
-  const [inlineDepositType, setInlineDepositType] = useState<'IN' | 'OUT'>('IN');
+  const [inlineDepositType, setInlineDepositType] = useState<'IN' | 'OUT' | 'FX'>('IN');
   const [inlineDepositAmount, setInlineDepositAmount] = useState('');
+  const [fxDirection, setFxDirection] = useState<'USD_TO_KRW' | 'KRW_TO_USD'>('USD_TO_KRW');
+  const [fxAmount, setFxAmount] = useState('');
+  const [showFeeSettings, setShowFeeSettings] = useState(false);
+
+  // 현금 및 수수료 소수점 입력 증발 방지용 로컬 문자열 버퍼
+  const [typingCashUsd, setTypingCashUsd] = useState<string | null>(null);
+  const [typingKrFee, setTypingKrFee] = useState<string | null>(null);
+  const [typingUsFee, setTypingUsFee] = useState<string | null>(null);
+  const [typingFxDiscount, setTypingFxDiscount] = useState<string | null>(null);
+
+  const sanitizeDecimal = (val: string) => {
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    return parts.length > 1 ? `${parts[0]}.${parts.slice(1).join('')}` : cleaned;
+  };
+
+  // 한국어 주격 조사(이/가) 받침 유무 동적 판별 헬퍼
+  const getSubjectParticle = (word: string) => {
+    if (!word) return '이';
+    const lastChar = word.trim().slice(-1);
+    const code = lastChar.charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const hasBatchim = (code - 0xac00) % 28 > 0;
+      return hasBatchim ? '이' : '가';
+    }
+    return '이';
+  };
+
+  // 살 수량 수동 입력 소수점 버퍼
+  const [typingCustomQuantities, setTypingCustomQuantities] = useState<Record<string, string>>({});
 
   // 소수점 입력 증발 방지용 로컬 문자열 버퍼 (종목 심볼 -> 입력 문자열)
   const [typingHoldings, setTypingHoldings] = useState<Record<string, string>>({});
@@ -507,6 +1053,12 @@ export default function JournalPage() {
   const [newGroupHoldings, setNewGroupHoldings] = useState('');
   const [newGroupTradeDate, setNewGroupTradeDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [newGroupAvgPrice, setNewGroupAvgPrice] = useState('');
+  const [newGroupAvgPriceUsd, setNewGroupAvgPriceUsd] = useState('');
+
+  // 새 자산군 추가 폼: 심볼 실시간 조회 상태 및 피드백
+  const [newGroupSymbolInfo, setNewGroupSymbolInfo] = useState<{ name?: string; price: number; currency: string } | null>(null);
+  const [isSearchingSymbol, setIsSearchingSymbol] = useState(false);
+  const [symbolSearchError, setSymbolSearchError] = useState<string | null>(null);
 
   // 과거 특정 일자 종가 API 조회 헬퍼
   const fetchPastPrice = async (sym: string, dateStr: string) => {
@@ -522,6 +1074,59 @@ export default function JournalPage() {
     }
     return null;
   };
+
+  // 심볼 입력 시 실시간 디바운스(350ms) 시세 및 종목명 조회
+  useEffect(() => {
+    const raw = newGroupSymbol.trim();
+    if (!raw) {
+      setNewGroupSymbolInfo(null);
+      setIsSearchingSymbol(false);
+      setSymbolSearchError(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingSymbol(true);
+      setSymbolSearchError(null);
+      try {
+        const norm = normalizeSymbol(raw);
+        const res = await fetch(`/api/quotes?symbols=${encodeURIComponent(norm)}`);
+        const json = await res.json();
+        const q = json?.quotes?.[norm];
+        if (q && q.price > 0) {
+          setNewGroupSymbolInfo({
+            name: q.name,
+            price: q.price,
+            currency: q.currency || 'KRW',
+          });
+          // 종목명이 아직 비어있다면 자동 입력
+          if (q.name) {
+            setNewGroupName((prev) => (prev.trim() === '' ? q.name! : prev));
+          }
+          // 평균단가가 비어있다면 기본값으로 제안
+          setNewGroupAvgPrice((prev) => {
+            if (prev.trim() !== '') return prev;
+            return String(Math.round(q.price));
+          });
+          if (q.currency === 'USD') {
+            setNewGroupAvgPriceUsd((prev) => {
+              if (prev.trim() !== '') return prev;
+              return String(q.price);
+            });
+          }
+        } else {
+          setNewGroupSymbolInfo(null);
+          setSymbolSearchError('종목 시세를 조회할 수 없습니다. 코드나 티커를 확인해 주세요.');
+        }
+      } catch {
+        setSymbolSearchError('시세 조회 중 오류가 발생했습니다.');
+      } finally {
+        setIsSearchingSymbol(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [newGroupSymbol]);
 
   const nickname = user?.nickname;
   const pin = user?.pin;
@@ -594,6 +1199,22 @@ export default function JournalPage() {
     () => (activeId === 'ALL' ? null : data.accounts.find((a) => a.id === activeId) || null),
     [data.accounts, activeId]
   );
+
+  // 현금 잔액, 추가 투자금, 운용 전략 또는 자산군 비중/보유량이 변경되면 수동 수정 수량(customQuantities)을 자동 리셋하여 최신 계산값 동기화
+  const conditionsSignature = useMemo(() => {
+    if (!account) return '';
+    const groupsKey = account.groups.map((g) => `${g.id}:${g.weight}:${JSON.stringify(g.holdings)}`).join(';');
+    return `${account.cash}_${account.cashUsd}_${account.budget}_${account.noSell}_${account.fractional}_${groupsKey}`;
+  }, [account]);
+
+  const lastConditionsSignatureRef = useRef(conditionsSignature);
+  useEffect(() => {
+    if (lastConditionsSignatureRef.current !== conditionsSignature) {
+      lastConditionsSignatureRef.current = conditionsSignature;
+      setCustomQuantities({});
+      setTypingCustomQuantities({});
+    }
+  }, [conditionsSignature]);
 
   // 전체 종목 목록 추출 (정규화)
   const allSymbols = useMemo(() => {
@@ -689,9 +1310,82 @@ export default function JournalPage() {
     setDraggedGroupIndex(null);
   };
 
-  // 초슬림 인라인 예수금 입금/출금 핸들러 (팝업 없는 심플 UI)
+  // 초슬림 인라인 예수금 입금/출금/환전 핸들러 (팝업 없는 심플 UI)
   const handleExecuteInlineDeposit = () => {
     if (!account) return;
+
+    if (inlineDepositType === 'FX') {
+      const usdRate = quotes.usdKrw || 1350;
+      const discountPct = account.fees?.fxDiscountPct !== undefined ? account.fees.fxDiscountPct : 95;
+      const effectiveSpreadFactor = ((1 - discountPct / 100) * 1.0) / 100;
+
+      if (fxDirection === 'USD_TO_KRW') {
+        const usdVal = Number(fxAmount.replace(/[^0-9.]/g, ''));
+        if (!usdVal || usdVal <= 0) {
+          alert('환전할 달러($) 금액을 올바르게 입력해 주세요.');
+          return;
+        }
+        const currentUsd = account.cashUsd || 0;
+        if (usdVal > currentUsd) {
+          alert(`보유 달러($${currentUsd.toLocaleString('en-US')})보다 큰 금액을 환전할 수 없습니다.`);
+          return;
+        }
+        // 환율 우대 반영된 실질 환율 적용
+        const effectiveRate = usdRate * (1 - effectiveSpreadFactor);
+        const krwGain = Math.round(usdVal * effectiveRate);
+        const nextUsd = Math.round((currentUsd - usdVal) * 100) / 100;
+        const nextCash = (account.cash || 0) + krwGain;
+
+        const newLog: CashDepositLog = {
+          id: uid(),
+          date: new Date().toISOString(),
+          type: 'IN',
+          amountKrw: krwGain,
+          memo: `환전 반영: $${usdVal.toLocaleString('en-US')} ➔ ${krwGain.toLocaleString('ko-KR')}원 (우대 ${discountPct}%)`,
+        };
+
+        updateAccount({
+          cash: nextCash,
+          cashUsd: nextUsd,
+          deposits: [newLog, ...(account.deposits || [])].slice(0, 200),
+        });
+      } else {
+        const krwVal = Number(fxAmount.replace(/[^0-9]/g, ''));
+        if (!krwVal || krwVal <= 0) {
+          alert('환전할 원화 금액을 올바르게 입력해 주세요.');
+          return;
+        }
+        const currentCash = account.cash || 0;
+        if (krwVal > currentCash) {
+          alert(`보유 원화(${currentCash.toLocaleString('ko-KR')}원)보다 큰 금액을 환전할 수 없습니다.`);
+          return;
+        }
+        // 환율 우대 반영된 실질 환율 적용
+        const effectiveRate = usdRate * (1 + effectiveSpreadFactor);
+        const usdGain = Math.round((krwVal / effectiveRate) * 100) / 100;
+        const nextCash = currentCash - krwVal;
+        const nextUsd = Math.round(((account.cashUsd || 0) + usdGain) * 100) / 100;
+
+        const newLog: CashDepositLog = {
+          id: uid(),
+          date: new Date().toISOString(),
+          type: 'OUT',
+          amountKrw: krwVal,
+          memo: `환전 반영: ${krwVal.toLocaleString('ko-KR')}원 ➔ $${usdGain.toLocaleString('en-US')} (우대 ${discountPct}%)`,
+        };
+
+        updateAccount({
+          cash: nextCash,
+          cashUsd: nextUsd,
+          deposits: [newLog, ...(account.deposits || [])].slice(0, 200),
+        });
+      }
+
+      setFxAmount('');
+      setIsInlineDepositOpen(false);
+      return;
+    }
+
     const amount = Number(inlineDepositAmount.replace(/[^0-9]/g, ''));
     if (!amount || amount <= 0) {
       alert('유효한 금액을 입력해 주세요.');
@@ -716,6 +1410,33 @@ export default function JournalPage() {
     });
     setInlineDepositAmount('');
     setIsInlineDepositOpen(false);
+  };
+
+  // 한국 주식 구매를 위한 원터치 맞춤 부분 환전 헬퍼
+  const handleExecuteQuickFx = (usdToExchange: number) => {
+    if (!account) return;
+    const currentUsd = account.cashUsd || 0;
+    const safeUsd = Math.min(currentUsd, Math.round(usdToExchange * 100) / 100);
+    if (safeUsd <= 0) return;
+
+    const usdRate = quotes.usdKrw || 1350;
+    const krwGain = Math.round(safeUsd * usdRate);
+    const nextUsd = Math.round((currentUsd - safeUsd) * 100) / 100;
+    const nextCash = (account.cash || 0) + krwGain;
+
+    const newLog: CashDepositLog = {
+      id: uid(),
+      date: new Date().toISOString(),
+      type: 'IN',
+      amountKrw: krwGain,
+      memo: `맞춤 환전 반영: $${safeUsd} ➔ ${krwGain.toLocaleString()}원`,
+    };
+
+    updateAccount({
+      cash: nextCash,
+      cashUsd: nextUsd,
+      deposits: [newLog, ...(account.deposits || [])].slice(0, 200),
+    });
   };
 
   const handleRemoveDeposit = (logId: string) => {
@@ -752,9 +1473,13 @@ export default function JournalPage() {
   const renameAccount = (id: string, newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed) return;
+    const oldAcc = data.accounts.find((a) => a.id === id);
+    const oldName = oldAcc?.name;
+    const finalName = trimmed.slice(0, 20);
     setData((d) => ({
       ...d,
-      accounts: d.accounts.map((a) => (a.id === id ? { ...a, name: trimmed.slice(0, 20) } : a)),
+      accounts: d.accounts.map((a) => (a.id === id ? { ...a, name: finalName } : a)),
+      logs: oldName ? d.logs.map((l) => (l.accountName === oldName ? { ...l, accountName: finalName } : l)) : d.logs,
     }));
   };
 
@@ -763,12 +1488,22 @@ export default function JournalPage() {
       alert('최소 1개의 계좌는 유지되어야 합니다.');
       return;
     }
-    if (!window.confirm('이 계좌를 삭제할까요? 저장된 비율과 보유 수량이 함께 사라집니다.')) return;
+    const target = data.accounts.find((a) => a.id === id);
+    if (!window.confirm('이 계좌를 삭제할까요? 저장된 비율과 보유 수량 및 매매 기록이 함께 정리됩니다.')) return;
     setData((d) => {
       const accounts = d.accounts.filter((a) => a.id !== id);
-      return { ...d, accounts };
+      const logs = target ? d.logs.filter((l) => l.accountName !== target.name) : d.logs;
+      return { ...d, accounts, logs };
     });
     setActiveId('ALL');
+  };
+
+  // 모든 매매 기록 전체 비우기 (유령 기록 및 과거 데이터 완전 청소)
+  const handleClearAllLogs = () => {
+    if (data.logs.length === 0) return;
+    if (window.confirm('저장된 모든 매매 기록을 비우시겠습니까?\n월별 실적과 최근 기록이 초기화됩니다.')) {
+      setData((d) => ({ ...d, logs: [] }));
+    }
   };
 
   // 자산군 직접 추가 핸들러 (등록 시점부터 보유 수량, 평단가, 구매일자 아카이빙)
@@ -792,7 +1527,10 @@ export default function JournalPage() {
     const initQty = Math.max(0, Number(newGroupHoldings) || 0);
     const parsedAvgPrice = Number(newGroupAvgPrice.replace(/[^0-9]/g, ''));
     const initAvg = parsedAvgPrice > 0 ? parsedAvgPrice : currentPrice;
-    const initAvgUsd = isUsdAsset && initAvg > 0 ? Math.round((initAvg / usdRate) * 100) / 100 : 0;
+    const parsedUsd = Number(newGroupAvgPriceUsd);
+    const initAvgUsd = isUsdAsset
+      ? (parsedUsd > 0 ? parsedUsd : (initAvg > 0 ? Math.round((initAvg / usdRate) * 100) / 100 : 0))
+      : 0;
 
     const newGid = uid();
     const newGroup: JournalGroup = {
@@ -836,7 +1574,11 @@ export default function JournalPage() {
     setNewGroupWeight('');
     setNewGroupHoldings('');
     setNewGroupAvgPrice('');
+    setNewGroupAvgPriceUsd('');
     setNewGroupTradeDate(new Date().toISOString().slice(0, 10));
+    setNewGroupSymbolInfo(null);
+    setIsSearchingSymbol(false);
+    setSymbolSearchError(null);
     setIsAddGroupOpen(false);
   };
 
@@ -893,6 +1635,26 @@ export default function JournalPage() {
     return account ? calcPortfolioSummary(account, quotes) : null;
   }, [activeId, account, data.accounts, quotes]);
 
+  // 매일 1회 현재 계좌 상태를 스냅샷에 자동 아카이빙 (향후 시계열 추이 무결성 보존)
+  useEffect(() => {
+    if (!loaded || !currentSummary || currentSummary.totalAssetsKrw <= 0) return;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const existing = data.snapshots?.find((s) => s.date === todayStr);
+    const baseInvest = currentSummary.hasInvestData ? currentSummary.totalInvestKrw : currentSummary.totalStockEvalKrw;
+    const currentInvest = baseInvest + currentSummary.cashKrw;
+    const currentAssets = currentSummary.totalAssetsKrw;
+
+    if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
+      setData((prev) => {
+        const filtered = (prev.snapshots || []).filter((s) => s.date !== todayStr);
+        const updated = [...filtered, { date: todayStr, invested: currentInvest, totalAssets: currentAssets }]
+          .sort((a, b) => a.date.localeCompare(b.date))
+          .slice(-365); // 최근 1년 보관
+        return { ...prev, snapshots: updated };
+      });
+    }
+  }, [loaded, currentSummary]);
+
   // 그래프용 세그먼트 데이터 구성
   const barSegments = useMemo(() => {
     if (!currentSummary || currentSummary.totalAssetsKrw <= 0) return [];
@@ -918,6 +1680,41 @@ export default function JournalPage() {
 
     return segs;
   }, [currentSummary]);
+
+  // 한국 주식 구매 시 원화 부족 및 달러 맞춤 부분 환전 추천 계산
+  const krwShortageInfo = useMemo(() => {
+    if (!account || !plan || plan.lines.length === 0) return null;
+    const usdRate = quotes.usdKrw || 1350;
+    const availableKrwCash = account.cash || 0;
+    const availableUsdCash = account.cashUsd || 0;
+
+    if (availableUsdCash <= 0) return null;
+
+    // 한국 주식/ETF/금/코인(원화 필요 자산) 중 구매할 항목들의 총 필요 원화 계산
+    let neededKrwForLocal = 0;
+    for (const l of plan.lines) {
+      if (appliedLineGroupIds.includes(l.groupId)) continue;
+      const isCrypto = isCryptoSymbol(l.symbol);
+      const isUsd =
+        quotes.quotes[l.symbol]?.currency === 'USD' ||
+        (!isCrypto && l.symbol !== 'GOLD_1G' && !/^\d{6}$/.test(l.symbol));
+      if (!isUsd && l.qty > 0) {
+        const customVal = customQuantities[l.groupId];
+        const effectiveQty = customVal !== undefined ? customVal : l.qty;
+        neededKrwForLocal += Math.round(effectiveQty * l.priceKrw);
+      }
+    }
+
+    if (neededKrwForLocal > availableKrwCash) {
+      const shortageKrw = neededKrwForLocal - availableKrwCash;
+      const neededUsd = Math.ceil((shortageKrw / usdRate) * 10) / 10;
+      return {
+        shortageKrw,
+        neededUsd: Math.min(availableUsdCash, neededUsd),
+      };
+    }
+    return null;
+  }, [account, plan, quotes, appliedLineGroupIds, customQuantities]);
 
   // 단일 자산 행 반영 (선택적 체결 - 사용자가 수정한 수량/금액 반영 지원)
   const applySingleLine = (line: PlanLine, overrideQty?: number, overrideAmountKrw?: number) => {
@@ -956,8 +1753,53 @@ export default function JournalPage() {
       };
     });
 
-    // 예수금 가감: 구매 시 차감, 판매 시 증가
-    const nextCash = Math.max(0, Math.round(account.cash - tradeAmount));
+    // 통화 판별 및 통합증거금 예수금 차감/가산 (미국 주식은 달러 우선 ➔ 부족 시 원화 차감, 판매는 달러 입금)
+    const quoteEntry = quotes.quotes[sym];
+    const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+    const usdRate = quotes.usdKrw || 1350;
+
+    let nextCash = account.cash || 0;
+    let nextCashUsd = account.cashUsd || 0;
+
+    // 구매 시 통합 가용 현금(원화 + 달러) 부족 검증 및 차단
+    const totalAvailableCashKrw = (account.cash || 0) + Math.floor((account.cashUsd || 0) * usdRate);
+    if (tradeQty > 0 && tradeAmount > totalAvailableCashKrw) {
+      alert(`보유 현금(${won(totalAvailableCashKrw)})이 부족하여 주식을 구매할 수 없습니다. (필요 금액: ${won(tradeAmount)})\n현금을 충전하거나 구매 수량을 줄여주세요.`);
+      return;
+    }
+
+    if (isUsdAsset) {
+      if (tradeQty > 0) {
+        // 미국 주식 구매: 달러 우선 차감 ➔ 부족 시 원화 차감(통합증거금)
+        const neededUsd = tradeAmount / usdRate;
+        if (nextCashUsd >= neededUsd) {
+          nextCashUsd = Math.round((nextCashUsd - neededUsd) * 100) / 100;
+        } else {
+          const shortageUsd = neededUsd - nextCashUsd;
+          nextCashUsd = 0;
+          const shortageKrw = Math.round(shortageUsd * usdRate);
+          nextCash = Math.max(0, Math.round(nextCash - shortageKrw));
+        }
+      } else {
+        // 미국 주식 판매: 달러 예수금으로 입금
+        const receivedUsd = Math.abs(tradeAmount) / usdRate;
+        nextCashUsd = Math.round((nextCashUsd + receivedUsd) * 100) / 100;
+      }
+    } else {
+      // 한국 주식/코인/금: 원화 가감 (원화 부족 시 보유 달러 자동 차감)
+      if (tradeQty > 0) {
+        if (nextCash >= tradeAmount) {
+          nextCash = Math.round(nextCash - tradeAmount);
+        } else {
+          const shortageKrw = tradeAmount - nextCash;
+          nextCash = 0;
+          const shortageUsd = Math.round((shortageKrw / usdRate) * 100) / 100;
+          nextCashUsd = Math.max(0, Math.round((nextCashUsd - shortageUsd) * 100) / 100);
+        }
+      } else {
+        nextCash = Math.round(nextCash + Math.abs(tradeAmount));
+      }
+    }
 
     const newItem = {
       name: line.groupName,
@@ -985,7 +1827,7 @@ export default function JournalPage() {
 
     setData((d) => ({
       accounts: d.accounts.map((a) =>
-        a.id === account.id ? { ...a, groups: updatedGroups, cash: nextCash } : a
+        a.id === account.id ? { ...a, groups: updatedGroups, cash: nextCash, cashUsd: nextCashUsd } : a
       ),
       logs: nextLogs,
     }));
@@ -1010,7 +1852,24 @@ export default function JournalPage() {
     const prevAccountsBackup: JournalAccount[] = JSON.parse(JSON.stringify(data.accounts));
     const prevAppliedIds = [...appliedLineGroupIds];
 
-    let currentCash = account.cash;
+    let currentCash = account.cash || 0;
+    let currentCashUsd = account.cashUsd || 0;
+    const usdRate = quotes.usdKrw || 1350;
+
+    // 전체 반영 대상 항목들의 순 구매 필요 금액(판매 대금 상계 반영) 및 가용 현금 검증
+    const totalAvailableCashKrw = currentCash + Math.floor(currentCashUsd * usdRate);
+    let netBuyNeededKrw = 0;
+    for (const line of unappliedLines) {
+      const customQty = customQuantities[line.groupId];
+      const tradeQty = customQty !== undefined ? customQty : line.qty;
+      netBuyNeededKrw += Math.round(tradeQty * line.priceKrw);
+    }
+
+    if (netBuyNeededKrw > totalAvailableCashKrw) {
+      alert(`보유 현금(${won(totalAvailableCashKrw)})이 부족하여 전체 매매를 반영할 수 없습니다. (순 필요 금액: ${won(netBuyNeededKrw)})\n현금을 충전하거나 구매 수량을 조절해 주세요.`);
+      return;
+    }
+
     let updatedGroups = [...account.groups];
     const newLogs: JournalLog[] = [];
 
@@ -1053,7 +1912,40 @@ export default function JournalPage() {
         };
       });
 
-      currentCash = Math.max(0, Math.round(currentCash - tradeAmount));
+      // 통화 판별 및 통합증거금 처리
+      const quoteEntry = quotes.quotes[sym];
+      const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+
+      if (isUsdAsset) {
+        if (tradeQty > 0) {
+          const neededUsd = tradeAmount / usdRate;
+          if (currentCashUsd >= neededUsd) {
+            currentCashUsd = Math.round((currentCashUsd - neededUsd) * 100) / 100;
+          } else {
+            const shortageUsd = neededUsd - currentCashUsd;
+            currentCashUsd = 0;
+            const shortageKrw = Math.round(shortageUsd * usdRate);
+            currentCash = Math.max(0, Math.round(currentCash - shortageKrw));
+          }
+        } else {
+          const receivedUsd = Math.abs(tradeAmount) / usdRate;
+          currentCashUsd = Math.round((currentCashUsd + receivedUsd) * 100) / 100;
+        }
+      } else {
+        // 한국 주식/코인/금: 원화 가감 (원화 부족 시 보유 달러 자동 차감)
+        if (tradeQty > 0) {
+          if (currentCash >= tradeAmount) {
+            currentCash = Math.round(currentCash - tradeAmount);
+          } else {
+            const shortageKrw = tradeAmount - currentCash;
+            currentCash = 0;
+            const shortageUsd = Math.round((shortageKrw / usdRate) * 100) / 100;
+            currentCashUsd = Math.max(0, Math.round((currentCashUsd - shortageUsd) * 100) / 100);
+          }
+        } else {
+          currentCash = Math.round(currentCash + Math.abs(tradeAmount));
+        }
+      }
 
       // 각 종목마다 독립적인 1건의 JournalLog 생성!
       newLogs.push({
@@ -1077,7 +1969,7 @@ export default function JournalPage() {
     // 일괄 반영 시 budget(신규 입금액)도 0으로 초기화
     setData((d) => ({
       accounts: d.accounts.map((a) =>
-        a.id === account.id ? { ...a, groups: updatedGroups, budget: 0, cash: currentCash } : a
+        a.id === account.id ? { ...a, groups: updatedGroups, budget: 0, cash: currentCash, cashUsd: currentCashUsd } : a
       ),
       logs: nextLogs,
     }));
@@ -1379,13 +2271,22 @@ export default function JournalPage() {
           </p>
         </div>
 
-        {quoteAt && (
-          <div className="text-right shrink-0">
+        <div className="text-right shrink-0 flex flex-col items-end gap-1">
+          {quoteAt && (
             <span className="text-[11px] font-mono text-[var(--text-secondary)]">
               시세 기준: {new Date(quoteAt).toLocaleTimeString('ko-KR')}
             </span>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            onClick={refreshQuotes}
+            disabled={quoteLoading}
+            title="시세 새로고침"
+            className="p-1 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${quoteLoading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* 상단 탭 바: 애플 HIG + M3 캡슐(Pill) 스타일 통일 */}
@@ -1537,15 +2438,6 @@ export default function JournalPage() {
                         <span>수익률 리포트</span>
                       </button>
                     </div>
-
-                    <button
-                      onClick={refreshQuotes}
-                      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 font-medium cursor-pointer shrink-0"
-                      disabled={quoteLoading}
-                    >
-                      <RefreshCw className={`w-3 h-3 ${quoteLoading ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">시세 새로고침</span>
-                    </button>
                   </div>
                 </div>
 
@@ -1742,8 +2634,11 @@ export default function JournalPage() {
                       summary={currentSummary}
                       monthlyTradeStats={monthlyTradeStats}
                       monthlyDepositStats={monthlyDepositStats}
+                      logs={data.logs}
+                      snapshots={data.snapshots}
                       isPro={isPro}
                       onExportCsv={exportToCsv}
+                      onOpenProModal={openAuthPopover}
                     />
                   )}
                 </SmoothHeight>
@@ -1766,7 +2661,7 @@ export default function JournalPage() {
                     <div
                       key={acc.id}
                       onClick={() => setActiveId(acc.id)}
-                      className="p-3.5 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all cursor-pointer group"
+                      className="p-3.5 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/[0.03] hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all cursor-pointer group"
                     >
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -1792,6 +2687,114 @@ export default function JournalPage() {
                 })}
               </div>
             </div>
+
+            {/* 최근 매매 기록 (전체 통합 및 개별/전체 삭제, CSV 다운로드) */}
+            {data.logs.length > 0 && (
+              <div className={`${cardCls} p-5 sm:p-6 space-y-3`}>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-extrabold text-[var(--text-primary)]">
+                      전체 매매 기록
+                    </h2>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">
+                      (총 {data.logs.length}건)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleClearAllLogs}
+                      className="text-xs font-bold text-[var(--text-secondary)] hover:text-[#F43F5E] flex items-center gap-1 transition-colors cursor-pointer"
+                      title="전체 매매 기록 비우기"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> 전체 기록 비우기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={exportToCsv}
+                      className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] flex items-center gap-1 transition-colors cursor-pointer"
+                      title="전체 매매 기록 CSV 엑셀 다운로드"
+                    >
+                      <Download className="w-3.5 h-3.5" /> CSV 내보내기
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {flattenLogs(data.logs).map((log) => {
+                    const firstItem = log.items[0];
+                    const isCrypto = firstItem ? isCryptoSymbol(firstItem.symbol) : false;
+                    const unit = firstItem ? getSymbolUnit(firstItem.symbol) : '주';
+                    const isSell = firstItem ? firstItem.qty < 0 : log.type === 'SELL';
+                    const amount = firstItem ? Math.abs(firstItem.amountKrw) : 0;
+                    const qty = firstItem ? Math.abs(firstItem.qty) : 0;
+
+                    return (
+                      <div
+                        key={log.id}
+                        className="text-xs text-[var(--text-secondary)] bg-[var(--bg-main)]/50 p-3 rounded-xl border border-[var(--border-color)]/60 flex items-center justify-between gap-3 hover:border-[var(--accent-orange)]/40 transition-colors shadow-2xs"
+                      >
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono font-bold text-[var(--text-primary)]">
+                              {new Date(log.date).toLocaleDateString('ko-KR')}
+                            </span>
+                            <span className="text-[10px] text-[var(--text-secondary)] font-mono">
+                              · {log.accountName}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
+                                isSell
+                                  ? 'bg-[#F43F5E]/15 text-[#F43F5E]'
+                                  : 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
+                              }`}
+                            >
+                              {isSell ? '판매' : '구매'}
+                            </span>
+                            {log.realizedProfit !== undefined && log.realizedProfit !== 0 && (
+                              <span
+                                className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
+                                  log.realizedProfit >= 0
+                                    ? 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
+                                    : 'bg-[#F43F5E]/15 text-[#F43F5E]'
+                                }`}
+                              >
+                                실현손익 {log.realizedProfit >= 0 ? '+' : ''}{won(log.realizedProfit)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-mono text-xs flex items-center gap-1.5 flex-wrap">
+                            {firstItem ? (
+                              <>
+                                <span className="font-extrabold text-[var(--text-primary)]">
+                                  {firstItem.name || firstItem.symbol} ({firstItem.symbol})
+                                </span>
+                                <span className={isSell ? 'text-[#F43F5E] font-bold' : 'text-[var(--accent-orange)] font-bold'}>
+                                  {formatQuantity(qty, isCrypto)}{unit} {isSell ? '판매' : '구매'}
+                                </span>
+                                <span className="text-[var(--text-secondary)]">
+                                  ({won(amount)})
+                                </span>
+                              </>
+                            ) : (
+                              <span>거래 상세 없음</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveLog(log.id)}
+                          className="p-1.5 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer rounded-lg hover:bg-[var(--card-surface)]"
+                          title="매매 기록 삭제"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ) : !account ? (
           /* ============================================================== */
@@ -1865,15 +2868,6 @@ export default function JournalPage() {
                         <span>수익률 리포트</span>
                       </button>
                     </div>
-
-                    <button
-                      onClick={refreshQuotes}
-                      className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 font-medium cursor-pointer shrink-0"
-                      disabled={quoteLoading}
-                    >
-                      <RefreshCw className={`w-3 h-3 ${quoteLoading ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">시세 새로고침</span>
-                    </button>
                   </div>
                 </div>
 
@@ -2070,134 +3064,43 @@ export default function JournalPage() {
                       summary={currentSummary}
                       monthlyTradeStats={monthlyTradeStats}
                       monthlyDepositStats={monthlyDepositStats}
+                      logs={data.logs}
+                      snapshots={data.snapshots}
                       isPro={isPro}
                       onExportCsv={exportToCsv}
+                      onOpenProModal={openAuthPopover}
                     />
                   )}
                 </SmoothHeight>
               </div>
             )}
 
-            {/* 예수금 및 운용 설정 카드 (평소 Read-Only & 연필 수정, 팝업 없는 초심플 UI) */}
+            {/* 현금 및 운용 설정 카드 (평소 Read-Only & 카드 클릭 시 통합 편집 패널 열림) */}
             <div className={`${cardCls} p-5 sm:p-6 space-y-4`}>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-[var(--accent-orange)]" />
                   <h2 className="text-base font-extrabold text-[var(--text-primary)]">
-                    예수금 및 운용 설정
+                    현금 및 운용 설정
                   </h2>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  {/* [+ 입출금] 슬림 토글 버튼 */}
-                  <button
-                    type="button"
-                    onClick={() => setIsInlineDepositOpen((v) => !v)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1 ${
-                      isInlineDepositOpen
-                        ? 'border-[var(--accent-orange)] text-[var(--accent-orange)] bg-[var(--accent-orange)]/10'
-                        : 'border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]'
-                    }`}
-                    title="초간단 입출금 기록 반영"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> 입출금
-                  </button>
-
-                  {/* 연필 수정 버튼: 테두리 없이 미니멀한 아이콘 */}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingCash((v) => !v)}
-                    className={`p-1.5 transition-colors cursor-pointer ${
-                      isEditingCash
-                        ? 'text-[var(--accent-orange)]'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
-                    }`}
-                    title={isEditingCash ? '수정 완료' : '예수금 직접 수정'}
-                    aria-label="예수금 수정"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               </div>
 
-              {/* 초슬림 인라인 입출금 한 줄 폼 (SmoothHeight 적용) */}
-              <SmoothHeight>
-                {isInlineDepositOpen && (
-                  <div className="p-3 rounded-xl bg-[var(--bg-main)] border border-[var(--accent-orange)]/50 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      {/* 구분: 입금 / 출금 캡슐 토글 */}
-                      <div className="inline-flex rounded-full border border-[var(--border-color)]/90 p-0.5 bg-[var(--card-surface)]/80 backdrop-blur-md">
-                        <button
-                          type="button"
-                          onClick={() => setInlineDepositType('IN')}
-                          className={`px-3 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
-                            inlineDepositType === 'IN'
-                              ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          + 입금
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setInlineDepositType('OUT')}
-                          className={`px-3 py-1 text-xs font-bold rounded-full transition-colors cursor-pointer ${
-                            inlineDepositType === 'OUT'
-                              ? 'bg-[#F43F5E] text-white shadow-2xs'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          - 출금
-                        </button>
-                      </div>
-
-                      <div className="relative w-36">
-                        <input
-                          className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
-                          inputMode="numeric"
-                          placeholder="금액(원)"
-                          value={inlineDepositAmount ? Number(inlineDepositAmount.replace(/[^0-9]/g, '')).toLocaleString('ko-KR') : ''}
-                          onChange={(e) => setInlineDepositAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                          autoFocus
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={handleExecuteInlineDeposit}
-                        className={btnPrimaryPillCls}
-                      >
-                        반영
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsInlineDepositOpen(false)}
-                        className={btnSecondaryPillCls}
-                      >
-                        닫기
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </SmoothHeight>
-
-              {/* 예수금(원화 + 달러) & 신규 입금액 표시 (SmoothHeight 적용) */}
+              {/* 평소 상태(Read-Only 3열 카드) vs 클릭 시 열리는 통합 편집 패널 */}
               <SmoothHeight>
                 {!isEditingCash ? (
-                  /* 평소 상태: 깔끔한 Read-Only 3열 카드 */
+                  /* 1. 평소 상태: 깔끔한 Read-Only 3열 카드 (아무 카드나 클릭 시 편집 패널 열림) */
                   <div className="grid sm:grid-cols-3 gap-3">
                     <div
                       onClick={() => setIsEditingCash(true)}
-                      className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 space-y-0.5 hover:border-[var(--accent-orange)]/60 hover:shadow-[0_0_12px_rgba(241,143,1,0.12)] transition-all cursor-pointer group"
-                      title="클릭하여 원화 예수금 직접 수정"
+                      className="p-3.5 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-1 hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/[0.04] hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all duration-200 cursor-pointer group relative"
+                      title="클릭하여 현금 관리 및 수정"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-[var(--text-secondary)] block">
-                          원화 예수금 (KRW)
+                          원화 (KRW)
                         </span>
-                        <Edit2 className="w-3 h-3 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 group-hover:text-[var(--accent-orange)] transition-opacity" />
+                        <Edit2 className="w-3 h-3 text-[var(--text-secondary)]/40 group-hover:text-[var(--accent-orange)] transition-colors" />
                       </div>
                       <p className="text-base font-extrabold font-mono text-[var(--text-primary)]">
                         {won(account.cash || 0)}
@@ -2206,20 +3109,20 @@ export default function JournalPage() {
 
                     <div
                       onClick={() => setIsEditingCash(true)}
-                      className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 space-y-0.5 hover:border-[var(--accent-orange)]/60 hover:shadow-[0_0_12px_rgba(241,143,1,0.12)] transition-all cursor-pointer group"
-                      title="클릭하여 달러 예수금 직접 수정"
+                      className="p-3.5 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-1 hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/[0.04] hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all duration-200 cursor-pointer group relative"
+                      title="클릭하여 현금 관리 및 수정"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-[var(--text-secondary)] block">
-                          달러 예수금 (USD)
+                          달러 (USD)
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           {quotes.usdKrw && account.cashUsd ? (
                             <span className="text-[10px] font-mono text-[var(--text-secondary)]">
                               ≈ {won(Math.round(account.cashUsd * quotes.usdKrw))}
                             </span>
                           ) : null}
-                          <Edit2 className="w-3 h-3 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 group-hover:text-[var(--accent-orange)] transition-opacity" />
+                          <Edit2 className="w-3 h-3 text-[var(--text-secondary)]/40 group-hover:text-[var(--accent-orange)] transition-colors" />
                         </div>
                       </div>
                       <p className="text-base font-extrabold font-mono text-[var(--text-primary)]">
@@ -2229,14 +3132,14 @@ export default function JournalPage() {
 
                     <div
                       onClick={() => setIsEditingCash(true)}
-                      className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 space-y-0.5 hover:border-[var(--accent-orange)]/60 hover:shadow-[0_0_12px_rgba(241,143,1,0.12)] transition-all cursor-pointer group"
-                      title="클릭하여 신규 입금액 직접 수정"
+                      className="p-3.5 rounded-xl bg-[var(--bg-main)]/60 border border-[var(--border-color)] space-y-1 hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/[0.04] hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all duration-200 cursor-pointer group relative"
+                      title="클릭하여 현금 관리 및 수정"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-[var(--text-secondary)] block">
-                          신규 입금액 (추가 투자금)
+                          추가 투자금 (원)
                         </span>
-                        <Edit2 className="w-3 h-3 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 group-hover:text-[var(--accent-orange)] transition-opacity" />
+                        <Edit2 className="w-3 h-3 text-[var(--text-secondary)]/40 group-hover:text-[var(--accent-orange)] transition-colors" />
                       </div>
                       <p className="text-base font-extrabold font-mono text-[var(--text-primary)]">
                         {won(account.budget || 0)}
@@ -2244,19 +3147,20 @@ export default function JournalPage() {
                     </div>
                   </div>
                 ) : (
-                  /* 인라인 수정 모드 */
-                  <div className="space-y-3 p-3.5 rounded-xl bg-[var(--bg-main)]/40 border border-[var(--accent-orange)]/40">
-                    <div className="grid sm:grid-cols-3 gap-3.5">
+                  /* 2. 편집 모드: 잔액 직접 수정 + 입출금/환전 + 수수료 설정 통합 패널 */
+                  <div className="space-y-4 p-4 rounded-2xl bg-[var(--bg-main)]/40 border border-[var(--accent-orange)]/40 shadow-sm">
+                    {/* 상단: 보유 현금 직접 수정 인풋 3열 */}
+                    <div className="grid sm:grid-cols-3 gap-3">
                       <div className="space-y-1">
                         <label className="block text-[11px] font-bold text-[var(--text-secondary)]">
-                          원화 예수금 (KRW)
+                          원화 (KRW)
                         </label>
                         <div className="relative">
                           <input
                             className={inputCls}
                             inputMode="numeric"
                             value={account.cash ? account.cash.toLocaleString('ko-KR') : ''}
-                            placeholder="0원"
+                            placeholder="0"
                             onChange={(e) => {
                               const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                               updateAccount({ cash: val });
@@ -2270,18 +3174,21 @@ export default function JournalPage() {
 
                       <div className="space-y-1">
                         <label className="block text-[11px] font-bold text-[var(--text-secondary)]">
-                          달러 예수금 (USD)
+                          달러 (USD)
                         </label>
                         <div className="relative">
                           <input
                             className={inputCls}
                             inputMode="decimal"
-                            value={account.cashUsd !== undefined && account.cashUsd !== null ? String(account.cashUsd) : ''}
+                            value={typingCashUsd !== null ? typingCashUsd : (account.cashUsd !== undefined && account.cashUsd !== null ? String(account.cashUsd) : '')}
                             placeholder="0"
                             onChange={(e) => {
-                              const val = Number(e.target.value.replace(/[^0-9.]/g, '')) || 0;
-                              updateAccount({ cashUsd: val });
+                              const cleaned = sanitizeDecimal(e.target.value);
+                              setTypingCashUsd(cleaned);
+                              const val = parseFloat(cleaned);
+                              updateAccount({ cashUsd: isNaN(val) ? 0 : val });
                             }}
+                            onBlur={() => setTypingCashUsd(null)}
                           />
                           <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] font-medium">
                             $
@@ -2291,14 +3198,14 @@ export default function JournalPage() {
 
                       <div className="space-y-1">
                         <label className="block text-[11px] font-bold text-[var(--text-secondary)]">
-                          신규 입금액 (추가 투자금)
+                          추가 투자금 (원)
                         </label>
                         <div className="relative">
                           <input
                             className={inputCls}
                             inputMode="numeric"
                             value={account.budget ? account.budget.toLocaleString('ko-KR') : ''}
-                            placeholder="0원"
+                            placeholder="0"
                             onChange={(e) => {
                               const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                               updateAccount({ budget: val });
@@ -2311,13 +3218,169 @@ export default function JournalPage() {
                       </div>
                     </div>
 
+                    {/* 중단: 입금 / 출금 / 환전 글래스모피즘 슬라이딩 폼 */}
+                    <div className="p-3 rounded-xl bg-[var(--card-surface)]/80 backdrop-blur-md border border-[var(--border-color)]/80 flex flex-wrap items-center gap-2.5">
+                      {/* 구분: 입금(초록) / 출금(빨강) / 환전(주황) Apple HIG 슬라이딩 캡슐 */}
+                      <div className="relative inline-grid grid-cols-3 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 select-none shrink-0">
+                        <div
+                          className={`absolute top-0.5 bottom-0.5 left-0.5 rounded-full transition-all duration-300 pointer-events-none ${
+                            inlineDepositType === 'IN'
+                              ? 'bg-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.35)]'
+                              : inlineDepositType === 'OUT'
+                              ? 'bg-[#F43F5E] shadow-[0_0_12px_rgba(244,63,94,0.35)]'
+                              : 'bg-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.35)]'
+                          }`}
+                          style={{
+                            width: 'calc((100% - 4px) / 3)',
+                            transform: `translateX(${inlineDepositType === 'IN' ? '0%' : inlineDepositType === 'OUT' ? '100%' : '200%'})`,
+                            transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setInlineDepositType('IN')}
+                          className={`relative z-10 w-full py-1 text-xs font-bold transition-colors duration-200 cursor-pointer text-center ${
+                            inlineDepositType === 'IN'
+                              ? 'text-white font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          입금
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInlineDepositType('OUT')}
+                          className={`relative z-10 w-full py-1 text-xs font-bold transition-colors duration-200 cursor-pointer text-center ${
+                            inlineDepositType === 'OUT'
+                              ? 'text-white font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          출금
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInlineDepositType('FX')}
+                          className={`relative z-10 w-full py-1 text-xs font-bold transition-colors duration-200 cursor-pointer text-center ${
+                            inlineDepositType === 'FX'
+                              ? 'text-white font-extrabold'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          환전
+                        </button>
+                      </div>
+
+                      {inlineDepositType !== 'FX' ? (
+                        /* 입금 / 출금: 금액란 바로 옆에 인라인 반영 버튼 배치 */
+                        <div className="flex items-center gap-2">
+                          <div className="relative w-36">
+                            <input
+                              className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg pl-2.5 pr-7 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
+                              inputMode="numeric"
+                              placeholder="금액(원)"
+                              value={inlineDepositAmount ? Number(inlineDepositAmount.replace(/[^0-9]/g, '')).toLocaleString('ko-KR') : ''}
+                              onChange={(e) => setInlineDepositAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] pointer-events-none">
+                              원
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleExecuteInlineDeposit}
+                            className={`${btnPrimaryPillCls} py-1 px-3 text-xs shrink-0`}
+                          >
+                            반영
+                          </button>
+                        </div>
+                      ) : (
+                        /* 환전 모드: 슬림 방향 슬라이딩 캡슐 + 여유 있는 입력란 + 바로 옆 반영 버튼 + 실시간 환산 */
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-28 sm:w-32 select-none shrink-0 font-mono">
+                            <div
+                              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.35)] transition-transform duration-300 pointer-events-none"
+                              style={{
+                                width: 'calc((100% - 4px) / 2)',
+                                transform: `translateX(${fxDirection === 'USD_TO_KRW' ? '0%' : '100%'})`,
+                                transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFxDirection('USD_TO_KRW');
+                                setFxAmount('');
+                              }}
+                              className={`relative z-10 w-full py-1 text-xs font-bold transition-colors duration-200 cursor-pointer text-center ${
+                                fxDirection === 'USD_TO_KRW'
+                                  ? 'text-white font-extrabold'
+                                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              $ ➔ ₩
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFxDirection('KRW_TO_USD');
+                                setFxAmount('');
+                              }}
+                              className={`relative z-10 w-full py-1 text-xs font-bold transition-colors duration-200 cursor-pointer text-center ${
+                                fxDirection === 'KRW_TO_USD'
+                                  ? 'text-white font-extrabold'
+                                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              ₩ ➔ $
+                            </button>
+                          </div>
+
+                          <div className="relative w-28 sm:w-32">
+                            <input
+                              className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg pl-2 pr-6 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
+                              inputMode={fxDirection === 'USD_TO_KRW' ? 'decimal' : 'numeric'}
+                              placeholder="금액"
+                              value={fxAmount}
+                              onChange={(e) => {
+                                const val = fxDirection === 'USD_TO_KRW'
+                                  ? sanitizeDecimal(e.target.value)
+                                  : e.target.value.replace(/[^0-9]/g, '');
+                                setFxAmount(val);
+                              }}
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] font-mono pointer-events-none">
+                              {fxDirection === 'USD_TO_KRW' ? '$' : '원'}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleExecuteInlineDeposit}
+                            className={`${btnPrimaryPillCls} py-1 px-3 text-xs shrink-0`}
+                          >
+                            반영
+                          </button>
+
+                          {Number(fxAmount) > 0 && (
+                            <span className="text-[11px] font-mono text-[var(--accent-emerald,#10B981)] font-bold shrink-0">
+                              ≈ {fxDirection === 'USD_TO_KRW'
+                                ? won(Math.round(Number(fxAmount) * (quotes.usdKrw || 1350) * (1 - ((1 - (account.fees?.fxDiscountPct ?? 95) / 100) * 0.01))))
+                                : `$${(Number(fxAmount) / ((quotes.usdKrw || 1350) * (1 + ((1 - (account.fees?.fxDiscountPct ?? 95) / 100) * 0.01)))).toFixed(2)}`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 완료 버튼 */}
                     <div className="flex justify-end pt-1">
                       <button
                         type="button"
                         onClick={() => setIsEditingCash(false)}
-                        className={btnPrimaryPillCls}
+                        className={`${btnPrimaryPillCls} px-6`}
                       >
-                        <Check className="w-3.5 h-3.5" /> 수정 완료
+                        <Check className="w-3.5 h-3.5" /> 완료
                       </button>
                     </div>
                   </div>
@@ -2391,6 +3454,102 @@ export default function JournalPage() {
                   hint="주식을 소수점으로 살 수 있는 계좌인 경우 켜주세요."
                 />
               </div>
+
+              {/* 하단: 거래 비용 & 수수료 접이식 설정 */}
+              <div className="pt-3 border-t border-[var(--border-color)]/60">
+                <button
+                  type="button"
+                  onClick={() => setShowFeeSettings((v) => !v)}
+                  className="text-xs text-[var(--text-secondary)] hover:text-[var(--accent-orange)] flex items-center gap-1.5 font-bold transition-colors cursor-pointer"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>거래 비용 & 수수료 설정 (선택)</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showFeeSettings ? 'rotate-180' : ''}`} />
+                </button>
+
+                <SmoothHeight>
+                  {showFeeSettings && (
+                    <div className="grid sm:grid-cols-3 gap-3 p-1.5 text-xs">
+                      {/* 국내 주식 수수료 */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] text-[var(--text-secondary)]">
+                          국내 주식 수수료 (%)
+                        </label>
+                        <input
+                          className={inputCls}
+                          inputMode="decimal"
+                          placeholder="0.015"
+                          value={typingKrFee !== null ? typingKrFee : (account.fees?.krFeePct !== undefined ? String(account.fees.krFeePct) : '0.015')}
+                          onChange={(e) => {
+                            const cleaned = sanitizeDecimal(e.target.value);
+                            setTypingKrFee(cleaned);
+                            const val = parseFloat(cleaned);
+                            updateAccount({ fees: { ...(account.fees || {}), krFeePct: isNaN(val) ? 0 : val } });
+                          }}
+                          onBlur={() => setTypingKrFee(null)}
+                        />
+                      </div>
+
+                      {/* 해외 주식 수수료 */}
+                      <div className="space-y-1">
+                        <label className="block text-[11px] text-[var(--text-secondary)]">
+                          해외 주식 수수료 (%)
+                        </label>
+                        <input
+                          className={inputCls}
+                          inputMode="decimal"
+                          placeholder="0.07"
+                          value={typingUsFee !== null ? typingUsFee : (account.fees?.usFeePct !== undefined ? String(account.fees.usFeePct) : '0.07')}
+                          onChange={(e) => {
+                            const cleaned = sanitizeDecimal(e.target.value);
+                            setTypingUsFee(cleaned);
+                            const val = parseFloat(cleaned);
+                            updateAccount({ fees: { ...(account.fees || {}), usFeePct: isNaN(val) ? 0 : val } });
+                          }}
+                          onBlur={() => setTypingUsFee(null)}
+                        />
+                      </div>
+
+                      {/* 환율 우대 (%) */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[11px] text-[var(--text-secondary)]">
+                            환율 우대 (%)
+                          </label>
+                          <span className="text-[10px] text-[var(--accent-orange)] font-bold">
+                            실질 비용: {account.fees?.fxDiscountPct === 100 ? '0원' : `약 ${((1 - (account.fees?.fxDiscountPct ?? 95) / 100)).toFixed(2)}%`}
+                          </span>
+                        </div>
+                        <div className="relative">
+                          <input
+                            className={`${inputCls} pr-6`}
+                            inputMode="decimal"
+                            placeholder="95"
+                            value={typingFxDiscount !== null ? typingFxDiscount : (account.fees?.fxDiscountPct !== undefined ? String(account.fees.fxDiscountPct) : '95')}
+                            onChange={(e) => {
+                              const cleaned = sanitizeDecimal(e.target.value);
+                              setTypingFxDiscount(cleaned);
+                              const val = parseFloat(cleaned);
+                              const validVal = isNaN(val) ? 0 : Math.min(100, Math.max(0, val));
+                              updateAccount({
+                                fees: {
+                                  ...(account.fees || {}),
+                                  fxDiscountPct: validVal,
+                                  fxFeePct: Math.round((1 - validVal / 100) * 1000) / 1000,
+                                },
+                              });
+                            }}
+                            onBlur={() => setTypingFxDiscount(null)}
+                          />
+                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] font-bold pointer-events-none">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </SmoothHeight>
+              </div>
             </div>
 
             {/* 자산군 목표 비율 설정 */}
@@ -2401,7 +3560,7 @@ export default function JournalPage() {
                     목표 비율 설정
                   </h2>
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                    남은 비율은 &apos;목표 현금(예수금)&apos;으로 자동 보존됩니다.
+                    남은 비율은 &apos;목표 현금&apos;으로 자동 보존됩니다.
                   </p>
                 </div>
 
@@ -2667,15 +3826,13 @@ export default function JournalPage() {
                                 </div>
 
                                 <div className="text-right shrink-0">
-                                  <div className="flex items-center justify-end gap-1.5 font-mono">
+                                  <div className="flex flex-col items-end font-mono">
                                     <span className="font-extrabold text-xs sm:text-sm text-[var(--text-primary)]">
-                                      {p ? won(p) : '시세 조회 중...'}
+                                      {won(evalAmount)}
                                     </span>
-                                    {isUsdAsset && usdMarketPrice && (
-                                      <span className="text-[11px] text-[var(--text-secondary)]">
-                                        (${usdMarketPrice.toFixed(2)})
-                                      </span>
-                                    )}
+                                    <span className="text-[10px] text-[var(--text-secondary)]">
+                                      평가 금액
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -2698,16 +3855,20 @@ export default function JournalPage() {
                                       <span className="font-extrabold text-xs text-[var(--text-primary)]">
                                         {avg > 0
                                           ? isUsdAsset && avgUsd > 0
-                                            ? `$${avgUsd.toFixed(2)} (${won(avg)})`
+                                            ? `${won(avg)} ($${avgUsd.toFixed(2)})`
                                             : won(avg)
                                           : '-'}
                                       </span>
                                     </div>
 
                                     <div>
-                                      <span className="text-[10px] text-[var(--text-secondary)] block">평가 금액</span>
+                                      <span className="text-[10px] text-[var(--text-secondary)] block">현재 가격</span>
                                       <span className="font-extrabold text-xs text-[var(--text-primary)]">
-                                        {won(evalAmount)}
+                                        {p
+                                          ? isUsdAsset && usdMarketPrice
+                                            ? `${won(p)} ($${usdMarketPrice.toFixed(2)})`
+                                            : won(p)
+                                          : '시세 조회 중...'}
                                       </span>
                                     </div>
 
@@ -2723,7 +3884,7 @@ export default function JournalPage() {
                                           {profitRate.toFixed(1)}%
                                           {isUsdAsset && usdProfitRate !== null && (
                                             <span className="text-[10px] text-[var(--text-secondary)] font-medium ml-1">
-                                              (${usdProfitRate >= 0 ? '+' : ''}{usdProfitRate.toFixed(1)}%)
+                                              (달러 {usdProfitRate >= 0 ? '+' : ''}{usdProfitRate.toFixed(1)}%)
                                             </span>
                                           )}
                                         </span>
@@ -3134,12 +4295,13 @@ export default function JournalPage() {
                 })}
               </div>
 
-              {/* 자산 직접 추가 폼 (평소에는 접어두는 미니멀 캡슐 버튼) */}
-              {isAddGroupOpen ? (
-                <form
-                  onSubmit={handleAddDirectGroup}
-                  className="rounded-2xl border border-[var(--border-color)]/90 bg-[var(--bg-main)]/40 p-4 sm:p-5 space-y-3.5 animate-fadeIn"
-                >
+              {/* 자산 직접 추가 폼 (SmoothHeight로 부드러운 아코디언 애니메이션) */}
+              <SmoothHeight>
+                {isAddGroupOpen ? (
+                  <form
+                    onSubmit={handleAddDirectGroup}
+                    className="rounded-2xl border border-[var(--border-color)]/90 bg-[var(--bg-main)]/40 p-4 sm:p-5 space-y-3.5 animate-fadeIn"
+                  >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
                       <Plus className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
@@ -3189,20 +4351,34 @@ export default function JournalPage() {
 
                         <input
                           className={`${inputCls} font-mono`}
-                          placeholder="예: VOO, 005930, 7974.T, 비트코인"
+                          placeholder="예: VOO, 005930, 360200, 비트코인"
                           value={newGroupSymbol}
-                          onChange={async (e) => {
-                            const val = e.target.value;
-                            setNewGroupSymbol(val);
-                            if (val.trim()) {
-                              const hist = await fetchPastPrice(val.trim(), newGroupTradeDate);
-                              if (hist && hist.priceKrw > 0) {
-                                setNewGroupAvgPrice(String(hist.priceKrw));
-                              }
-                            }
-                          }}
+                          onChange={(e) => setNewGroupSymbol(e.target.value)}
                           required
                         />
+
+                        {/* 실시간 종목 및 시세 확인 안내 */}
+                        {isSearchingSymbol && (
+                          <p className="text-[11px] text-[var(--text-secondary)] font-medium flex items-center gap-1.5 mt-1.5">
+                            <Loader2 className="w-3 h-3 animate-spin text-[var(--accent-orange)]" />
+                            종목 시세를 확인하고 있습니다...
+                          </p>
+                        )}
+                        {!isSearchingSymbol && newGroupSymbolInfo && (
+                          <div className="flex items-center gap-1.5 mt-1.5 text-[11px] text-[var(--accent-emerald,#10B981)] font-bold">
+                            <Check className="w-3.5 h-3.5 shrink-0" />
+                            <span>{newGroupSymbolInfo.name || newGroupSymbol.trim()}</span>
+                            <span className="font-mono text-[var(--text-secondary)] font-normal">
+                              · 현재 가격 {newGroupSymbolInfo.currency === 'USD' ? `$${newGroupSymbolInfo.price.toFixed(2)}` : won(newGroupSymbolInfo.price)}
+                            </span>
+                          </div>
+                        )}
+                        {!isSearchingSymbol && symbolSearchError && (
+                          <p className="text-[11px] text-[#F43F5E] font-medium flex items-center gap-1 mt-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{symbolSearchError}</span>
+                          </p>
+                        )}
                       </div>
 
                       <div>
@@ -3261,8 +4437,13 @@ export default function JournalPage() {
                               setNewGroupTradeDate(nd);
                               if (newGroupSymbol.trim() && nd) {
                                 const hist = await fetchPastPrice(newGroupSymbol.trim(), nd);
-                                if (hist && hist.priceKrw > 0) {
-                                  setNewGroupAvgPrice(String(hist.priceKrw));
+                                if (hist) {
+                                  if (hist.priceKrw > 0) {
+                                    setNewGroupAvgPrice(String(hist.priceKrw));
+                                  }
+                                  if (hist.currency === 'USD' && hist.price > 0) {
+                                    setNewGroupAvgPriceUsd(String(hist.price));
+                                  }
                                 }
                               }
                             }}
@@ -3350,6 +4531,7 @@ export default function JournalPage() {
                   </button>
                 </div>
               )}
+              </SmoothHeight>
             </div>
 
             {/* 이번에 살 수량 계산 결과 */}
@@ -3377,15 +4559,29 @@ export default function JournalPage() {
                   )}
                 </div>
 
-                {plan.missingSymbols.length > 0 && (
+                {quoteLoading ? (
+                  <p className="text-xs text-[var(--text-secondary)] font-medium flex items-center gap-1.5 py-1">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--accent-orange)]" />
+                    최신 시세를 조회하고 있습니다...
+                  </p>
+                ) : plan.missingSymbols.length > 0 ? (
                   <p className="text-xs text-[#F43F5E] font-bold">
                     가격을 불러오지 못한 종목: {plan.missingSymbols.join(', ')}
                   </p>
+                ) : null}
+                {/* 한국 주식 구매 시 원화 부족 자동 차감 안내 팁 */}
+                {krwShortageInfo && (
+                  <div className="p-3 rounded-xl bg-[var(--bg-main)]/70 border border-[var(--accent-orange)]/30 flex items-center gap-2 text-xs">
+                    <span className="text-[var(--accent-orange)] text-sm shrink-0">💡</span>
+                    <p className="text-[var(--text-secondary)] leading-relaxed">
+                      한국 주식 구매에 원화가 약 <b className="text-[var(--text-primary)] font-mono">{won(krwShortageInfo.shortageKrw)}</b> 부족하여, 매매 반영 시 보유 달러에서 약 <b className="text-[var(--text-primary)] font-mono">${krwShortageInfo.neededUsd}</b>가 자동으로 함께 차감됩니다.
+                    </p>
+                  </div>
                 )}
 
                 {plan.availableCash <= 0 ? (
                   <p className="text-sm text-[var(--text-secondary)] py-2">
-                    위 설정에서 예수금을 넣으시면 목표 현금을 보존하는 선에서 최적의 구매 수량을 계산해 드립니다.
+                    위 설정에서 현금을 넣으시면 목표 현금을 보존하는 선에서 최적의 구매 수량을 계산해 드립니다.
                   </p>
                 ) : plan.lines.length === 0 ? (
                   <p className="text-sm text-[var(--text-secondary)] py-2">
@@ -3398,6 +4594,12 @@ export default function JournalPage() {
                       const unit = getSymbolUnit(l.symbol);
                       const isLineApplied = appliedLineGroupIds.includes(l.groupId);
                       const customVal = customQuantities[l.groupId];
+                      const isTyping = typingCustomQuantities[l.groupId] !== undefined;
+                      const displayQtyStr = isTyping
+                        ? typingCustomQuantities[l.groupId]
+                        : customVal !== undefined
+                        ? String(Math.abs(customVal))
+                        : String(Math.abs(l.qty));
                       const effectiveQty = customVal !== undefined ? customVal : l.qty;
                       const effectiveAmountKrw = Math.round(effectiveQty * l.priceKrw);
 
@@ -3426,16 +4628,24 @@ export default function JournalPage() {
                                   type="text"
                                   inputMode="decimal"
                                   disabled={isLineApplied}
-                                  value={customVal !== undefined ? String(Math.abs(customVal)) : String(Math.abs(l.qty))}
+                                  value={displayQtyStr}
                                   onChange={(e) => {
-                                    const val = e.target.value.replace(/[^0-9.]/g, '');
-                                    const num = Number(val);
-                                    if (Number.isFinite(num)) {
+                                    const cleaned = sanitizeDecimal(e.target.value);
+                                    setTypingCustomQuantities((prev) => ({ ...prev, [l.groupId]: cleaned }));
+                                    const num = parseFloat(cleaned);
+                                    if (!isNaN(num)) {
                                       setCustomQuantities((prev) => ({
                                         ...prev,
                                         [l.groupId]: l.qty < 0 ? -num : num,
                                       }));
                                     }
+                                  }}
+                                  onBlur={() => {
+                                    setTypingCustomQuantities((prev) => {
+                                      const next = { ...prev };
+                                      delete next[l.groupId];
+                                      return next;
+                                    });
                                   }}
                                   className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)] disabled:opacity-50"
                                 />
@@ -3519,7 +4729,7 @@ export default function JournalPage() {
                           className={`${btnPrimaryPillCls} py-3 w-full justify-center text-sm`}
                         >
                           <Check className="w-4 h-4" />
-                          전체 매매 내역 반영
+                          전체 매매 반영
                         </button>
                       )}
 
@@ -3529,7 +4739,7 @@ export default function JournalPage() {
                           <div className="flex items-center gap-2">
                             <RotateCcw className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0" />
                             <span className="text-[var(--text-primary)] font-medium">
-                              방금 <b>{lastUndoSnapshot.label}</b>이 계좌에 반영되었습니다.
+                              방금 <b>{lastUndoSnapshot.label}</b>{getSubjectParticle(lastUndoSnapshot.label)} 계좌에 반영되었습니다.
                             </span>
                           </div>
                           <button
