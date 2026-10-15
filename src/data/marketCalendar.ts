@@ -11352,9 +11352,12 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 9월 소비자물가지수 (CPI) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "10월 연준 FOMC 회의를 앞두고 공개되는 가장 중요한 물가 지표예요.",
+    "simpleSummary": "미국 9월 소비자물가지수 (CPI) 발표 결과가 3.7%(예상: 3.6%)로 발표되었어요. 단기적인 시장 흔들림에 흔들리지 말고 좋은 자산에 분할 적립을 이어가는 것이 좋아요.",
     "impactTag": "핵심지표",
-    "importance": 3
+    "importance": 3,
+    "expected": "3.6%",
+    "previous": "3.4%",
+    "actual": "3.7%"
   },
   {
     "id": "oct-26-tsm",

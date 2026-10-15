@@ -844,16 +844,21 @@ export async function GET(request: Request) {
               mergedEvents = CALENDAR_EVENTS.map((base) => {
                 const cached = dbMap.get(base.id);
                 if (cached && (cached.actual || cached.simpleSummary || cached.expected || cached.previous)) {
-                  return {
-                    ...base,
-                    ...(cached.actual ? { actual: cached.actual } : {}),
-                    ...(cached.expected ? { expected: cached.expected } : {}),
-                    ...(cached.previous ? { previous: cached.previous } : {}),
-                    ...(cached.simpleSummary ? { simpleSummary: cached.simpleSummary } : {}),
-                  };
-                }
-                return base;
-              });
+                const isHeadlineCpi = base.id === 'oct-26-cpi' || (base.title.includes('소비자물가') && !base.title.includes('근원'));
+                const actualVal = (isHeadlineCpi && cached.actual === '0.6%') ? base.actual : (cached.actual || base.actual);
+                const prevVal = (cached.previous === '0.6%' || cached.previous === '0.4%' || cached.previous === '0.7%') ? (base.previous || cached.previous) : (cached.previous || base.previous);
+                const summaryVal = (cached.simpleSummary && cached.simpleSummary.includes('0.6%')) ? base.simpleSummary : (cached.simpleSummary || base.simpleSummary);
+
+                return {
+                  ...base,
+                  ...(actualVal ? { actual: actualVal } : {}),
+                  ...(cached.expected ? { expected: cached.expected } : {}),
+                  ...(prevVal ? { previous: prevVal } : {}),
+                  ...(summaryVal ? { simpleSummary: summaryVal } : {}),
+                };
+              }
+              return base;
+            });
             }
 
             const cachedMacroItems: any[] = dbRecord.simulator_settings?.macroSummaryItems || [];

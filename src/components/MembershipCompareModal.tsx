@@ -143,19 +143,19 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
 
       {/* Modal Dialog Card with Apple Native Smooth Spring Physics (0.5s cubic-bezier) */}
       <div 
-        className={`relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl bg-[var(--card-surface)] border border-[var(--border-color)] shadow-2xl overflow-hidden z-10 my-auto text-left transform-gpu will-change-[transform,opacity] transition-all duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
+        className={`relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl bg-white dark:bg-[#121214] border border-[var(--border-color)] shadow-2xl overflow-hidden z-10 my-auto text-left transform-gpu will-change-[transform,opacity] transition-all duration-[500ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
           isShowing 
             ? 'scale-100 opacity-100 translate-y-0' 
             : 'scale-[0.93] opacity-0 translate-y-8 pointer-events-none'
         }`}
       >
-        {/* Floating Apple Progressive Glass Blur Header Shell (BottomNavigation 1:1 Reference, No border line) */}
+        {/* Floating Apple Progressive Glass Blur Header Shell (BottomNavigation 1:1 Reference, Perfectly Color Matched) */}
         <div 
           className="absolute top-0 inset-x-0 z-20 pointer-events-none select-none overflow-hidden h-[96px] sm:h-[104px]"
         >
-          {/* Layer 1: Solid/Dense glass background vertical gradient fade (dense at top -> transparent at bottom) */}
+          {/* Layer 1: Solid glass background vertical gradient fade matching modal base color */}
           <div 
-            className="absolute inset-0 bg-gradient-to-b from-[var(--card-surface)] via-[var(--card-surface)]/95 to-transparent pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-b from-white via-white/95 to-transparent dark:from-[#121214] dark:via-[#121214]/95 dark:to-transparent pointer-events-none"
             style={{
               maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)',
               WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 100%)'
@@ -255,7 +255,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>기초~실전 주식 강좌 및 단행본 에세이 무료 학습</span>
+                      <span>기초~실전 주식 강의 무료 학습</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
@@ -560,8 +560,8 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
 
         </div>
 
-        {/* Bottom subtle gradient fadeout (BottomNavigation 1:1 Reference, subtle fadeout at bottom) */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 sm:h-8 bg-gradient-to-t from-[var(--card-surface)] to-transparent z-20 rounded-b-3xl" />
+        {/* Bottom subtle gradient fadeout (BottomNavigation 1:1 Reference, Perfectly Color Matched) */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 sm:h-8 bg-gradient-to-t from-white to-transparent dark:from-[#121214] dark:to-transparent z-20 rounded-b-3xl" />
       </div>
     </div>
   );

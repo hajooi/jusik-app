@@ -238,42 +238,34 @@ async function fetchBokRate(eventDate: string): Promise<{ actual: string; previo
 }
 
 // ─── 미국 CPI (소비자물가) 수집 ────────────────────────────────────────────────
-// FRED: CPALTT01USM657N = CPI All Items YoY (전년동월비 %, 직접 제공)
-// 근원 CPI: CPILFESL (레벨값) → 13개월치 조회 후 YoY 직접 계산
+// FRED 원천 지수: 헤드라인 CPI = CPIAUCNS (소비자물가지수 계절비조정 레벨 지수)
+// 근원 CPI = CPILFESL (식품·에너지 제외 근원 소비자물가지수 레벨 지수)
+// 두 지표 모두 기준월 및 1년 전(12개월 전) 동월 레벨값을 비교하여 전년 동기 대비(YoY, %) 상승률을 정밀 직접 산출합니다.
 
 async function fetchCpiYoy(eventDate: string, isCore = false): Promise<string | null> {
-  // CPI 발표는 전월 데이터: 9월 11일 발표 = 8월 CPI → 기준월 = 2026-08-01
   const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
+  const seriesId = isCore ? 'CPILFESL' : 'CPIAUCNS';
+  const obs = await fetchFredSeries(seriesId, refMonthStr, 15);
+  if (obs.length < 2) return null;
 
-  if (!isCore) {
-    // 헤드라인 CPI: FRED가 직접 YoY %를 제공
-    const obs = await fetchFredSeries('CPALTT01USM657N', refMonthStr, 2);
-    if (obs.length === 0) return null;
-    const latest = obs.find(o => o.date <= refMonthStr);
-    if (!latest) return null;
-    const val = parseFloat(latest.value);
-    if (isNaN(val)) return null;
-    return `${val.toFixed(1)}%`;
-  } else {
-    // 근원 CPI: CPILFESL 레벨값 14개월치 → 직접 YoY 계산
-    const obs = await fetchFredSeries('CPILFESL', refMonthStr, 14);
-    if (obs.length < 2) return null;
+  // 가장 최근 값 (기준월)
+  const current = obs.find((o) => o.date <= refMonthStr);
+  if (!current) return null;
 
-    // 가장 최근 값 (기준월)
-    const current = obs.find(o => o.date <= refMonthStr);
-    // 12개월 전 값
-    const prevYear = obs[obs.length - 1];
+  // 정확히 1년 전(12개월 전) 동월 데이터 탐색 (예: 2026-09-01 ➔ 2025-09-01)
+  const [y, m, d] = current.date.split('-');
+  const prevYearDate = `${parseInt(y, 10) - 1}-${m}-${d}`;
+  const prevYear = obs.find((o) => o.date === prevYearDate) || obs[obs.length - 1];
 
-    if (!current || !prevYear) return null;
+  if (!prevYear) return null;
 
-    const currentVal = parseFloat(current.value);
-    const prevYearVal = parseFloat(prevYear.value);
+  const currentVal = parseFloat(current.value);
+  const prevYearVal = parseFloat(prevYear.value);
 
-    if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
+  if (isNaN(currentVal) || isNaN(prevYearVal) || prevYearVal === 0) return null;
 
-    const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
-    return `${yoy.toFixed(1)}%`;
-  }
+  const yoy = ((currentVal - prevYearVal) / prevYearVal) * 100;
+  return `${yoy.toFixed(1)}%`;
 }
 
 // ─── 미국 Core PCE 수집 ────────────────────────────────────────────────────────
@@ -913,6 +905,18 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
               newVal: matchedFf.previous,
             });
           }
+          // 공식 피드에 최신 발표치(actual)가 있다면 실시간 반영
+          if (matchedFf.actual && (!ev.actual || matchedFf.actual !== ev.actual)) {
+            const oldVal = ev.actual;
+            ev.actual = matchedFf.actual;
+            overlayUpdates.push({
+              title: ev.title,
+              date: ev.date,
+              field: '발표치',
+              oldVal,
+              newVal: matchedFf.actual,
+            });
+          }
         }
       }
 
@@ -920,15 +924,22 @@ export async function syncMarketCalendarEvents(currentEvents: CalendarEvent[]): 
       const isInflationEvent = ev.title.includes('소비자물가') || ev.title.includes('생산자물가');
       if (isInflationEvent) {
         const isPpi = ev.title.includes('생산자물가');
+        const isCpi = ev.title.includes('소비자물가');
+        const isCore = ev.title.includes('근원') || ev.title.toLowerCase().includes('core');
+
         // 공식 피드에 YoY가 없어 잘못 주입되었던 MoM 수치(0.4%, 0.6%) 비우기
         if (isPpi && (ev.expected === '0.4%' || ev.expected === '0.6%')) {
           delete ev.expected;
         }
 
+        // 과거 MoM 버그로 인해 헤드라인 CPI의 actual이 전월비(0.6%)로 오염 저장되어 있는 경우 즉시 제거하여 YoY(3.7%)로 재계산
+        if (isCpi && !isCore && ev.actual === '0.6%') {
+          delete ev.actual;
+        }
+
         // 이전치(previous)가 비어있거나 과거 MoM 수치(0.4%, 0.6%, 0.7%)인 경우 직전 달 확정치(actual) 자동 계승
         const isMoMPrevious = ev.previous === '0.4%' || ev.previous === '0.6%' || ev.previous === '0.7%';
         if (!ev.previous || isMoMPrevious) {
-          const isCore = ev.title.includes('근원') || ev.title.toLowerCase().includes('core');
           const priorEvents = currentEvents
             .filter((other) => {
               if (other.id === ev.id) return false;
