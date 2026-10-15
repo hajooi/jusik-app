@@ -106,6 +106,36 @@ const getJournalStorageKey = (nickname?: string | null) =>
 const uid = () => Math.random().toString(36).slice(2, 10);
 const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
 
+// 브라우저 로컬 타임존(KST) 기준 YYYY-MM-DD 문자열 반환 (자정 넘김 즉시 반영)
+const getLocalDateString = (d: Date = new Date()): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 저장된 로그의 날짜(UTC ISO 또는 YYYY-MM-DD)를 브라우저 로컬 타임존(KST) 기준 YYYY-MM-DD로 일관성 있게 변환
+const formatLogDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr.slice(0, 10);
+    return getLocalDateString(d);
+  } catch {
+    return dateStr.slice(0, 10);
+  }
+};
+
+// 화면 표시용 한국식 날짜 포맷 (예: 2026. 10. 16. - 타임존 왜곡 원천 차단)
+const formatDisplayDate = (dateStr: string): string => {
+  const ymd = formatLogDate(dateStr);
+  if (!ymd) return '';
+  const parts = ymd.split('-');
+  if (parts.length < 3) return ymd;
+  return `${parts[0]}. ${Number(parts[1])}. ${Number(parts[2])}.`;
+};
+
 // 코인은 소수점 8자리, 주식은 4자리 정밀 표시
 const formatQuantity = (n: number, isCrypto: boolean = false) => {
   if (Number.isInteger(n)) return String(n);
@@ -447,12 +477,12 @@ function AdaptiveAssetTrendChart({
   // 기간 분석 및 적응형 주기 결정 (60일 이내: 일별, 1년 이내: 주별, 1년 초과: 월별)
   const mode: 'daily' | 'weekly' | 'monthly' = useMemo(() => {
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = getLocalDateString(now);
     const allDates: string[] = [];
-    logs.forEach((l) => allDates.push(l.date.slice(0, 10)));
-    snapshots.forEach((s) => allDates.push(s.date.slice(0, 10)));
+    logs.forEach((l) => allDates.push(formatLogDate(l.date)));
+    snapshots.forEach((s) => allDates.push(formatLogDate(s.date)));
     accounts.forEach((acc) => {
-      (acc.deposits || []).forEach((d) => allDates.push(d.date.slice(0, 10)));
+      (acc.deposits || []).forEach((d) => allDates.push(formatLogDate(d.date)));
     });
     allDates.push(todayStr);
     allDates.sort((a, b) => a.localeCompare(b));
@@ -498,7 +528,7 @@ function AdaptiveAssetTrendChart({
   // 1. 기간 분석 및 적응형 타임라인 생성
   const { points } = useMemo(() => {
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = getLocalDateString(now);
 
     const allDeposits: CashDepositLog[] = accounts
       .flatMap((a) => a.deposits || [])
@@ -509,9 +539,9 @@ function AdaptiveAssetTrendChart({
     const hasAnyHistory = hasLogs || hasDeposits || snapshots.length > 0;
 
     const allDates: string[] = [];
-    logs.forEach((l) => allDates.push(l.date.slice(0, 10)));
-    snapshots.forEach((s) => allDates.push(s.date.slice(0, 10)));
-    allDeposits.forEach((d) => allDates.push(d.date.slice(0, 10)));
+    logs.forEach((l) => allDates.push(formatLogDate(l.date)));
+    snapshots.forEach((s) => allDates.push(formatLogDate(s.date)));
+    allDeposits.forEach((d) => allDates.push(formatLogDate(d.date)));
     allDates.push(todayStr);
 
     allDates.sort((a, b) => a.localeCompare(b));
@@ -520,7 +550,7 @@ function AdaptiveAssetTrendChart({
     // 거래 기록/입출금/스냅샷이 전혀 없는 초기 상태라면 최근 1년 전부터의 월봉을 생성하여 시세 흐름 제공
     if (!hasAnyHistory) {
       const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-      earliestDateStr = oneYearAgo.toISOString().slice(0, 10);
+      earliestDateStr = getLocalDateString(oneYearAgo);
     }
 
     const earliestTime = new Date(earliestDateStr).getTime();
@@ -532,7 +562,7 @@ function AdaptiveAssetTrendChart({
     if (mode === 'daily') {
       const cur = new Date(earliestTime);
       while (cur <= now) {
-        const dStr = cur.toISOString().slice(0, 10);
+        const dStr = getLocalDateString(cur);
         const label = `${cur.getMonth() + 1}.${String(cur.getDate()).padStart(2, '0')}`;
         timeKeys.push({ key: dStr, label });
         cur.setDate(cur.getDate() + 1);
@@ -550,7 +580,7 @@ function AdaptiveAssetTrendChart({
       cur.setDate(diff);
 
       while (cur <= now) {
-        const dStr = cur.toISOString().slice(0, 10);
+        const dStr = getLocalDateString(cur);
         const label = `${cur.getMonth() + 1}.${String(cur.getDate()).padStart(2, '0')}`;
         timeKeys.push({ key: dStr, label });
         cur.setDate(cur.getDate() + 7);
@@ -691,8 +721,8 @@ function AdaptiveAssetTrendChart({
     const seedCash = Math.max(0, summary.cashKrw - (totalNetDeposits + totalTradeCashFlow));
 
     // 계좌의 첫 번째 활동 시작일 (첫 거래일 또는 첫 입출금일 중 빠른 일자)
-    const firstLogDate = sortedLogs[0]?.date ? sortedLogs[0].date.slice(0, 10) : null;
-    const firstDepositDate = allDeposits[0]?.date ? allDeposits[0].date.slice(0, 10) : null;
+    const firstLogDate = sortedLogs[0]?.date ? formatLogDate(sortedLogs[0].date) : null;
+    const firstDepositDate = allDeposits[0]?.date ? formatLogDate(allDeposits[0].date) : null;
     let firstActivityDate: string | null = null;
     if (firstLogDate && firstDepositDate) {
       firstActivityDate = firstLogDate < firstDepositDate ? firstLogDate : firstDepositDate;
@@ -735,10 +765,10 @@ function AdaptiveAssetTrendChart({
       }
 
       // 해당 시점까지의 매매 기록 필터링
-      const logsUpToThis = sortedLogs.filter((l) => l.date.slice(0, tk.key.length) <= tk.key);
+      const logsUpToThis = sortedLogs.filter((l) => formatLogDate(l.date).slice(0, tk.key.length) <= tk.key);
 
       // 해당 시점까지의 입출금 기록 필터링
-      const depositsUpToThis = allDeposits.filter((d) => d.date.slice(0, tk.key.length) <= tk.key);
+      const depositsUpToThis = allDeposits.filter((d) => formatLogDate(d.date).slice(0, tk.key.length) <= tk.key);
       const netDepositAtPoint = depositsUpToThis.reduce(
         (acc, d) => acc + (d.type === 'IN' ? d.amountKrw : -d.amountKrw),
         0
@@ -1686,7 +1716,7 @@ export default function JournalPage() {
   const [manualTradeType, setManualTradeType] = useState<'BUY' | 'SELL'>('BUY');
   const [manualTradeQty, setManualTradeQty] = useState('');
   const [manualTradePrice, setManualTradePrice] = useState('');
-  const [manualTradeDate, setManualTradeDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [manualTradeDate, setManualTradeDate] = useState<string>(() => getLocalDateString());
   const [isLoadingHistoryPrice, setIsLoadingHistoryPrice] = useState(false);
 
   // 현재 인라인 수정 중인 종목 심볼 (null이면 평소 Read-Only 모드)
@@ -1764,7 +1794,7 @@ export default function JournalPage() {
   const [newGroupSymbol, setNewGroupSymbol] = useState('');
   const [newGroupWeight, setNewGroupWeight] = useState('');
   const [newGroupHoldings, setNewGroupHoldings] = useState('');
-  const [newGroupTradeDate, setNewGroupTradeDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [newGroupTradeDate, setNewGroupTradeDate] = useState<string>(() => getLocalDateString());
   const [newGroupAvgPrice, setNewGroupAvgPrice] = useState('');
   const [newGroupAvgPriceUsd, setNewGroupAvgPriceUsd] = useState('');
 
@@ -2435,11 +2465,11 @@ export default function JournalPage() {
     let nextLogs = data.logs;
     let nextDeposits = account.deposits || [];
     if (initQty > 0) {
-      const tradeDateObj = new Date(newGroupTradeDate || new Date().toISOString());
+      const effectiveTradeDate = newGroupTradeDate || getLocalDateString();
       const buyAmountKrw = Math.round(initQty * (initAvg || currentPrice));
       const newLog: JournalLog = {
         id: uid(),
-        date: tradeDateObj.toISOString(),
+        date: effectiveTradeDate,
         accountName: account.name,
         items: [
           {
@@ -2456,7 +2486,7 @@ export default function JournalPage() {
       // 초기 보유 자산 등록 시 해당 구매일 날짜로 자동 입금 원장 기록 동기화
       const autoDeposit: CashDepositLog = {
         id: uid(),
-        date: tradeDateObj.toISOString(),
+        date: effectiveTradeDate,
         type: 'IN',
         amountKrw: buyAmountKrw,
         memo: `자동 입금 · 초기 자산 등록 (${name})`,
@@ -2477,7 +2507,7 @@ export default function JournalPage() {
     setNewGroupHoldings('');
     setNewGroupAvgPrice('');
     setNewGroupAvgPriceUsd('');
-    setNewGroupTradeDate(new Date().toISOString().slice(0, 10));
+    setNewGroupTradeDate(getLocalDateString());
     setNewGroupSymbolInfo(null);
     setIsSearchingSymbol(false);
     setSymbolSearchError(null);
@@ -2533,7 +2563,7 @@ export default function JournalPage() {
         const isCrypto = isCryptoSymbol(sym);
         const unit = getSymbolUnit(sym);
         const sName = symbolName(sym, quotes) || sym;
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = getLocalDateString();
 
         // 실현 손익 계산 (판매 시)
         let realizedProfit = 0;
@@ -2605,7 +2635,7 @@ export default function JournalPage() {
       const totalAmount = Math.round(holdQty * p);
       const avgPrice = g.avgPrices?.[sym] || p;
       const realizedProfit = Math.round((p - avgPrice) * holdQty);
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getLocalDateString();
       nextCash += totalAmount;
 
       const sellLog: JournalLog = {
@@ -2673,7 +2703,7 @@ export default function JournalPage() {
 
     const createdLogIds: string[] = [];
     let nextLogs = data.logs;
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getLocalDateString();
 
     // 자산군에 속한 종목들 중 보유 수량이 있는 종목들의 전량 판매 기록 생성
     if (targetGroup) {
@@ -2751,7 +2781,7 @@ export default function JournalPage() {
   // 매일 1회 현재 계좌 상태를 스냅샷에 자동 아카이빙 (향후 시계열 추이 무결성 보존)
   useEffect(() => {
     if (!loaded || !currentSummary || currentSummary.totalAssetsKrw <= 0) return;
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getLocalDateString();
     const existing = data.snapshots?.find((s) => s.date === todayStr);
     const baseInvest = currentSummary.hasInvestData ? currentSummary.totalInvestKrw : currentSummary.totalStockEvalKrw;
     const currentInvest = baseInvest + currentSummary.cashKrw;
@@ -3154,12 +3184,11 @@ export default function JournalPage() {
 
     // 선택한 거래 일자 기준으로 동일 계좌 매매 자동 병합
     // 오늘 이전 날짜의 과거 기록 등록은 예수금을 건드리지 않고 종목 수량·평단·기록만 반영
-    const targetDateObj = new Date(manualTradeDate || new Date().toISOString());
-    const isPastTrade = (manualTradeDate || '') !== '' && manualTradeDate < new Date().toISOString().slice(0, 10);
-    const targetDateStr = targetDateObj.toLocaleDateString('ko-KR');
+    const effectiveTradeDate = manualTradeDate || getLocalDateString();
+    const isPastTrade = effectiveTradeDate < getLocalDateString();
     const existingIndex = data.logs.findIndex((l) => {
-      const lDate = new Date(l.date).toLocaleDateString('ko-KR');
-      return lDate === targetDateStr && l.accountName === account.name && !!l.cashNeutral === isPastTrade;
+      const lDate = formatLogDate(l.date);
+      return lDate === effectiveTradeDate && l.accountName === account.name && !!l.cashNeutral === isPastTrade;
     });
 
     let nextLogs: JournalLog[];
@@ -3194,7 +3223,7 @@ export default function JournalPage() {
     } else {
       const newLog: JournalLog = {
         id: uid(),
-        date: targetDateObj.toISOString(),
+        date: effectiveTradeDate,
         accountName: account.name,
         items: [newItem],
         type: tradeQty < 0 ? 'SELL' : 'BUY',
@@ -3210,7 +3239,7 @@ export default function JournalPage() {
     if (shortageKrw > 0) {
       const autoDeposit: CashDepositLog = {
         id: uid(),
-        date: targetDateObj.toISOString(),
+        date: effectiveTradeDate,
         type: 'IN',
         amountKrw: shortageKrw,
         memo: `자동 입금 · 잔액 부족분 (${sName} 구매)`,
@@ -3288,7 +3317,7 @@ export default function JournalPage() {
     const headers = ['날짜', '계좌명', '종목명', '종목코드', '수량', '거래금액(원)', '구분', '실현손익(원)'];
     const rows = allSortedLogs.flatMap((l) =>
       l.items.map((i) => [
-        `"${new Date(l.date).toLocaleDateString('ko-KR')}"`,
+        `"${formatDisplayDate(l.date)}"`,
         `"${l.accountName}"`,
         `"${i.name}"`,
         `"${i.symbol}"`,
@@ -3304,7 +3333,7 @@ export default function JournalPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `jusik_journal_records_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `jusik_journal_records_${getLocalDateString()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -3323,9 +3352,9 @@ export default function JournalPage() {
     > = {};
 
     logsForAccount.forEach((l) => {
-      const d = new Date(l.date);
-      if (isNaN(d.getTime())) return;
-      const monthKey = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const ymd = formatLogDate(l.date);
+      if (!ymd) return;
+      const monthKey = `${ymd.slice(0, 4)}.${ymd.slice(5, 7)}`;
       if (!map[monthKey]) {
         map[monthKey] = {
           monthStr: monthKey,
@@ -3968,7 +3997,7 @@ export default function JournalPage() {
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-[var(--text-primary)]">
-                              {new Date(log.date).toLocaleDateString('ko-KR')}
+                              {formatDisplayDate(log.date)}
                             </span>
                             <span className="text-[10px] text-[var(--text-secondary)] font-mono">
                               · {log.accountName}
@@ -4733,7 +4762,7 @@ export default function JournalPage() {
                             {log.type === 'IN' ? '입금' : '출금'}
                           </span>
                           <span className="font-mono text-[var(--text-secondary)] text-[11px]">
-                            {log.date.slice(0, 10)}
+                            {formatLogDate(log.date)}
                           </span>
                           <span className="text-[var(--text-primary)] font-medium">{log.memo}</span>
                         </div>
@@ -4902,26 +4931,28 @@ export default function JournalPage() {
                     </button>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => setIsAddGroupOpen((v) => !v)}
-                    className={
-                      isAddGroupOpen
-                        ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-[var(--accent-orange)] text-white shadow-sm hover:brightness-105 transition-all flex items-center gap-1.5 cursor-pointer'
-                        : 'px-3 py-1.5 rounded-full text-xs font-extrabold border border-[var(--accent-orange)]/70 bg-[var(--card-surface)] text-[var(--accent-orange)] hover:bg-[var(--accent-orange)] hover:text-white hover:shadow-[0_0_18px_rgba(241,143,1,0.25)] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs'
-                    }
-                    title={isAddGroupOpen ? '추가 폼 닫기' : '새 자산군 추가'}
-                  >
-                    {isAddGroupOpen ? (
-                      <>
-                        <X className="w-3.5 h-3.5" /> <span>닫기</span>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> <span>자산군 추가</span>
-                      </>
-                    )}
-                  </button>
+                  {account.groups.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsAddGroupOpen((v) => !v)}
+                      className={
+                        isAddGroupOpen
+                          ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-[var(--accent-orange)] text-white shadow-sm hover:brightness-105 transition-all flex items-center gap-1.5 cursor-pointer'
+                          : 'px-3 py-1.5 rounded-full text-xs font-extrabold border border-[var(--accent-orange)]/70 bg-[var(--card-surface)] text-[var(--accent-orange)] hover:bg-[var(--accent-orange)] hover:text-white hover:shadow-[0_0_18px_rgba(241,143,1,0.25)] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs'
+                      }
+                      title={isAddGroupOpen ? '추가 폼 닫기' : '새 자산군 추가'}
+                    >
+                      {isAddGroupOpen ? (
+                        <>
+                          <X className="w-3.5 h-3.5" /> <span>닫기</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> <span>자산군 추가</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -4932,14 +4963,27 @@ export default function JournalPage() {
                 </div>
               )}
 
-              {account.groups.length === 0 && (
-                <div className="py-8 text-center space-y-2 border border-dashed border-[var(--border-color)] rounded-2xl bg-[var(--bg-main)]/30">
-                  <p className="text-xs font-bold text-[var(--text-secondary)]">
-                    아직 추가된 자산군이 없습니다.
-                  </p>
-                  <p className="text-[11px] text-[var(--text-secondary)]">
-                    위 버튼을 눌러 원하는 자산(예: S&P 500, 비트코인, 금 등)을 추가해 보세요.
-                  </p>
+              {account.groups.length === 0 && !isAddGroupOpen && (
+                <div className="py-10 text-center space-y-3.5 border border-dashed border-[var(--border-color)]/80 rounded-2xl bg-[var(--bg-main)]/30">
+                  <div className="w-10 h-10 rounded-full bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] flex items-center justify-center mx-auto">
+                    <Layers className="w-5 h-5 stroke-[1.8]" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-[var(--text-primary)]">
+                      아직 추가된 자산군이 없습니다.
+                    </p>
+                    <p className="text-[11px] text-[var(--text-secondary)]">
+                      원하는 자산(예: S&P 500, 비트코인, 금 등)을 등록해 목표 비율을 설정해 보세요.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddGroupOpen(true)}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 shadow-sm hover:shadow-[0_0_18px_rgba(241,143,1,0.25)] transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>자산군 추가하기</span>
+                  </button>
                 </div>
               )}
 
@@ -5496,7 +5540,7 @@ export default function JournalPage() {
                                               ? (quoteEntry?.price ? String(quoteEntry.price) : (avgUsd > 0 ? String(avgUsd) : ''))
                                               : (p ? String(p) : String(avg || ''))
                                           );
-                                          setManualTradeDate(new Date().toISOString().slice(0, 10));
+                                          setManualTradeDate(getLocalDateString());
                                         }
                                       }}
                                       className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
@@ -6169,7 +6213,7 @@ export default function JournalPage() {
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-[var(--text-primary)]">
-                              {new Date(log.date).toLocaleDateString('ko-KR')}
+                              {formatDisplayDate(log.date)}
                             </span>
                             <span className="text-[10px] text-[var(--text-secondary)] font-mono">
                               · {log.accountName}
