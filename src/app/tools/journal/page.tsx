@@ -2284,7 +2284,7 @@ export default function JournalPage() {
   };
 
   const addAccount = () => {
-    if (!isPro && data.accounts.length >= 2) {
+    if (!isPro && data.accounts.length >= 3) {
       openProPopover('account');
       return;
     }
@@ -3357,44 +3357,19 @@ export default function JournalPage() {
     );
   }
 
-  // 관리자(주식부엉)가 아닌 일반 사용자의 직접 URL 진입 차단 및 오픈 준비 중 화면 렌더링
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] px-4 py-12 sm:py-20 flex flex-col items-center justify-center">
-        <div className="max-w-md w-full text-center space-y-5 p-8 rounded-2xl bg-[var(--card-surface)] border border-[var(--border-color)]/90 shadow-2xl">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 flex items-center justify-center text-[var(--accent-orange)]">
-            <Sparkles className="w-7 h-7" />
-          </div>
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-[var(--accent-orange)] bg-[var(--accent-orange)]/10 px-3 py-1 rounded-full border border-[var(--accent-orange)]/25">
-              오픈 준비 중
-            </span>
-            <h1 className="text-xl font-extrabold text-[var(--text-primary)]">
-              나의 투자일지
-            </h1>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              보다 정밀하고 안정적인 포트폴리오 관리 경험을 제공해 드리기 위해 마지막 점검을 진행하고 있습니다. 오픈 시 공지사항을 통해 안내해 드리겠습니다.
-            </p>
-          </div>
-          <Link
-            href="/tools"
-            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 shadow-md transition-all active:scale-95"
-          >
-            <ArrowLeft className="w-4 h-4" /> 투자 도구로 돌아가기
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 pb-32">
       {/* 헤더 */}
       <div className="py-2 px-1 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
-            나의 투자일지
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
+              나의 투자일지
+            </h1>
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 shadow-2xs">
+              BETA
+            </span>
+          </div>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
             자산 배분 목표 비율을 정하고, 이번에 살 수량을 손쉽게 계산해 보세요.
           </p>
@@ -3469,7 +3444,7 @@ export default function JournalPage() {
                 {proPopoverTarget === 'account' && (
                   <ProMiniPopover
                     title="PRO 전용 (다중 계좌 무제한)"
-                    description="기본 플랜에서는 최대 2개 계좌까지 지원됩니다. 연금저축, ISA, 해외 직투, 가상자산 등 목적별 무제한 다중 계좌를 관리해 보세요."
+                    description="무료 회원은 최대 세 개의 계좌(예: 연금저축, ISA, 일반 위탁)까지 등록할 수 있습니다. PRO 멤버십으로 업그레이드하면 가상자산, 가족 계좌 등 목적별 무제한 다중 계좌를 자유롭게 관리할 수 있습니다."
                     align="left"
                     isClosing={isProPopoverClosing}
                     onClose={closeProPopover}
@@ -3541,7 +3516,7 @@ export default function JournalPage() {
               {proPopoverTarget === 'account' && (
                 <ProMiniPopover
                   title="PRO 전용 (다중 계좌 무제한)"
-                  description="기본 플랜에서는 최대 2개 계좌까지 지원됩니다. 연금저축, ISA, 해외 직투, 가상자산 등 목적별 무제한 다중 계좌를 관리해 보세요."
+                  description="무료 회원은 최대 세 개의 계좌(예: 연금저축, ISA, 일반 위탁)까지 등록할 수 있습니다. PRO 멤버십으로 업그레이드하면 가상자산, 가족 계좌 등 목적별 무제한 다중 계좌를 자유롭게 관리할 수 있습니다."
                   align="left"
                   isClosing={isProPopoverClosing}
                   onClose={closeProPopover}
@@ -5226,7 +5201,7 @@ export default function JournalPage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-between gap-2 w-full">
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap">
                               {isReorderingGroups && (
                                 <div
                                   className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors shrink-0"
@@ -5240,6 +5215,9 @@ export default function JournalPage() {
                               </span>
                               <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] border border-[var(--border-color)]/80 shrink-0">
                                 목표 {g.weight}%
+                              </span>
+                              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[var(--card-surface)] text-[var(--text-secondary)] border border-[var(--border-color)]/70 shrink-0">
+                                현재 {status ? status.currentPct.toFixed(1) : '0.0'}%
                               </span>
                               {!isReorderingGroups && (
                                 <button
@@ -5844,18 +5822,6 @@ export default function JournalPage() {
                           )}
                         </div>
                       </div>
-
-                      {/* 자산군 비중 안내 (현재 / 목표 심플 표시) */}
-                      {status && (
-                        <div className="pt-1 text-[11px] font-mono text-[var(--text-secondary)] flex items-center justify-between">
-                          <span>
-                            현재 {status.currentPct.toFixed(1)}%
-                          </span>
-                          <span className="font-bold text-[var(--text-primary)]">
-                            목표 {status.targetPct.toFixed(1)}%
-                          </span>
-                        </div>
-                      )}
                     </div>
                   );
                 })}

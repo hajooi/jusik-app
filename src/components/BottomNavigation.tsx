@@ -60,12 +60,12 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
-    id: 'etf-fee',
-    title: 'ETF 수수료',
-    description: '숨은 비용까지 합산한 ETF 실부담 비용 한눈에 비교',
-    href: '/tools/fees',
-    icon: Receipt,
-    tag: '실부담 비용',
+    id: 'journal',
+    title: '나의 투자일지',
+    description: '계좌별 목표 비율과 구매 수량 자동 계산',
+    href: '/tools/journal',
+    icon: BookOpen,
+    tag: 'BETA',
     isComingSoon: false,
   },
   {
@@ -78,6 +78,15 @@ const TOOLS_DIRECTORY = [
     isComingSoon: false,
   },
   {
+    id: 'etf-fee',
+    title: 'ETF 수수료',
+    description: '숨은 비용까지 합산한 ETF 실부담 비용 한눈에 비교',
+    href: '/tools/fees',
+    icon: Receipt,
+    tag: '실부담 비용',
+    isComingSoon: false,
+  },
+  {
     id: 'terms',
     title: '주식 용어 퀴즈',
     description: '주식 시장 필수 기초 용어! 퀴즈로 쉽고 재미있게 실력 점검',
@@ -85,15 +94,6 @@ const TOOLS_DIRECTORY = [
     icon: HelpCircle,
     tag: '15문항 랭킹전',
     isComingSoon: false,
-  },
-  {
-    id: 'journal',
-    title: '나의 투자일지',
-    description: '계좌별 목표 비율과 구매 수량 자동 계산',
-    href: '/tools/journal',
-    icon: BookOpen,
-    tag: '투자 기록',
-    isComingSoon: true,
   },
 ];
 
@@ -976,33 +976,6 @@ export default function BottomNavigation() {
                   const isAnimating = animatingToolId === tool.id;
                   
                   if (tool.isComingSoon) {
-                    // 관리자인 경우 뱃지는 동일하게 '오픈 예정'이지만 클릭하여 진입 가능!
-                    if (tool.id === 'journal' && isAdmin) {
-                      return (
-                        <Link
-                          key={tool.id}
-                          href={tool.href}
-                          onClick={() => {
-                            setIsExpanded(false);
-                            setDragY(null);
-                          }}
-                          className="p-3 sm:p-3.5 rounded-2xl flex items-center justify-between gap-3 transition-all duration-250 cursor-pointer relative group glass-card hover:bg-[var(--card-hover)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] border border-[var(--border-color)]"
-                        >
-                          <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
-                            <div className="w-8 h-8 rounded-xl bg-[var(--card-hover)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 transition-all shrink-0">
-                              <ToolIcon className="w-4 h-4 stroke-[1.8]" />
-                            </div>
-                            <h3 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
-                              {tool.title}
-                            </h3>
-                          </div>
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-secondary)]/10 text-[var(--text-secondary)] shrink-0">
-                            오픈 예정
-                          </span>
-                        </Link>
-                      );
-                    }
-
                     return (
                       <div
                         key={tool.id}

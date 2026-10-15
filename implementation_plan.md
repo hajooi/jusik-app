@@ -1,101 +1,70 @@
-# 프로 멤버십 플랜 내 '제휴 증권사 계좌 개설 시 무료' 문구 제거 작업 계획
+# 나의 투자일지 공개, 배치 순서 조정 및 계좌 3개 무료화 & SEO/GEO 강화 계획
 
-## 1. 개요 및 목적
-- **배경**: 현재 멤버십 플랜 비교 모달(`MembershipCompareModal.tsx`)의 PRO 플랜 가격 영역에 `제휴 증권사 계좌 개설 시 무료 (거래 시 1년 단위 연장)` 안내 문구가 노출되고 있습니다.
-- **목적**: 제휴 계좌 개설 연계 전략이 확정되지 않은 상태이므로, '멤버십 플랜 알아보기' 모달 내 해당 문구를 깔끔하게 제거하여 불확실한 혜택 안내를 선제적으로 배제합니다.
+## 1. 개요 및 사용자 피드백 반영
+1. **투자도구 내 배치 순서 최적화**:
+   - `투자 전략 시뮬레이터` 바로 다음 위치에 `나의 투자일지` 배치
+   - **흐름**: 성향 진단 ➔ 전략 시뮬레이션(백테스트) ➔ **나의 투자일지(실제 포트폴리오 운용/리밸런싱)** ➔ 시장 캘린더 ➔ ETF 수수료 ➔ 용어 퀴즈
+2. **일반 회원 무료 계좌 한도 확대 (2개 ➔ 3개)**:
+   - 한국 개인 투자자의 3대 필수 계좌(연금저축, ISA, 일반 위탁/직투)를 모두 수용할 수 있도록 무료 제공 범위를 **최대 세 개(3개)**로 전격 확대
+   - '치사하지 않은' 넉넉한 경험으로 유저 락인 및 만족도를 극대화하고, 4개 이상(가족 계좌, 배당 전용, 코인 분할 등) 헤비 유저에게 PRO 유도
+3. **공개 전환 및 BETA 뱃지 적용**:
+   - 관리자 제한 화면 해제 및 타이틀/네비게이션에 `BETA` 뱃지 노출
+4. **SEO & GEO (생성형 AI 검색 최적화)**:
+   - `sitemap.ts` 매일 색인 추가
+   - `layout.tsx`에 `WebApplication` + `FAQPage` + `BreadcrumbList` 고밀도 JSON-LD 및 정밀 메타데이터 주입
 
 ---
 
-## 2. 시각적 구조도 (Mermaid Diagram)
+## 2. 도구 배치 순서 (Before vs After)
 
 ```mermaid
-flowchart TD
-    subgraph Trigger["1. 사용자 진입 경로"]
-        AuthPopover["사용자 메뉴 (AuthPopover)<br/>'멤버십 플랜 알아보기' 클릭"] --> OpenModal["MembershipCompareModal 열림"]
-        Ribbon["상단 앰버 배너 (AnnouncementRibbon)"] --> OpenModal
-    end
+graph TD
+  subgraph AS_IS["[기존 도구 배치]"]
+    A1["1. 투자 성향 진단"]
+    A2["2. 투자 전략 시뮬레이터"]
+    A3["3. 증시 캘린더"]
+    A4["4. ETF 수수료"]
+    A5["5. 주식 용어 퀴즈"]
+    A6["6. 나의 투자일지 (맨 끝, 비공개)"]
+    A1 --> A2 --> A3 --> A4 --> A5 --> A6
+  end
 
-    subgraph ModalView["2. 멤버십 비교 모달 (MembershipCompareModal)"]
-        direction TB
-        FreeCard["FREE 플랜<br/>0원 / 평생"]
-        ProCard["PRO 실전 플랜<br/>4,900원 / 월"]
-        ProPlusCard["PRO+ VIP 플랜<br/>12,000원 / 월<br/>(최고 등급 전용 도구)"]
-        
-        OpenModal --> FreeCard
-        OpenModal --> ProCard
-        OpenModal --> ProPlusCard
-    end
-
-    subgraph ModTarget["3. 변경 대상 (PRO 플랜 가격 영역)"]
-        Before["[기존]<br/>4,900원 / 월<br/>제휴 증권사 계좌 개설 시 무료 (거래 시 1년 단위 연장)"]
-        After["[변경 후]<br/>4,900원 / 월<br/>(제휴 무료 문구 완전 제거)"]
-        
-        ProCard -.-> Before
-        Before -->|문구 삭제| After
-    end
+  subgraph TO_BE["[개선 도구 배치 (시뮬레이터 다음 연계)]"]
+    B1["1. 투자 성향 진단"]
+    B2["2. 투자 전략 시뮬레이터"]
+    B3["⭐ 3. 나의 투자일지 (BETA)"]
+    B4["4. 증시 캘린더"]
+    B5["5. ETF 수수료"]
+    B6["6. 주식 용어 퀴즈"]
+    B1 --> B2 --> B3 --> B4 --> B5 --> B6
+  end
 ```
 
 ---
 
-## 3. 세부 수정 계획
+## 3. 세부 파일별 구현 내역
 
-### 대상 파일: `src/components/MembershipCompareModal.tsx` (Line 322~331)
+### ① `src/app/tools/page.tsx` & `src/components/BottomNavigation.tsx`
+- **도구 목록 순서**: `journal`을 `simulate` 바로 다음(3번째)으로 이동
+- **상태 전환**: `isComingSoon: false`, `badge: 'BETA'` (또는 `tag: 'BETA'`) 적용
+- 관리자 전용 예외 분기문 정리
 
-#### 수정 전 (Before)
-```tsx
-{/* Price & Badge Preview */}
-<div className="py-2.5 border-y border-[var(--border-color)]/60 flex items-center justify-between">
-  <div>
-    <div className="flex items-baseline gap-1">
-      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
-      <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
-    </div>
-    <div className="text-[10px] text-[var(--accent-orange)] font-medium pt-0.5">
-      제휴 증권사 계좌 개설 시 무료 (거래 시 1년 단위 연장)
-    </div>
-  </div>
+### ② `src/app/tools/journal/page.tsx`
+- **접근 제한 해제**: `if (!isAdmin)` 차단 블록 전면 삭제
+- **BETA 뱃지 부착**: 헤더 `나의 투자일지` 옆에 오렌지 글래스모픽 `BETA` 뱃지 렌더링
+- **무료 계좌 한도 확대**:
+  - `data.accounts.length >= 2` ➔ `data.accounts.length >= 3`
+  - 팝오버 문구 업데이트: *"무료 회원은 최대 세 개의 계좌(예: 연금저축, ISA, 일반 위탁)까지 등록할 수 있습니다. PRO 멤버십으로 업그레이드하면 가상자산, 가족 계좌 등 목적별 무제한 다중 계좌를 자유롭게 관리할 수 있습니다."* (순우리말 수관형사 '세 개' 준수)
 
-  {/* Badge Preview */}
-  <span 
-    className="animate-pro-badge inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none shadow-2xs"
-    title="PRO 앰버 뱃지"
-  >
-    <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20" />
-    <span>PRO</span>
-  </span>
-</div>
-```
+### ③ `src/app/sitemap.ts`
+- `/tools/journal` 경로 활성화 (`changeFrequency: 'daily'`, `priority: 0.9`)
 
-#### 수정 후 (After)
-```tsx
-{/* Price & Badge Preview */}
-<div className="py-2.5 border-y border-[var(--border-color)]/60 flex items-center justify-between">
-  <div>
-    <div className="flex items-baseline gap-1">
-      <span className="text-2xl sm:text-3xl font-black font-mono text-[var(--text-primary)]">4,900원</span>
-      <span className="text-xs text-[var(--text-secondary)]">/ 월</span>
-    </div>
-  </div>
-
-  {/* Badge Preview */}
-  <span 
-    className="animate-pro-badge inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold font-mono text-[var(--accent-orange)] bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/50 select-none shadow-2xs"
-    title="PRO 앰버 뱃지"
-  >
-    <Crown className="w-3 h-3 stroke-[2.4] fill-[var(--accent-orange)]/20" />
-    <span>PRO</span>
-  </span>
-</div>
-```
+### ④ `src/app/tools/journal/layout.tsx`
+- 종합 메타데이터 및 `WebApplication`, `FAQPage`, `BreadcrumbList` JSON-LD 주입
 
 ---
 
 ## 4. 검증 계획
-1. **정적 무결성 및 루프 엔지니어링 검증**:
-   - `npm run verify` 실행:
-     - TypeScript 타입 컴파일 에러 여부 점검 (`tsc --noEmit`)
-     - 도메인 금지어 규칙 점검 (매수/매도/주가/시가총액/수관형사)
-     - 시크릿 및 비밀값 누출 여부 점검
-2. **UI/UX 레이아웃 점검**:
-   - 문구 제거 후 FREE, PRO, PRO+ 3단 카드의 상하 정렬 및 높이 균형 점검
-   - 모바일 및 데스크톱 뷰포트에서 깨짐 없이 정상 렌더링되는지 확인
+1. `npm run verify` 루프 엔지니어링 6대 관문 전수 통과 확인
+2. 3계좌 추가 정상 작동 및 4번째 계좌 생성 시 PRO 팝오버 안내 확인
+3. 도구 페이지 및 바텀 네비게이션 순서 및 BETA 뱃지 렌더링 점검

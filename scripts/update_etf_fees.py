@@ -15,6 +15,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import sys
 import time
+import uuid
 from datetime import datetime
 
 TARGET_JSON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/data/etfFees.json"))
@@ -1406,11 +1407,12 @@ def fetch_clean_dividend_yield(symbol, is_tr=False, is_us=False, tk_instance=Non
     return 0.0, "actual_zero_paid"
 
 def write_github_output(summary):
-    """GitHub Actions 단계 출력(텔레그램 알림용)."""
+    """GitHub Actions 단계 출력(텔레그램 알림용, 다중 줄 지원 포맷)."""
     path = os.environ.get("GITHUB_OUTPUT")
     if path:
+        delimiter = f"EOF_{uuid.uuid4().hex}"
         with open(path, "a", encoding="utf-8") as f:
-            f.write(f"summary={summary}\n")
+            f.write(f"summary<<{delimiter}\n{summary}\n{delimiter}\n")
 
 # -------------------------------------------------------------
 # 8. 메인 함수

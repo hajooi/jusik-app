@@ -15,6 +15,7 @@ interface ToolItem {
   isComingSoon: boolean;
   hasEvent?: boolean;
   eventBadge?: string;
+  badge?: string;
 }
 
 const RAW_TOOLS: ToolItem[] = [
@@ -35,12 +36,13 @@ const RAW_TOOLS: ToolItem[] = [
     isComingSoon: false,
   },
   {
-    id: 'etf-fee',
-    title: 'ETF 수수료',
-    description: '숨은 비용까지 합산한 ETF 실부담 비용 비교',
-    href: '/tools/fees',
-    icon: Receipt,
+    id: 'journal',
+    title: '나의 투자일지',
+    description: '계좌별 목표 비율과 구매 수량 자동 계산',
+    href: '/tools/journal',
+    icon: BookOpen,
     isComingSoon: false,
+    badge: 'BETA',
   },
   {
     id: 'market',
@@ -51,20 +53,20 @@ const RAW_TOOLS: ToolItem[] = [
     isComingSoon: false,
   },
   {
+    id: 'etf-fee',
+    title: 'ETF 수수료',
+    description: '숨은 비용까지 합산한 ETF 실부담 비용 비교',
+    href: '/tools/fees',
+    icon: Receipt,
+    isComingSoon: false,
+  },
+  {
     id: 'terms',
     title: '주식 용어 퀴즈',
     description: '주식 시장 필수 기초 용어 퀴즈',
     href: '/tools/terms',
     icon: HelpCircle,
     isComingSoon: false,
-  },
-  {
-    id: 'journal',
-    title: '나의 투자일지',
-    description: '계좌별 목표 비율과 구매 수량 자동 계산',
-    href: '/tools/journal',
-    icon: BookOpen,
-    isComingSoon: true,
   },
 ];
 
@@ -169,41 +171,6 @@ export default function ToolsPage() {
               };
 
           if (tool.isComingSoon) {
-            // 관리자인 경우 뱃지는 동일하게 '오픈 준비 중'이지만 클릭하여 진입 가능!
-            if (tool.id === 'journal' && isAdmin) {
-              return (
-                <div
-                  key={tool.id}
-                  style={cardWrapperStyle}
-                  className={isMounted ? 'animate-card-glide h-full' : 'h-full'}
-                >
-                  <Link
-                    href={tool.href}
-                    className="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all duration-300 group shadow-2xs active:scale-[0.99] h-full gap-3 relative overflow-hidden"
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                      <div className="w-10 h-10 rounded-xl bg-[var(--bg-main)] flex items-center justify-center text-[var(--text-secondary)] group-hover:text-[var(--accent-orange)] group-hover:bg-[var(--accent-orange)]/15 group-hover:scale-105 transition-all shrink-0 border border-[var(--border-color)]/60">
-                        <Icon className="w-5 h-5 stroke-[1.8]" />
-                      </div>
-                      <div className="min-w-0 space-y-0.5">
-                        <h3 className="text-sm sm:text-base font-bold tracking-tight text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
-                          {tool.title}
-                        </h3>
-                        <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
-                          {tool.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center text-xs font-semibold text-[var(--text-secondary)] font-mono gap-1 shrink-0">
-                      <Clock className="w-3.5 h-3.5 stroke-[1.7]" />
-                      <span>오픈 준비 중</span>
-                    </div>
-                  </Link>
-                </div>
-              );
-            }
-
             return (
               <div
                 key={tool.id}
@@ -269,6 +236,11 @@ export default function ToolsPage() {
                       >
                         {tool.title}
                       </h3>
+                      {tool.badge && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-mono font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/40 shadow-2xs">
+                          {tool.badge}
+                        </span>
+                      )}
                       {tool.hasEvent && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/40 shadow-[0_0_10px_rgba(241,143,1,0.2)] animate-pulse">
                           {tool.eventBadge || 'EVENT'}
