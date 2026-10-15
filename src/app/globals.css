@@ -526,6 +526,36 @@ html {
   animation: slideOutLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+@keyframes slideDownApple {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -24px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes slideUpApple {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -24px) scale(0.95);
+  }
+}
+
+.animate-undo-enter {
+  animation: slideDownApple 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-undo-exit {
+  animation: slideUpApple 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

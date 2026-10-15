@@ -59,7 +59,8 @@ export interface JournalAccount {
   noSell: boolean; // 판매 금지 (모으기 전용)
   cash: number; // 원화 예수금 (원)
   cashUsd?: number; // 달러 예수금 (USD)
-  budget: number; // 이번에 추가로 넣을 금액 (원)
+  budget?: number; // 레거시 호환 필드 (미사용)
+  monthlyDepositGoal?: number; // 매월 정기 적립 목표 금액 프리셋 (원)
   groups: JournalGroup[];
   deposits?: CashDepositLog[]; // 입출금 기록
   snapshots?: AssetSnapshot[]; // 시간가중수익률 추적용 스냅샷
@@ -459,10 +460,8 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
   const groups = account.groups;
   const cashUsdKrw = (account.cashUsd || 0) * (q.usdKrw || 1350);
   const currentCash = Math.max(0, Math.round((account.cash || 0) + cashUsdKrw));
-  const extraBudget = Math.max(0, account.budget || 0);
-
-  // 총 가용 현금: 원화 예수금 + 달러 예수금(원화 환산) + 이번 추가 입금액
-  const availableCash = currentCash + extraBudget;
+  // 총 가용 현금: 원화 예수금 + 달러 예수금(원화 환산)
+  const availableCash = currentCash;
 
   const values = groups.map((gr) => {
     let v = 0;
@@ -502,22 +501,29 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
   // 가용 주식 구매 자금 = 가용 현금 중 목표 현금을 보존하고 남는 자금
   const maxAvailableForStock = Math.max(0, availableCash - targetCashKrw);
 
+  // 최소 거래 가능 금액 (가상자산 및 국내외 거래소 최소 주문 단위: 5,000원)
+  // 5,000원 미만의 미세한 잔여 괴리나 수수료 오차로 인한 소수점 자투리 주문 방지
+  const MIN_TRADE_AMOUNT_KRW = 5000;
+
+  // 5,000원 미만 잔여 괴리는 리밸런싱 완료 상태로 간주
+  const effectiveGaps = gaps.map((x) => (Math.abs(x) < MIN_TRADE_AMOUNT_KRW ? 0 : x));
+
   let alloc: number[];
   if (account.noSell) {
-    const deficits = gaps.map((x) => Math.max(0, x));
+    const deficits = effectiveGaps.map((x) => Math.max(0, x));
     const sumDeficits = deficits.reduce((a, b) => a + b, 0);
 
-    if (sumDeficits > 0 && maxAvailableForStock > 0) {
+    if (sumDeficits > 0 && maxAvailableForStock >= MIN_TRADE_AMOUNT_KRW) {
       const deployableCash = Math.min(maxAvailableForStock, sumDeficits);
-      alloc = deficits.map((d) => (deployableCash * d) / sumDeficits);
+      alloc = deficits.map((d) => (d >= MIN_TRADE_AMOUNT_KRW ? (deployableCash * d) / sumDeficits : 0));
     } else {
       alloc = groups.map(() => 0);
     }
   } else {
-    alloc = gaps.slice();
+    alloc = effectiveGaps.slice();
   }
 
-  // 매매 수수료 및 환전 비용을 감안한 실질 1단위 비용 계산 헬퍼
+  // 거래 수수료 및 환전 비용을 감안한 실질 1단위 비용 계산 헬퍼
   const getUnitCost = (sym: string): number => {
     const p = priceKrw(sym, q);
     if (p === null || p <= 0) return 0;
@@ -534,23 +540,109 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
 
   const lines: PlanLine[] = [];
   const boughtQty = groups.map(() => 0);
+  const groupSellDelta = groups.map(() => 0);
   let spent = 0;
 
   groups.forEach((gr, i) => {
-    const p = priceKrw(gr.buySymbol, q);
-    if (p === null || p <= 0) return;
-    const unitCost = getUnitCost(gr.buySymbol);
-    const raw = alloc[i] / (unitCost > 0 ? unitCost : p);
-    const allowFractional = isFractionalAllowed(gr.buySymbol, account.fractional);
-    const isCrypto = isCryptoSymbol(gr.buySymbol);
-    const digits = isCrypto ? 8 : 4;
+    // 1) 판매(비중 축소)인 경우: 대표 종목 외의 서브 종목부터 우선 판매하여 보유 한도 내에서 정리
+    if (alloc[i] < 0) {
+      let remainingSellAmount = Math.abs(alloc[i]);
 
-    const qty = raw >= 0
-      ? allowFractional ? floorTo(raw, digits) : Math.floor(raw + 1e-9)
-      : allowFractional ? -floorTo(-raw, digits) : -Math.floor(-raw + 1e-9);
+      // 서브 종목들 (대표 종목이 아닌 보유 종목들)
+      const subSymbols = gr.symbols.filter(
+        (sym) => sym !== gr.buySymbol && (gr.holdings[sym] || 0) > 0
+      );
 
-    boughtQty[i] = qty;
-    spent += qty * (unitCost > 0 ? unitCost : p);
+      for (const sym of subSymbols) {
+        if (remainingSellAmount <= 0) break;
+        const p = priceKrw(sym, q);
+        if (p === null || p <= 0) continue;
+        const heldQty = gr.holdings[sym] || 0;
+        if (heldQty <= 0) continue;
+
+        const allowFractional = isFractionalAllowed(sym, account.fractional);
+        const isCrypto = isCryptoSymbol(sym);
+        const digits = isCrypto ? 8 : 4;
+
+        const rawNeeded = remainingSellAmount / p;
+        const qtyToSell = Math.min(
+          heldQty,
+          allowFractional ? floorTo(rawNeeded, digits) : Math.floor(rawNeeded + 1e-9)
+        );
+
+        if (qtyToSell > 0) {
+          const sellAmountKrw = Math.round(qtyToSell * p);
+          // 전량 정리이거나 최소 주문 금액(5,000원) 이상일 때만 판매 라인 생성
+          if (sellAmountKrw >= MIN_TRADE_AMOUNT_KRW || heldQty <= qtyToSell) {
+            lines.push({
+              groupId: gr.id,
+              groupName: gr.name,
+              symbol: sym,
+              qty: -qtyToSell,
+              priceKrw: p,
+              amountKrw: -sellAmountKrw,
+            });
+            remainingSellAmount -= sellAmountKrw;
+            groupSellDelta[i] += sellAmountKrw;
+            spent -= sellAmountKrw;
+          }
+        }
+      }
+
+      // 서브 종목을 다 판매하고도 더 줄여야 할 때만 대표 종목(buySymbol) 판매 (실제 보유량 한도 캡)
+      if (remainingSellAmount > 0) {
+        const p = priceKrw(gr.buySymbol, q);
+        const heldQty = gr.holdings[gr.buySymbol] || 0;
+        if (p !== null && p > 0 && heldQty > 0) {
+          const allowFractional = isFractionalAllowed(gr.buySymbol, account.fractional);
+          const isCrypto = isCryptoSymbol(gr.buySymbol);
+          const digits = isCrypto ? 8 : 4;
+
+          const rawNeeded = remainingSellAmount / p;
+          const qtyToSell = Math.min(
+            heldQty,
+            allowFractional ? floorTo(rawNeeded, digits) : Math.floor(rawNeeded + 1e-9)
+          );
+
+          if (qtyToSell > 0) {
+            const sellAmountKrw = Math.round(qtyToSell * p);
+            if (sellAmountKrw >= MIN_TRADE_AMOUNT_KRW || heldQty <= qtyToSell) {
+              lines.push({
+                groupId: gr.id,
+                groupName: gr.name,
+                symbol: gr.buySymbol,
+                qty: -qtyToSell,
+                priceKrw: p,
+                amountKrw: -sellAmountKrw,
+              });
+              remainingSellAmount -= sellAmountKrw;
+              groupSellDelta[i] += sellAmountKrw;
+              spent -= sellAmountKrw;
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    // 2) 구매(비중 확대)인 경우: 앞으로 모아갈 대표 종목(buySymbol) 구매
+    if (alloc[i] > 0) {
+      const p = priceKrw(gr.buySymbol, q);
+      if (p === null || p <= 0) return;
+      const unitCost = getUnitCost(gr.buySymbol);
+      const raw = alloc[i] / (unitCost > 0 ? unitCost : p);
+      const allowFractional = isFractionalAllowed(gr.buySymbol, account.fractional);
+      const isCrypto = isCryptoSymbol(gr.buySymbol);
+      const digits = isCrypto ? 8 : 4;
+
+      const qty = allowFractional ? floorTo(raw, digits) : Math.floor(raw + 1e-9);
+      const estAmount = Math.round(qty * p);
+
+      if (estAmount >= MIN_TRADE_AMOUNT_KRW) {
+        boughtQty[i] = qty;
+        spent += qty * (unitCost > 0 ? unitCost : p);
+      }
+    }
   });
 
   // 정수 주 종목: 가용 자금 한도 내에서 부족한 자산군부터 1주씩 추가
@@ -561,6 +653,7 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
     let bestGap = 0;
 
     groups.forEach((gr, i) => {
+      if (alloc[i] <= 0) return; // 구매 대상 자산군만
       const allowFractional = isFractionalAllowed(gr.buySymbol, account.fractional);
       if (allowFractional) return; // 소수점 종목은 이미 완벽 배분됨
 
@@ -584,10 +677,13 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
     spent += unitCost > 0 ? unitCost : p;
   }
 
+  // 구매 라인 추가
   groups.forEach((gr, i) => {
+    if (boughtQty[i] <= 0) return;
     const p = priceKrw(gr.buySymbol, q);
-    if (p === null || boughtQty[i] === 0) return;
+    if (p === null || p <= 0) return;
     const roundedAmount = Math.round(boughtQty[i] * p);
+    if (roundedAmount < MIN_TRADE_AMOUNT_KRW) return; // 5,000원 미만 자투리 구매 제외
     lines.push({
       groupId: gr.id,
       groupName: gr.name,
@@ -602,7 +698,7 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
   const afterGrandTotal = grandTotal;
   const statuses: GroupStatus[] = groups.map((gr, i) => {
     const p = priceKrw(gr.buySymbol, q) ?? 0;
-    const after = values[i] + boughtQty[i] * p;
+    const after = values[i] + boughtQty[i] * p - groupSellDelta[i];
     return {
       groupId: gr.id,
       groupName: gr.name,
