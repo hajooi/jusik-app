@@ -2571,14 +2571,16 @@ export default function JournalPage() {
 
     const createdLogIds: string[] = [];
     let nextLogs = data.logs;
+    let nextCash = account?.cash || 0;
 
-    // 만약 보유 수량이 있었다면 전량 판매 거래 기록 생성
+    // 만약 보유 수량이 있었다면 전량 판매 거래 기록 생성 및 판매 대금 현금(예수금) 입금
     if (holdQty > 0) {
       const p = priceKrw(sym, quotes) || g.avgPrices?.[sym] || 0;
       const totalAmount = Math.round(holdQty * p);
       const avgPrice = g.avgPrices?.[sym] || p;
       const realizedProfit = Math.round((p - avgPrice) * holdQty);
       const todayStr = new Date().toISOString().slice(0, 10);
+      nextCash += totalAmount;
 
       const sellLog: JournalLog = {
         id: `log-del-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -2622,6 +2624,7 @@ export default function JournalPage() {
         a.id === account?.id
           ? {
               ...a,
+              cash: nextCash,
               groups: a.groups.map((grp) =>
                 grp.id === g.id
                   ? { ...grp, symbols: nextSymbols, buySymbol: nextBuy, holdings: nextHoldings, avgPrices: nextAvg }
@@ -5890,8 +5893,12 @@ export default function JournalPage() {
                   )
                 ) : (
                   <div className="space-y-2.5">
-                    {/* 다종목 보유 자산군 판매 안내 팁 */}
-                    {plan.lines.some((l) => l.qty < 0) && (
+                    {/* 다종목 보유 자산군 판매 안내 팁: 실제로 대표 종목이 아닌 서브 종목(다른 종목)을 판매할 때만 노출 */}
+                    {plan.lines.some((l) => {
+                      if (l.qty >= 0) return false;
+                      const gr = account?.groups.find((g) => g.id === l.groupId);
+                      return gr && l.symbol !== gr.buySymbol;
+                    }) && (
                       <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2 text-xs text-[var(--text-secondary)] leading-relaxed animate-fadeIn">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                         <span>

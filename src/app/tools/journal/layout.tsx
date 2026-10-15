@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '나의 투자일지 (자산배분 & 리밸런싱 계산기)',
+  title: '나의 투자일지',
   description: '계좌별 목표 비율과 가용 현금을 입력하면 자산 배분 비중에 맞춰 지금 사야 할 종목과 정확한 구매 수량을 자동으로 계산해 주는 스마트 포트폴리오 리밸런싱 투자일지 도구입니다.',
   keywords: [
     '투자일지',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/journal',
   },
   openGraph: {
-    title: '나의 투자일지 (자산배분 & 리밸런싱 계산기) | jusik.app',
+    title: '나의 투자일지 | jusik.app',
     description: '계좌별 목표 비율을 정하고 가용 현금을 넣으면 이번에 사야 할 종목과 수량을 자동으로 계산해 주는 스마트 투자일지',
     url: 'https://jusik.app/tools/journal',
     siteName: 'jusik.app',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '나의 투자일지 (자산배분 & 리밸런싱 계산기) | jusik.app',
+    title: '나의 투자일지 | jusik.app',
     description: '계좌별 목표 비율을 정하고 가용 현금을 넣으면 이번에 사야 할 종목과 수량을 자동으로 계산해 주는 스마트 투자일지',
     images: ['/og-image.png'],
   },
