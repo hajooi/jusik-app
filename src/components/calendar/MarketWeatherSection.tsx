@@ -197,6 +197,17 @@ export default function MarketWeatherSection({
         ...(incoming || {}),
         SP500_EPS: MACRO_ASSET_CHARTS.SP500_EPS,
       };
+
+      // CPI_YOY 무결성 보장: 수신 데이터의 마지막 날짜가 코드 정의보다 이전이면 최신 코드 정의 우선 적용
+      if (
+        MACRO_ASSET_CHARTS.CPI_YOY &&
+        (!incoming?.CPI_YOY ||
+          !Array.isArray(incoming.CPI_YOY.points) ||
+          incoming.CPI_YOY.points.length === 0 ||
+          incoming.CPI_YOY.points[incoming.CPI_YOY.points.length - 1].date < MACRO_ASSET_CHARTS.CPI_YOY.points[MACRO_ASSET_CHARTS.CPI_YOY.points.length - 1].date)
+      ) {
+        merged.CPI_YOY = MACRO_ASSET_CHARTS.CPI_YOY;
+      }
       for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
         if (merged[k]) {
           merged[k] = { ...merged[k], label: MACRO_ASSET_CHARTS[k].label };

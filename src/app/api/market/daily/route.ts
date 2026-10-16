@@ -870,11 +870,23 @@ export async function GET(request: Request) {
               return { ...base, ...found };
             });
 
+            const dbMacroCharts = dbRecord.simulator_settings?.macroAssetCharts || {};
             const mergedMacroCharts: Record<string, any> = {
               ...MACRO_ASSET_CHARTS,
-              ...(dbRecord.simulator_settings?.macroAssetCharts || {}),
+              ...dbMacroCharts,
               SP500_EPS: MACRO_ASSET_CHARTS.SP500_EPS,
             };
+
+            // CPI_YOY 무결성 보장: DB에 캐시된 CPI 차트의 마지막 날짜가 코드 정의보다 이전이면 최신 코드 정의 우선 적용
+            if (
+              MACRO_ASSET_CHARTS.CPI_YOY &&
+              (!dbMacroCharts.CPI_YOY ||
+                !Array.isArray(dbMacroCharts.CPI_YOY.points) ||
+                dbMacroCharts.CPI_YOY.points.length === 0 ||
+                dbMacroCharts.CPI_YOY.points[dbMacroCharts.CPI_YOY.points.length - 1].date < MACRO_ASSET_CHARTS.CPI_YOY.points[MACRO_ASSET_CHARTS.CPI_YOY.points.length - 1].date)
+            ) {
+              mergedMacroCharts.CPI_YOY = MACRO_ASSET_CHARTS.CPI_YOY;
+            }
             for (const k of Object.keys(MACRO_ASSET_CHARTS)) {
               if (mergedMacroCharts[k]) {
                 mergedMacroCharts[k] = { ...mergedMacroCharts[k], label: MACRO_ASSET_CHARTS[k].label };

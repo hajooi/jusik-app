@@ -1138,6 +1138,7 @@ export interface FredMacroSnapshot {
   cpiYoy?: string;            // 소비자물가 YoY
   cpiDate?: string;           // 소비자물가 기준일
   unemployment?: string;       // 실업률
+  unemploymentDate?: string;   // 실업률 기준일
   creditSpread?: string;       // 신용스프레드
   creditSpreadObs?: Array<{ date: string; value: number }>;
 }
@@ -1215,7 +1216,10 @@ export async function fetchFredMacroSnapshot(): Promise<FredMacroSnapshot> {
 
   if (unrateObs.status === 'fulfilled' && unrateObs.value.length > 0) {
     const val = parseFloat(unrateObs.value[0].value);
-    if (!isNaN(val)) result.unemployment = `${val.toFixed(1)}%`;
+    if (!isNaN(val)) {
+      result.unemployment = `${val.toFixed(1)}%`;
+      result.unemploymentDate = unrateObs.value[0].date;
+    }
   }
 
   if (spreadObs.status === 'fulfilled' && spreadObs.value.length > 0) {
@@ -1323,10 +1327,12 @@ export function resolveUpdatedMacroIndicators(
   // 2. 소비자물가 CPI_YOY (1순위: FRED 공식 확정치, 2순위: 당일 속보, 3순위: 캘린더)
   let cpiValStr: string | undefined;
   let cpiDateStr: string | undefined;
+  let isCpiObservationMonth = false;
 
   if (fredSnapshot?.cpiYoy) {
     cpiValStr = fredSnapshot.cpiYoy;
     cpiDateStr = fredSnapshot.cpiDate || todayStr;
+    isCpiObservationMonth = Boolean(fredSnapshot.cpiDate);
     // 캘린더 이벤트의 actual도 FRED 공식 확정치로 일원화
     const targetEv = updatedEvents.find((e) => {
       const t = e.title.toLowerCase();
@@ -1360,9 +1366,15 @@ export function resolveUpdatedMacroIndicators(
         resolvedCharts.CPI_YOY.current = cleanCpi;
 
         if (cpiDateStr) {
-          const d = new Date(cpiDateStr + 'T00:00:00Z');
-          d.setUTCMonth(d.getUTCMonth() - 1);
-          const ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          // FRED 공식 데이터의 cpiDate('2026-09-01')는 이미 해당 관측월이므로 1개월 차감 없이 그대로 YYYY.MM 사용
+          let ym: string;
+          if (isCpiObservationMonth) {
+            ym = cpiDateStr.slice(0, 7).replace('-', '.');
+          } else {
+            const d = new Date(cpiDateStr + 'T00:00:00Z');
+            d.setUTCMonth(d.getUTCMonth() - 1);
+            ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          }
           const pts = resolvedCharts.CPI_YOY.points;
           const existingIdx = pts.findIndex((p) => p.date === ym);
           if (existingIdx >= 0) {
@@ -1392,10 +1404,12 @@ export function resolveUpdatedMacroIndicators(
   // 3. 미국 실업률 UNEMPLOYMENT (1순위: FRED 공식 확정치, 2순위: 당일 속보, 3순위: 캘린더)
   let unrateValStr: string | undefined;
   let unrateDateStr: string | undefined;
+  let isUnrateObservationMonth = false;
 
   if (fredSnapshot?.unemployment) {
     unrateValStr = fredSnapshot.unemployment;
-    unrateDateStr = todayStr;
+    unrateDateStr = fredSnapshot.unemploymentDate || todayStr;
+    isUnrateObservationMonth = Boolean(fredSnapshot.unemploymentDate);
   } else if (macroUpdates?.unemployment) {
     unrateValStr = macroUpdates.unemployment;
     unrateDateStr = todayStr;
@@ -1421,9 +1435,15 @@ export function resolveUpdatedMacroIndicators(
         resolvedCharts.UNEMPLOYMENT.current = cleanUnrate;
 
         if (unrateDateStr) {
-          const d = new Date(unrateDateStr + 'T00:00:00Z');
-          d.setUTCMonth(d.getUTCMonth() - 1);
-          const ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          // FRED 공식 데이터의 unemploymentDate('2026-09-01')는 이미 해당 관측월이므로 그대로 YYYY.MM 사용
+          let ym: string;
+          if (isUnrateObservationMonth) {
+            ym = unrateDateStr.slice(0, 7).replace('-', '.');
+          } else {
+            const d = new Date(unrateDateStr + 'T00:00:00Z');
+            d.setUTCMonth(d.getUTCMonth() - 1);
+            ym = `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          }
           const pts = resolvedCharts.UNEMPLOYMENT.points;
           const existingIdx = pts.findIndex((p) => p.date === ym);
           if (existingIdx >= 0) {
