@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16 23:18:25",
+  "updatedAt": "2026-10-16 14:22:29",
   "kofiaBaseDate": "2026.09.30",
   "categories": [
     {
@@ -21322,12 +21322,12 @@
       "expenseRatio": 0.09,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 100.59,
+      "price": 100.58,
       "aumBillions": 112.3,
       "aumSource": "yahoo_info",
-      "return1m": 0.15,
-      "return3m": -0.12,
-      "return1y": 0.02,
+      "return1m": 0.14,
+      "return3m": -0.13,
+      "return1y": 0.01,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -21543,7 +21543,7 @@
         },
         {
           "date": "20261016",
-          "close": 100.59
+          "close": 100.58
         }
       ],
       "isDomestic": false
@@ -21562,12 +21562,12 @@
       "expenseRatio": 0.1353,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 91.55,
+      "price": 91.56,
       "aumBillions": 49.8,
       "aumSource": "yahoo_info",
-      "return1m": 0.13,
-      "return3m": -0.14,
-      "return1y": -0.08,
+      "return1m": 0.14,
+      "return3m": -0.13,
+      "return1y": -0.07,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -21783,7 +21783,7 @@
         },
         {
           "date": "20261016",
-          "close": 91.55
+          "close": 91.56
         }
       ],
       "isDomestic": false
@@ -22042,12 +22042,12 @@
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 80.09,
+      "price": 80.06,
       "aumBillions": 46.2,
       "aumSource": "yahoo_info",
-      "return1m": 3.38,
-      "return3m": -2.61,
-      "return1y": -12.17,
+      "return1m": 3.33,
+      "return3m": -2.66,
+      "return1y": -12.21,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22263,7 +22263,7 @@
         },
         {
           "date": "20261016",
-          "close": 80.1
+          "close": 80.06
         }
       ],
       "isDomestic": false
@@ -22517,7 +22517,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe TLT BuyWrite",
-      "dividendYield": 11.56,
+      "dividendYield": 11.55,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
@@ -22757,17 +22757,17 @@
       "category": "bonds",
       "subCategory": "leverage",
       "trackingIndex": "ICE US Treasury 20+ Year 3X",
-      "dividendYield": 4.97,
+      "dividendYield": 4.98,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.9,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 28.11,
+      "price": 28.09,
       "aumBillions": 2.0,
       "aumSource": "yahoo_info",
-      "return1m": 9.89,
-      "return3m": -8.11,
-      "return1y": -34.44,
+      "return1m": 9.81,
+      "return3m": -8.17,
+      "return1y": -34.49,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -22983,7 +22983,7 @@
         },
         {
           "date": "20261016",
-          "close": 28.11
+          "close": 28.09
         }
       ],
       "isDomestic": false
@@ -23002,12 +23002,12 @@
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 57.33,
+      "price": 57.35,
       "aumBillions": 45.3,
       "aumSource": "yahoo_info",
-      "return1m": 2.19,
-      "return3m": -0.17,
-      "return1y": 0.83,
+      "return1m": 2.23,
+      "return3m": -0.14,
+      "return1y": 0.86,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -23223,7 +23223,7 @@
         },
         {
           "date": "20261016",
-          "close": 57.33
+          "close": 57.35
         }
       ],
       "isDomestic": false
@@ -23237,17 +23237,17 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "Nasdaq-100 Covered Call",
-      "dividendYield": 11.54,
+      "dividendYield": 11.53,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 59.69,
+      "price": 59.72,
       "aumBillions": 44.3,
       "aumSource": "yahoo_info",
-      "return1m": -2.21,
-      "return3m": 2.47,
-      "return1y": 3.84,
+      "return1m": -2.16,
+      "return3m": 2.52,
+      "return1y": 3.9,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -23463,7 +23463,7 @@
         },
         {
           "date": "20261016",
-          "close": 59.69
+          "close": 59.72
         }
       ],
       "isDomestic": false
@@ -23477,17 +23477,17 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "Enhanced Dividend Income",
-      "dividendYield": 6.28,
+      "dividendYield": 6.27,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.56,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 48.05,
+      "price": 48.08,
       "aumBillions": 7.7,
       "aumSource": "yahoo_info",
-      "return1m": 2.8,
-      "return3m": 2.47,
-      "return1y": 8.54,
+      "return1m": 2.87,
+      "return3m": 2.54,
+      "return1y": 8.61,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -23703,7 +23703,7 @@
         },
         {
           "date": "20261016",
-          "close": 48.05
+          "close": 48.08
         }
       ],
       "isDomestic": false
@@ -23722,11 +23722,11 @@
       "expenseRatio": 0.1,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 24.45,
+      "price": 24.42,
       "aumBillions": 0.4,
       "aumSource": "yahoo_info",
-      "return1m": -3.7,
-      "return3m": 4.94,
+      "return1m": -3.82,
+      "return3m": 4.81,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23799,7 +23799,7 @@
         },
         {
           "date": "20261016",
-          "close": 24.45
+          "close": 24.42
         }
       ],
       "isDomestic": false
@@ -23818,11 +23818,11 @@
       "expenseRatio": 0.1,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 24.43,
+      "price": 24.39,
       "aumBillions": 0.6,
       "aumSource": "yahoo_info",
-      "return1m": -3.71,
-      "return3m": 4.94,
+      "return1m": -3.82,
+      "return3m": 4.81,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23887,7 +23887,7 @@
         },
         {
           "date": "20261016",
-          "close": 24.42
+          "close": 24.39
         }
       ],
       "isDomestic": false
@@ -23906,12 +23906,12 @@
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 297.25,
+      "price": 297.02,
       "aumBillions": 109.8,
       "aumSource": "yahoo_info",
-      "return1m": -3.71,
-      "return3m": 4.92,
-      "return1y": 19.56,
+      "return1m": -3.78,
+      "return3m": 4.85,
+      "return1y": 19.47,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24127,7 +24127,7 @@
         },
         {
           "date": "20261016",
-          "close": 297.24
+          "close": 297.02
         }
       ],
       "isDomestic": false
@@ -24146,12 +24146,12 @@
       "expenseRatio": 0.18,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 721.9,
+      "price": 721.5,
       "aumBillions": 498.9,
       "aumSource": "yahoo_info",
-      "return1m": -3.69,
-      "return3m": 4.93,
-      "return1y": 19.53,
+      "return1m": -3.75,
+      "return3m": 4.87,
+      "return1y": 19.47,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24367,7 +24367,7 @@
         },
         {
           "date": "20261016",
-          "close": 721.9
+          "close": 721.5
         }
       ],
       "isDomestic": false
@@ -24381,17 +24381,17 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe Nasdaq-100 BuyWrite",
-      "dividendYield": 11.48,
+      "dividendYield": 11.49,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.6,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 18.58,
+      "price": 18.56,
       "aumBillions": 8.5,
       "aumSource": "yahoo_info",
-      "return1m": -0.27,
-      "return3m": 4.74,
-      "return1y": 7.52,
+      "return1m": -0.38,
+      "return3m": 4.62,
+      "return1y": 7.41,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24607,7 +24607,7 @@
         },
         {
           "date": "20261016",
-          "close": 18.58
+          "close": 18.56
         }
       ],
       "isDomestic": false
@@ -24626,12 +24626,12 @@
       "expenseRatio": 0.68,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 54.48,
+      "price": 54.45,
       "aumBillions": 14.9,
       "aumSource": "yahoo_info",
-      "return1m": -2.84,
-      "return3m": 2.73,
-      "return1y": 0.02,
+      "return1m": -2.91,
+      "return3m": 2.66,
+      "return1y": -0.06,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -24847,7 +24847,7 @@
         },
         {
           "date": "20261016",
-          "close": 54.49
+          "close": 54.45
         }
       ],
       "isDomestic": false
@@ -24861,17 +24861,17 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "NASDAQ-100 3X",
-      "dividendYield": 0.67,
+      "dividendYield": 0.68,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.78,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 71.94,
+      "price": 71.8,
       "aumBillions": 37.9,
       "aumSource": "yahoo_info",
-      "return1m": -11.2,
-      "return3m": 11.33,
-      "return1y": 38.37,
+      "return1m": -11.38,
+      "return3m": 11.1,
+      "return1y": 38.08,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25087,7 +25087,7 @@
         },
         {
           "date": "20261016",
-          "close": 71.94
+          "close": 71.79
         }
       ],
       "isDomestic": false
@@ -25106,12 +25106,12 @@
       "expenseRatio": 0.89,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 90.76,
+      "price": 90.59,
       "aumBillions": 15.1,
       "aumSource": "yahoo_info",
-      "return1m": -7.51,
-      "return3m": 8.47,
-      "return1y": 31.38,
+      "return1m": -7.68,
+      "return3m": 8.27,
+      "return1y": 31.14,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25327,7 +25327,7 @@
         },
         {
           "date": "20261016",
-          "close": 90.76
+          "close": 90.59
         }
       ],
       "isDomestic": false
@@ -25346,12 +25346,12 @@
       "expenseRatio": 0.04,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 243.02,
+      "price": 243.12,
       "aumBillions": 127.6,
       "aumSource": "yahoo_info",
-      "return1m": 3.39,
-      "return3m": 1.61,
-      "return1y": 12.64,
+      "return1m": 3.43,
+      "return3m": 1.65,
+      "return1y": 12.69,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25567,7 +25567,7 @@
         },
         {
           "date": "20261016",
-          "close": 243.02
+          "close": 243.12
         }
       ],
       "isDomestic": false
@@ -25586,12 +25586,12 @@
       "expenseRatio": 0.06,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 34.34,
+      "price": 34.38,
       "aumBillions": 107.9,
       "aumSource": "yahoo_info",
-      "return1m": 4.98,
-      "return3m": 2.63,
-      "return1y": 28.22,
+      "return1m": 5.07,
+      "return3m": 2.72,
+      "return1y": 28.33,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -25807,7 +25807,7 @@
         },
         {
           "date": "20261016",
-          "close": 34.35
+          "close": 34.38
         }
       ],
       "isDomestic": false
@@ -25826,12 +25826,12 @@
       "expenseRatio": 0.08,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 79.06,
+      "price": 79.11,
       "aumBillions": 41.9,
       "aumSource": "yahoo_info",
-      "return1m": 4.34,
-      "return3m": 1.35,
-      "return1y": 16.47,
+      "return1m": 4.41,
+      "return3m": 1.41,
+      "return1y": 16.54,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26047,7 +26047,7 @@
         },
         {
           "date": "20261016",
-          "close": 79.06
+          "close": 79.11
         }
       ],
       "isDomestic": false
@@ -26066,12 +26066,12 @@
       "expenseRatio": 0.02,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 90.78,
+      "price": 90.75,
       "aumBillions": 173.6,
       "aumSource": "yahoo_info",
-      "return1m": 0.2,
-      "return3m": 3.28,
-      "return1y": 16.15,
+      "return1m": 0.17,
+      "return3m": 3.24,
+      "return1y": 16.11,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26287,7 +26287,7 @@
         },
         {
           "date": "20261016",
-          "close": 90.78
+          "close": 90.75
         }
       ],
       "isDomestic": false
@@ -26306,10 +26306,10 @@
       "expenseRatio": 0.03,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 708.85,
+      "price": 708.84,
       "aumBillions": 1729.3,
       "aumSource": "yahoo_info",
-      "return1m": 0.19,
+      "return1m": 0.18,
       "return3m": 3.23,
       "return1y": 16.06,
       "weeklyPrices": [
@@ -26527,7 +26527,7 @@
         },
         {
           "date": "20261016",
-          "close": 708.85
+          "close": 708.84
         }
       ],
       "isDomestic": false
@@ -26546,12 +26546,12 @@
       "expenseRatio": 0.03,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 774.66,
+      "price": 774.53,
       "aumBillions": 881.3,
       "aumSource": "yahoo_info",
-      "return1m": 0.2,
-      "return3m": 3.24,
-      "return1y": 16.02,
+      "return1m": 0.18,
+      "return3m": 3.23,
+      "return1y": 16.0,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -26767,7 +26767,7 @@
         },
         {
           "date": "20261016",
-          "close": 774.66
+          "close": 774.53
         }
       ],
       "isDomestic": false
@@ -26786,10 +26786,10 @@
       "expenseRatio": 0.0945,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 771.21,
+      "price": 771.22,
       "aumBillions": 809.2,
       "aumSource": "yahoo_info",
-      "return1m": 0.2,
+      "return1m": 0.21,
       "return3m": 3.24,
       "return1y": 16.08,
       "weeklyPrices": [
@@ -27007,7 +27007,7 @@
         },
         {
           "date": "20261016",
-          "close": 771.21
+          "close": 771.22
         }
       ],
       "isDomestic": false
@@ -27261,17 +27261,17 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "S&P 500 High Income",
-      "dividendYield": 11.78,
+      "dividendYield": 11.79,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.68,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 53.81,
+      "price": 53.79,
       "aumBillions": 12.2,
       "aumSource": "yahoo_info",
-      "return1m": 0.39,
-      "return3m": 1.8,
-      "return1y": 3.06,
+      "return1m": 0.35,
+      "return3m": 1.76,
+      "return1y": 3.03,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27487,7 +27487,7 @@
         },
         {
           "date": "20261016",
-          "close": 53.81
+          "close": 53.79
         }
       ],
       "isDomestic": false
@@ -27506,12 +27506,12 @@
       "expenseRatio": 0.84,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 70.7,
+      "price": 70.65,
       "aumBillions": 8.4,
       "aumSource": "yahoo_info",
-      "return1m": 0.18,
-      "return3m": 5.55,
-      "return1y": 27.34,
+      "return1m": 0.1,
+      "return3m": 5.46,
+      "return1y": 27.23,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27727,7 +27727,7 @@
         },
         {
           "date": "20261016",
-          "close": 70.71
+          "close": 70.65
         }
       ],
       "isDomestic": false
@@ -27746,12 +27746,12 @@
       "expenseRatio": 0.88,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 151.12,
+      "price": 151.0,
       "aumBillions": 5.3,
       "aumSource": "yahoo_info",
-      "return1m": 0.16,
-      "return3m": 7.73,
-      "return1y": 37.83,
+      "return1m": 0.08,
+      "return3m": 7.64,
+      "return1y": 37.72,
       "weeklyPrices": [
         {
           "date": "20251013",
@@ -27967,7 +27967,7 @@
         },
         {
           "date": "20261016",
-          "close": 151.12
+          "close": 151.0
         }
       ],
       "isDomestic": false
