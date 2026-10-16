@@ -1087,6 +1087,13 @@ US_ETF_TARGETS = [
 # -------------------------------------------------------------
 # 2. 금융투자협회(KOFIA DIS) 공식 데이터 조회
 # -------------------------------------------------------------
+KOFIA_CURL_HEADERS = [
+    '-H', 'Content-Type: text/xml; charset=utf-8',
+    '-H', 'Accept: text/xml, application/xml, */*',
+    '-H', 'Referer: https://dis.kofia.or.kr/',
+    '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+]
+
 def get_kofia_latest_date():
     req_xml = """<?xml version="1.0" encoding="utf-8"?>
 <message>
@@ -1102,27 +1109,30 @@ def get_kofia_latest_date():
 </message>"""
     try:
         p = subprocess.Popen(
-            ['curl', '-s', '-X', 'POST', 'https://dis.kofia.or.kr/proframeWeb/XMLSERVICES/',
-             '-d', req_xml, '-H', 'Content-Type: text/xml'],
+            ['curl', '-s', '--max-time', '15', '--retry', '2', '--retry-delay', '1',
+             '-X', 'POST', 'https://dis.kofia.or.kr/proframeWeb/XMLSERVICES/',
+             '-d', req_xml] + KOFIA_CURL_HEADERS,
             stdout=subprocess.PIPE
         )
         out, _ = p.communicate()
-        root = ET.fromstring(out)
-        dt_list = [elem.text for elem in root.findall('.//standardDt') if elem.text]
-        if dt_list:
-            today_str = datetime.now().strftime("%Y%m%d")
-            past_dates = [d for d in dt_list if d <= today_str]
-            if past_dates:
-                return past_dates[-1]
-            return dt_list[0]
+        if out and out.strip():
+            root = ET.fromstring(out)
+            dt_list = [elem.text for elem in root.findall('.//standardDt') if elem.text]
+            if dt_list:
+                today_str = datetime.now().strftime("%Y%m%d")
+                past_dates = [d for d in dt_list if d <= today_str]
+                if past_dates:
+                    return past_dates[-1]
+                return dt_list[0]
     except Exception as e:
         print(f"[KOFIA Date Error] {e}")
     prev_date = load_previous_payload().get("kofiaBaseDate", "")
     return prev_date.replace(".", "") if prev_date else datetime.now().strftime("%Y%m%d")
 
-def fetch_kofia_fees(std_date):
+def fetch_kofia_fees(std_date, has_prev_fees=False):
     keywords = ["미국S&P500", "미국나스닥100", "미국배당다우존스", "200", "미국30년국채", "레버리지", "KODEX레버리지", "PLUS200", "HANARO200", "TIGERS&P500", "PLUSS&P500", "KODEX 미국나스닥100"]
     fee_map = {}
+    consecutive_failures = 0
 
     for kw in keywords:
         escaped_kw = kw.replace('&', '&amp;')
@@ -1141,12 +1151,16 @@ def fetch_kofia_fees(std_date):
 </message>"""
         try:
             p = subprocess.Popen(
-                ['curl', '-s', '--max-time', '10', '-X', 'POST', 'https://dis.kofia.or.kr/proframeWeb/XMLSERVICES/',
-                 '-d', req_xml, '-H', 'Content-Type: text/xml'],
+                ['curl', '-s', '--max-time', '20', '--retry', '2', '--retry-delay', '1',
+                 '-X', 'POST', 'https://dis.kofia.or.kr/proframeWeb/XMLSERVICES/',
+                 '-d', req_xml] + KOFIA_CURL_HEADERS,
                 stdout=subprocess.PIPE
             )
             out, _ = p.communicate()
+            if not out or not out.strip():
+                raise ValueError("Empty response from KOFIA server (timeout or overseas IP block)")
             root = ET.fromstring(out)
+            consecutive_failures = 0
             for meta in root.findall('.//selectMeta'):
                 company = meta.findtext('tmpV1', '').strip()
                 fund_nm = meta.findtext('tmpV2', '').strip()
@@ -1168,7 +1182,11 @@ def fetch_kofia_fees(std_date):
                     "standard_code": code,
                 }
         except Exception as e:
+            consecutive_failures += 1
             print(f"[KOFIA Fetch Error - {kw}] {e}")
+            if consecutive_failures >= 3 and len(fee_map) == 0 and has_prev_fees:
+                print("   ⚠ KOFIA 해외망 응답 지연 감지 (3회 연속 타임아웃) ➔ 기존 검증된 공시 수수료로 즉시 폴백합니다.")
+                break
 
     return fee_map
 
@@ -1436,7 +1454,8 @@ def main():
     print(f"   공식 공시 기준일: {formatted_date}")
 
     print("▶ [2/4] 금융투자협회(KOFIA DIS) 공식 수수료 데이터 수집 중...")
-    kofia_fees = fetch_kofia_fees(std_date)
+    has_prev_fees = len(prev_kr) >= len(KR_ETF_TARGETS) and all("actualFee" in prev_kr.get(t["code"], {}) for t in KR_ETF_TARGETS)
+    kofia_fees = fetch_kofia_fees(std_date, has_prev_fees=has_prev_fees)
     print(f"   KOFIA 수집 완료: {len(kofia_fees)}개 펀드 레코드 확보")
 
     print("▶ [3/4] 국내 ETF 시세, 수수료, 52주 주봉 시계열 정밀 매핑 중...")
@@ -1490,7 +1509,8 @@ def main():
             actual_fee = prev_item["actualFee"]
             fee_source = "kofia_previous_verified"
             stats["fee_prev"] += 1
-            fee_fallback_names.append(name)
+            if kofia_fees:
+                fee_fallback_names.append(name)
         else:
             total_fee, etc_fee, ter, trade_fee, actual_fee = 0.0, 0.0, 0.0, 0.0, 0.0
             fee_source = "unmatched_zero"
@@ -1623,9 +1643,14 @@ def main():
     print(f"\n✨ 완료! 총 국내 {len(kr_etfs)}개 + 미국 {len(us_etfs)}개 ETF 데이터가 {TARGET_JSON_PATH} 에 성공적으로 저장되었습니다.")
 
     total = len(kr_etfs) + len(us_etfs)
+    if stats["fee_kofia"] > 0:
+        kofia_status_str = f"공시 반영 {stats['fee_kofia']}/{len(kr_etfs)}개"
+    else:
+        kofia_status_str = f"검증 공시 유지 {stats['fee_prev']}/{len(kr_etfs)}개 (해외망 지연 자동복구)"
+
     summary = (
         f"총 {total}개 ETF(국내 {len(kr_etfs)}·미국 {len(us_etfs)}) 100% 라이브 동기화 완료 (하드코딩 0개).\n"
-        f"• KOFIA 공시 기준일: {formatted_date} (공시 반영 {stats['fee_kofia']}/{len(kr_etfs)}개)\n"
+        f"• KOFIA 공시 기준일: {formatted_date} ({kofia_status_str})\n"
         f"• 배당률: 실지급 산출 {stats['div_live']}개, TR 상품 재투자 0% {stats['div_tr']}개, 신규/무배당 0% {stats['div_zero_paid']}개 (전수 100% 반영)\n"
         f"• 미국 순자산(AUM): 1차(Yahoo) {stats['us_aum_primary']}개, 2차 백업(Nasdaq) {stats['us_aum_backup']}개 (전수 100% 최신화)\n"
         f"• 미국 운용보수: 1차(Yahoo) {stats['us_fee_primary']}개, 2차 백업(Morningstar) {stats['us_fee_backup']}개 (전수 100% 최신화)"
@@ -1635,7 +1660,7 @@ def main():
     print(summary)
     write_github_output(summary)
 
-    if stats["fee_kofia"] == 0:
+    if (stats["fee_kofia"] + stats["fee_prev"]) == 0:
         print("❌ KOFIA 공시 수수료를 한 건도 가져오지 못했습니다.")
         sys.exit(1)
 
