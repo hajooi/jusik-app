@@ -17,7 +17,8 @@ function sanitizeJournal(input: any) {
   if (!input || typeof input !== 'object') return null;
   const accounts = Array.isArray(input.accounts) ? input.accounts.slice(0, MAX_ACCOUNTS) : [];
   const logs = Array.isArray(input.logs) ? input.logs.slice(0, 200) : [];
-  const out = { accounts, logs };
+  const snapshots = Array.isArray(input.snapshots) ? input.snapshots.slice(-365) : [];
+  const out = { accounts, logs, snapshots };
   if (JSON.stringify(out).length > MAX_JOURNAL_BYTES) return null;
   return out;
 }

@@ -41,6 +41,7 @@ import {
   JournalAccount,
   JournalGroup,
   CashDepositLog,
+  AssetSnapshot,
   QuoteMap,
   PortfolioSummary,
   PlanLine,
@@ -73,7 +74,7 @@ interface JournalLog {
 interface JournalData {
   accounts: JournalAccount[];
   logs: JournalLog[];
-  snapshots?: { date: string; invested: number; totalAssets: number }[];
+  snapshots?: AssetSnapshot[];
 }
 
 // 다중 종목 묶음 로그를 1종목 1로그로 자동 분해(Flattening)하여 독립 관리 지원
@@ -444,7 +445,7 @@ function AdaptiveAssetTrendChart({
   monthlyTradeStats: MonthlyTradeStat[];
   monthlyDepositStats: MonthlyDepositStat[];
   logs?: JournalLog[];
-  snapshots?: { date: string; invested: number; totalAssets: number }[];
+  snapshots?: AssetSnapshot[];
   accounts?: JournalAccount[];
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -671,7 +672,11 @@ function AdaptiveAssetTrendChart({
     });
 
     const snapshotMap = new Map<string, { invested: number; totalAssets: number }>();
-    snapshots.forEach((s) => snapshotMap.set(s.date, s));
+    snapshots.forEach((s) => {
+      const inv = s.invested ?? s.cashKrw ?? 0;
+      const ass = s.totalAssets ?? s.totalAssetsKrw ?? 0;
+      snapshotMap.set(s.date, { invested: inv, totalAssets: ass });
+    });
 
     const sortedLogs = [...logs].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -725,6 +730,30 @@ function AdaptiveAssetTrendChart({
 
     // 기초 현금 (입출금 및 거래 내역으로 역산되지 않는 초기 기초 잔액)
     const seedCash = Math.max(0, summary.cashKrw - (totalNetDeposits + totalTradeCashFlow));
+
+    // 전체 거래 기록의 매수/매도 합계
+    let allLogsBuySum = 0;
+    let allLogsSellSum = 0;
+    sortedLogs.forEach((l) => {
+      (l.items || []).forEach((it) => {
+        if (it.qty > 0) {
+          allLogsBuySum += it.amountKrw;
+        } else {
+          allLogsSellSum += Math.abs(it.amountKrw);
+        }
+      });
+    });
+
+    // 모든 입출금과 매매가 완료된 시점의 장부 원금 (미보정 종점 원금)
+    const baseEndingInvested = allDeposits.length > 0
+      ? Math.max(0, seedCash + totalNetDeposits + baseCostKrw)
+      : sortedLogs.length > 0
+      ? Math.max(0, Math.max(0, allLogsBuySum - allLogsSellSum) + baseCostKrw + summary.cashKrw)
+      : currentInvested;
+
+    // 사용자가 종목 카드의 평단가를 직접 수정했거나 실현 손익으로 인해 발생한 실질 원본 자본의 보정값
+    // (평단가 수정 등이 과거 장부 계산에는 즉시 들어가지 못해 생기는 갭을 전체 타임라인에 균일 적용하여 자정 점프 원천 방지)
+    const capitalAdjustment = currentInvested - baseEndingInvested;
 
     // 계좌의 첫 번째 활동 시작일 (첫 거래일 또는 첫 입출금일 중 빠른 일자)
     const firstLogDate = sortedLogs[0]?.date ? formatLogDate(sortedLogs[0].date) : null;
@@ -856,12 +885,12 @@ function AdaptiveAssetTrendChart({
         pointInvested = snap.invested;
         pointAssets = snap.totalAssets;
       } else if (allDeposits.length > 0) {
-        // 입출금 기록이 있는 경우: 외부 유입 누적 순입금액 + 기초 현금 + 기초 보유분 원가
-        pointInvested = Math.max(0, seedCash + netDepositAtPoint + baseCostKrw);
+        // 입출금 기록이 있는 경우: 외부 유입 누적 순입금액 + 기초 현금 + 기초 보유분 원가 + 평단가 수정 보정값
+        pointInvested = Math.max(0, seedCash + netDepositAtPoint + baseCostKrw + capitalAdjustment);
       } else if (logs.length > 0) {
-        // 거래 기록만 있는 경우: 순매수 원금 + 기초 보유분 원가 + 잔여 현금
+        // 거래 기록만 있는 경우: 순매수 원금 + 기초 보유분 원가 + 잔여 현금 + 평단가 수정 보정값
         const netInvestedFromTrades = Math.max(0, totalBuySum - totalSellSum);
-        pointInvested = netInvestedFromTrades + baseCostKrw + cashAtPoint;
+        pointInvested = Math.max(0, netInvestedFromTrades + baseCostKrw + cashAtPoint + capitalAdjustment);
       } else {
         // 기록이 전혀 없는 초기 사용자
         pointInvested = currentInvested;
@@ -1400,7 +1429,7 @@ function OverviewReportView({
   monthlyTradeStats: MonthlyTradeStat[];
   monthlyDepositStats: MonthlyDepositStat[];
   logs?: JournalLog[];
-  snapshots?: { date: string; invested: number; totalAssets: number }[];
+  snapshots?: AssetSnapshot[];
   accounts?: JournalAccount[];
   isPro: boolean;
   onExportCsv: () => void;
@@ -1987,7 +2016,13 @@ export default function JournalPage() {
     const loadLocal = (): JournalData => {
       try {
         const raw = JSON.parse(localStorage.getItem(storageKey) || 'null');
-        if (raw && Array.isArray(raw.accounts)) return { accounts: sanitizeAccounts(raw.accounts), logs: flattenLogs(raw.logs || []) };
+        if (raw && Array.isArray(raw.accounts)) {
+          return {
+            accounts: sanitizeAccounts(raw.accounts),
+            logs: flattenLogs(raw.logs || []),
+            snapshots: Array.isArray(raw.snapshots) ? raw.snapshots : [],
+          };
+        }
       } catch {}
       return { accounts: [], logs: [] };
     };
@@ -2003,7 +2038,11 @@ export default function JournalPage() {
           });
           const json = await res.json();
           if (json.success && json.journal) {
-            next = { accounts: sanitizeAccounts(json.journal.accounts || []), logs: flattenLogs(json.journal.logs || []) };
+            next = {
+              accounts: sanitizeAccounts(json.journal.accounts || []),
+              logs: flattenLogs(json.journal.logs || []),
+              snapshots: Array.isArray(json.journal.snapshots) ? json.journal.snapshots : [],
+            };
           } else if (json.success) {
             // 서버에 데이터가 없는 신규 회원은 이전 사용자 데이터가 섞이지 않도록 완전한 빈 상태로 시작
             next = { accounts: [], logs: [] };
@@ -2876,25 +2915,36 @@ export default function JournalPage() {
     return account ? calcPortfolioSummary(account, quotes) : null;
   }, [activeId, account, data.accounts, quotes]);
 
-  // 매일 1회 현재 계좌 상태를 스냅샷에 자동 아카이빙 (향후 시계열 추이 무결성 보존)
+  // 매일 1회 현재 계좌 상태를 스냅샷에 자동 아카이빙 (모아보기는 data.snapshots, 개별 계좌는 account.snapshots에 각각 독립 보존)
   useEffect(() => {
     if (!loaded || !currentSummary || currentSummary.totalAssetsKrw <= 0) return;
     const todayStr = getLocalDateString();
-    const existing = data.snapshots?.find((s) => s.date === todayStr);
     const baseInvest = currentSummary.hasInvestData ? currentSummary.totalInvestKrw : currentSummary.totalStockEvalKrw;
     const currentInvest = baseInvest + currentSummary.cashKrw;
     const currentAssets = currentSummary.totalAssetsKrw;
 
-    if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
-      setData((prev) => {
-        const filtered = (prev.snapshots || []).filter((s) => s.date !== todayStr);
+    if (activeId === 'ALL') {
+      const existing = data.snapshots?.find((s) => s.date === todayStr);
+      if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
+        setData((prev) => {
+          const filtered = (prev.snapshots || []).filter((s) => s.date !== todayStr);
+          const updated = [...filtered, { date: todayStr, invested: currentInvest, totalAssets: currentAssets }]
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-365); // 최근 1년 보관
+          return { ...prev, snapshots: updated };
+        });
+      }
+    } else if (account) {
+      const existing = account.snapshots?.find((s) => s.date === todayStr);
+      if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
+        const filtered = (account.snapshots || []).filter((s) => s.date !== todayStr);
         const updated = [...filtered, { date: todayStr, invested: currentInvest, totalAssets: currentAssets }]
           .sort((a, b) => a.date.localeCompare(b.date))
           .slice(-365); // 최근 1년 보관
-        return { ...prev, snapshots: updated };
-      });
+        updateAccount({ snapshots: updated });
+      }
     }
-  }, [loaded, currentSummary]);
+  }, [loaded, currentSummary, activeId, account]);
 
   // 그래프용 세그먼트 데이터 구성
   const barSegments = useMemo(() => {
@@ -4472,7 +4522,7 @@ export default function JournalPage() {
                       monthlyTradeStats={monthlyTradeStats}
                       monthlyDepositStats={monthlyDepositStats}
                       logs={account ? allLogsForAccount : data.logs}
-                      snapshots={data.snapshots}
+                      snapshots={account ? (account.snapshots || []) : (data.snapshots || [])}
                       accounts={account ? [account] : data.accounts}
                       isPro={isPro}
                       onExportCsv={exportToCsv}

@@ -39,9 +39,11 @@ export interface JournalGroup {
 
 export interface AssetSnapshot {
   date: string; // ISO 날짜
-  totalAssetsKrw: number; // 총 평가 자산 (자산 평가금 + 예수금)
-  cashKrw: number; // 당시 예수금
+  totalAssetsKrw?: number; // 총 평가 자산 (자산 평가금 + 예수금)
+  cashKrw?: number; // 당시 예수금
   externalCashFlow?: number; // 외부 신규 입출금 (+입금, -출금)
+  invested?: number; // 누적 투자 원금 (차트 호환)
+  totalAssets?: number; // 총 평가 자산 (차트 호환)
 }
 
 export interface CashDepositLog {
@@ -821,13 +823,14 @@ export function calcTWR(snapshots: AssetSnapshot[]): number | null {
   for (let i = 1; i < snapshots.length; i++) {
     const prev = snapshots[i - 1];
     const curr = snapshots[i];
-    const prevVal = prev.totalAssetsKrw;
+    const prevVal = prev.totalAssetsKrw ?? prev.totalAssets ?? 0;
     const flow = curr.externalCashFlow || 0;
 
     if (prevVal <= 0) continue;
 
     // Sub-period return: R_t = (EndValue - Flow) / StartValue - 1
-    const subReturn = (curr.totalAssetsKrw - flow) / prevVal - 1;
+    const currVal = curr.totalAssetsKrw ?? curr.totalAssets ?? 0;
+    const subReturn = (currVal - flow) / prevVal - 1;
     cumulative *= 1 + subReturn;
   }
 
