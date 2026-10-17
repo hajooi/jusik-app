@@ -457,6 +457,12 @@ function AdaptiveAssetTrendChart({
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [candlesMap, setCandlesMap] = useState<Record<string, Array<{ date: string; priceKrw: number }>>>({});
+  const [animKey, setAnimKey] = useState<number>(() => Date.now());
+
+  // 마운트 및 모드/계좌/데이터 변경 시마다 애플 모션 드로잉 100% 재실행 보장
+  useEffect(() => {
+    setAnimKey(Date.now());
+  }, [accounts, logs.length]);
 
   // 계좌 및 거래 기록에 포함된 실제 종목 심볼 목록 추출
   const holdingSymbols = useMemo(() => {
@@ -1060,24 +1066,6 @@ function AdaptiveAssetTrendChart({
 
   return (
     <div ref={containerRef} className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-      <style>{`
-        @keyframes trendDraw {
-          from {
-            stroke-dashoffset: 2000;
-            opacity: 0.1;
-          }
-          to {
-            stroke-dashoffset: 0;
-            opacity: 1;
-          }
-        }
-        .animate-trend-line {
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 0;
-          animation: trendDraw 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-      `}</style>
-
       {/* 헤더 & 활성 포인트 요약 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -1156,7 +1144,7 @@ function AdaptiveAssetTrendChart({
       {/* SVG 인터랙티브 차트 (0px 정밀 스냅 & 드래그 탐색 지원) */}
       <div className="relative w-full overflow-hidden select-none cursor-crosshair">
         <svg
-          key={`${mode}-${points.length}-${Object.keys(candlesMap).length > 0 ? 'loaded' : 'init'}`}
+          key={`trend-svg-${animKey}-${mode}-${points.length}`}
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-44 sm:h-52 overflow-visible"
@@ -1176,6 +1164,24 @@ function AdaptiveAssetTrendChart({
               <stop offset="0%" stopColor="var(--accent-orange)" stopOpacity="0.25" />
               <stop offset="100%" stopColor="var(--accent-orange)" stopOpacity="0.0" />
             </linearGradient>
+
+            <style>{`
+              @keyframes assetTrendSweep_${animKey} {
+                0% { width: 0px; }
+                100% { width: ${chartW + 20}px; }
+              }
+            `}</style>
+            <clipPath id={`assetTrendSweepClip_${animKey}`}>
+              <rect
+                x={padding.left}
+                y={0}
+                width={0}
+                height={height}
+                style={{
+                  animation: `assetTrendSweep_${animKey} 1000ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+                }}
+              />
+            </clipPath>
           </defs>
 
           {/* 수평 눈금 그리드선 */}
@@ -1242,33 +1248,40 @@ function AdaptiveAssetTrendChart({
             </g>
           )}
 
-          {/* 총 자산 영역 채우기 */}
-          {assetAreaPath && <path d={assetAreaPath} fill="url(#assetTrendGradient)" className="animate-fadeIn" />}
+          {/* 애플 네이티브 ClipPath Sweep Reveal 애니메이션 그룹 (선 + 영역 일체형 드로잉) */}
+          <g clipPath={`url(#assetTrendSweepClip_${animKey})`}>
+            {/* 총 자산 영역 채우기 */}
+            {assetAreaPath && (
+              <path
+                d={assetAreaPath}
+                fill="url(#assetTrendGradient)"
+                className="pointer-events-none"
+              />
+            )}
 
-          {/* 투자 원금 점선 */}
-          {investLinePath && (
-            <path
-              d={investLinePath}
-              fill="none"
-              stroke="#94A3B8"
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
-              strokeLinecap="round"
-              className="animate-trend-line"
-            />
-          )}
+            {/* 투자 원금 점선 (점선 속성 100% 보존) */}
+            {investLinePath && (
+              <path
+                d={investLinePath}
+                fill="none"
+                stroke="#94A3B8"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                strokeLinecap="round"
+              />
+            )}
 
-          {/* 총 자산 실선 (물리 드로잉 애니메이션 적용) */}
-          {assetLinePath && (
-            <path
-              d={assetLinePath}
-              fill="none"
-              stroke="var(--accent-orange)"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              className="animate-trend-line"
-            />
-          )}
+            {/* 총 자산 실선 (오렌지) */}
+            {assetLinePath && (
+              <path
+                d={assetLinePath}
+                fill="none"
+                stroke="var(--accent-orange)"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+            )}
+          </g>
 
           {/* X축 라벨 */}
           {points.map((p, i) => {
@@ -1290,6 +1303,28 @@ function AdaptiveAssetTrendChart({
               </text>
             );
           })}
+
+          {/* 호버가 없을 때 마지막 현재 시점 종점 포인트 강조 (Apple Polish) */}
+          {activeIndex === null && points.length > 0 && (
+            <g className="transition-opacity duration-300 pointer-events-none">
+              <circle
+                cx={getX(points.length - 1)}
+                cy={getY(points[points.length - 1].totalAssetsKrw)}
+                r="7"
+                fill="var(--accent-orange)"
+                fillOpacity="0.25"
+                className="animate-ping"
+              />
+              <circle
+                cx={getX(points.length - 1)}
+                cy={getY(points[points.length - 1].totalAssetsKrw)}
+                r="4"
+                fill="var(--accent-orange)"
+                stroke="var(--bg-main)"
+                strokeWidth="2"
+              />
+            </g>
+          )}
 
           {/* 마우스 호버 가이드라인 & 포인트 도트 (0px 정밀 스냅) */}
           {activeIndex !== null && (
@@ -1595,6 +1630,51 @@ function OverviewReportView({
   );
 }
 
+// 초기 데이터 로딩 중 온보딩 빈 계좌 화면이 깜빡이지 않도록 방지하는 Apple HIG 스켈레톤
+function JournalLoadingSkeleton() {
+  return (
+    <div className="rounded-2xl border border-[var(--border-color)]/80 bg-[var(--card-surface)]/90 backdrop-blur-md p-4 sm:p-6 space-y-5 animate-pulse shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="h-6 w-32 rounded-lg bg-[var(--border-color)]/50" />
+          <div className="h-5 w-24 rounded-full bg-[var(--border-color)]/30" />
+        </div>
+        <div className="h-8 w-44 rounded-full bg-[var(--border-color)]/30 self-start sm:self-auto" />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3 sm:p-3.5 space-y-2">
+            <div className="h-3 w-14 rounded bg-[var(--border-color)]/40" />
+            <div className="h-5 sm:h-6 w-24 rounded bg-[var(--border-color)]/50" />
+            <div className="h-2.5 w-20 rounded bg-[var(--border-color)]/30" />
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2 pt-2">
+        <div className="h-3 w-20 rounded bg-[var(--border-color)]/40" />
+        <div className="h-4 rounded-full bg-[var(--border-color)]/30 w-full" />
+      </div>
+
+      <div className="space-y-2 pt-1">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3">
+            <div className="space-y-1.5">
+              <div className="h-4 w-28 rounded bg-[var(--border-color)]/40" />
+              <div className="h-3 w-20 rounded bg-[var(--border-color)]/30" />
+            </div>
+            <div className="space-y-1.5 text-right flex flex-col items-end">
+              <div className="h-4 w-20 rounded bg-[var(--border-color)]/40" />
+              <div className="h-3 w-12 rounded bg-[var(--border-color)]/30" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function JournalPage() {
   const { user, isPro, openAuthPopover } = useAuth();
   const isAdmin = user?.nickname === '주식부엉';
@@ -1611,6 +1691,20 @@ export default function JournalPage() {
   const [quotes, setQuotes] = useState<QuoteMap>({ quotes: {}, usdKrw: null });
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteAt, setQuoteAt] = useState<string | null>(null);
+
+  // 직전 조회 시세 로컬 캐시 즉시 복원 (첫 진입 시 시세 미도착으로 인한 계산 플래시 방지)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem('jusik_quotes_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.quotes && Object.keys(parsed.quotes).length > 0) {
+          setQuotes(parsed);
+          if (parsed.fetchedAt) setQuoteAt(parsed.fetchedAt);
+        }
+      }
+    } catch {}
+  }, []);
   const [applied, setApplied] = useState(false);
   const [appliedLineGroupIds, setAppliedLineGroupIds] = useState<string[]>([]);
 
@@ -2003,13 +2097,17 @@ export default function JournalPage() {
       const res = await fetch(`/api/quotes?symbols=${encodeURIComponent(symbolsKey)}`);
       const json = await res.json();
       if (json.success) {
-        setQuotes({
+        const nextQuotes = {
           quotes: json.quotes,
           usdKrw: json.usdKrw,
           jpyKrw: json.jpyKrw,
           hkdKrw: json.hkdKrw,
-        });
+        };
+        setQuotes(nextQuotes);
         setQuoteAt(json.fetchedAt);
+        try {
+          localStorage.setItem('jusik_quotes_cache', JSON.stringify({ ...nextQuotes, fetchedAt: json.fetchedAt }));
+        } catch {}
       }
     } catch {}
     setQuoteLoading(false);
@@ -3416,19 +3514,19 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 pb-32">
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6 pb-32">
       {/* 헤더 */}
-      <div className="py-2 px-1 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      <div className="py-1 sm:py-2 px-0.5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
-              나의 투자일지
+              투자일지
             </h1>
             <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 shadow-2xs">
               BETA
             </span>
           </div>
-          <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
+          <p className="text-xs sm:text-base text-[var(--text-secondary)] font-medium">
             자산 배분 목표 비율을 정하고, 이번에 살 수량을 손쉽게 계산해 보세요.
           </p>
         </div>
@@ -3453,7 +3551,12 @@ export default function JournalPage() {
 
       {/* 상단 탭 바: 애플 HIG + M3 캡슐(Pill) 스타일 통일 */}
       <div className="space-y-2">
-        {!isManagingAccounts ? (
+        {!loaded ? (
+          <div className="flex flex-wrap items-center gap-2 animate-pulse py-1">
+            <div className="h-8 w-20 rounded-full bg-[var(--border-color)]/50" />
+            <div className="h-8 w-24 rounded-full bg-[var(--border-color)]/40" />
+          </div>
+        ) : !isManagingAccounts ? (
           <div className="flex flex-wrap items-center gap-2">
             {data.accounts.length > 1 && (
               <button
@@ -3462,7 +3565,7 @@ export default function JournalPage() {
                   setApplied(false);
                   setAppliedLineGroupIds([]);
                 }}
-                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
                   activeId === 'ALL'
                     ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-sm'
                     : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
@@ -3480,7 +3583,7 @@ export default function JournalPage() {
                   setApplied(false);
                   setAppliedLineGroupIds([]);
                 }}
-                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
+                className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
                   a.id === activeId
                     ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-sm'
                     : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
@@ -3496,7 +3599,7 @@ export default function JournalPage() {
                 <button
                   type="button"
                   onClick={addAccount}
-                  className="px-4 py-2 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-primary)] hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)] text-[var(--text-primary)] hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> 계좌 추가
                 </button>
@@ -3601,8 +3704,10 @@ export default function JournalPage() {
         {/* ============================================================== */}
         {/* 0. 계좌 없음 안내 (온보딩 Empty State: 계좌가 0개일 때)             */}
         {/* ============================================================== */}
-        {data.accounts.length === 0 ? (
-          <div className={`${cardCls} p-10 text-center space-y-4`}>
+        {!loaded ? (
+          <JournalLoadingSkeleton />
+        ) : data.accounts.length === 0 ? (
+          <div className={`${cardCls} p-8 sm:p-10 text-center space-y-4`}>
             <div className="w-12 h-12 rounded-2xl bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] flex items-center justify-center mx-auto">
               <Wallet className="w-6 h-6 stroke-[1.8]" />
             </div>
@@ -3624,13 +3729,13 @@ export default function JournalPage() {
           /* ============================================================== */
           <div className="space-y-6">
             {currentSummary && (
-              <div className={`${cardCls} p-5 sm:p-6 space-y-5`}>
+              <div className={`${cardCls} p-4 sm:p-6 space-y-4 sm:space-y-5`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <h2 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)]">
                       내 자산 모아보기
                     </h2>
-                    <span className="text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--bg-main)] px-2.5 py-0.5 rounded-full border border-[var(--border-color)]/60">
+                    <span className="text-[10px] sm:text-[11px] font-mono text-[var(--text-secondary)] bg-[var(--bg-main)] px-2.5 py-0.5 rounded-full border border-[var(--border-color)]/60">
                       총 {data.accounts.length}개 계좌 합산
                     </span>
                   </div>
@@ -3638,7 +3743,7 @@ export default function JournalPage() {
                   <div className="flex items-center justify-between sm:justify-end gap-2.5">
                     {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
                     <div className="relative">
-                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
                         <div
                           className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
                           style={{
@@ -3650,7 +3755,7 @@ export default function JournalPage() {
                         <button
                           type="button"
                           onClick={() => setOverviewReportTab('asset')}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                             overviewReportTab === 'asset'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -3668,7 +3773,7 @@ export default function JournalPage() {
                             }
                             setOverviewReportTab('report');
                           }}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                             overviewReportTab === 'report'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -3695,51 +3800,51 @@ export default function JournalPage() {
 
                 <SmoothHeight>
                   {overviewReportTab === 'asset' ? (
-                    <div className="space-y-5">
+                    <div className="space-y-4 sm:space-y-5">
                       {/* 4대 핵심 지표 카드 */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <Wallet className="w-3 h-3" /> 총 자산
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.totalAssetsKrw)}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block font-mono truncate">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
                             자산 평가금 {won(currentSummary.totalStockEvalKrw)}
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             투자 원금
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block truncate">
                             {currentSummary.hasInvestData ? '단가 입력 합계' : '단가 미입력'}
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <DollarSign className="w-3 h-3" /> 현금
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.cashKrw)}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block font-mono">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
                             현금 비중 {currentSummary.cashWeightPct.toFixed(1)}%
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <TrendingUp className="w-3 h-3" /> 수익률
                           </span>
                           <p
-                            className={`text-base sm:text-lg font-extrabold font-mono truncate ${
+                            className={`text-sm sm:text-lg font-extrabold font-mono truncate ${
                               currentSummary.totalProfitRate === null
                                 ? 'text-[var(--text-secondary)]'
                                 : currentSummary.totalProfitRate >= 0
@@ -3752,7 +3857,7 @@ export default function JournalPage() {
                               : '-'}
                           </p>
                           <span
-                            className={`text-[10px] font-mono block truncate ${
+                            className={`text-[9px] sm:text-[10px] font-mono block truncate ${
                               currentSummary.totalProfitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
                             }`}
                           >
@@ -3770,7 +3875,7 @@ export default function JournalPage() {
                             계좌 구성
                           </span>
                           {/* Apple HIG 2-Segmented Pill Controller (글래스모피즘 + 슬라이딩 인디케이터) */}
-                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
                             {/* 슬라이딩 글래스모피즘 인디케이터 (Apple Snappy cubic-bezier & 주황 글로우) */}
                             <div
                               className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
@@ -3783,7 +3888,7 @@ export default function JournalPage() {
                             <button
                               type="button"
                               onClick={() => setOverviewViewMode('group')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                                 overviewViewMode === 'group'
                                   ? 'text-[var(--accent-orange)] font-extrabold'
                                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -3795,7 +3900,7 @@ export default function JournalPage() {
                             <button
                               type="button"
                               onClick={() => setOverviewViewMode('asset')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                                 overviewViewMode === 'asset'
                                   ? 'text-[var(--accent-orange)] font-extrabold'
                                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -4106,7 +4211,7 @@ export default function JournalPage() {
           <div className="space-y-6">
             {/* 계좌 오버뷰 */}
             {currentSummary && (
-              <div className={`${cardCls} p-5 sm:p-6 space-y-5`}>
+              <div className={`${cardCls} p-4 sm:p-6 space-y-4 sm:space-y-5`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <PieChart className="w-4 h-4 text-[var(--accent-orange)]" />
@@ -4118,7 +4223,7 @@ export default function JournalPage() {
                   <div className="flex items-center justify-between sm:justify-end gap-2.5">
                     {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
                     <div className="relative">
-                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
                         <div
                           className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
                           style={{
@@ -4130,7 +4235,7 @@ export default function JournalPage() {
                         <button
                           type="button"
                           onClick={() => setOverviewReportTab('asset')}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                             overviewReportTab === 'asset'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -4148,7 +4253,7 @@ export default function JournalPage() {
                             }
                             setOverviewReportTab('report');
                           }}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                             overviewReportTab === 'report'
                               ? 'text-[var(--accent-orange)] font-extrabold'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -4175,51 +4280,51 @@ export default function JournalPage() {
 
                 <SmoothHeight>
                   {overviewReportTab === 'asset' ? (
-                    <div className="space-y-5">
+                    <div className="space-y-4 sm:space-y-5">
                       {/* 4대 핵심 지표 카드 */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <Wallet className="w-3 h-3" /> 총 자산
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.totalAssetsKrw)}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block font-mono truncate">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
                             자산 평가금 {won(currentSummary.totalStockEvalKrw)}
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             투자 원금
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block truncate">
                             {currentSummary.hasInvestData ? '단가 입력 합계' : '단가 미입력'}
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <DollarSign className="w-3 h-3" /> 현금
                           </span>
-                          <p className="text-base sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
+                          <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.cashKrw)}
                           </p>
-                          <span className="text-[10px] text-[var(--text-secondary)] block font-mono">
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
                             현금 비중 {currentSummary.cashWeightPct.toFixed(1)}%
                           </span>
                         </div>
 
-                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-                          <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
+                        <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
                             <TrendingUp className="w-3 h-3" /> 수익률
                           </span>
                           <p
-                            className={`text-base sm:text-lg font-extrabold font-mono truncate ${
+                            className={`text-sm sm:text-lg font-extrabold font-mono truncate ${
                               currentSummary.totalProfitRate === null
                                 ? 'text-[var(--text-secondary)]'
                                 : currentSummary.totalProfitRate >= 0
@@ -4232,7 +4337,7 @@ export default function JournalPage() {
                               : '-'}
                           </p>
                           <span
-                            className={`text-[10px] font-mono block truncate ${
+                            className={`text-[9px] sm:text-[10px] font-mono block truncate ${
                               currentSummary.totalProfitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
                             }`}
                           >
@@ -4250,7 +4355,7 @@ export default function JournalPage() {
                             계좌 구성
                           </span>
                           {/* Apple HIG 2-Segmented Pill Controller (글래스모피즘 + 슬라이딩 인디케이터) */}
-                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-48 sm:w-52">
+                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
                             {/* 슬라이딩 글래스모피즘 인디케이터 (Apple Snappy cubic-bezier & 주황 글로우) */}
                             <div
                               className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
@@ -4263,7 +4368,7 @@ export default function JournalPage() {
                             <button
                               type="button"
                               onClick={() => setOverviewViewMode('group')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                                 overviewViewMode === 'group'
                                   ? 'text-[var(--accent-orange)] font-extrabold'
                                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -4275,7 +4380,7 @@ export default function JournalPage() {
                             <button
                               type="button"
                               onClick={() => setOverviewViewMode('asset')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-2 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
                                 overviewViewMode === 'asset'
                                   ? 'text-[var(--accent-orange)] font-extrabold'
                                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -5590,7 +5695,7 @@ export default function JournalPage() {
                                             </div>
                                           )}
                                         </div>
-                                        <div className="relative w-32">
+                                        <div className="relative w-28 sm:w-32">
                                           <input
                                             className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
                                             inputMode={currencyMode === 'USD' ? 'decimal' : 'numeric'}
@@ -5643,7 +5748,7 @@ export default function JournalPage() {
                                       {/* 보유 수량 */}
                                       <div className="space-y-1">
                                         <span className="text-[11px] font-bold text-[var(--text-secondary)] block">보유 수량</span>
-                                        <div className="relative w-32">
+                                        <div className="relative w-28 sm:w-32">
                                           <input
                                             className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
                                             inputMode="decimal"
@@ -5718,9 +5823,9 @@ export default function JournalPage() {
                                     </button>
                                   </div>
 
-                                  <div className="flex flex-wrap items-center gap-2.5">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                                     {/* 구분: 구매 / 판매 글래스모피즘 슬라이딩 캡슐 토글 */}
-                                    <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-36 shrink-0">
+                                    <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-32 sm:w-36 shrink-0">
                                       {/* 슬라이딩 글래스모피즘 인디케이터 (Apple Snappy & 앰비언트 글로우) */}
                                       <div
                                         className={`absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border transition-all duration-300 pointer-events-none ${
@@ -5737,7 +5842,7 @@ export default function JournalPage() {
                                       <button
                                         type="button"
                                         onClick={() => setManualTradeType('BUY')}
-                                        className={`relative z-10 w-full flex items-center justify-center py-1 px-3 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
+                                        className={`relative z-10 w-full flex items-center justify-center py-1 px-2.5 sm:px-3 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
                                           manualTradeType === 'BUY'
                                             ? 'text-[var(--accent-orange)] font-extrabold'
                                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -5748,7 +5853,7 @@ export default function JournalPage() {
                                       <button
                                         type="button"
                                         onClick={() => setManualTradeType('SELL')}
-                                        className={`relative z-10 w-full flex items-center justify-center py-1 px-3 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
+                                        className={`relative z-10 w-full flex items-center justify-center py-1 px-2.5 sm:px-3 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
                                           manualTradeType === 'SELL'
                                             ? 'text-[#F43F5E] font-extrabold'
                                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
@@ -5777,7 +5882,7 @@ export default function JournalPage() {
                                             }
                                           }
                                         }}
-                                        className="bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
+                                        className="bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2 sm:px-2.5 py-1 text-xs font-mono font-bold text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)] max-w-[130px] sm:max-w-none"
                                       />
                                       {isLoadingHistoryPrice && (
                                         <span className="text-[10px] text-[var(--accent-orange)] font-bold animate-pulse">
@@ -5787,14 +5892,14 @@ export default function JournalPage() {
                                     </div>
 
                                     {/* 수량 */}
-                                    <div className="relative w-24 shrink-0">
+                                    <div className="relative w-20 sm:w-24 shrink-0">
                                       <input
                                         type="text"
                                         inputMode="decimal"
                                         placeholder="수량"
                                         value={manualTradeQty}
                                         onChange={(e) => setManualTradeQty(e.target.value.replace(/[^0-9.]/g, ''))}
-                                        className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
+                                        className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2 sm:px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
                                       />
                                     </div>
                                     <span className="text-xs font-mono text-[var(--text-secondary)] shrink-0">
@@ -5802,7 +5907,7 @@ export default function JournalPage() {
                                     </span>
 
                                     {/* 단가 */}
-                                    <div className="relative w-28 shrink-0">
+                                    <div className="relative w-24 sm:w-28 shrink-0">
                                       <input
                                         type="text"
                                         inputMode={isUsdAsset ? 'decimal' : 'numeric'}
@@ -5821,7 +5926,7 @@ export default function JournalPage() {
                                             setManualTradePrice(e.target.value.replace(/[^0-9]/g, ''));
                                           }
                                         }}
-                                        className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
+                                        className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2 sm:px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]"
                                       />
                                     </div>
                                     <span className="text-xs text-[var(--text-secondary)] shrink-0">
@@ -6016,7 +6121,7 @@ export default function JournalPage() {
                       return (
                         <div
                           key={lineKey}
-                          className="p-3.5 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                          className="p-3 sm:p-3.5 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs"
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-bold text-[var(--text-primary)] truncate">
@@ -6027,13 +6132,13 @@ export default function JournalPage() {
                             </p>
                           </div>
 
-                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--border-color)]/40">
                             {/* 체결 수량 직접 수정 인풋 (추천 수량 기본값, 직접 변경 가능) */}
                             <div className="flex items-center gap-1.5">
                               <span className="text-[11px] text-[var(--text-secondary)] font-bold whitespace-nowrap">
                                 수량:
                               </span>
-                              <div className="relative w-20 sm:w-24">
+                              <div className="relative w-16 sm:w-24">
                                 <input
                                   type="text"
                                   inputMode="decimal"
@@ -6057,7 +6162,7 @@ export default function JournalPage() {
                                       return next;
                                     });
                                   }}
-                                  className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)] disabled:opacity-50"
+                                  className="w-full bg-[var(--card-surface)] border border-[var(--border-color)] rounded-lg px-2 py-1 text-xs font-mono font-bold text-right text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)] disabled:opacity-50"
                                 />
                               </div>
                               <span className="text-xs font-mono text-[var(--text-secondary)]">
@@ -6065,7 +6170,7 @@ export default function JournalPage() {
                               </span>
                             </div>
 
-                            <div className="text-right min-w-[75px] font-mono">
+                            <div className="text-right min-w-[70px] font-mono">
                               <p
                                 className={`text-xs sm:text-sm font-extrabold ${
                                   effectiveQty < 0 ? 'text-[#F43F5E]' : 'text-[var(--accent-orange)]'
@@ -6075,14 +6180,14 @@ export default function JournalPage() {
                                   ? `${formatQuantity(Math.abs(effectiveQty), isCrypto)}${unit} 판매`
                                   : `${formatQuantity(effectiveQty, isCrypto)}${unit} 구매`}
                               </p>
-                              <p className="text-[11px] text-[var(--text-secondary)]">
+                              <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)]">
                                 {won(Math.abs(effectiveAmountKrw))}
                               </p>
                             </div>
 
                             {/* 개별 행 반영 버튼 */}
                             {isLineApplied ? (
-                              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)] border border-[var(--accent-emerald,#10B981)]/30 font-mono">
+                              <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)] border border-[var(--accent-emerald,#10B981)]/30 font-mono">
                                 <Check className="w-3.5 h-3.5" /> 반영됨
                               </span>
                             ) : (
@@ -6090,7 +6195,7 @@ export default function JournalPage() {
                                 type="button"
                                 disabled={effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))}
                                 onClick={() => applySingleLine(l, effectiveQty, effectiveAmountKrw)}
-                                className={`inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs transition-all ${
+                                className={`inline-flex items-center gap-1 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs transition-all ${
                                   effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))
                                     ? 'bg-[var(--border-color)] text-[var(--text-secondary)] opacity-50 cursor-not-allowed'
                                     : 'bg-[var(--accent-orange)] text-white hover:brightness-105 cursor-pointer active:scale-95'

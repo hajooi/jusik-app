@@ -267,7 +267,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>나의 투자일지 계좌 관리 및 구매 수량 자동 계산</span>
+                      <span>투자일지 계좌 관리 및 구매 수량 자동 계산</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
@@ -347,7 +347,7 @@ export default function MembershipCompareModal({ isOpen, onClose }: MembershipCo
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <span>나의 투자일지 다중 계좌 관리 & 거래 기록 평생 보관</span>
+                      <span>투자일지 다중 계좌 관리 & 거래 기록 평생 보관</span>
                     </li>
                   </ul>
                 </div>

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '나의 투자일지',
+  title: '투자일지',
   description: '계좌별 목표 비율과 가용 현금을 입력하면 자산 배분 비중에 맞춰 지금 사야 할 종목과 정확한 구매 수량을 자동으로 계산해 주는 스마트 포트폴리오 리밸런싱 투자일지 도구입니다.',
   keywords: [
     '투자일지',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     canonical: 'https://jusik.app/tools/journal',
   },
   openGraph: {
-    title: '나의 투자일지 | jusik.app',
+    title: '투자일지 | jusik.app',
     description: '계좌별 목표 비율을 정하고 가용 현금을 넣으면 이번에 사야 할 종목과 수량을 자동으로 계산해 주는 스마트 투자일지',
     url: 'https://jusik.app/tools/journal',
     siteName: 'jusik.app',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1024,
         height: 537,
-        alt: 'jusik.app - 나의 투자일지',
+        alt: 'jusik.app - 투자일지',
       },
     ],
     locale: 'ko_KR',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '나의 투자일지 | jusik.app',
+    title: '투자일지 | jusik.app',
     description: '계좌별 목표 비율을 정하고 가용 현금을 넣으면 이번에 사야 할 종목과 수량을 자동으로 계산해 주는 스마트 투자일지',
     images: ['/og-image.png'],
   },
@@ -57,7 +57,7 @@ export default function JournalLayout({ children }: { children: React.ReactNode 
       {
         '@type': 'WebApplication',
         '@id': 'https://jusik.app/tools/journal#app',
-        name: '나의 투자일지 (자산배분 & 리밸런싱 수량 계산기)',
+        name: '투자일지 (자산배분 & 리밸런싱 수량 계산기)',
         url: 'https://jusik.app/tools/journal',
         applicationCategory: 'FinanceApplication',
         operatingSystem: 'All',
@@ -100,7 +100,7 @@ export default function JournalLayout({ children }: { children: React.ReactNode 
             name: '주식 판매 없이 모으기만 하는 리밸런싱이 가능한가요?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: '네, jusik.app 나의 투자일지는 판매 없이 모으기만 옵션을 지원합니다. 보유 주식을 팔지 않고, 새로 입금된 월급이나 배당금 현금만으로 목표 비율에 미달한 자산에 집중 배분하여 목표 비중을 맞춰갈 수 있습니다.',
+              text: '네, jusik.app 투자일지는 판매 없이 모으기만 옵션을 지원합니다. 보유 주식을 팔지 않고, 새로 입금된 월급이나 배당금 현금만으로 목표 비율에 미달한 자산에 집중 배분하여 목표 비중을 맞춰갈 수 있습니다.',
             },
           },
           {
@@ -140,7 +140,7 @@ export default function JournalLayout({ children }: { children: React.ReactNode 
           {
             '@type': 'ListItem',
             position: 3,
-            name: '나의 투자일지',
+            name: '투자일지',
             item: 'https://jusik.app/tools/journal',
           },
         ],

@@ -253,21 +253,31 @@ export function calcPortfolioSummary(account: JournalAccount, q: QuoteMap): Port
       const qty = group.holdings[sym] || 0;
       if (qty <= 0) continue;
 
-      const p = priceKrw(sym, q) || 0;
+      const rawPrice = priceKrw(sym, q);
+      const avg = group.avgPrices?.[sym];
+      const avgPriceKrw = typeof avg === 'number' && avg > 0 ? avg : (rawPrice !== null && rawPrice > 0 ? rawPrice : null);
+
+      // 시세 미도착(null) 시 주식 가격을 0원으로 처리하여 인위적인 -72% 손실 플래시가 일어나는 현상 방지:
+      // 시세가 아직 로딩 중이면 평균 단가(avgPriceKrw)를 임시 평가 가격으로 사용하여 수익률 0% 안정 유지
+      const p = rawPrice !== null ? rawPrice : (avgPriceKrw ?? 0);
       const evalKrw = qty * p;
       totalStockEvalKrw += evalKrw;
       groupEvalKrw += evalKrw;
 
-      const avg = group.avgPrices?.[sym];
-      const avgPriceKrw = typeof avg === 'number' && avg > 0 ? avg : (p > 0 ? p : null);
       const investKrw = avgPriceKrw ? qty * avgPriceKrw : null;
 
       let profitKrw: number | null = null;
       let profitRate: number | null = null;
 
       if (investKrw !== null && investKrw > 0) {
-        profitKrw = evalKrw - investKrw;
-        profitRate = (profitKrw / investKrw) * 100;
+        if (rawPrice !== null) {
+          profitKrw = evalKrw - investKrw;
+          profitRate = (profitKrw / investKrw) * 100;
+        } else {
+          // 시세 로딩 대기 중에는 손익을 0으로 홀드하여 왜곡 방지
+          profitKrw = 0;
+          profitRate = 0;
+        }
         totalInvestKrw += investKrw;
         groupInvestKrw += investKrw;
         hasInvestData = true;
@@ -357,7 +367,19 @@ export function calcAllAccountsSummary(accounts: JournalAccount[], q: QuoteMap):
   let totalInvestKrw = 0;
   let hasInvestData = false;
 
-  const allItems: HoldingOverviewItem[] = [];
+  const itemMap: Record<
+    string,
+    {
+      symbol: string;
+      name: string;
+      groupNames: Set<string>;
+      qty: number;
+      priceKrw: number | null;
+      evalKrw: number;
+      investKrw: number | null;
+    }
+  > = {};
+
   const groupMap: Record<
     string,
     {
@@ -376,8 +398,28 @@ export function calcAllAccountsSummary(accounts: JournalAccount[], q: QuoteMap):
     totalInvestKrw += s.totalInvestKrw;
     if (s.hasInvestData) hasInvestData = true;
 
+    // 종목별(Asset) 뷰에서 동일 종목이 여러 계좌에 나뉘어 있을 때 하나로 합산 통합
     for (const item of s.items) {
-      allItems.push(item);
+      if (!itemMap[item.symbol]) {
+        itemMap[item.symbol] = {
+          symbol: item.symbol,
+          name: item.name,
+          groupNames: new Set(item.groupName ? [item.groupName] : []),
+          qty: item.qty,
+          priceKrw: item.priceKrw,
+          evalKrw: item.evalKrw,
+          investKrw: item.investKrw,
+        };
+      } else {
+        const existing = itemMap[item.symbol];
+        if (item.groupName) existing.groupNames.add(item.groupName);
+        existing.qty += item.qty;
+        existing.evalKrw += item.evalKrw;
+        if (item.priceKrw) existing.priceKrw = item.priceKrw;
+        if (item.investKrw !== null) {
+          existing.investKrw = (existing.investKrw ?? 0) + item.investKrw;
+        }
+      }
     }
 
     for (const gr of s.groupItems) {
@@ -395,17 +437,43 @@ export function calcAllAccountsSummary(accounts: JournalAccount[], q: QuoteMap):
         groupMap[gr.groupName].investKrw += gr.investKrw;
         groupMap[gr.groupName].hasInvest = true;
       }
-      groupMap[gr.groupName].symbols.push(...gr.symbols);
+      // 동일 종목 중복 라벨 방지 및 수량/평가액 합산
+      for (const symObj of gr.symbols) {
+        const existingSym = groupMap[gr.groupName].symbols.find((so) => so.symbol === symObj.symbol);
+        if (existingSym) {
+          existingSym.qty += symObj.qty;
+          existingSym.evalKrw += symObj.evalKrw;
+        } else {
+          groupMap[gr.groupName].symbols.push({ ...symObj });
+        }
+      }
     }
   }
 
   const totalAssetsKrw = totalStockEvalKrw + cashKrw;
   const cashWeightPct = totalAssetsKrw > 0 ? (cashKrw / totalAssetsKrw) * 100 : 0;
 
-  const items: HoldingOverviewItem[] = allItems.map((item) => ({
-    ...item,
-    weightPct: totalAssetsKrw > 0 ? (item.evalKrw / totalAssetsKrw) * 100 : 0,
-  }));
+  // 동일 종목 통합 후 평가액 내림차순 정렬 및 가중평균단가/수익률 산출
+  const items: HoldingOverviewItem[] = Object.values(itemMap)
+    .map((it) => {
+      const profitKrw = it.investKrw !== null ? it.evalKrw - it.investKrw : null;
+      const profitRate = it.investKrw !== null && it.investKrw > 0 ? (profitKrw! / it.investKrw) * 100 : null;
+      const avgPriceKrw = it.investKrw !== null && it.qty > 0 ? Math.round(it.investKrw / it.qty) : null;
+      return {
+        symbol: it.symbol,
+        name: it.name,
+        groupName: Array.from(it.groupNames).join(', '),
+        qty: it.qty,
+        priceKrw: it.priceKrw ?? 0,
+        evalKrw: it.evalKrw,
+        avgPriceKrw,
+        investKrw: it.investKrw,
+        profitKrw,
+        profitRate,
+        weightPct: totalAssetsKrw > 0 ? (it.evalKrw / totalAssetsKrw) * 100 : 0,
+      };
+    })
+    .sort((a, b) => b.evalKrw - a.evalKrw);
 
   const groupItems: GroupOverviewItem[] = Object.values(groupMap).map((g, idx) => {
     const profitKrw = g.hasInvest ? g.evalKrw - g.investKrw : null;
