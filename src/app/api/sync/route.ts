@@ -96,8 +96,8 @@ export const GET = withApiGuard('회원 동기화 및 로그인 (/api/sync GET)'
     const proStatus = resolveUserProStatus(userRecord);
 
     userRecord.lastActiveAt = new Date().toISOString();
-    db[nickname] = userRecord;
-    await saveServerDbAsync(db);
+    db[userRecord.nickname] = userRecord;
+    await saveServerDbAsync(db, userRecord.nickname);
 
     const rankPercentile = computeRankPercentile(db, userRecord.completedLessons);
 
@@ -165,8 +165,8 @@ export const POST = withApiGuard('회원 데이터 저장 및 진도 동기화 (
 
       existing.pin = newPin;
       existing.lastActiveAt = new Date().toISOString();
-      db[trimmedNickname] = existing;
-      await saveServerDbAsync(db);
+      db[existing.nickname] = existing;
+      await saveServerDbAsync(db, existing.nickname);
 
       return NextResponse.json({
         success: true,
@@ -245,8 +245,8 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
       const proStatus = resolveUserProStatus(existing);
       existing.lastActiveAt = new Date().toISOString();
 
-      db[trimmedNickname] = existing;
-      await saveServerDbAsync(db);
+      db[existing.nickname] = existing;
+      await saveServerDbAsync(db, existing.nickname);
 
       const successMsg = cleanCode === 'JU26'
         ? (isOctoberPromo ? 'PRO+ 코드가 인증되어 10월 31일까지 PRO+ 권한이 활성화되었습니다!' : 'PRO+ 코드가 인증되어 이번 달 말일까지 PRO+ 권한이 활성화되었습니다!')
@@ -289,8 +289,8 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
 
         existing.lastActiveAt = new Date().toISOString();
 
-        db[trimmedNickname] = existing;
-        await saveServerDbAsync(db);
+        db[existing.nickname] = existing;
+        await saveServerDbAsync(db, existing.nickname);
 
         const rankPercentile = computeRankPercentile(db, existing.completedLessons);
 
@@ -336,7 +336,7 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
           proTier: 'free',
         };
         db[trimmedNickname] = newRecord;
-        await saveServerDbAsync(db);
+        await saveServerDbAsync(db, trimmedNickname);
 
         const rankPercentile = computeRankPercentile(db, newRecord.completedLessons);
 
@@ -386,9 +386,10 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
         }
       }
 
-      // 3. 순수 시뮬레이터 설정 갱신
-      if (simulatorSettings !== undefined) {
-        existing.simulatorSettings = simulatorSettings;
+      // 3. 순수 시뮬레이터 설정 갱신 (journal 등 타 도메인 필드 유입 원천 차단)
+      if (simulatorSettings !== undefined && simulatorSettings && typeof simulatorSettings === 'object') {
+        const { journal: _ignoreJournal, ...cleanSim } = simulatorSettings;
+        existing.simulatorSettings = cleanSim;
       }
 
       // 4. 아바타 및 뱃지 갱신
@@ -452,8 +453,8 @@ function getPromoCodeExpiryIso(cleanCode: string): string {
 
       existing.lastActiveAt = new Date().toISOString();
 
-      db[trimmedNickname] = existing;
-      await saveServerDbAsync(db);
+      db[existing.nickname] = existing;
+      await saveServerDbAsync(db, existing.nickname);
 
       const rankPercentile = computeRankPercentile(db, existing.completedLessons);
 

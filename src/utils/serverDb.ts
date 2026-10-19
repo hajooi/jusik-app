@@ -170,9 +170,24 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
           const validatedTypeAnswers = isFull ? row.type_answers : undefined;
           const validatedInvestmentType = row.investment_type || undefined;
 
-          // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록, 즐겨찾기 도구)를 안전하게 분리 Unpack
+          // 순수 시뮬레이터 설정과 메타데이터(뱃지, 퀴즈 기록, 즐겨찾기 도구, 투자일지)를 안전하게 분리 Unpack
           const rowSettings = (row.simulator_settings && typeof row.simulator_settings === 'object') ? row.simulator_settings : {};
-          const { __quizEntries, termsQuizBest: _tb, activeBadge: _ab, termsQuizEntries: _qe, favoriteTools: _fav, journal: _jr, ...pureSim } = rowSettings;
+          const {
+            __quizEntries,
+            termsQuizBest: _tb,
+            activeBadge: _ab,
+            termsQuizEntries: _qe,
+            favoriteTools: _fav,
+            journal: _jr,
+            isPro: _ip,
+            proExpiresAt: _pe,
+            isProPlus: _ipp,
+            proPlusExpiresAt: _ppe,
+            proTier: _pt,
+            hasCompletedCourse: _hc,
+            maxCompletedLessonsCount: _mc,
+            ...pureSim
+          } = rowSettings;
           const cleanSimulatorSettings = Object.keys(pureSim).length > 0 ? pureSim : undefined;
 
           const effectiveActiveBadge = (rowSettings.activeBadge !== undefined && rowSettings.activeBadge !== null)
@@ -185,6 +200,9 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
           const effectiveTermsQuizEntries = rowSettings.termsQuizEntries || undefined;
           const effectiveIsPro = rowSettings.isPro ?? row.is_pro ?? false;
           const effectiveProExpiresAt = rowSettings.proExpiresAt || row.pro_expires_at || undefined;
+          const effectiveIsProPlus = rowSettings.isProPlus ?? row.is_pro_plus ?? false;
+          const effectiveProPlusExpiresAt = rowSettings.proPlusExpiresAt || row.pro_plus_expires_at || undefined;
+          const effectiveProTier = rowSettings.proTier || row.pro_tier || undefined;
           const effectiveHasCompletedCourse = Boolean(rowSettings.hasCompletedCourse || row.has_completed_course);
           const rawCompletedList = Array.isArray(row.completed_lessons) ? row.completed_lessons : [];
           const effectiveMaxCompleted = Math.max(
@@ -212,10 +230,13 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
             termsQuizEntries: effectiveTermsQuizEntries,
             isPro: effectiveIsPro,
             proExpiresAt: effectiveProExpiresAt,
+            isProPlus: effectiveIsProPlus,
+            proPlusExpiresAt: effectiveProPlusExpiresAt,
+            proTier: effectiveProTier,
             hasCompletedCourse: effectiveHasCompletedCourse,
             maxCompletedLessonsCount: effectiveMaxCompleted,
             favoriteTools: effectiveFavoriteTools,
-            journal: rowSettings.journal || undefined,
+            journal: rowSettings.journal !== undefined ? rowSettings.journal : undefined,
           };
         });
 
@@ -248,10 +269,79 @@ export async function getServerDbAsync(): Promise<Record<string, ServerUserRecor
 }
 
 /**
- * 서버 사용자 DB를 비동기로 저장합니다.
- * Supabase가 활성화된 환경에서는 Supabase users 테이블로 동기화합니다.
+ * 단일 유저 레코드를 Supabase 저장용 Row로 직렬화합니다.
+ * 기존 journal 데이터가 실수로 null로 덮어써지지 않도록 existingJournalFallback을 우선 보존합니다.
  */
-export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): Promise<void> {
+export function packUserRecordForSupabase(u: ServerUserRecord, existingJournalFallback?: any) {
+  const isFull = u.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40;
+
+  let pureSimulatorSettings = u.simulatorSettings || {};
+  if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
+    const {
+      __quizEntries,
+      termsQuizBest: _t,
+      activeBadge: _b,
+      termsQuizEntries: _qe,
+      favoriteTools: _f,
+      journal: _j,
+      isPro: _ip,
+      proExpiresAt: _pe,
+      isProPlus: _ipp,
+      proPlusExpiresAt: _ppe,
+      proTier: _pt,
+      hasCompletedCourse: _hc,
+      maxCompletedLessonsCount: _mc,
+      ...pureSim
+    } = pureSimulatorSettings;
+    pureSimulatorSettings = pureSim;
+  }
+
+  // u.journal에 유효 계좌가 없고 existingJournalFallback에 계좌가 있다면 기존 journal을 절대 보존
+  const uHasAccounts = Array.isArray(u.journal?.accounts) && u.journal.accounts.length > 0;
+  const fallbackHasAccounts = Array.isArray(existingJournalFallback?.accounts) && existingJournalFallback.accounts.length > 0;
+  const safeJournal = uHasAccounts
+    ? u.journal
+    : fallbackHasAccounts
+    ? existingJournalFallback
+    : (u.journal ?? existingJournalFallback ?? null);
+
+  const packedSettings = {
+    ...pureSimulatorSettings,
+    activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
+    termsQuizBest: u.termsQuizBest || null,
+    termsQuizEntries: u.termsQuizEntries || null,
+    isPro: u.isPro || false,
+    proExpiresAt: u.proExpiresAt || null,
+    isProPlus: u.isProPlus || false,
+    proPlusExpiresAt: u.proPlusExpiresAt || null,
+    proTier: u.proTier || 'free',
+    favoriteTools: u.favoriteTools || null,
+    journal: safeJournal,
+    hasCompletedCourse: u.hasCompletedCourse || false,
+    maxCompletedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length),
+  };
+
+  return {
+    nickname: u.nickname,
+    pin: u.pin,
+    created_at: u.createdAt,
+    last_active_at: u.lastActiveAt,
+    completed_lessons: u.completedLessons || [],
+    investment_type: u.investmentType || null,
+    type_answers: isFull ? u.typeAnswers : null,
+    simulator_settings: packedSettings,
+    avatar_url: u.avatarUrl || null,
+  };
+}
+
+/**
+ * 서버 사용자 DB를 비동기로 저장합니다.
+ * targetNickname이 지정되면 전체 테이블 일괄 덮어쓰기 대신 해당 유저 1명만 원자적으로 업데이트합니다.
+ */
+export async function saveServerDbAsync(
+  db: Record<string, ServerUserRecord>,
+  targetNickname?: string
+): Promise<void> {
   // 메모리 캐시 즉시 동기화
   globalThis.__jusik_server_db__ = db;
   saveServerDb(db);
@@ -263,44 +353,26 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
   const supabase = getSupabaseAdmin();
   if (supabase) {
     try {
-      const rows = Object.values(db).map((u) => {
-        const isFull = u.typeAnswers && typeof u.typeAnswers === 'object' && Object.keys(u.typeAnswers).length === 40;
+      const targetUsers = targetNickname
+        ? Object.values(db).filter((u) => u.nickname === targetNickname || u.nickname.toLowerCase() === targetNickname.toLowerCase())
+        : Object.values(db);
 
-        // 순수 시뮬레이터 설정 추출
-        let pureSimulatorSettings = u.simulatorSettings || {};
-        if (pureSimulatorSettings && typeof pureSimulatorSettings === 'object') {
-          const { __quizEntries, termsQuizBest: _t, activeBadge: _b, termsQuizEntries: _qe, favoriteTools: _f, journal: _j, ...pureSim } = pureSimulatorSettings;
-          pureSimulatorSettings = pureSim;
+      if (targetUsers.length === 1) {
+        const u = targetUsers[0];
+        // DB의 최신 journal 상태를 확인하여 타 API(api/sync 등)가 journal을 덮어쓰지 못하도록 보호
+        const { data: currentRows } = await supabase
+          .from('users')
+          .select('simulator_settings')
+          .eq('nickname', u.nickname)
+          .limit(1);
+        const existingJournal = currentRows?.[0]?.simulator_settings?.journal;
+        const row = packUserRecordForSupabase(u, existingJournal);
+        const { error } = await supabase.from('users').upsert([row], { onConflict: 'nickname' });
+        if (error) {
+          console.error('Supabase single user upsert error:', error.message);
         }
-
-        // Supabase JSONB 컬럼에 뱃지, 퀴즈, PRO 상태, 즐겨찾기, 우등생 달성 여부, 최고 수강 수를 함께 안전하게 Pack
-        const packedSettings = {
-          ...pureSimulatorSettings,
-          activeBadge: u.activeBadge !== undefined ? u.activeBadge : null,
-          termsQuizBest: u.termsQuizBest || null,
-          termsQuizEntries: u.termsQuizEntries || null,
-          isPro: u.isPro || false,
-          proExpiresAt: u.proExpiresAt || null,
-          favoriteTools: u.favoriteTools || null,
-          journal: u.journal || null,
-          hasCompletedCourse: u.hasCompletedCourse || false,
-          maxCompletedLessonsCount: Math.max(u.maxCompletedLessonsCount || 0, (u.completedLessons || []).length),
-        };
-
-        return {
-          nickname: u.nickname,
-          pin: u.pin,
-          created_at: u.createdAt,
-          last_active_at: u.lastActiveAt,
-          completed_lessons: u.completedLessons || [],
-          investment_type: u.investmentType || null,
-          type_answers: isFull ? u.typeAnswers : null,
-          simulator_settings: packedSettings,
-          avatar_url: u.avatarUrl || null,
-        };
-      });
-
-      if (rows.length > 0) {
+      } else if (targetUsers.length > 1) {
+        const rows = targetUsers.map((u) => packUserRecordForSupabase(u));
         const { error } = await supabase.from('users').upsert(rows, { onConflict: 'nickname' });
         if (error) {
           console.error('Supabase users upsert error:', error.message);
@@ -310,6 +382,158 @@ export async function saveServerDbAsync(db: Record<string, ServerUserRecord>): P
       console.error('Failed to save users to Supabase:', e);
     }
   }
+}
+
+/**
+ * 투자일지 전용 원자적 조회 함수:
+ * 전체 유저를 로드하지 않고 해당 유저의 최신 journal만 직접 조회합니다.
+ */
+export async function loadUserJournalAsync(
+  nickname: string,
+  pin: string
+): Promise<{ success: boolean; error?: string; journal?: any }> {
+  if (isLocalDevMode()) {
+    const db = getServerDb();
+    const record = db[nickname] || db[nickname.toLowerCase()];
+    if (!record || record.pin !== pin) {
+      return { success: false, error: '인증 실패' };
+    }
+    return { success: true, journal: record.journal || null };
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('nickname, pin, simulator_settings')
+        .ilike('nickname', nickname)
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        return { success: false, error: '인증 실패' };
+      }
+
+      const row = data[0];
+      if (row.pin !== pin) {
+        return { success: false, error: '인증 실패' };
+      }
+
+      const journal = row.simulator_settings?.journal || null;
+      return { success: true, journal };
+    } catch (e) {
+      console.error('Failed to load user journal from Supabase:', e);
+      return { success: false, error: '서버 조회 오류' };
+    }
+  }
+
+  const db = getServerDb();
+  const record = db[nickname] || db[nickname.toLowerCase()];
+  if (!record || record.pin !== pin) {
+    return { success: false, error: '인증 실패' };
+  }
+  return { success: true, journal: record.journal || null };
+}
+
+/**
+ * 투자일지 전용 원자적 저장 함수 (Anti-Wipe 보호막 탑재):
+ * 1. 기존 계좌가 존재하는데 빈 배열(accounts: [])로 덮어쓰려는 요청은 allowEmptyOverwrite가 없으면 409 차단.
+ * 2. 다른 유저나 다른 컬럼을 건드리지 않고 해당 유저의 simulator_settings.journal만 원자적으로 패치.
+ */
+export async function saveUserJournalAsync(
+  nickname: string,
+  pin: string,
+  cleanJournal: { accounts: any[]; logs: any[] },
+  allowEmptyOverwrite = false
+): Promise<{ success: boolean; conflict?: boolean; error?: string; existingJournal?: any }> {
+  if (isLocalDevMode()) {
+    const db = getServerDb();
+    const record = db[nickname] || db[nickname.toLowerCase()];
+    if (!record || record.pin !== pin) {
+      return { success: false, error: '인증 실패' };
+    }
+    const existingAccounts = Array.isArray(record.journal?.accounts) ? record.journal.accounts : [];
+    const incomingAccounts = Array.isArray(cleanJournal.accounts) ? cleanJournal.accounts : [];
+    if (existingAccounts.length > 0 && incomingAccounts.length === 0 && !allowEmptyOverwrite) {
+      return {
+        success: false,
+        conflict: true,
+        error: '기존 계좌 보호를 위해 빈 데이터 덮어쓰기가 차단되었습니다.',
+        existingJournal: record.journal,
+      };
+    }
+    record.journal = cleanJournal;
+    db[record.nickname] = record;
+    saveServerDb(db);
+    return { success: true };
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('nickname, pin, simulator_settings')
+        .ilike('nickname', nickname)
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        return { success: false, error: '인증 실패' };
+      }
+
+      const row = data[0];
+      if (row.pin !== pin) {
+        return { success: false, error: '인증 실패' };
+      }
+
+      const currentSettings = (row.simulator_settings && typeof row.simulator_settings === 'object')
+        ? row.simulator_settings
+        : {};
+      const existingJournal = currentSettings.journal;
+      const existingAccounts = Array.isArray(existingJournal?.accounts) ? existingJournal.accounts : [];
+      const incomingAccounts = Array.isArray(cleanJournal.accounts) ? cleanJournal.accounts : [];
+
+      // [Anti-Wipe Guard] 기존에 계좌가 존재하는데 명시적 삭제 플래그 없이 빈 계좌 배열이 들어오면 즉시 거부
+      if (existingAccounts.length > 0 && incomingAccounts.length === 0 && !allowEmptyOverwrite) {
+        return {
+          success: false,
+          conflict: true,
+          error: '기존 계좌 보호를 위해 빈 데이터 덮어쓰기가 차단되었습니다.',
+          existingJournal,
+        };
+      }
+
+      const updatedSettings = {
+        ...currentSettings,
+        journal: cleanJournal,
+      };
+
+      const { error: updateErr } = await supabase
+        .from('users')
+        .update({
+          simulator_settings: updatedSettings,
+          last_active_at: new Date().toISOString(),
+        })
+        .eq('nickname', row.nickname);
+
+      if (updateErr) {
+        console.error('Supabase journal atomic update error:', updateErr.message);
+        return { success: false, error: '서버 저장 실패' };
+      }
+
+      // 메모리 캐시도 동기화
+      if (globalThis.__jusik_server_db__ && globalThis.__jusik_server_db__[row.nickname]) {
+        globalThis.__jusik_server_db__[row.nickname].journal = cleanJournal;
+      }
+
+      return { success: true };
+    } catch (e) {
+      console.error('Failed to save user journal to Supabase:', e);
+      return { success: false, error: '서버 저장 오류' };
+    }
+  }
+
+  return { success: false, error: 'DB 연결 실패' };
 }
 
 export function getServerDb(): Record<string, ServerUserRecord> {
@@ -1164,7 +1388,7 @@ export async function saveTermsQuizEntryAsync(
       userRecord.termsQuizEntries = quizList;
       userRecord.lastActiveAt = new Date().toISOString();
       userDb[entry.nickname] = userRecord;
-      await saveServerDbAsync(userDb);
+      await saveServerDbAsync(userDb, entry.nickname);
     } catch (err) {
       console.error('Failed to pre-persist quiz entry to Supabase:', err);
     }
@@ -1251,7 +1475,7 @@ export async function saveTermsQuizEntryAsync(
       };
 
       userDb[entry.nickname] = userRecord;
-      await saveServerDbAsync(userDb);
+      await saveServerDbAsync(userDb, entry.nickname);
     } catch (err) {
       console.error('Failed to finalize quiz entry to Supabase:', err);
     }

@@ -21,6 +21,20 @@
 - **Autonomous Dev Server Lifecycle**:
   - 개발 서버 종료/오류/HMR 충돌 발생 시 사용자가 요청하기 전에 자율적으로 확인 및 즉시 재시작.
 
+## 0-1. Backend Architecture & Data Integrity Invariants (백엔드 및 데이터 무결성 철칙)
+- **No JSONB Piggybacking Collision & Domain Isolation (도메인 격리 및 덮어쓰기 원천 차단)**:
+  - 프로필·진도 동기화(`/api/sync`)와 투자일지 저장(`/api/journal`) 등 서로 다른 API가 동일한 JSONB 컬럼(`simulator_settings`)을 다룰 때, 타 도메인의 필드를 `null`이나 빈 값으로 덮어쓰는 행위를 100% 금지함.
+  - `packUserRecordForSupabase` 등 직렬화 계층에서 반드시 기존 DB의 `journal` 데이터를 보존(Preserve)해야 함.
+- **No Full-Table Blind Upsert (전체 테이블 무차별 Upsert 금지)**:
+  - 특정 유저 1명의 상태를 변경할 때 전체 유저 배열(`Object.values(db)`)을 통째로 `upsert(rows)`하는 패턴을 절대 금지함. 반드시 `targetNickname` 기반 단일 유저 원자적 업데이트만 수행.
+- **Dual Client/Server Anti-Wipe Guard (이중 계좌 증발 방어 잠금장치 의무화)**:
+  - **서버 측**: 기존에 계좌(`accounts.length > 0`)가 존재하는 유저에게 빈 배열(`accounts: []`) 저장 요청이 오면, 사용자의 명시적 마지막 계좌 삭제 플래그(`allowEmptyOverwrite: true`)가 없는 한 즉시 `409 Conflict`로 차단하고 기존 데이터를 반환.
+  - **클라이언트 측**: 초기 마운트 직후(무변경 상태)에는 자동 저장을 발화하지 않으며, 서버 응답이 일시적으로 비어 있더라도 동일 계정의 브라우저 로컬 캐시에 유효한 계좌가 있다면 절대 빈 배열로 덮어쓰지 않고 보존.
+- **Strict Separation of Local Sandbox vs Production DB (로컬 더미 데이터와 실제 운영 DB 혼동 절대 금지)**:
+  - `.data/users.json` 등 로컬 파일은 `NODE_ENV=development` 전용 샌드박스 테스트 데이터일 뿐이며, 실제 운영 데이터(Supabase Production DB)와 절대 혼동하거나 로컬 테스트 데이터를 운영 복구용으로 제안하지 않음.
+- **Substantive Executable Unit Testing in Loop Engineering (보여주기식 루프 배제 및 실제 유닛 테스트 의무화)**:
+  - `scripts/verify_loop.py`는 토큰만 낭비하는 장식용 출력 대신, `scripts/test_engine.ts`를 실제로 실행하여 ① 백엔드 데이터 보존 및 Anti-Wipe 가드, ② 다중 통화(`KRW`, `USD`, `JPY`, `HKD`) 환산 및 원화 결제 정산 수식, ③ 기간별 수익률(`MTD`, `YTD`, `1Y`, `Total`) 입출금 이중 차감 방지 회계 항등식을 코드 레벨에서 매번 검증해야 함.
+
 ## 1. Project Stack & Identity
 - **Tech Stack**: Next.js (App Router), Tailwind CSS, Lucide React (`lucide-react`), PWA
 - **Brand Name**: jusik.app (주식앱)

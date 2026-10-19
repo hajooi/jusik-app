@@ -609,7 +609,7 @@ function AdaptiveAssetTrendChart({
   }, [selectedRange]);
 
   // 1. 기간 분석 및 적응형 타임라인 생성
-  const { points } = useMemo(() => {
+  const { points, evaluateAtDateKey, currentInvested, currentTotalAssets } = useMemo(() => {
     const now = new Date();
     const todayStr = getLocalDateString(now);
 
@@ -838,45 +838,16 @@ function AdaptiveAssetTrendChart({
       firstActivityDate = firstLogDate || firstDepositDate;
     }
 
-    const resultPoints: AssetTrendPoint[] = [];
-
-    timeKeys.forEach((tk, idx) => {
-      const isLast = idx === timeKeys.length - 1;
-
-      // 마지막 포인트는 항상 현재 실시간 요약치와 100% 무결점 일치
-      if (isLast) {
-        const finalInvested = currentInvested;
-        const finalAssets = currentTotalAssets;
-        const profit = finalAssets - finalInvested;
-        const pRate = finalInvested > 0 ? (profit / finalInvested) * 100 : 0;
-        resultPoints.push({
-          monthStr: tk.label,
-          investedKrw: finalInvested,
-          totalAssetsKrw: finalAssets,
-          profitKrw: profit,
-          profitRate: pRate,
-        });
-        return;
-      }
-
-      // 첫 활동 일자 이전 시점:
-      // 활동 기록이 있는 계좌라면 첫 활동 시작 이전에는 0원 처리하여 과거 데이터 왜곡 원천 차단
-      if (firstActivityDate && tk.key < firstActivityDate.slice(0, tk.key.length)) {
-        resultPoints.push({
-          monthStr: tk.label,
-          investedKrw: 0,
-          totalAssetsKrw: 0,
-          profitKrw: 0,
-          profitRate: 0,
-        });
-        return;
+    const evaluateAtDateKey = (targetKey: string): { totalAssetsKrw: number; investedKrw: number } => {
+      if (firstActivityDate && targetKey < firstActivityDate.slice(0, targetKey.length)) {
+        return { totalAssetsKrw: 0, investedKrw: 0 };
       }
 
       // 해당 시점까지의 매매 기록 필터링
-      const logsUpToThis = sortedLogs.filter((l) => formatLogDate(l.date).slice(0, tk.key.length) <= tk.key);
+      const logsUpToThis = sortedLogs.filter((l) => formatLogDate(l.date).slice(0, targetKey.length) <= targetKey);
 
       // 해당 시점까지의 입출금 기록 필터링
-      const depositsUpToThis = allDeposits.filter((d) => formatLogDate(d.date).slice(0, tk.key.length) <= tk.key);
+      const depositsUpToThis = allDeposits.filter((d) => formatLogDate(d.date).slice(0, targetKey.length) <= targetKey);
       const netDepositAtPoint = depositsUpToThis.reduce(
         (acc, d) => acc + (d.type === 'IN' ? d.amountKrw : -d.amountKrw),
         0
@@ -921,7 +892,7 @@ function AdaptiveAssetTrendChart({
         const tradeSymbols = Object.entries(tradeHoldingMap).filter(([_, d]) => d.qty > 0);
         if (tradeSymbols.length > 0) {
           tradeSymbols.forEach(([sym, data]) => {
-            const realPrice = getHistoricalPrice(sym, tk.key);
+            const realPrice = getHistoricalPrice(sym, targetKey);
             let evalAtPoint = 0;
             if (realPrice !== null && realPrice > 0) {
               evalAtPoint = Math.round(data.qty * realPrice);
@@ -939,7 +910,7 @@ function AdaptiveAssetTrendChart({
       } else if (currentHoldings.length > 0) {
         // 기록이 없는 초기 계좌만 현재 보유 종목으로 시세 역산
         currentHoldings.forEach((h) => {
-          const realPrice = getHistoricalPrice(h.symbol, tk.key);
+          const realPrice = getHistoricalPrice(h.symbol, targetKey);
           if (realPrice !== null && realPrice > 0) {
             stockEvalAtPoint += Math.round(h.qty * realPrice);
           } else {
@@ -949,7 +920,7 @@ function AdaptiveAssetTrendChart({
       }
 
       // 시점별 총 자산 = 주식 평가액 + 당시 보유 현금
-      let pointAssets = stockEvalAtPoint + cashAtPoint;
+      const pointAssets = stockEvalAtPoint + cashAtPoint;
 
       // 시점별 투자 원금 계산 (100% 거래 및 입출금 장부 역산 단일 모델)
       let pointInvested = 0;
@@ -965,6 +936,32 @@ function AdaptiveAssetTrendChart({
         pointInvested = currentInvested;
       }
 
+      return { totalAssetsKrw: pointAssets, investedKrw: pointInvested };
+    };
+
+    const resultPoints: AssetTrendPoint[] = [];
+
+    timeKeys.forEach((tk, idx) => {
+      const isLast = idx === timeKeys.length - 1;
+
+      // 마지막 포인트는 항상 현재 실시간 요약치와 100% 무결점 일치
+      if (isLast) {
+        const finalInvested = currentInvested;
+        const finalAssets = currentTotalAssets;
+        const profit = finalAssets - finalInvested;
+        const pRate = finalInvested > 0 ? (profit / finalInvested) * 100 : 0;
+        resultPoints.push({
+          dateKey: tk.key,
+          monthStr: tk.label,
+          investedKrw: finalInvested,
+          totalAssetsKrw: finalAssets,
+          profitKrw: profit,
+          profitRate: pRate,
+        });
+        return;
+      }
+
+      const { totalAssetsKrw: pointAssets, investedKrw: pointInvested } = evaluateAtDateKey(tk.key);
       const profit = pointAssets - pointInvested;
       const pRate = pointInvested > 0 ? (profit / pointInvested) * 100 : 0;
 
@@ -984,7 +981,12 @@ function AdaptiveAssetTrendChart({
       return p.totalAssetsKrw > 0;
     });
 
-    return { points: cleanedPoints.length > 0 ? cleanedPoints : resultPoints };
+    return {
+      points: cleanedPoints.length > 0 ? cleanedPoints : resultPoints,
+      evaluateAtDateKey,
+      currentInvested,
+      currentTotalAssets,
+    };
   }, [summary, logs, accounts, candlesMap, mode, chartSpan]);
 
   const activeIndex = hoverIdx !== null ? hoverIdx : points.length - 1;
@@ -1091,15 +1093,9 @@ function AdaptiveAssetTrendChart({
   };
 
   // 4대 핵심 기간(이번 달 MTD, 올해 YTD, 최근 1년 1Y, 누적 전체 Total)의 실질 순자산 증감 및 실질 수익률 정밀 산출
-  // (실현 손익 + 평가 손익 + 순입출금 전수 반영: 외부 유입금을 완벽 차감한 순수 투자 성과)
+  // (차트 스팬이나 0원 필터링에 영향받지 않고, 각 기준일의 장부 원금·평가액을 독립 평가하여 입출금 이중 차감 원천 차단)
   const performanceCards = useMemo(() => {
     const now = new Date();
-    const currentAssets = summary.totalAssetsKrw;
-
-    // 전체 입출금 기록 정렬
-    const allDeposits: CashDepositLog[] = accounts
-      .flatMap((a) => a.deposits || [])
-      .sort((a, b) => a.date.localeCompare(b.date));
 
     // 기준일 정의
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1113,37 +1109,21 @@ function AdaptiveAssetTrendChart({
     const oneYearAgoStr = getLocalDateString(oneYearAgo);
 
     const calcForPeriod = (startDateStr: string | null) => {
-      let startPoint = points[0];
-      if (startDateStr && points.length > 0) {
-        let closest = points[0];
-        for (let i = 0; i < points.length; i++) {
-          const p = points[i];
-          if ((p.dateKey || '') <= startDateStr) {
-            closest = p;
-          } else {
-            break;
-          }
-        }
-        startPoint = closest;
-      }
+      const startState = startDateStr
+        ? evaluateAtDateKey(startDateStr)
+        : { totalAssetsKrw: 0, investedKrw: 0 };
 
-      const startAssets = startPoint ? startPoint.totalAssetsKrw : 0;
+      const startAssets = startState.totalAssetsKrw;
+      const startInvested = startState.investedKrw;
 
-      // 해당 기준일 이후의 순입출금액 집계
-      const periodDeposits = startDateStr
-        ? allDeposits.filter((d) => formatLogDate(d.date) >= startDateStr)
-        : allDeposits;
+      // 기간 내 순유입 원금 = 현재 총 원금 - 시작 시점 총 원금 (입출금 이중 차감 원천 방지)
+      const netNewCapital = currentInvested - startInvested;
 
-      const periodNetDeposit = periodDeposits.reduce(
-        (acc, d) => acc + (d.type === 'IN' ? d.amountKrw : -d.amountKrw),
-        0
-      );
+      // 실질 순자산 증감(순이익) = 현재 누적 손익 - 시작 시점 누적 손익 = (현재 자산 - 시작 자산) - 기간 내 순유입 원금
+      const diffKrw = (currentTotalAssets - currentInvested) - (startAssets - startInvested);
 
-      // 실질 순자산 증감(순이익) = (현재 순자산 - 기간 시작 순자산) - (해당 기간 순입금액)
-      const diffKrw = currentAssets - startAssets - periodNetDeposit;
-
-      // 기준 원본 = 시작 순자산 + (순입금 > 0 ? 순입금 : 0)
-      const baseCapital = Math.max(0, startAssets + Math.max(0, periodNetDeposit));
+      // 기준 원본 = 시작 순자산 + 기간 내 순유입 원금(양수일 때)
+      const baseCapital = Math.max(0, startAssets + Math.max(0, netNewCapital));
       const returnRate = baseCapital > 0 ? (diffKrw / baseCapital) * 100 : 0;
 
       return { diffKrw, returnRate };
@@ -1188,7 +1168,7 @@ function AdaptiveAssetTrendChart({
         isPro: true,
       },
     ];
-  }, [summary.totalAssetsKrw, accounts, points]);
+  }, [evaluateAtDateKey, currentInvested, currentTotalAssets]);
 
   // 선택된 구간 데이터 및 기간 수익률 계산
   const activeRange =
@@ -2287,8 +2267,10 @@ export default function JournalPage() {
   const nickname = user?.nickname;
   const pin = user?.pin;
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialLoadedJsonRef = useRef<string | null>(null);
+  const allowEmptyOverwriteRef = useRef<boolean>(false);
 
-  // 데이터 불러오기
+  // 데이터 불러오기 (이중 증발 방지 가드 적용)
   useEffect(() => {
     let cancelled = false;
     const sanitizeAccounts = (accs: JournalAccount[]): JournalAccount[] =>
@@ -2314,7 +2296,10 @@ export default function JournalPage() {
     };
 
     (async () => {
+      const localData = loadLocal();
       let next: JournalData | null = null;
+      let needsServerBackup = false;
+
       if (nickname && pin) {
         try {
           const res = await fetch('/api/journal', {
@@ -2323,19 +2308,26 @@ export default function JournalPage() {
             body: JSON.stringify({ action: 'load', nickname, pin }),
           });
           const json = await res.json();
-          if (json.success && json.journal) {
+          if (json.success && json.journal && Array.isArray(json.journal.accounts) && json.journal.accounts.length > 0) {
             next = {
-              accounts: sanitizeAccounts(json.journal.accounts || []),
+              accounts: sanitizeAccounts(json.journal.accounts),
               logs: flattenLogs(json.journal.logs || []),
             };
           } else if (json.success) {
-            // 서버에 데이터가 없는 신규 회원은 이전 사용자 데이터가 섞이지 않도록 완전한 빈 상태로 시작
-            next = { accounts: [], logs: [] };
+            // 서버 응답이 비어 있더라도 동일 계정의 브라우저 로컬 캐시에 유효한 계좌가 남아있다면 절대 빈 배열로 덮어쓰지 않고 복원
+            if (localData.accounts.length > 0) {
+              next = localData;
+              needsServerBackup = true;
+            } else {
+              next = { accounts: [], logs: [] };
+            }
           }
         } catch {}
       }
-      if (!next) next = loadLocal();
+      if (!next) next = localData;
       if (cancelled) return;
+      allowEmptyOverwriteRef.current = false;
+      initialLoadedJsonRef.current = needsServerBackup ? '__NEEDS_SERVER_BACKUP__' : JSON.stringify(next);
       setData(next);
       setActiveId(next.accounts.length === 1 ? next.accounts[0].id : 'ALL');
       setLoaded(true);
@@ -2353,22 +2345,46 @@ export default function JournalPage() {
     }
   }, [loaded, data.accounts, activeId]);
 
-  // 디바운스 자동 저장
+  // 디바운스 자동 저장 (초기 로드 직후 무변경 상태거나 의도치 않은 빈 계좌 덮어쓰기 원천 차단)
   useEffect(() => {
     if (!loaded) return;
+    const currentJson = JSON.stringify(data);
+    if (currentJson === initialLoadedJsonRef.current) {
+      return;
+    }
+    // 사용자가 마지막 계좌를 명시적으로 삭제한 경우가 아닌데 빈 계좌 배열이 된 경우 로컬/서버 덮어쓰기 차단
+    if (data.accounts.length === 0 && !allowEmptyOverwriteRef.current) {
+      return;
+    }
+
+    initialLoadedJsonRef.current = currentJson;
     const storageKey = getJournalStorageKey(nickname);
     try {
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      localStorage.setItem(storageKey, currentJson);
     } catch {}
     if (!nickname || !pin) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    const allowEmpty = allowEmptyOverwriteRef.current;
     saveTimer.current = setTimeout(async () => {
       try {
-        await fetch('/api/journal', {
+        const res = await fetch('/api/journal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'save', nickname, pin, journal: data }),
+          body: JSON.stringify({
+            action: 'save',
+            nickname,
+            pin,
+            journal: data,
+            allowEmptyOverwrite: allowEmpty,
+          }),
         });
+        if (res.status === 409) {
+          const json = await res.json();
+          if (json.journal && Array.isArray(json.journal.accounts) && json.journal.accounts.length > 0) {
+            initialLoadedJsonRef.current = JSON.stringify(json.journal);
+            setData(json.journal);
+          }
+        }
       } catch {}
     }, 900);
 
@@ -2798,6 +2814,7 @@ export default function JournalPage() {
     }
     const newName = `새 계좌 ${n}`;
     const a = newAccount(newName);
+    allowEmptyOverwriteRef.current = false;
     setData((d) => ({ ...d, accounts: [...currentAccounts, a] }));
     setActiveId(a.id);
     setIsManagingAccounts(true);
@@ -2837,12 +2854,14 @@ export default function JournalPage() {
       appliedGroupIds: [],
     });
 
+    const remaining = data.accounts.filter((a) => a.id !== id);
+    allowEmptyOverwriteRef.current = remaining.length === 0;
+
     setData((d) => {
       const accounts = d.accounts.filter((a) => a.id !== id);
       const logs = target ? d.logs.filter((l) => l.accountName !== target.name) : d.logs;
       return { ...d, accounts, logs };
     });
-    const remaining = data.accounts.filter((a) => a.id !== id);
     if (remaining.length === 1) {
       setActiveId(remaining[0].id);
     } else {

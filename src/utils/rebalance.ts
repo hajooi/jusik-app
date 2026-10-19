@@ -946,7 +946,8 @@ export function calculateTradeSettlement({
   const isBuy = tradeQty > 0;
 
   // 1. 거래 수수료율 결정 (해외 vs 국내)
-  const feePct = isUsd
+  const isForeignStock = isUsd || Boolean(currency && currency !== 'KRW') || (!isCrypto && symbol !== 'GOLD_1G' && !/^\d{6}$/.test(symbol));
+  const feePct = isForeignStock
     ? (fees?.usFeePct !== undefined ? fees.usFeePct : 0.07)
     : (fees?.krFeePct !== undefined ? fees.krFeePct : 0.015);
   const feeRate = Math.max(0, feePct) / 100;
