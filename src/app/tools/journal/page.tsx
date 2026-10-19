@@ -3856,14 +3856,9 @@ export default function JournalPage() {
         {/* 헤더 */}
       <div className="py-1 sm:py-2 px-0.5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="space-y-1">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
-              투자일지
-            </h1>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/35 shadow-2xs">
-              BETA
-            </span>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
+            투자일지
+          </h1>
           <p className="text-xs sm:text-base text-[var(--text-secondary)] font-medium">
             자산 배분 목표 비율을 정하고, 목표에 맞춘 주문 수량을 손쉽게 계산해 보세요.
           </p>

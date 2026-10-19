@@ -42,7 +42,6 @@ const RAW_TOOLS: ToolItem[] = [
     href: '/tools/journal',
     icon: BookOpen,
     isComingSoon: false,
-    badge: 'BETA',
   },
   {
     id: 'market',

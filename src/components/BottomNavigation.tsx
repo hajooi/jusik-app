@@ -65,7 +65,7 @@ const TOOLS_DIRECTORY = [
     description: '계좌별 목표 비율과 수량 자동 계산',
     href: '/tools/journal',
     icon: BookOpen,
-    tag: 'BETA',
+    tag: '자산 배분',
     isComingSoon: false,
   },
   {
