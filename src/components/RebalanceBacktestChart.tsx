@@ -226,7 +226,7 @@ export default function RebalanceBacktestChart() {
         </span>
         <div>
           <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] tracking-tight">
-            30년 과거 성적: 리밸런싱한 계좌 vs 방치한 계좌
+            리밸런싱한 계좌 vs 방치한 계좌
           </h3>
           <p className="text-xs text-[var(--text-secondary)] font-medium">
             S&P 500(60%) + 금(40%) 월 10만 원 적립
@@ -237,7 +237,8 @@ export default function RebalanceBacktestChart() {
       {/* SVG Chart Container (투자 전략 시뮬레이터 차트와 동일한 미니멀 디자인) */}
       <div className="space-y-3">
         <div className="relative w-full bg-[var(--bg-main)]/80 rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-[var(--border-color)] select-none">
-          <svg
+          <div className="relative w-full">
+            <svg
             ref={svgRef}
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             className="w-full h-auto cursor-crosshair touch-none overflow-visible"
@@ -263,14 +264,10 @@ export default function RebalanceBacktestChart() {
               </clipPath>
             </defs>
 
-            {/* Horizontal Grid lines */}
-            <line x1={padLeft} y1={chartHeight - padBottom} x2={chartWidth - padRight} y2={chartHeight - padBottom} stroke="var(--border-color)" strokeWidth="1" opacity="0.6" />
-            <line x1={padLeft} y1={getY(20000)} x2={chartWidth - padRight} y2={getY(20000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" />
-            <line x1={padLeft} y1={getY(10000)} x2={chartWidth - padRight} y2={getY(10000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" />
-
-            {/* Y-Axis Value Labels (반응형 폰트: 모바일 14px ➔ 데스크톱 9.5px) */}
-            <text x={padLeft + 6} y={getY(20000) - 6} textAnchor="start" className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]">2억</text>
-            <text x={padLeft + 6} y={getY(10000) - 6} textAnchor="start" className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]">1억</text>
+            {/* Horizontal Grid lines (순수 SVG 그리드선) */}
+            <line x1={padLeft} y1={chartHeight - padBottom} x2={chartWidth - padRight} y2={chartHeight - padBottom} stroke="var(--border-color)" strokeWidth="1" opacity="0.6" className="pointer-events-none" />
+            <line x1={padLeft} y1={getY(20000)} x2={chartWidth - padRight} y2={getY(20000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" className="pointer-events-none" />
+            <line x1={padLeft} y1={getY(10000)} x2={chartWidth - padRight} y2={getY(10000)} stroke="var(--border-color)" strokeDasharray="3 3" opacity="0.35" className="pointer-events-none" />
 
             {/* Animated Curves & Area Fill inside Sweep ClipPath */}
             <g clipPath="url(#rebalSweepClip)">
@@ -331,17 +328,7 @@ export default function RebalanceBacktestChart() {
                   r="2"
                   fill="#FFFFFF"
                 />
-                {/* 30-Year Final Value Badge when settled (반응형 폰트) */}
-                {animProgress >= 0.95 && (
-                  <text
-                    x={getX(SIMULATION_DATA.length - 1)}
-                    y={getY(SIMULATION_DATA[SIMULATION_DATA.length - 1].rebal) - 10}
-                    textAnchor="end"
-                    className="text-[15px] sm:text-[10.5px] font-black font-mono fill-[#F18F01] animate-in fade-in duration-300"
-                  >
-                    2.51억 원
-                  </text>
-                )}
+
               </g>
             )}
 
@@ -363,26 +350,64 @@ export default function RebalanceBacktestChart() {
               </g>
             )}
           </svg>
+
+          {/* Responsive Native HTML Y-Axis Value Labels & 30-Year Badge */}
+          <div className="absolute inset-0 pointer-events-none select-none z-10">
+            {[
+              { val: 20000, label: '2억 원' },
+              { val: 10000, label: '1억 원' },
+            ].map((tick) => (
+              <span
+                key={`html-rebal-y-${tick.val}`}
+                className="absolute font-mono text-[11px] sm:text-xs font-bold text-[var(--text-secondary)] opacity-75 -translate-y-1/2 select-none"
+                style={{
+                  top: `${(getY(tick.val) / chartHeight) * 100}%`,
+                  left: `${(padLeft / chartWidth) * 100}%`,
+                  paddingLeft: '6px',
+                }}
+              >
+                {tick.label}
+              </span>
+            ))}
+
+            {/* 30-Year Final Value Badge when settled (HTML 오버레이로 차트 박스 안쪽에 정갈하게 안착) */}
+            {animProgress >= 0.95 && (
+              <div
+                className="absolute pointer-events-none select-none font-mono font-black text-sm sm:text-base text-[#F18F01] -translate-x-full -translate-y-1/2 animate-in fade-in duration-300 whitespace-nowrap"
+                style={{
+                  top: `${(getY(SIMULATION_DATA[SIMULATION_DATA.length - 1].rebal) / chartHeight) * 100}%`,
+                  left: `${(getX(SIMULATION_DATA.length - 1) / chartWidth) * 100}%`,
+                  paddingRight: '12px',
+                }}
+              >
+                2.51억 원
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* X-Axis Labels: SVG 외부 순수 HTML Flex (모바일/데스크톱 100% 동일한 선명도 확보) */}
+        <div className="flex justify-between items-center px-4 pt-1.5 text-[11px] sm:text-xs text-[var(--text-secondary)] font-mono font-bold select-none border-t border-[var(--border-color)]/40 mt-1">
+          <span>0년</span>
+          <span>10년</span>
+          <span>20년</span>
+          <span>30년</span>
+        </div>
+      </div>
+
         {/* Legend: 통일된 Apple 표준 인덱스 (20px 정밀 SVG 라인) */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs px-1">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)]">
-              <svg width="20" height="4" className="shrink-0">
-                <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-              <span>리밸런싱한 계좌</span>
-            </div>
-            <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)]">
-              <svg width="20" height="4" className="shrink-0">
-                <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
-              </svg>
-              <span>방치한 계좌</span>
-            </div>
+        <div className="flex items-center gap-4 text-xs px-1">
+          <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)]">
+            <svg width="20" height="4" className="shrink-0">
+              <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+            <span>리밸런싱한 계좌</span>
           </div>
-          <div className="text-[11px] text-[var(--text-secondary)] font-medium">
-            💡 차트를 좌우로 드래그하여 시점별 성적을 확인해 보세요.
+          <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)]">
+            <svg width="20" height="4" className="shrink-0">
+              <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
+            </svg>
+            <span>방치한 계좌</span>
           </div>
         </div>
       </div>

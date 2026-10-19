@@ -102,7 +102,7 @@ export default function WealthComparisonChart() {
   // SVG Geometry: 세로 높이를 220으로 대폭 키워 모바일 찌그러짐 해소
   const chartWidth = 560;
   const chartHeight = 220;
-  const padLeft = 46;
+  const padLeft = 52;
   const padRight = 20;
   const padTop = 28;
   const padBottom = 30;
@@ -174,7 +174,8 @@ export default function WealthComparisonChart() {
       {/* 2-3강 스타일 모바일 최적화 SVG Chart Container */}
       <div className="space-y-2">
         <div className="relative w-full bg-[var(--bg-main)] rounded-xl sm:rounded-2xl p-2 sm:p-3 border border-[var(--border-color)] overflow-hidden select-none">
-          <svg 
+          <div className="relative w-full">
+            <svg 
             viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
             className="w-full h-auto cursor-crosshair touch-none overflow-visible select-none"
             onPointerDown={(e) => handlePointerAction(e.clientX, e.currentTarget)}
@@ -213,27 +214,19 @@ export default function WealthComparisonChart() {
               </linearGradient>
             </defs>
 
-            {/* Y-Axis Value Grid Lines & Labels (반응형 폰트: 모바일 14px ➔ 데스크톱 9.5px) */}
+            {/* Y-Axis Value Grid Lines (순수 SVG 그리드선) */}
             {[0, 50, 100].map((val) => (
-              <g key={val}>
-                <line
-                  x1={padLeft}
-                  y1={getY(val)}
-                  x2={chartWidth - padRight}
-                  y2={getY(val)}
-                  stroke="var(--border-color)"
-                  strokeDasharray="3 3"
-                  strokeWidth="1"
-                />
-                <text
-                  x={padLeft - 8}
-                  y={getY(val) + 4}
-                  textAnchor="end"
-                  className="text-[14px] sm:text-[9.5px] font-bold font-mono fill-[var(--text-secondary)]"
-                >
-                  {val}억
-                </text>
-              </g>
+              <line
+                key={val}
+                x1={padLeft}
+                y1={getY(val)}
+                x2={chartWidth - padRight}
+                y2={getY(val)}
+                stroke="var(--border-color)"
+                strokeDasharray="3 3"
+                strokeWidth="1"
+                className="pointer-events-none"
+              />
             ))}
 
             {/* Animated Curves & Area Fills inside Sweep ClipPath */}
@@ -300,17 +293,7 @@ export default function WealthComparisonChart() {
                   r="2"
                   fill="#FFFFFF"
                 />
-                {/* 30-Year Badge when settled (반응형 폰트) */}
-                {animProgress >= 0.95 && selectedYear === 30 && (
-                  <text
-                    x={getX(30)}
-                    y={getY(investorVals[30]) - 12}
-                    textAnchor="end"
-                    className="text-[15px] sm:text-[10.5px] font-black font-mono fill-[#F18F01] animate-in fade-in duration-300"
-                  >
-                    100.6억
-                  </text>
-                )}
+
               </g>
             )}
 
@@ -359,6 +342,38 @@ export default function WealthComparisonChart() {
             )}
           </svg>
 
+          {/* Responsive Native HTML Y-Axis Value Labels & 30-Year Badge */}
+          <div className="absolute inset-0 pointer-events-none select-none z-10">
+            {[0, 50, 100].map((val) => (
+              <span
+                key={`html-wealth-y-${val}`}
+                className="absolute font-mono text-[11px] sm:text-xs font-bold text-[var(--text-secondary)] opacity-75 -translate-y-1/2 select-none"
+                style={{
+                  top: `${(getY(val) / chartHeight) * 100}%`,
+                  left: `${(padLeft / chartWidth) * 100}%`,
+                  paddingLeft: '6px',
+                }}
+              >
+                {val === 0 ? '0원' : `${val}억 원`}
+              </span>
+            ))}
+
+            {/* 30-Year Final Value Badge when settled (HTML 오버레이로 차트 박스 안쪽에 정갈하게 안착) */}
+            {animProgress >= 0.95 && selectedYear === 30 && (
+              <div
+                className="absolute pointer-events-none select-none font-mono font-black text-sm sm:text-base text-[#F18F01] -translate-x-full -translate-y-1/2 animate-in fade-in duration-300 whitespace-nowrap"
+                style={{
+                  top: `${(getY(investorVals[30]) / chartHeight) * 100}%`,
+                  left: `${(getX(30) / chartWidth) * 100}%`,
+                  paddingRight: '12px',
+                }}
+              >
+                100.6억 원
+              </div>
+            )}
+          </div>
+        </div>
+
           {/* X-Axis Labels: SVG 외부 순수 HTML Flex로 분리하여 모바일/데스크톱 100% 동일한 선명도 확보 */}
           <div className="flex justify-between items-center px-4 pt-1.5 text-[11px] sm:text-xs text-[var(--text-secondary)] font-mono font-bold select-none border-t border-[var(--border-color)]/40 mt-1">
             <span>0년</span>
@@ -369,14 +384,14 @@ export default function WealthComparisonChart() {
         </div>
 
         {/* Legend: 통일된 Apple 표준 인덱스 (20px 정밀 SVG 라인) */}
-        <div className="flex items-center justify-between gap-3 text-xs pt-1 px-1">
-          <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)]">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs pt-1 px-1">
+          <div className="flex items-center gap-2 font-bold text-[var(--accent-orange)] whitespace-nowrap">
             <svg width="20" height="4" className="shrink-0">
               <line x1="0" y1="2" x2="20" y2="2" stroke="#F18F01" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
             <span>자본가 (10억 일시)</span>
           </div>
-          <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)]">
+          <div className="flex items-center gap-2 font-bold text-[var(--text-secondary)] whitespace-nowrap">
             <svg width="20" height="4" className="shrink-0">
               <line x1="0" y1="2" x2="20" y2="2" stroke="var(--text-secondary)" strokeWidth="2" strokeDasharray="4 2" strokeLinecap="round" />
             </svg>

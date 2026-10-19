@@ -241,14 +241,18 @@ export const GET = withApiGuard('현재 가격 조회 (/api/quotes)', async (req
 
   const validSymbols = symbols.slice(0, 50);
 
-  const [fxUsd, fxJpy, fxHkd] = await Promise.all([
+  const [fxUsd, fxJpy, fxHkd, fxEur, fxCny] = await Promise.all([
     fetchGlobalQuote('KRW=X'),
     fetchGlobalQuote('JPYKRW=X'),
     fetchGlobalQuote('HKDKRW=X'),
+    fetchGlobalQuote('EURKRW=X'),
+    fetchGlobalQuote('CNYKRW=X'),
   ]);
   const usdKrw = fxUsd?.price ?? 1345;
   const jpyKrw = fxJpy?.price ?? 9.0;
   const hkdKrw = fxHkd?.price ?? 173;
+  const eurKrw = fxEur?.price ?? 1470;
+  const cnyKrw = fxCny?.price ?? 190;
 
   const results = await Promise.all(validSymbols.map((s) => fetchQuote(s, usdKrw)));
 
@@ -271,6 +275,8 @@ export const GET = withApiGuard('현재 가격 조회 (/api/quotes)', async (req
       usdKrw,
       jpyKrw,
       hkdKrw,
+      eurKrw,
+      cnyKrw,
       fetchedAt: new Date().toISOString(),
     },
     { headers: { 'Cache-Control': 'no-store' } }

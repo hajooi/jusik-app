@@ -518,6 +518,122 @@ html {
   transform-origin: top right !important;
 }
 
+@keyframes popoverExpandUp {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popoverShrinkUp {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+  }
+}
+
+.animate-popover-expand-up {
+  animation: popoverExpandUp 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: bottom center !important;
+}
+
+.animate-popover-shrink-up {
+  animation: popoverShrinkUp 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: bottom center !important;
+}
+
+@keyframes popoverExpandCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes popoverShrinkCenter {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.92);
+  }
+}
+
+@keyframes popoverExpandUpCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes popoverShrinkUpCenter {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.92);
+  }
+}
+
+.animate-popover-expand-center {
+  animation: popoverExpandCenter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: top center !important;
+}
+
+.animate-popover-shrink-center {
+  animation: popoverShrinkCenter 0.22s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: top center !important;
+}
+
+.animate-popover-expand-up-center {
+  animation: popoverExpandUpCenter 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: bottom center !important;
+}
+
+.animate-popover-shrink-up-center {
+  animation: popoverShrinkUpCenter 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: bottom center !important;
+}
+
+.animate-popover-expand-up-right {
+  animation: popoverExpandUp 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: bottom right !important;
+}
+
+.animate-popover-shrink-up-right {
+  animation: popoverShrinkUp 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: bottom right !important;
+}
+
+.animate-popover-expand-up-left {
+  animation: popoverExpandUp 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: bottom left !important;
+}
+
+.animate-popover-shrink-up-left {
+  animation: popoverShrinkUp 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: bottom left !important;
+}
+
 .animate-slide-in-left {
   animation: slideInLeft 0.6s cubic-bezier(0.25, 1.4, 0.35, 1) forwards;
 }

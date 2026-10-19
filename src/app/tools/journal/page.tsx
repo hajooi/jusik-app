@@ -12,6 +12,8 @@ import {
   TrendingUp,
   PieChart,
   DollarSign,
+  Coins,
+  Banknote,
   Edit2,
   Layers,
   List,
@@ -27,6 +29,7 @@ import {
   GripVertical,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   FileText,
   Loader2,
   AlertCircle,
@@ -36,6 +39,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { formatChartWon, getNiceTicks } from '@/utils/formatChart';
 import SmoothHeight from '@/components/SmoothHeight';
 import {
   JournalAccount,
@@ -74,7 +78,6 @@ interface JournalLog {
 interface JournalData {
   accounts: JournalAccount[];
   logs: JournalLog[];
-  snapshots?: AssetSnapshot[];
 }
 
 // 다중 종목 묶음 로그를 1종목 1로그로 자동 분해(Flattening)하여 독립 관리 지원
@@ -106,6 +109,8 @@ const getJournalStorageKey = (nickname?: string | null) =>
   nickname && nickname.trim() ? `jusik_journal_${nickname.trim()}` : 'jusik_journal_guest';
 const uid = () => Math.random().toString(36).slice(2, 10);
 const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+
+
 
 // 브라우저 로컬 타임존(KST) 기준 YYYY-MM-DD 문자열 반환 (자정 넘김 즉시 반영)
 const getLocalDateString = (d: Date = new Date()): string => {
@@ -168,7 +173,7 @@ const newAccount = (name = '새 계좌 1'): JournalAccount => ({
 
 // jusik.app 10색 시그니처 & M3 글래스모피즘 표준 토큰
 const cardCls =
-  'bg-[var(--card-surface)]/90 backdrop-blur-md border border-[var(--border-color)]/90 rounded-2xl shadow-2xs transition-all duration-300';
+  'glass-card bg-[var(--card-surface)] backdrop-blur-md border border-[var(--border-color)] rounded-2xl sm:rounded-3xl shadow-xs transition-all duration-300';
 const inputCls =
   'w-full bg-[var(--bg-main)]/80 border border-[var(--border-color)]/80 rounded-xl px-3.5 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent-orange)]/70 focus:shadow-[0_0_12px_rgba(241,143,1,0.12)] transition-all';
 
@@ -226,7 +231,9 @@ function PortfolioSegmentedBar({
 }) {
   const [animated, setAnimated] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const validSegments = segments.filter((s) => s.pct > 0.1);
+  const validSegments = segments.filter(
+    (s) => s.pct > 0 || (s.amountKrw !== undefined && s.amountKrw > 0)
+  );
 
   useEffect(() => {
     setAnimated(false);
@@ -251,7 +258,10 @@ function PortfolioSegmentedBar({
             <span className="font-extrabold text-[var(--text-primary)]">
               {activeSegment.label}
             </span>
-            <span className="font-bold text-[var(--accent-orange)] font-mono">
+            <span
+              className="font-bold font-mono transition-colors"
+              style={{ color: activeSegment.color }}
+            >
               {activeSegment.pct.toFixed(1)}%
             </span>
             {activeSegment.amountKrw !== undefined && activeSegment.amountKrw > 0 && (
@@ -278,10 +288,13 @@ function PortfolioSegmentedBar({
               onMouseEnter={() => setHoveredIdx(idx)}
               style={{
                 width: animated ? `${Math.min(100, Math.max(0, s.pct))}%` : '0%',
+                minWidth: animated && (s.pct > 0 || (s.amountKrw && s.amountKrw > 0)) ? '4px' : '0px',
                 backgroundColor: s.color,
                 transition: 'width 0.75s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, filter 0.2s ease',
                 opacity: isOtherHovered ? 0.35 : 1,
-                filter: isHovered ? 'brightness(1.15)' : 'none',
+                filter: isHovered
+                  ? `brightness(1.15) drop-shadow(0 0 6px ${s.color}80)`
+                  : 'none',
               }}
               className="h-full first:rounded-l-full last:rounded-r-full relative cursor-pointer"
               title={`${s.label}: ${s.pct.toFixed(1)}%${s.amountKrw ? ` (${won(s.amountKrw)})` : ''}`}
@@ -299,9 +312,14 @@ function PortfolioSegmentedBar({
               key={idx}
               onMouseEnter={() => setHoveredIdx(idx)}
               onMouseLeave={() => setHoveredIdx(null)}
+              style={{
+                borderColor: isHovered ? s.color : undefined,
+                backgroundColor: isHovered ? `${s.color}15` : undefined,
+                boxShadow: isHovered ? `0 0 12px ${s.color}35` : undefined,
+              }}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] transition-all cursor-pointer shadow-2xs ${
                 isHovered
-                  ? 'bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)] shadow-[0_0_12px_rgba(241,143,1,0.2)]'
+                  ? 'border'
                   : 'bg-[var(--bg-main)]/60 border border-[var(--border-color)]/60 hover:border-[var(--accent-orange)]/40'
               }`}
             >
@@ -309,10 +327,19 @@ function PortfolioSegmentedBar({
                 className="w-2 h-2 rounded-full shrink-0 shadow-2xs"
                 style={{ backgroundColor: s.color }}
               />
-              <span className={`font-medium ${isHovered ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'}`}>
+              <span
+                className={`font-medium transition-colors ${
+                  isHovered ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'
+                }`}
+              >
                 {s.label}
               </span>
-              <span className={`font-extrabold ${isHovered ? 'text-[var(--accent-orange)]' : 'text-[var(--text-primary)]'}`}>
+              <span
+                className={`font-extrabold font-mono transition-colors ${
+                  !isHovered ? 'text-[var(--text-primary)]' : ''
+                }`}
+                style={{ color: isHovered ? s.color : undefined }}
+              >
                 {s.pct.toFixed(1)}%
               </span>
             </div>
@@ -339,6 +366,7 @@ interface MonthlyDepositStat {
 }
 
 interface AssetTrendPoint {
+  dateKey?: string;
   monthStr: string;
   investedKrw: number;
   totalAssetsKrw: number;
@@ -350,7 +378,7 @@ interface AssetTrendPoint {
 function ProMiniPopover({
   title,
   description,
-  ctaText,
+  ctaText = '멤버십 플랜 알아보기',
   align = 'left',
   placement = 'bottom',
   isClosing = false,
@@ -364,11 +392,10 @@ function ProMiniPopover({
   placement?: 'top' | 'bottom';
   isClosing?: boolean;
   onClose: () => void;
-  onAction: () => void;
+  onAction?: () => void;
 }) {
-  const { user } = useAuth();
-  const defaultCta = user ? 'PRO 코드 인증' : '로그인 / 가입하고 둘러보기';
-  const finalCta = ctaText || defaultCta;
+  const { openCompareModal } = useAuth();
+  const finalCta = ctaText || '멤버십 플랜 알아보기';
 
   const posClass = placement === 'top' ? 'bottom-full mb-2.5' : 'top-full mt-2.5';
   const alignClass =
@@ -384,20 +411,25 @@ function ProMiniPopover({
       ? 'left-0 origin-bottom-left'
       : 'left-0 origin-top-left';
 
+  const isUp = placement === 'top';
   const animClass =
     align === 'left'
       ? isClosing
-        ? 'animate-popover-shrink-left'
-        : 'animate-popover-expand-left'
+        ? isUp ? 'animate-popover-shrink-up-left' : 'animate-popover-shrink-left'
+        : isUp ? 'animate-popover-expand-up-left' : 'animate-popover-expand-left'
+      : align === 'right'
+      ? isClosing
+        ? isUp ? 'animate-popover-shrink-up-right' : 'animate-popover-shrink-right'
+        : isUp ? 'animate-popover-expand-up-right' : 'animate-popover-expand-right'
       : isClosing
-      ? 'animate-popover-shrink-right'
-      : 'animate-popover-expand-right';
+      ? isUp ? 'animate-popover-shrink-up-center' : 'animate-popover-shrink-center'
+      : isUp ? 'animate-popover-expand-up-center' : 'animate-popover-expand-center';
 
   return (
     <div
       data-pro-popover
       onClick={(e) => e.stopPropagation()}
-      className={`absolute ${posClass} z-40 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--accent-orange)]/40 shadow-[0_0_24px_rgba(241,143,1,0.18)] space-y-3 text-left font-sans select-text whitespace-normal ${animClass} ${alignClass}`}
+      className={`absolute ${posClass} z-50 w-72 sm:w-80 max-w-[calc(100vw-32px)] p-4 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-[var(--accent-orange)]/40 shadow-[0_0_24px_rgba(241,143,1,0.18)] space-y-3 text-left font-sans select-text whitespace-normal ${animClass} ${alignClass}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[var(--accent-orange)] font-extrabold text-xs">
@@ -421,7 +453,11 @@ function ProMiniPopover({
         type="button"
         onClick={() => {
           onClose();
-          onAction();
+          if (onAction) {
+            onAction();
+          } else {
+            openCompareModal();
+          }
         }}
         className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
       >
@@ -438,15 +474,17 @@ function AdaptiveAssetTrendChart({
   monthlyTradeStats,
   monthlyDepositStats,
   logs = [],
-  snapshots = [],
   accounts = [],
+  isPro = false,
+  onOpenProModal,
 }: {
   summary: PortfolioSummary;
   monthlyTradeStats: MonthlyTradeStat[];
   monthlyDepositStats: MonthlyDepositStat[];
   logs?: JournalLog[];
-  snapshots?: AssetSnapshot[];
   accounts?: JournalAccount[];
+  isPro?: boolean;
+  onOpenProModal?: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -456,14 +494,51 @@ function AdaptiveAssetTrendChart({
   const [dragStartIdx, setDragStartIdx] = useState<number | null>(null);
   const [dragCurrentIdx, setDragCurrentIdx] = useState<number | null>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
+  const [chartSpan, setChartSpan] = useState<'1M' | 'ALL'>(() => (isPro ? 'ALL' : '1M'));
   const [isDragging, setIsDragging] = useState(false);
   const [candlesMap, setCandlesMap] = useState<Record<string, Array<{ date: string; priceKrw: number }>>>({});
   const [animKey, setAnimKey] = useState<number>(() => Date.now());
 
-  // 마운트 및 모드/계좌/데이터 변경 시마다 애플 모션 드로잉 100% 재실행 보장
+  const { openCompareModal } = useAuth();
+  const [trendPopoverTarget, setTrendPopoverTarget] = useState<'span' | '1y' | 'total' | null>(null);
+  const [isTrendPopoverClosing, setIsTrendPopoverClosing] = useState(false);
+  const trendTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const closeTrendPopover = useCallback(() => {
+    if (!trendPopoverTarget || isTrendPopoverClosing) return;
+    setIsTrendPopoverClosing(true);
+    if (trendTimerRef.current) clearTimeout(trendTimerRef.current);
+    trendTimerRef.current = setTimeout(() => {
+      setTrendPopoverTarget(null);
+      setIsTrendPopoverClosing(false);
+    }, 220);
+  }, [trendPopoverTarget, isTrendPopoverClosing]);
+
+  const openTrendPopover = useCallback((t: 'span' | '1y' | 'total') => {
+    if (trendTimerRef.current) clearTimeout(trendTimerRef.current);
+    setIsTrendPopoverClosing(false);
+    setTrendPopoverTarget((prev) => (prev === t ? null : t));
+  }, []);
+
+  useEffect(() => {
+    if (!trendPopoverTarget || isTrendPopoverClosing) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-pro-popover]') && !target.closest('[data-pro-trigger]')) {
+        closeTrendPopover();
+      }
+    };
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
+  }, [trendPopoverTarget, isTrendPopoverClosing, closeTrendPopover]);
+
+  // 계좌 목록의 고유 ID 문자열 (부모 컴포넌트의 리렌더링으로 인한 새 배열 인스턴스 생성 시 불필요한 차트 리드로잉 원천 방지)
+  const accountIdsKey = useMemo(() => accounts.map((a) => a.id).join(','), [accounts]);
+
+  // 마운트 및 모드/계좌/데이터/기간 변경 시마다 애플 모션 드로잉 재실행 보장
   useEffect(() => {
     setAnimKey(Date.now());
-  }, [accounts, logs.length]);
+  }, [accountIdsKey, logs.length, chartSpan]);
 
   // 계좌 및 거래 기록에 포함된 실제 종목 심볼 목록 추출
   const holdingSymbols = useMemo(() => {
@@ -481,13 +556,14 @@ function AdaptiveAssetTrendChart({
     return Array.from(symSet);
   }, [accounts, logs]);
 
-  // 기간 분석 및 적응형 주기 결정 (60일 이내: 일별, 1년 이내: 주별, 1년 초과: 월별)
+  // 기간 분석 및 적응형 주기 결정 (1개월 모드는 항상 일별, 전체 기간은 3개월 이하 일별, 2년 이하 주별, 2년 초과 월별)
   const mode: 'daily' | 'weekly' | 'monthly' = useMemo(() => {
+    if (chartSpan === '1M') return 'daily';
+
     const now = new Date();
     const todayStr = getLocalDateString(now);
     const allDates: string[] = [];
     logs.forEach((l) => allDates.push(formatLogDate(l.date)));
-    snapshots.forEach((s) => allDates.push(formatLogDate(s.date)));
     accounts.forEach((acc) => {
       (acc.deposits || []).forEach((d) => allDates.push(formatLogDate(d.date)));
     });
@@ -495,10 +571,10 @@ function AdaptiveAssetTrendChart({
     allDates.sort((a, b) => a.localeCompare(b));
     const earliest = allDates[0] || todayStr;
     const daySpan = Math.max(1, Math.round((now.getTime() - new Date(earliest).getTime()) / (1000 * 60 * 60 * 24)));
-    if (daySpan <= 60) return 'daily';
-    if (daySpan <= 365) return 'weekly';
+    if (daySpan <= 90) return 'daily';
+    if (daySpan <= 730) return 'weekly';
     return 'monthly';
-  }, [logs, snapshots, accounts]);
+  }, [logs, accounts, chartSpan]);
 
   // 종목별 실제 거래소 캔들 시계열 데이터 경량 조회 (더미 0%, 하드코딩 0%)
   useEffect(() => {
@@ -543,19 +619,23 @@ function AdaptiveAssetTrendChart({
 
     const hasLogs = logs.length > 0;
     const hasDeposits = allDeposits.length > 0;
-    const hasAnyHistory = hasLogs || hasDeposits || snapshots.length > 0;
+    const hasAnyHistory = hasLogs || hasDeposits;
 
     const allDates: string[] = [];
     logs.forEach((l) => allDates.push(formatLogDate(l.date)));
-    snapshots.forEach((s) => allDates.push(formatLogDate(s.date)));
     allDeposits.forEach((d) => allDates.push(formatLogDate(d.date)));
     allDates.push(todayStr);
 
     allDates.sort((a, b) => a.localeCompare(b));
     let earliestDateStr = allDates[0] || todayStr;
 
-    // 거래 기록/입출금/스냅샷이 전혀 없는 초기 상태라면 최근 1년 전부터의 월봉을 생성하여 시세 흐름 제공
-    if (!hasAnyHistory) {
+    // 1개월 모드일 때는 최근 30일간의 일별 포인트로 촘촘하고 부드러운 스플라인 곡선 제공
+    if (chartSpan === '1M') {
+      const oneMonthAgo = new Date(now);
+      oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+      earliestDateStr = getLocalDateString(oneMonthAgo);
+    } else if (!hasAnyHistory) {
+      // 거래 기록/입출금/스냅샷이 전혀 없는 초기 상태라면 최근 1년 전부터의 월봉을 생성하여 시세 흐름 제공
       const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
       earliestDateStr = getLocalDateString(oneYearAgo);
     }
@@ -669,13 +749,6 @@ function AdaptiveAssetTrendChart({
           }
         });
       });
-    });
-
-    const snapshotMap = new Map<string, { invested: number; totalAssets: number }>();
-    snapshots.forEach((s) => {
-      const inv = s.invested ?? s.cashKrw ?? 0;
-      const ass = s.totalAssets ?? s.totalAssetsKrw ?? 0;
-      snapshotMap.set(s.date, { invested: inv, totalAssets: ass });
     });
 
     const sortedLogs = [...logs].sort((a, b) => a.date.localeCompare(b.date));
@@ -878,13 +951,9 @@ function AdaptiveAssetTrendChart({
       // 시점별 총 자산 = 주식 평가액 + 당시 보유 현금
       let pointAssets = stockEvalAtPoint + cashAtPoint;
 
-      // 시점별 투자 원금 계산
+      // 시점별 투자 원금 계산 (100% 거래 및 입출금 장부 역산 단일 모델)
       let pointInvested = 0;
-      const snap = snapshotMap.get(tk.key);
-      if (snap) {
-        pointInvested = snap.invested;
-        pointAssets = snap.totalAssets;
-      } else if (allDeposits.length > 0) {
+      if (allDeposits.length > 0) {
         // 입출금 기록이 있는 경우: 외부 유입 누적 순입금액 + 기초 현금 + 기초 보유분 원가 + 평단가 수정 보정값
         pointInvested = Math.max(0, seedCash + netDepositAtPoint + baseCostKrw + capitalAdjustment);
       } else if (logs.length > 0) {
@@ -900,6 +969,7 @@ function AdaptiveAssetTrendChart({
       const pRate = pointInvested > 0 ? (profit / pointInvested) * 100 : 0;
 
       resultPoints.push({
+        dateKey: tk.key,
         monthStr: tk.label,
         investedKrw: pointInvested,
         totalAssetsKrw: pointAssets,
@@ -915,14 +985,14 @@ function AdaptiveAssetTrendChart({
     });
 
     return { points: cleanedPoints.length > 0 ? cleanedPoints : resultPoints };
-  }, [summary, logs, snapshots, accounts, candlesMap, mode]);
+  }, [summary, logs, accounts, candlesMap, mode, chartSpan]);
 
   const activeIndex = hoverIdx !== null ? hoverIdx : points.length - 1;
   const activePoint = points[activeIndex] || points[points.length - 1];
 
-  const width = 600;
-  const height = 180;
-  const padding = { top: 20, right: 25, bottom: 30, left: 55 };
+  const width = 800;
+  const height = 240;
+  const padding = { top: 24, right: 14, bottom: 24, left: 14 };
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
@@ -1020,6 +1090,106 @@ function AdaptiveAssetTrendChart({
     }
   };
 
+  // 4대 핵심 기간(이번 달 MTD, 올해 YTD, 최근 1년 1Y, 누적 전체 Total)의 실질 순자산 증감 및 실질 수익률 정밀 산출
+  // (실현 손익 + 평가 손익 + 순입출금 전수 반영: 외부 유입금을 완벽 차감한 순수 투자 성과)
+  const performanceCards = useMemo(() => {
+    const now = new Date();
+    const currentAssets = summary.totalAssetsKrw;
+
+    // 전체 입출금 기록 정렬
+    const allDeposits: CashDepositLog[] = accounts
+      .flatMap((a) => a.deposits || [])
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // 기준일 정의
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonthStr = getLocalDateString(startOfMonth);
+
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfYearStr = getLocalDateString(startOfYear);
+
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+    const oneYearAgoStr = getLocalDateString(oneYearAgo);
+
+    const calcForPeriod = (startDateStr: string | null) => {
+      let startPoint = points[0];
+      if (startDateStr && points.length > 0) {
+        let closest = points[0];
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          if ((p.dateKey || '') <= startDateStr) {
+            closest = p;
+          } else {
+            break;
+          }
+        }
+        startPoint = closest;
+      }
+
+      const startAssets = startPoint ? startPoint.totalAssetsKrw : 0;
+
+      // 해당 기준일 이후의 순입출금액 집계
+      const periodDeposits = startDateStr
+        ? allDeposits.filter((d) => formatLogDate(d.date) >= startDateStr)
+        : allDeposits;
+
+      const periodNetDeposit = periodDeposits.reduce(
+        (acc, d) => acc + (d.type === 'IN' ? d.amountKrw : -d.amountKrw),
+        0
+      );
+
+      // 실질 순자산 증감(순이익) = (현재 순자산 - 기간 시작 순자산) - (해당 기간 순입금액)
+      const diffKrw = currentAssets - startAssets - periodNetDeposit;
+
+      // 기준 원본 = 시작 순자산 + (순입금 > 0 ? 순입금 : 0)
+      const baseCapital = Math.max(0, startAssets + Math.max(0, periodNetDeposit));
+      const returnRate = baseCapital > 0 ? (diffKrw / baseCapital) * 100 : 0;
+
+      return { diffKrw, returnRate };
+    };
+
+    const mtd = calcForPeriod(startOfMonthStr);
+    const ytd = calcForPeriod(startOfYearStr);
+    const oneYear = calcForPeriod(oneYearAgoStr);
+    const total = calcForPeriod(null);
+
+    return [
+      {
+        id: 'mtd',
+        title: '이번 달',
+        period: `${now.getMonth() + 1}월 1일 ~ 오늘`,
+        diffKrw: mtd.diffKrw,
+        returnRate: mtd.returnRate,
+        isPro: false,
+      },
+      {
+        id: 'ytd',
+        title: '올해 (YTD)',
+        period: `${now.getFullYear()}년 1월 1일 ~ 오늘`,
+        diffKrw: ytd.diffKrw,
+        returnRate: ytd.returnRate,
+        isPro: false,
+      },
+      {
+        id: '1y',
+        title: '최근 1년',
+        period: '최근 365일 실질 성과',
+        diffKrw: oneYear.diffKrw,
+        returnRate: oneYear.returnRate,
+        isPro: true,
+      },
+      {
+        id: 'total',
+        title: '전체 누적',
+        period: '첫 활동일부터 현재까지',
+        diffKrw: total.diffKrw,
+        returnRate: total.returnRate,
+        isPro: true,
+      },
+    ];
+  }, [summary.totalAssetsKrw, accounts, points]);
+
   // 선택된 구간 데이터 및 기간 수익률 계산
   const activeRange =
     isDragging && dragStartIdx !== null && dragCurrentIdx !== null
@@ -1063,67 +1233,164 @@ function AdaptiveAssetTrendChart({
   const assetCoords = points.map((p, idx) => ({ x: getX(idx), y: getY(p.totalAssetsKrw) }));
   const investCoords = points.map((p, idx) => ({ x: getX(idx), y: getY(p.investedKrw) }));
 
-  const assetLinePath = assetCoords.reduce(
-    (acc, c, i) => (i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`),
-    ''
-  );
+  // 텐션을 최적화한 Catmull-Rom to Cubic Bezier 곡선 패스 생성기 (애플/토스식 프리미엄 유선형 곡선)
+  const getSmoothCurvePath = (coords: Array<{ x: number; y: number }>, tension = 0.22) => {
+    if (coords.length === 0) return '';
+    if (coords.length === 1) return `M ${coords[0].x} ${coords[0].y}`;
+    if (coords.length === 2) {
+      return `M ${coords[0].x} ${coords[0].y} L ${coords[1].x} ${coords[1].y}`;
+    }
+
+    let path = `M ${coords[0].x} ${coords[0].y}`;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p0 = coords[Math.max(0, i - 1)];
+      const p1 = coords[i];
+      const p2 = coords[i + 1];
+      const p3 = coords[Math.min(coords.length - 1, i + 2)];
+
+      const cp1x = p1.x + (p2.x - p0.x) * tension;
+      const cp1y = p1.y + (p2.y - p0.y) * tension;
+      const cp2x = p2.x - (p3.x - p1.x) * tension;
+      const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return path;
+  };
+
+  const assetLinePath = getSmoothCurvePath(assetCoords, 0.22);
+  const investLinePath = getSmoothCurvePath(investCoords, 0.22);
 
   const assetAreaPath =
     assetCoords.length > 0
       ? `${assetLinePath} L ${assetCoords[assetCoords.length - 1].x} ${padding.top + chartH} L ${assetCoords[0].x} ${padding.top + chartH} Z`
       : '';
 
-  const investLinePath = investCoords.reduce(
-    (acc, c, i) => (i === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`),
-    ''
-  );
+  // 차트 Y축 전용 나이스 넘버 눈금 (500만 원, 1,000만 원, 1억 원 등 정갈한 단위)
+  const yTicks = getNiceTicks(minVal, maxVal, 3)
+    .map((val) => ({
+      val,
+      label: formatChartWon(val),
+    }))
+    .filter((t) => {
+      const y = getY(t.val);
+      return t.val <= maxVal && y >= padding.top + 6 && y <= padding.top + chartH - 6;
+    });
 
-  const midVal = Math.round((maxVal + minVal) / 2);
-  const yTicks = [
-    { val: maxVal, label: won(maxVal) },
-    { val: midVal, label: won(midVal) },
-    { val: minVal, label: won(minVal) },
-  ];
-
-  // X축 라벨 필터링 (점이 많을 때 5~7개만 선별 노출하여 겹침 방지)
-  const shouldShowLabel = (idx: number) => {
-    if (points.length <= 7) return true;
-    if (idx === 0 || idx === points.length - 1) return true;
-    const step = Math.ceil(points.length / 5);
-    return idx % step === 0;
-  };
+  // X축 라벨: 사용자 피드백 반영 ("끝 날짜는 안 하는 게 나을 거 같아. 잘리니까. 날짜 같은 건 중간중간 퐁퐁퐁 넣으면 좋아")
+  // 시작점과 끝점(오늘/10.19)은 가장자리 잘림 및 답답함 방지를 위해 완전히 제외하고,
+  // 중간 구간(약 25%, 50%, 75% 지점 등 2~3개)에만 안전하게 퐁퐁퐁 배치
+  const middleTickIndices = useMemo(() => {
+    const len = points.length;
+    if (len < 3) return [];
+    if (len === 3) return [1];
+    if (len <= 5) {
+      return [Math.floor(len / 2)];
+    }
+    const idx1 = Math.max(1, Math.round(len * 0.25));
+    const idx2 = Math.round(len * 0.5);
+    const idx3 = Math.min(len - 2, Math.round(len * 0.75));
+    return Array.from(new Set([idx1, idx2, idx3])).filter((i) => i > 0 && i < len - 1);
+  }, [points.length]);
 
   return (
-    <div ref={containerRef} className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-      {/* 헤더 & 활성 포인트 요약 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-[var(--accent-orange)]" />
-          <span className="text-xs font-extrabold text-[var(--text-primary)]">
-            자산 추이
-          </span>
+    <div ref={containerRef} className="p-4 sm:p-5 rounded-2xl bg-[var(--card-surface)]/60 border border-[var(--border-color)]/80 space-y-3.5 shadow-2xs">
+      {/* 헤더 & 기간 토글 캡슐(우측 정렬) & 순자산·원금 정보(2행 분리 배치) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <TrendingUp className="w-4 h-4 text-[var(--accent-orange)]" />
+            <span className="text-xs font-extrabold text-[var(--text-primary)]">
+              자산 추이
+            </span>
+          </div>
+
+          {/* 기간 토글 캡슐 (우측 정렬) */}
+          <div className="relative inline-block">
+            {isPro ? (
+              <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-36 sm:w-40 select-none">
+                <div
+                  className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
+                  style={{
+                    width: 'calc((100% - 4px) / 2)',
+                    transform: `translateX(${chartSpan === '1M' ? '0%' : '100%'})`,
+                    transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setChartSpan('1M')}
+                  className={`relative z-10 w-full flex items-center justify-center py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                    chartSpan === '1M'
+                      ? 'text-[var(--accent-orange)] font-extrabold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  1개월
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartSpan('ALL')}
+                  className={`relative z-10 w-full flex items-center justify-center py-1 px-2 rounded-full text-[11px] font-bold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                    chartSpan === 'ALL'
+                      ? 'text-[var(--accent-orange)] font-extrabold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  전체 기간
+                </button>
+              </div>
+            ) : (
+              <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-36 sm:w-40 select-none">
+                <span className="w-full flex items-center justify-center py-1 px-2 rounded-full bg-[var(--card-surface)] text-[var(--accent-orange)] font-extrabold text-[11px] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] whitespace-nowrap">
+                  1개월
+                </span>
+                <button
+                  type="button"
+                  data-pro-trigger
+                  onClick={() => openTrendPopover('span')}
+                  className="w-full flex items-center justify-center gap-1 py-1 px-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-all cursor-pointer text-[11px] font-extrabold whitespace-nowrap"
+                >
+                  <Lock className="w-3 h-3 text-[var(--accent-orange)] shrink-0" />
+                  <span>전체 기간</span>
+                </button>
+              </div>
+            )}
+
+            {trendPopoverTarget === 'span' && (
+              <ProMiniPopover
+                title="PRO 전용 (전체 기간 자산 추이)"
+                description="PRO 멤버십으로 업그레이드하면 첫 자산 등록일부터 지금까지 전체 기간의 누적 자산 성장 곡선과 실질 수익률을 확인할 수 있습니다."
+                align="right"
+                isClosing={isTrendPopoverClosing}
+                onClose={closeTrendPopover}
+                onAction={openCompareModal}
+              />
+            )}
+          </div>
         </div>
 
+        {/* 2행: 순자산, 원금, 수익률 정보 (호버 수치가 변해도 레이아웃이 덜컹거리지 않음) */}
         {activePoint && (
-          <div className="flex items-center gap-2.5 sm:gap-3 text-xs font-mono flex-wrap">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--bg-main)] px-2 py-0.5 rounded-md border border-[var(--border-color)]/60">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs font-mono flex-wrap pt-0.5">
+            <span className="text-[11px] font-bold text-[var(--text-secondary)] bg-[var(--bg-main)] px-2 py-0.5 rounded-md border border-[var(--border-color)]/60 whitespace-nowrap">
               {activePoint.monthStr}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 whitespace-nowrap">
               <span className="text-[10px] text-[var(--text-secondary)]">순자산</span>
               <span className="font-extrabold text-[var(--text-primary)]">
                 {won(activePoint.totalAssetsKrw)}
               </span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 whitespace-nowrap">
               <span className="text-[10px] text-[var(--text-secondary)]">원금</span>
               <span className="font-bold text-[var(--text-secondary)]">
                 {won(activePoint.investedKrw)}
               </span>
             </div>
             <span
-              className={`font-bold ${
-                activePoint.profitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
+              className={`font-bold whitespace-nowrap ${
+                activePoint.profitKrw >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'
               }`}
             >
               ({activePoint.profitKrw >= 0 ? '+' : ''}{activePoint.profitRate.toFixed(1)}%)
@@ -1152,7 +1419,7 @@ function AdaptiveAssetTrendChart({
               </span>
               <span
                 className={`font-mono font-extrabold ${
-                  displayRange.diff >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
+                  displayRange.diff >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'
                 }`}
               >
                 ({displayRange.diff >= 0 ? '+' : ''}{won(displayRange.diff)}, {displayRange.diff >= 0 ? '+' : ''}{displayRange.returnRate.toFixed(2)}%)
@@ -1160,7 +1427,9 @@ function AdaptiveAssetTrendChart({
             </div>
             <button
               type="button"
-              onClick={() => setSelectedRange(null)}
+              onClick={() => {
+                setSelectedRange(null);
+              }}
               className="p-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer"
               title="구간 선택 해제"
             >
@@ -1170,13 +1439,13 @@ function AdaptiveAssetTrendChart({
         )}
       </div>
 
-      {/* SVG 인터랙티브 차트 (0px 정밀 스냅 & 드래그 탐색 지원) */}
+      {/* SVG 인터랙티브 차트 (0px 정밀 스냅 & 드래그 탐색 지원 - 모바일 비례 유지) */}
       <div className="relative w-full overflow-hidden select-none cursor-crosshair">
         <svg
           key={`trend-svg-${animKey}-${mode}-${points.length}`}
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-44 sm:h-52 overflow-visible"
+          className="w-full h-auto aspect-[800/240] overflow-visible"
           onMouseDown={handlePointerDown}
           onMouseMove={handlePointerMove}
           onMouseUp={handlePointerUp}
@@ -1213,31 +1482,21 @@ function AdaptiveAssetTrendChart({
             </clipPath>
           </defs>
 
-          {/* 수평 눈금 그리드선 */}
+          {/* 수평 눈금 그리드선 (순수 SVG 그리드선) */}
           {yTicks.map((tick, i) => {
             const y = getY(tick.val);
             return (
-              <g key={i}>
-                <line
-                  x1={padding.left}
-                  y1={y}
-                  x2={padding.left + chartW}
-                  y2={y}
-                  stroke="var(--border-color)"
-                  strokeOpacity="0.5"
-                  strokeDasharray={i === 2 ? undefined : '3 3'}
-                />
-                <text
-                  x={padding.left - 8}
-                  y={y + 3.5}
-                  textAnchor="end"
-                  fontSize="9"
-                  fontFamily="monospace"
-                  fill="var(--text-secondary)"
-                >
-                  {tick.label}
-                </text>
-              </g>
+              <line
+                key={i}
+                x1={padding.left}
+                y1={y}
+                x2={padding.left + chartW}
+                y2={y}
+                stroke="var(--border-color)"
+                strokeOpacity="0.5"
+                strokeDasharray={i === 2 ? undefined : '3 3'}
+                className="pointer-events-none"
+              />
             );
           })}
 
@@ -1312,26 +1571,7 @@ function AdaptiveAssetTrendChart({
             )}
           </g>
 
-          {/* X축 라벨 */}
-          {points.map((p, i) => {
-            if (!shouldShowLabel(i)) return null;
-            const x = getX(i);
-            const isSelected = i === activeIndex;
-            return (
-              <text
-                key={`${p.monthStr}-${i}`}
-                x={x}
-                y={height - 8}
-                textAnchor="middle"
-                fontSize="10"
-                fontFamily="monospace"
-                fontWeight={isSelected ? 'bold' : 'normal'}
-                fill={isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'}
-              >
-                {p.monthStr}
-              </text>
-            );
-          })}
+
 
           {/* 호버가 없을 때 마지막 현재 시점 종점 포인트 강조 (Apple Polish) */}
           {activeIndex === null && points.length > 0 && (
@@ -1387,6 +1627,49 @@ function AdaptiveAssetTrendChart({
             </g>
           )}
         </svg>
+
+        {/* Responsive Native HTML Y-Axis Value Labels (토스/트레이딩뷰 금융 표준: X축과 100% 동일 크기 및 두께) */}
+        <div className="absolute inset-0 pointer-events-none select-none z-10">
+          {yTicks.map((tick, i) => {
+            const y = getY(tick.val);
+            return (
+              <span
+                key={`html-journal-y-${i}`}
+                className="absolute font-mono text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] opacity-80 -translate-y-full mb-0.5 select-none"
+                style={{
+                  top: `${(y / height) * 100}%`,
+                  left: `${(padding.left / width) * 100}%`,
+                  paddingLeft: '4px',
+                }}
+              >
+                {tick.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Responsive Native HTML X-Axis Timeline Bar (중간중간 퐁퐁퐁 날짜 배치) */}
+      <div className="relative w-full h-5 select-none pointer-events-none mt-1 mb-2">
+        {middleTickIndices.map((i) => {
+          const p = points[i];
+          if (!p) return null;
+          const x = getX(i);
+          const isSelected = i === activeIndex;
+          return (
+            <span
+              key={`html-journal-x-${p.monthStr}-${i}`}
+              className={`absolute text-[11px] sm:text-xs font-mono font-bold -translate-x-1/2 whitespace-nowrap transition-colors ${
+                isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+              }`}
+              style={{
+                left: `${(x / width) * 100}%`,
+              }}
+            >
+              {p.monthStr}
+            </span>
+          );
+        })}
       </div>
 
       {/* 1일 차 초기 안내 */}
@@ -1407,254 +1690,239 @@ function AdaptiveAssetTrendChart({
           <span>투자 원금</span>
         </div>
       </div>
+
+      {/* 4대 기간 실질 성과 스코어카드 (차트 아래로 이동하여 합리적 시선 흐름 완성) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 pt-1 relative z-30">
+        {performanceCards.map((card) => {
+          const isLocked = card.isPro && !isPro;
+          const isPositive = card.diffKrw >= 0;
+          const isTarget = trendPopoverTarget === card.id;
+
+          return (
+            <div key={card.id} className="relative z-10">
+              <div
+                className="p-3 rounded-xl bg-[var(--card-surface)]/80 border border-[var(--border-color)]/70 flex flex-col justify-between transition-all h-full cursor-default"
+              >
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-[11px] font-bold text-[var(--text-secondary)] truncate">
+                    {card.title}
+                  </span>
+                  {card.isPro && (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] border border-[var(--accent-orange)]/30 shrink-0">
+                      PRO
+                    </span>
+                  )}
+                </div>
+
+                {isLocked ? (
+                  <div className="flex items-center gap-1.5 py-0.5 text-xs font-bold text-[var(--text-secondary)]">
+                    <Lock className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                    <span className="text-[11px]">PRO 멤버십 전용</span>
+                  </div>
+                ) : (
+                  <div className="space-y-0.5">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span
+                        className={`text-sm sm:text-base font-extrabold font-mono ${
+                          isPositive ? 'text-[#10B981]' : 'text-[#F43F5E]'
+                        }`}
+                      >
+                        {isPositive ? '+' : ''}{won(card.diffKrw)}
+                      </span>
+                      <span
+                        className={`text-[11px] font-mono font-bold ${
+                          isPositive ? 'text-[#10B981]' : 'text-[#F43F5E]'
+                        }`}
+                      >
+                        ({isPositive ? '+' : ''}{card.returnRate.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-[var(--text-secondary)] block truncate">
+                      {card.period}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function OverviewReportView({
-  summary,
+function OverviewHistoryArchive({
   monthlyTradeStats,
   monthlyDepositStats,
-  logs = [],
-  snapshots = [],
-  accounts = [],
-  isPro,
+  isPro = false,
   onExportCsv,
   onOpenProModal,
   proPopoverTarget,
   isProPopoverClosing,
   onCloseProPopover,
 }: {
-  summary: PortfolioSummary;
   monthlyTradeStats: MonthlyTradeStat[];
   monthlyDepositStats: MonthlyDepositStat[];
-  logs?: JournalLog[];
-  snapshots?: AssetSnapshot[];
-  accounts?: JournalAccount[];
-  isPro: boolean;
+  isPro?: boolean;
   onExportCsv: () => void;
   onOpenProModal?: () => void;
   proPopoverTarget?: string | null;
   isProPopoverClosing?: boolean;
   onCloseProPopover?: () => void;
 }) {
+  const { openCompareModal } = useAuth();
+  const displayedTradeStats = isPro ? monthlyTradeStats : monthlyTradeStats.slice(0, 1);
+  const hasMoreTradeStats = !isPro && monthlyTradeStats.length > 1;
+
+  const displayedDepositStats = isPro ? monthlyDepositStats : monthlyDepositStats.slice(0, 1);
+  const hasMoreDepositStats = !isPro && monthlyDepositStats.length > 1;
+
   return (
-    <div className="relative pt-1 animate-fadeIn">
-      {/* PRO 멤버십 프리미엄 블러 오버레이 카드 */}
-      {!isPro && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[var(--card-surface)]/95 backdrop-blur-xl border border-[var(--accent-orange)]/40 rounded-2xl p-6 sm:p-7 shadow-[0_0_32px_rgba(241,143,1,0.22)] text-center space-y-4 animate-scaleUp">
-            <div className="w-12 h-12 mx-auto rounded-full bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/30 flex items-center justify-center text-[var(--accent-orange)]">
-              <Sparkles className="w-6 h-6 animate-pulse" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)]">
-                PRO 멤버십 전용 리포트
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                투자 원금 대비 실질 자산 성장 그래프, 확정 실현손익 리포트, CSV 엑셀 다운로드를 무제한으로 이용하실 수 있습니다.
-              </p>
-            </div>
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={onOpenProModal}
-                className="w-full py-2.5 px-4 rounded-xl text-xs font-extrabold bg-[var(--accent-orange)] text-white hover:brightness-105 transition-all shadow-[0_0_16px_rgba(241,143,1,0.35)] flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>PRO 멤버십 무료 등록하기</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 리포트 본문 (무료 사용자는 블러 처리되어 은은하게 비침) */}
-      <div className={`space-y-4 ${!isPro ? 'filter blur-[5px] pointer-events-none select-none opacity-50' : ''}`}>
-        {/* 3대 핵심 성과 카드 */}
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-orange)]" /> 전체 자산 기준 수익률
+    <div className="space-y-4 pt-2">
+      {/* 월별 매매 실적 */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-[var(--card-surface)]/60 border border-[var(--border-color)]/80 space-y-3.5 shadow-2xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-extrabold text-[var(--text-primary)]">
+              월별 매매 실적
             </span>
-            <p
-              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-                summary.totalProfitRate === null
-                  ? 'text-[var(--text-secondary)]'
-                  : summary.totalProfitRate >= 0
-                  ? 'text-[var(--accent-emerald,#10B981)]'
-                  : 'text-[#F43F5E]'
-              }`}
-            >
-              {summary.totalProfitRate !== null
-                ? `${summary.totalProfitRate >= 0 ? '+' : ''}${summary.totalProfitRate.toFixed(2)}%`
-                : '-'}
-            </p>
-            <span className="text-[10px] text-[var(--text-secondary)] block">
-              현금 포함 전체 자본 대비 실질 수익률
+            <span className="text-[10px] text-[var(--text-secondary)]">
+              (실제 등록된 거래 기록 기준 집계)
             </span>
           </div>
 
-          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-blue-500" /> 보유 자산 순수 수익률
-            </span>
-            <p
-              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-                summary.stockProfitRate === null || summary.stockProfitRate === undefined
-                  ? 'text-[var(--text-secondary)]'
-                  : summary.stockProfitRate >= 0
-                  ? 'text-[var(--accent-emerald,#10B981)]'
-                  : 'text-[#F43F5E]'
-              }`}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={onExportCsv}
+              className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 rounded-lg transition-colors cursor-pointer"
+              title="CSV 파일 저장"
+              aria-label="CSV 파일 저장"
             >
-              {summary.stockProfitRate !== null && summary.stockProfitRate !== undefined
-                ? `${summary.stockProfitRate >= 0 ? '+' : ''}${summary.stockProfitRate.toFixed(2)}%`
-                : '-'}
-            </p>
-            <span className="text-[10px] text-[var(--text-secondary)] block">
-              투자자산 대비 평가 손익률
-            </span>
-          </div>
-
-          <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-3.5 space-y-1">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> 총 평가 손익금
-            </span>
-            <p
-              className={`text-lg sm:text-xl font-extrabold font-mono truncate ${
-                summary.totalProfitKrw >= 0 ? 'text-[var(--accent-emerald,#10B981)]' : 'text-[#F43F5E]'
-              }`}
-            >
-              {summary.totalProfitRate !== null
-                ? `${summary.totalProfitKrw >= 0 ? '+' : ''}${won(summary.totalProfitKrw)}`
-                : '-'}
-            </p>
-            <span className="text-[10px] text-[var(--text-secondary)] block">
-              총 평가 자산: {won(summary.totalAssetsKrw)}
-            </span>
+              <Download className="w-4 h-4" />
+            </button>
+            {proPopoverTarget === 'csv-archive' && (
+              <ProMiniPopover
+                title="월별 매매 실적 CSV 내보내기"
+                description="PRO 멤버십에 가입하면 모든 계좌의 전체 매매 기록과 계좌 잔고를 엑셀 CSV 파일로 무제한 저장할 수 있습니다."
+                align="right"
+                isClosing={isProPopoverClosing}
+                onClose={onCloseProPopover || (() => {})}
+                onAction={onOpenProModal || openCompareModal}
+              />
+            )}
           </div>
         </div>
 
-        {/* 적응형 자산 추이 그래프 (투자 원금 vs 순자산 변동) */}
-        <AdaptiveAssetTrendChart
-          summary={summary}
-          monthlyTradeStats={monthlyTradeStats}
-          monthlyDepositStats={monthlyDepositStats}
-          logs={logs}
-          snapshots={snapshots}
-          accounts={accounts}
-        />
-
-        {/* 월별 매매 실적 */}
-        <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-extrabold text-[var(--text-primary)]">
-                월별 매매 실적
-              </span>
-              <span className="text-[10px] text-[var(--text-secondary)]">
-                (실제 등록된 거래 기록 기준 집계)
-              </span>
-            </div>
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={onExportCsv}
-                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 rounded-lg transition-colors cursor-pointer"
-                title="CSV 파일 저장"
-                aria-label="CSV 파일 저장"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-              {proPopoverTarget === 'csv' && (
-                <ProMiniPopover
-                  title="월별 매매 실적 CSV 내보내기"
-                  description="PRO 멤버십에 가입하면 모든 계좌의 전체 매매 기록과 계좌 잔고를 엑셀 CSV 파일로 무제한 저장할 수 있습니다."
-                  align="right"
-                  isClosing={isProPopoverClosing}
-                  onClose={onCloseProPopover || (() => {})}
-                  onAction={onOpenProModal || (() => {})}
-                />
-              )}
-            </div>
+        {displayedTradeStats.length === 0 ? (
+          <div className="py-6 text-center text-xs text-[var(--text-secondary)] border border-dashed border-[var(--border-color)]/60 rounded-lg">
+            아직 등록된 거래 기록이 없습니다. 종목 카드에서 거래를 기록하면 월별 실적이 자동으로 집계됩니다.
           </div>
-
-          {monthlyTradeStats.length === 0 ? (
-            <div className="py-6 text-center text-xs text-[var(--text-secondary)] border border-dashed border-[var(--border-color)]/60 rounded-lg">
-              아직 등록된 거래 기록이 없습니다. 종목 카드에서 거래를 기록하면 월별 실적이 자동으로 집계됩니다.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
-                    <th className="py-2 px-2.5">기준월</th>
-                    <th className="py-2 px-2.5 text-right">구매 금액</th>
-                    <th className="py-2 px-2.5 text-right">판매 금액</th>
-                    <th className="py-2 px-2.5 text-right">확정 실현손익</th>
-                    <th className="py-2 px-2.5 text-right">거래 횟수</th>
+        ) : (
+          <div className="overflow-x-auto pb-1">
+            <table className="min-w-[460px] w-full text-xs text-left whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
+                  <th className="py-2 px-2.5 whitespace-nowrap">기준월</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">구매 금액</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">판매 금액</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">확정 실현손익</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">거래 횟수</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
+                {displayedTradeStats.map((st) => (
+                  <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
+                    <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)] whitespace-nowrap">{st.monthStr}</td>
+                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)] whitespace-nowrap">{st.buyAmount > 0 ? won(st.buyAmount) : '-'}</td>
+                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)] whitespace-nowrap">{st.sellAmount > 0 ? won(st.sellAmount) : '-'}</td>
+                    <td className={`py-2.5 px-2.5 text-right font-bold whitespace-nowrap ${
+                      st.realizedProfit > 0
+                        ? 'text-[var(--accent-emerald,#10B981)]'
+                        : st.realizedProfit < 0
+                        ? 'text-[#F43F5E]'
+                        : 'text-[var(--text-secondary)]'
+                    }`}>
+                      {st.realizedProfit !== 0 ? `${st.realizedProfit > 0 ? '+' : ''}${won(st.realizedProfit)}` : '-'}
+                    </td>
+                    <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)] whitespace-nowrap">{st.tradeCount}건</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
-                  {monthlyTradeStats.map((st) => (
-                    <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
-                      <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
-                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.buyAmount > 0 ? won(st.buyAmount) : '-'}</td>
-                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.sellAmount > 0 ? won(st.sellAmount) : '-'}</td>
-                      <td className={`py-2.5 px-2.5 text-right font-bold ${
-                        st.realizedProfit > 0
-                          ? 'text-[var(--accent-emerald,#10B981)]'
-                          : st.realizedProfit < 0
-                          ? 'text-[#F43F5E]'
-                          : 'text-[var(--text-secondary)]'
-                      }`}>
-                        {st.realizedProfit !== 0 ? `${st.realizedProfit > 0 ? '+' : ''}${won(st.realizedProfit)}` : '-'}
-                      </td>
-                      <td className="py-2.5 px-2.5 text-right text-[var(--text-secondary)]">{st.tradeCount}건</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {/* 월별 입출금 현황 */}
-        {monthlyDepositStats.length > 0 && (
-          <div className="p-4 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/70 space-y-3">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-extrabold text-[var(--text-primary)]">
-                월별 입출금 현황
+        {hasMoreTradeStats && (
+          <div className="pt-1.5">
+            <button
+              type="button"
+              onClick={openCompareModal}
+              className="w-full py-2.5 px-3.5 rounded-xl bg-[var(--card-surface)]/80 hover:bg-[var(--card-surface)] border border-[var(--border-color)]/70 hover:border-[var(--accent-orange)]/50 transition-all flex items-center justify-between gap-2 text-xs cursor-pointer group shadow-2xs"
+            >
+              <div className="flex items-center gap-1.5 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium">
+                <Lock className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0" />
+                <span>이전 월별 실적 아카이브는 PRO 멤버십 전용입니다.</span>
+              </div>
+              <span className="text-[11px] font-bold text-[var(--accent-orange)] shrink-0 flex items-center gap-0.5">
+                멤버십 플랜 알아보기 <ChevronRight className="w-3 h-3" />
               </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
-                    <th className="py-2 px-2.5">기준월</th>
-                    <th className="py-2 px-2.5 text-right">입금액</th>
-                    <th className="py-2 px-2.5 text-right">출금액</th>
-                    <th className="py-2 px-2.5 text-right">순 입금액</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
-                  {monthlyDepositStats.map((st) => (
-                    <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
-                      <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)]">{st.monthStr}</td>
-                      <td className="py-2.5 px-2.5 text-right text-[var(--accent-emerald,#10B981)]">+{won(st.inAmount)}</td>
-                      <td className="py-2.5 px-2.5 text-right text-[#F43F5E]">-{won(st.outAmount)}</td>
-                      <td className="py-2.5 px-2.5 text-right font-bold text-[var(--text-primary)]">{won(st.netAmount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            </button>
           </div>
         )}
       </div>
+
+      {/* 월별 입출금 현황 */}
+      {displayedDepositStats.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-[var(--card-surface)]/60 border border-[var(--border-color)]/80 space-y-3.5 shadow-2xs">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-extrabold text-[var(--text-primary)]">
+              월별 입출금 현황
+            </span>
+          </div>
+
+          <div className="overflow-x-auto pb-1">
+            <table className="min-w-[380px] w-full text-xs text-left whitespace-nowrap">
+              <thead>
+                <tr className="border-b border-[var(--border-color)]/70 text-[11px] text-[var(--text-secondary)] font-bold">
+                  <th className="py-2 px-2.5 whitespace-nowrap">기준월</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">입금액</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">출금액</th>
+                  <th className="py-2 px-2.5 text-right whitespace-nowrap">순 입금액</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)]/40 font-mono">
+                {displayedDepositStats.map((st) => (
+                  <tr key={st.monthStr} className="hover:bg-[var(--card-surface)]/60 transition-colors">
+                    <td className="py-2.5 px-2.5 font-bold text-[var(--text-primary)] whitespace-nowrap">{st.monthStr}</td>
+                    <td className="py-2.5 px-2.5 text-right text-[var(--accent-emerald,#10B981)] whitespace-nowrap">+{won(st.inAmount)}</td>
+                    <td className="py-2.5 px-2.5 text-right text-[#F43F5E] whitespace-nowrap">-{won(st.outAmount)}</td>
+                    <td className="py-2.5 px-2.5 text-right font-bold text-[var(--text-primary)] whitespace-nowrap">{won(st.netAmount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {hasMoreDepositStats && !hasMoreTradeStats && (
+            <div className="pt-1.5">
+              <button
+                type="button"
+                onClick={openCompareModal}
+                className="w-full py-2.5 px-3.5 rounded-xl bg-[var(--card-surface)]/80 hover:bg-[var(--card-surface)] border border-[var(--border-color)]/70 hover:border-[var(--accent-orange)]/50 transition-all flex items-center justify-between gap-2 text-xs cursor-pointer group shadow-2xs"
+              >
+                <div className="flex items-center gap-1.5 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium">
+                  <Lock className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0" />
+                  <span>이전 월별 입출금 아카이브는 PRO 멤버십 전용입니다.</span>
+                </div>
+                <span className="text-[11px] font-bold text-[var(--accent-orange)] shrink-0 flex items-center gap-0.5">
+                  멤버십 플랜 알아보기 <ChevronRight className="w-3 h-3" />
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1705,7 +1973,7 @@ function JournalLoadingSkeleton() {
 }
 
 export default function JournalPage() {
-  const { user, isPro, openAuthPopover } = useAuth();
+  const { user, isPro, openCompareModal } = useAuth();
   const isAdmin = user?.nickname === '주식부엉';
   const [mounted, setMounted] = useState(false);
 
@@ -1736,9 +2004,10 @@ export default function JournalPage() {
   }, []);
   const [applied, setApplied] = useState(false);
   const [appliedLineGroupIds, setAppliedLineGroupIds] = useState<string[]>([]);
+  const [showAccountDetailAnalytics, setShowAccountDetailAnalytics] = useState(false);
 
-  // PRO 미니 팝오버 상태 ('account' 계좌 추가 제한 | 'report' 수익률 리포트 제한 | 'csv' CSV 다운로드 제한 | 'history' 과거 기록 제한 | 'history-overview' 전체 탭 과거 기록 제한 | null)
-  const [proPopoverTarget, setProPopoverTarget] = useState<'account' | 'report' | 'csv' | 'history' | 'history-overview' | null>(null);
+  // PRO 미니 팝오버 상태 ('account' 계좌 추가 제한 | 'report' 수익률 리포트 제한 | 'csv' | 'csv-logs' | 'csv-archive' | 'history' | 'history-overview' | null)
+  const [proPopoverTarget, setProPopoverTarget] = useState<'account' | 'report' | 'csv' | 'csv-logs' | 'csv-archive' | 'history' | 'history-overview' | null>(null);
   const [isProPopoverClosing, setIsProPopoverClosing] = useState(false);
   const closePopoverTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -1752,7 +2021,7 @@ export default function JournalPage() {
     }, 220);
   }, [proPopoverTarget, isProPopoverClosing]);
 
-  const openProPopover = useCallback((target: 'account' | 'report' | 'csv' | 'history' | 'history-overview') => {
+  const openProPopover = useCallback((target: 'account' | 'report' | 'csv' | 'csv-logs' | 'csv-archive' | 'history' | 'history-overview') => {
     if (closePopoverTimerRef.current) clearTimeout(closePopoverTimerRef.current);
     setIsProPopoverClosing(false);
     setProPopoverTarget(target);
@@ -1779,12 +2048,12 @@ export default function JournalPage() {
 
   // 계좌 오버뷰 뷰 모드 ('group' 자산군별 | 'asset' 종목별)
   const [overviewViewMode, setOverviewViewMode] = useState<'group' | 'asset'>('group');
-  // 계좌 상세 서브탭 ('asset' 자산 현황 | 'report' 수익률 리포트)
-  const [overviewReportTab, setOverviewReportTab] = useState<'asset' | 'report'>('asset');
   // 계좌 관리 모드 (상단 탭 인라인 관리)
   const [isManagingAccounts, setIsManagingAccounts] = useState(false);
   // 신규 추가된 계좌 자동 포커스 & 선택 타겟 ID
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  // 다종목 보유 자산군 대표 종목 보존 (서브 종목 우선 정리) 토글 (기본값: true)
+  const [prioritizeSubAssetLiquidation, setPrioritizeSubAssetLiquidation] = useState(true);
 
   // 방금 수행한 매매 반영 실행 취소(되돌리기) 스냅샷
   const [lastUndoSnapshot, setLastUndoSnapshot] = useState<{
@@ -1922,7 +2191,7 @@ export default function JournalPage() {
   const [newGroupAvgPriceUsd, setNewGroupAvgPriceUsd] = useState('');
 
   // 새 자산군 추가 폼: 심볼 실시간 조회 상태 및 피드백
-  const [newGroupSymbolInfo, setNewGroupSymbolInfo] = useState<{ name?: string; price: number; currency: string } | null>(null);
+  const [newGroupSymbolInfo, setNewGroupSymbolInfo] = useState<{ name?: string; price: number; priceKrw: number; currency: string } | null>(null);
   const [isSearchingSymbol, setIsSearchingSymbol] = useState(false);
   const [symbolSearchError, setSymbolSearchError] = useState<string | null>(null);
 
@@ -1960,25 +2229,42 @@ export default function JournalPage() {
         const json = await res.json();
         const q = json?.quotes?.[norm];
         if (q && q.price > 0) {
+          // 평균단가가 비어있다면 기본값으로 제안 (해외 주식인 경우 통화별 환율을 즉시 곱해 원화 단가로 설정)
+          const usdRate = json?.usdKrw || quotes.usdKrw || 1350;
+          const jpyRate = json?.jpyKrw || quotes.jpyKrw || 9.0;
+          const hkdRate = json?.hkdKrw || quotes.hkdKrw || 173;
+          const eurRate = json?.eurKrw || quotes.eurKrw || 1470;
+          const cnyRate = json?.cnyKrw || quotes.cnyKrw || 190;
+
+          let priceKrwVal = Math.round(q.price);
+          if (q.currency === 'USD') {
+            priceKrwVal = Math.round(q.price * usdRate);
+          } else if (q.currency === 'JPY') {
+            priceKrwVal = Math.round(q.price * jpyRate);
+          } else if (q.currency === 'HKD') {
+            priceKrwVal = Math.round(q.price * hkdRate);
+          } else if (q.currency === 'EUR') {
+            priceKrwVal = Math.round(q.price * eurRate);
+          } else if (q.currency === 'CNY') {
+            priceKrwVal = Math.round(q.price * cnyRate);
+          }
+
           setNewGroupSymbolInfo({
             name: q.name,
             price: q.price,
+            priceKrw: priceKrwVal,
             currency: q.currency || 'KRW',
           });
           // 종목명이 아직 비어있다면 자동 입력
           if (q.name) {
             setNewGroupName((prev) => (prev.trim() === '' ? q.name! : prev));
           }
-          // 평균단가가 비어있다면 기본값으로 제안 (해외 주식인 경우 환율을 즉시 곱해 원화 단가로 설정)
-          const rate = json?.usdKrw || quotes.usdKrw || 1350;
-          const isUsd = q.currency === 'USD';
-          const priceKrwVal = isUsd ? Math.round(q.price * rate) : Math.round(q.price);
 
           setNewGroupAvgPrice((prev) => {
             if (prev.trim() !== '') return prev;
             return String(priceKrwVal);
           });
-          if (isUsd) {
+          if (q.currency === 'USD') {
             setNewGroupAvgPriceUsd((prev) => {
               if (prev.trim() !== '') return prev;
               return String(q.price);
@@ -2009,6 +2295,7 @@ export default function JournalPage() {
       accs.map((a) => {
         const copy = { ...a };
         delete copy.budget;
+        delete copy.snapshots;
         return copy;
       });
 
@@ -2020,7 +2307,6 @@ export default function JournalPage() {
           return {
             accounts: sanitizeAccounts(raw.accounts),
             logs: flattenLogs(raw.logs || []),
-            snapshots: Array.isArray(raw.snapshots) ? raw.snapshots : [],
           };
         }
       } catch {}
@@ -2041,7 +2327,6 @@ export default function JournalPage() {
             next = {
               accounts: sanitizeAccounts(json.journal.accounts || []),
               logs: flattenLogs(json.journal.logs || []),
-              snapshots: Array.isArray(json.journal.snapshots) ? json.journal.snapshots : [],
             };
           } else if (json.success) {
             // 서버에 데이터가 없는 신규 회원은 이전 사용자 데이터가 섞이지 않도록 완전한 빈 상태로 시작
@@ -2141,6 +2426,8 @@ export default function JournalPage() {
           usdKrw: json.usdKrw,
           jpyKrw: json.jpyKrw,
           hkdKrw: json.hkdKrw,
+          eurKrw: json.eurKrw,
+          cnyKrw: json.cnyKrw,
         };
         setQuotes(nextQuotes);
         setQuoteAt(json.fetchedAt);
@@ -2192,6 +2479,19 @@ export default function JournalPage() {
     const [moved] = newGroups.splice(fromIndex, 1);
     newGroups.splice(toIndex, 0, moved);
     updateAccount({ groups: newGroups });
+  };
+
+  // 같은 자산군 내 종목 순서 변경 헬퍼 (위/아래 이동)
+  const moveSymbolInGroup = (groupId: string, fromIndex: number, toIndex: number) => {
+    if (!account) return;
+    const g = account.groups.find((group) => group.id === groupId);
+    if (!g || toIndex < 0 || toIndex >= g.symbols.length) return;
+
+    const newSymbols = [...g.symbols];
+    const [moved] = newSymbols.splice(fromIndex, 1);
+    newSymbols.splice(toIndex, 0, moved);
+
+    updateGroup(groupId, { symbols: newSymbols });
   };
 
   // 자산군 순서 변경 시 스르륵 부드러운 FLIP (First, Last, Invert, Play) 애니메이션 적용
@@ -2574,7 +2874,7 @@ export default function JournalPage() {
 
     const isCrypto = isCryptoSymbol(sym);
     const quoteEntry = quotes.quotes[sym];
-    const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+    const isUsdAsset = quoteEntry?.currency === 'USD';
     const usdRate = quotes.usdKrw || 1350;
 
     const name = newGroupName.trim() || symbolName(sym, quotes) || sym;
@@ -2907,44 +3207,16 @@ export default function JournalPage() {
   };
 
   // 계산 및 요약 집계
-  const plan = useMemo(() => (account ? calcPlan(account, quotes) : null), [account, quotes]);
+  const plan = useMemo(
+    () => (account ? calcPlan(account, quotes, { prioritizeSubAssetLiquidation }) : null),
+    [account, quotes, prioritizeSubAssetLiquidation]
+  );
   const currentSummary = useMemo(() => {
     if (activeId === 'ALL') {
       return calcAllAccountsSummary(data.accounts, quotes);
     }
     return account ? calcPortfolioSummary(account, quotes) : null;
   }, [activeId, account, data.accounts, quotes]);
-
-  // 매일 1회 현재 계좌 상태를 스냅샷에 자동 아카이빙 (모아보기는 data.snapshots, 개별 계좌는 account.snapshots에 각각 독립 보존)
-  useEffect(() => {
-    if (!loaded || !currentSummary || currentSummary.totalAssetsKrw <= 0) return;
-    const todayStr = getLocalDateString();
-    const baseInvest = currentSummary.hasInvestData ? currentSummary.totalInvestKrw : currentSummary.totalStockEvalKrw;
-    const currentInvest = baseInvest + currentSummary.cashKrw;
-    const currentAssets = currentSummary.totalAssetsKrw;
-
-    if (activeId === 'ALL') {
-      const existing = data.snapshots?.find((s) => s.date === todayStr);
-      if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
-        setData((prev) => {
-          const filtered = (prev.snapshots || []).filter((s) => s.date !== todayStr);
-          const updated = [...filtered, { date: todayStr, invested: currentInvest, totalAssets: currentAssets }]
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .slice(-365); // 최근 1년 보관
-          return { ...prev, snapshots: updated };
-        });
-      }
-    } else if (account) {
-      const existing = account.snapshots?.find((s) => s.date === todayStr);
-      if (!existing || existing.totalAssets !== currentAssets || existing.invested !== currentInvest) {
-        const filtered = (account.snapshots || []).filter((s) => s.date !== todayStr);
-        const updated = [...filtered, { date: todayStr, invested: currentInvest, totalAssets: currentAssets }]
-          .sort((a, b) => a.date.localeCompare(b.date))
-          .slice(-365); // 최근 1년 보관
-        updateAccount({ snapshots: updated });
-      }
-    }
-  }, [loaded, currentSummary, activeId, account]);
 
   // 그래프용 세그먼트 데이터 구성
   const barSegments = useMemo(() => {
@@ -3023,7 +3295,7 @@ export default function JournalPage() {
     const currentAvg = g.avgPrices?.[sym] || tradePrice;
     const isCrypto = isCryptoSymbol(sym);
     const quoteEntry = quotes.quotes[sym];
-    const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+    const isUsdAsset = quoteEntry?.currency === 'USD';
     const usdRate = quotes.usdKrw || 1350;
     const itemPrice = isUsdAsset
       ? (quoteEntry?.price || (g.avgPricesUsd?.[sym] ?? (line.priceKrw / usdRate)))
@@ -3034,6 +3306,8 @@ export default function JournalPage() {
       symbol: sym,
       tradeQty,
       price: itemPrice,
+      isUsdAsset,
+      currency: quoteEntry?.currency,
       currentHoldings: oldQty,
       currentAvgKrw: g.avgPrices?.[sym],
       currentAvgUsd: g.avgPricesUsd?.[sym],
@@ -3172,7 +3446,7 @@ export default function JournalPage() {
 
       const isCrypto = isCryptoSymbol(sym);
       const quoteEntry = quotes.quotes[sym];
-      const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+      const isUsdAsset = quoteEntry?.currency === 'USD';
       const itemPrice = isUsdAsset
         ? (quoteEntry?.price || (g.avgPricesUsd?.[sym] ?? (line.priceKrw / usdRate)))
         : line.priceKrw;
@@ -3181,6 +3455,8 @@ export default function JournalPage() {
         symbol: sym,
         tradeQty,
         price: itemPrice,
+        isUsdAsset,
+        currency: quoteEntry?.currency,
         currentHoldings: oldQty,
         currentAvgKrw: g.avgPrices?.[sym],
         currentAvgUsd: g.avgPricesUsd?.[sym],
@@ -3266,7 +3542,7 @@ export default function JournalPage() {
 
     const isCrypto = isCryptoSymbol(symbol);
     const quoteEntry = quotes.quotes[symbol];
-    const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && symbol !== 'GOLD_1G' && !/^\d{6}$/.test(symbol));
+    const isUsdAsset = quoteEntry?.currency === 'USD';
     const usdRate = quotes.usdKrw || 1350;
 
     const qtyNum = Number(manualTradeQty);
@@ -3293,6 +3569,8 @@ export default function JournalPage() {
       symbol,
       tradeQty,
       price: priceNum,
+      isUsdAsset,
+      currency: quoteEntry?.currency,
       currentHoldings: oldQty,
       currentAvgKrw: g.avgPrices?.[symbol],
       currentAvgUsd: g.avgPricesUsd?.[symbol],
@@ -3452,9 +3730,9 @@ export default function JournalPage() {
   const hiddenOverviewLogsCount = !isPro ? Math.max(0, allSortedOverviewLogs.length - 10) : 0;
 
   // PRO 전용 매매 기록 CSV 엑셀 내보내기 (수동 삭제된 항목 및 다른 계좌 완벽 제외된 allSortedLogs 기준)
-  const exportToCsv = () => {
+  const exportToCsv = (target: 'csv-logs' | 'csv-archive' = 'csv-logs') => {
     if (!isPro) {
-      openProPopover('csv');
+      openProPopover(target);
       return;
     }
     if (allSortedLogs.length === 0) {
@@ -3564,8 +3842,18 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6 pb-32">
-      {/* 헤더 */}
+    <div className="relative">
+      {/* Modern Ambient Mesh Glow Background - Subtle Atmospheric Depth */}
+      <div 
+        className="fixed top-24 left-1/2 -translate-x-1/2 w-[700px] h-[400px] sm:w-[960px] sm:h-[480px] pointer-events-none z-0 opacity-40 dark:opacity-25 blur-[70px] sm:blur-[95px]"
+        style={{
+          background: 'radial-gradient(circle at 50% 30%, var(--glow-color) 0%, rgba(16, 185, 129, 0.08) 45%, transparent 75%)',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-3.5 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6 pb-32">
+        {/* 헤더 */}
       <div className="py-1 sm:py-2 px-0.5 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
@@ -3577,7 +3865,7 @@ export default function JournalPage() {
             </span>
           </div>
           <p className="text-xs sm:text-base text-[var(--text-secondary)] font-medium">
-            자산 배분 목표 비율을 정하고, 이번에 살 수량을 손쉽게 계산해 보세요.
+            자산 배분 목표 비율을 정하고, 목표에 맞춘 주문 수량을 손쉽게 계산해 보세요.
           </p>
         </div>
 
@@ -3617,8 +3905,8 @@ export default function JournalPage() {
                 }}
                 className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
                   activeId === 'ALL'
-                    ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-sm'
-                    : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
+                    ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-[0_0_14px_rgba(241,143,1,0.35)]'
+                    : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] shadow-2xs'
                 }`}
               >
                 모아보기
@@ -3635,8 +3923,8 @@ export default function JournalPage() {
                 }}
                 className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold border transition-all cursor-pointer ${
                   a.id === activeId
-                    ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-sm'
-                    : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 shadow-2xs'
+                    ? 'border-[var(--accent-orange)] bg-[var(--accent-orange)] text-white font-extrabold shadow-[0_0_14px_rgba(241,143,1,0.35)]'
+                    : 'border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-orange)]/50 hover:shadow-[0_0_12px_rgba(241,143,1,0.18)] shadow-2xs'
                 }`}
               >
                 {a.name}
@@ -3661,7 +3949,7 @@ export default function JournalPage() {
                     align="left"
                     isClosing={isProPopoverClosing}
                     onClose={closeProPopover}
-                    onAction={openAuthPopover}
+                    onAction={openCompareModal}
                   />
                 )}
               </div>
@@ -3733,7 +4021,7 @@ export default function JournalPage() {
                   align="left"
                   isClosing={isProPopoverClosing}
                   onClose={closeProPopover}
-                  onAction={openAuthPopover}
+                  onAction={openCompareModal}
                 />
               )}
             </div>
@@ -3790,90 +4078,32 @@ export default function JournalPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-2.5">
-                    {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
-                    <div className="relative">
-                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
-                        <div
-                          className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
-                          style={{
-                            width: 'calc((100% - 4px) / 2)',
-                            transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
-                            transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setOverviewReportTab('asset')}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                            overviewReportTab === 'asset'
-                              ? 'text-[var(--accent-orange)] font-extrabold'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          <PieChart className="w-3 h-3 shrink-0" />
-                          <span>자산 현황</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!isPro) {
-                              openProPopover('report');
-                              return;
-                            }
-                            setOverviewReportTab('report');
-                          }}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                            overviewReportTab === 'report'
-                              ? 'text-[var(--accent-orange)] font-extrabold'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          <FileText className="w-3 h-3 shrink-0" />
-                          <span>수익률 리포트</span>
-                        </button>
-                      </div>
-
-                      {proPopoverTarget === 'report' && (
-                        <ProMiniPopover
-                          title="PRO 전용 (수익률 종합 리포트)"
-                          description="투자 원금 대비 총자산 변동 차트, 월별 실현손익 및 거래 통계 등 실전 투자 분석 리포트를 확인해 보세요."
-                          align="right"
-                          isClosing={isProPopoverClosing}
-                          onClose={closeProPopover}
-                          onAction={openAuthPopover}
-                        />
-                      )}
-                    </div>
-                  </div>
                 </div>
 
-                <SmoothHeight>
-                  {overviewReportTab === 'asset' ? (
-                    <div className="space-y-4 sm:space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                       {/* 4대 핵심 지표 카드 */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                         <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
                           <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                            <Wallet className="w-3 h-3" /> 총 자산
+                            <Coins className="w-3 h-3 text-[var(--accent-orange)]" /> 총 자산
                           </span>
                           <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.totalAssetsKrw)}
                           </p>
                           <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
-                            자산 평가금 {won(currentSummary.totalStockEvalKrw)}
+                            투자 원금 {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
                           </span>
                         </div>
 
                         <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
                           <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                            투자 원금
+                            <Banknote className="w-3 h-3 text-[var(--accent-orange)]" /> 투자자산
                           </span>
                           <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
-                            {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
+                            {won(currentSummary.totalStockEvalKrw)}
                           </p>
-                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block truncate">
-                            {currentSummary.hasInvestData ? '단가 입력 합계' : '단가 미입력'}
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
+                            투자 비중 {(100 - currentSummary.cashWeightPct).toFixed(1)}%
                           </span>
                         </div>
 
@@ -3917,6 +4147,17 @@ export default function JournalPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* 적응형 자산 추이 그래프 (풀와이드 곡선 차트 & 4대 기간 실질 성과 스코어카드) */}
+                      <AdaptiveAssetTrendChart
+                        summary={currentSummary}
+                        monthlyTradeStats={monthlyTradeStats}
+                        monthlyDepositStats={monthlyDepositStats}
+                        logs={data.logs}
+                        accounts={data.accounts}
+                        isPro={isPro}
+                        onOpenProModal={openCompareModal}
+                      />
 
                       {/* 계좌 구성 & 가로 비례 바 차트 */}
                       <div className="pt-2 space-y-3.5">
@@ -4035,24 +4276,20 @@ export default function JournalPage() {
                           )}
                         </SmoothHeight>
                       </div>
+                      {/* 하단 히스토리 아카이브 (월별 매매 실적 + CSV 다운로드 & 월별 입출금 현황 - PRO 회원 전용) */}
+                      {isPro && (
+                        <OverviewHistoryArchive
+                          monthlyTradeStats={monthlyTradeStats}
+                          monthlyDepositStats={monthlyDepositStats}
+                          isPro={isPro}
+                          onExportCsv={() => exportToCsv('csv-archive')}
+                          onOpenProModal={openCompareModal}
+                          proPopoverTarget={proPopoverTarget}
+                          isProPopoverClosing={isProPopoverClosing}
+                          onCloseProPopover={closeProPopover}
+                        />
+                      )}
                     </div>
-                  ) : (
-                    <OverviewReportView
-                      summary={currentSummary}
-                      monthlyTradeStats={monthlyTradeStats}
-                      monthlyDepositStats={monthlyDepositStats}
-                      logs={data.logs}
-                      snapshots={data.snapshots}
-                      accounts={data.accounts}
-                      isPro={isPro}
-                      onExportCsv={exportToCsv}
-                      onOpenProModal={openAuthPopover}
-                      proPopoverTarget={proPopoverTarget}
-                      isProPopoverClosing={isProPopoverClosing}
-                      onCloseProPopover={closeProPopover}
-                    />
-                  )}
-                </SmoothHeight>
               </div>
             )}
 
@@ -4074,22 +4311,24 @@ export default function JournalPage() {
                       onClick={() => setActiveId(acc.id)}
                       className="p-3.5 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs hover:border-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/[0.03] hover:shadow-[0_0_18px_rgba(241,143,1,0.18)] transition-all cursor-pointer group"
                     >
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-extrabold text-sm text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors">
+                          <span className="font-extrabold text-sm text-[var(--text-primary)] group-hover:text-[var(--accent-orange)] transition-colors truncate">
                             {acc.name}
                           </span>
-                          <span className="text-[10px] text-[var(--text-secondary)]">
+                          <span className="text-[10px] text-[var(--text-secondary)] whitespace-nowrap shrink-0">
                             ({acc.groups.length}개 자산군)
                           </span>
                         </div>
-                        <p className="text-[11px] font-mono text-[var(--text-secondary)] mt-0.5">
-                          투자자산 {won(s.totalStockEvalKrw)} · 보유 현금 {won(s.cashKrw)}
+                        <p className="text-[11px] font-mono text-[var(--text-secondary)] mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                          <span className="whitespace-nowrap">투자자산 {won(s.totalStockEvalKrw)}</span>
+                          <span className="hidden sm:inline text-[var(--border-color)]">·</span>
+                          <span className="whitespace-nowrap">보유 현금 {won(s.cashKrw)}</span>
                         </p>
                       </div>
-                      <div className="text-right font-mono">
-                        <p className="font-extrabold text-sm text-[var(--text-primary)]">{won(s.totalAssetsKrw)}</p>
-                        <span className="text-[11px] text-[var(--text-secondary)]">
+                      <div className="text-right font-mono shrink-0 whitespace-nowrap pl-2">
+                        <p className="font-extrabold text-sm text-[var(--text-primary)] whitespace-nowrap">{won(s.totalAssetsKrw)}</p>
+                        <span className="text-[11px] text-[var(--text-secondary)] whitespace-nowrap">
                           전체의 {sharePct.toFixed(1)}%
                         </span>
                       </div>
@@ -4105,31 +4344,31 @@ export default function JournalPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-extrabold text-[var(--text-primary)]">
-                      전체 매매 기록
+                      {isPro ? '전체 매매 기록' : '최근 매매 기록'}
                     </h2>
                     <span className="text-[10px] text-[var(--text-secondary)] font-mono">
-                      (총 {data.logs.length}건)
+                      ({isPro ? `총 ${data.logs.length}건` : `최근 ${displayedOverviewLogs.length}건`})
                     </span>
                   </div>
 
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={exportToCsv}
+                      onClick={() => exportToCsv('csv-logs')}
                       className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 rounded-lg transition-colors cursor-pointer"
                       title="전체 매매 기록 CSV 엑셀 다운로드"
                       aria-label="CSV 저장"
                     >
                       <Download className="w-4 h-4" />
                     </button>
-                    {proPopoverTarget === 'csv' && (
+                    {proPopoverTarget === 'csv-logs' && (
                       <ProMiniPopover
                         title="전체 매매 기록 CSV 내보내기"
                         description="PRO 멤버십에 가입하면 모든 계좌의 전체 매매 기록과 계좌 잔고를 엑셀 CSV 파일로 무제한 저장할 수 있습니다."
                         align="right"
                         isClosing={isProPopoverClosing}
                         onClose={closeProPopover}
-                        onAction={openAuthPopover}
+                        onAction={openCompareModal}
                       />
                     )}
                   </div>
@@ -4160,18 +4399,16 @@ export default function JournalPage() {
                             <span
                               className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
                                 isSell
-                                  ? 'bg-[#F43F5E]/15 text-[#F43F5E]'
-                                  : 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
+                                  ? 'text-[#F43F5E] border border-[#F43F5E]/40'
+                                  : 'text-[#10B981] border border-[#10B981]/40'
                               }`}
                             >
                               {isSell ? '판매' : '구매'}
                             </span>
                             {log.realizedProfit !== undefined && log.realizedProfit !== 0 && (
                               <span
-                                className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
-                                  log.realizedProfit >= 0
-                                    ? 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
-                                    : 'bg-[#F43F5E]/15 text-[#F43F5E]'
+                                className={`text-[10px] font-bold font-mono ${
+                                  log.realizedProfit >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'
                                 }`}
                               >
                                 실현손익 {log.realizedProfit >= 0 ? '+' : ''}{won(log.realizedProfit)}
@@ -4184,7 +4421,7 @@ export default function JournalPage() {
                                 <span className="font-extrabold text-[var(--text-primary)]">
                                   {firstItem.name || firstItem.symbol} ({firstItem.symbol})
                                 </span>
-                                <span className={isSell ? 'text-[#F43F5E] font-bold' : 'text-[var(--accent-orange)] font-bold'}>
+                                <span className="text-[var(--text-primary)] font-bold">
                                   {formatQuantity(qty, isCrypto)}{unit} {isSell ? '판매' : '구매'}
                                 </span>
                                 <span className="text-[var(--text-secondary)]">
@@ -4198,7 +4435,7 @@ export default function JournalPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveLog(log.id)}
-                          className="p-1.5 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer rounded-lg hover:bg-[var(--card-surface)]"
+                          className="p-1.5 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer border-0 outline-none"
                           title="매매 기록 삭제"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -4207,30 +4444,6 @@ export default function JournalPage() {
                     );
                   })}
                 </div>
-
-                {hiddenOverviewLogsCount > 0 && (
-                  <div className="relative pt-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => openProPopover('history-overview')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent-orange)]/10 hover:bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/25 text-[var(--accent-orange)] text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>이전 매매 기록 {hiddenOverviewLogsCount}건이 더 보관되어 있습니다.</span>
-                      <span className="text-[10px] underline ml-0.5">전체 보기</span>
-                    </button>
-                    {proPopoverTarget === 'history-overview' && (
-                      <ProMiniPopover
-                        title="전체 매매 기록 무제한 조회"
-                        description={`무료 회원은 최근 10건의 매매 기록이 표시되며, 이전 ${hiddenOverviewLogsCount}건의 기록은 안전하게 보관되어 있습니다. PRO 멤버십으로 업그레이드하면 기간 제한 없이 모든 과거 매매 기록을 확인할 수 있습니다.`}
-                        align="center"
-                        isClosing={isProPopoverClosing}
-                        onClose={closeProPopover}
-                        onAction={openAuthPopover}
-                      />
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -4261,7 +4474,7 @@ export default function JournalPage() {
           <div className="space-y-6">
             {/* 계좌 오버뷰 */}
             {currentSummary && (
-              <div className={`${cardCls} p-4 sm:p-6 space-y-4 sm:space-y-5`}>
+              <div className={`${cardCls} relative z-20 p-4 sm:p-6 space-y-4 sm:space-y-5`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <PieChart className="w-4 h-4 text-[var(--accent-orange)]" />
@@ -4270,90 +4483,32 @@ export default function JournalPage() {
                     </h2>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-2.5">
-                    {/* [자산 현황] | [수익률 리포트] 캡슐 스위처 */}
-                    <div className="relative">
-                      <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
-                        <div
-                          className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
-                          style={{
-                            width: 'calc((100% - 4px) / 2)',
-                            transform: `translateX(${overviewReportTab === 'asset' ? '0%' : '100%'})`,
-                            transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setOverviewReportTab('asset')}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                            overviewReportTab === 'asset'
-                              ? 'text-[var(--accent-orange)] font-extrabold'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          <PieChart className="w-3 h-3 shrink-0" />
-                          <span>자산 현황</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!isPro) {
-                              openProPopover('report');
-                              return;
-                            }
-                            setOverviewReportTab('report');
-                          }}
-                          className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                            overviewReportTab === 'report'
-                              ? 'text-[var(--accent-orange)] font-extrabold'
-                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                          }`}
-                        >
-                          <FileText className="w-3 h-3 shrink-0" />
-                          <span>수익률 리포트</span>
-                        </button>
-                      </div>
-
-                      {proPopoverTarget === 'report' && (
-                        <ProMiniPopover
-                          title="PRO 전용 (수익률 종합 리포트)"
-                          description="투자 원금 대비 총자산 변동 차트, 월별 실현손익 및 거래 통계 등 실전 투자 분석 리포트를 확인해 보세요."
-                          align="right"
-                          isClosing={isProPopoverClosing}
-                          onClose={closeProPopover}
-                          onAction={openAuthPopover}
-                        />
-                      )}
-                    </div>
-                  </div>
                 </div>
 
-                <SmoothHeight>
-                  {overviewReportTab === 'asset' ? (
-                    <div className="space-y-4 sm:space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                       {/* 4대 핵심 지표 카드 */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                         <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
                           <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                            <Wallet className="w-3 h-3" /> 총 자산
+                            <Coins className="w-3 h-3 text-[var(--accent-orange)]" /> 총 자산
                           </span>
                           <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
                             {won(currentSummary.totalAssetsKrw)}
                           </p>
                           <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
-                            자산 평가금 {won(currentSummary.totalStockEvalKrw)}
+                            투자 원금 {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
                           </span>
                         </div>
 
                         <div className="bg-[var(--bg-main)]/70 border border-[var(--border-color)]/70 rounded-xl p-2.5 sm:p-3.5 space-y-1 min-w-0">
                           <span className="text-[10px] sm:text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1">
-                            투자 원금
+                            <Banknote className="w-3 h-3 text-[var(--accent-orange)]" /> 투자자산
                           </span>
                           <p className="text-sm sm:text-lg font-extrabold font-mono text-[var(--text-primary)] truncate">
-                            {currentSummary.hasInvestData ? won(currentSummary.totalInvestKrw) : '-'}
+                            {won(currentSummary.totalStockEvalKrw)}
                           </p>
-                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block truncate">
-                            {currentSummary.hasInvestData ? '단가 입력 합계' : '단가 미입력'}
+                          <span className="text-[9px] sm:text-[10px] text-[var(--text-secondary)] block font-mono truncate">
+                            투자 비중 {(100 - currentSummary.cashWeightPct).toFixed(1)}%
                           </span>
                         </div>
 
@@ -4398,143 +4553,174 @@ export default function JournalPage() {
                         </div>
                       </div>
 
-                      {/* 계좌 구성 스위처 & 가로 비례 바 차트 */}
-                      <div className="pt-2 space-y-3.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[var(--text-primary)]">
-                            계좌 구성
-                          </span>
-                          {/* Apple HIG 2-Segmented Pill Controller (글래스모피즘 + 슬라이딩 인디케이터) */}
-                          <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
-                            {/* 슬라이딩 글래스모피즘 인디케이터 (Apple Snappy cubic-bezier & 주황 글로우) */}
-                            <div
-                              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
-                              style={{
-                                width: 'calc((100% - 4px) / 2)',
-                                transform: `translateX(${overviewViewMode === 'group' ? '0%' : '100%'})`,
-                                transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                              }}
+                      {/* ── 애플 HIG 스타일 미니멀 인라인 접이식 컨트롤 바 (우측 정렬 & 상단 구분선 제거) ── */}
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setShowAccountDetailAnalytics((prev) => !prev)}
+                          className="flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 transition-colors cursor-pointer group"
+                        >
+                          <TrendingUp className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                          <span>계좌 상세 분석 및 자산 추이 {showAccountDetailAnalytics ? '접기' : '보기'}</span>
+                          <ChevronDown
+                            className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                              showAccountDetailAnalytics ? 'rotate-180 text-[var(--accent-orange)]' : ''
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* 통합된 계좌 상세 분석 및 적응형 자산 추이 그래프 (단일 SmoothHeight) */}
+                      <SmoothHeight>
+                        {showAccountDetailAnalytics && (
+                          <div className="pt-2 space-y-4">
+                            <AdaptiveAssetTrendChart
+                              summary={currentSummary}
+                              monthlyTradeStats={monthlyTradeStats}
+                              monthlyDepositStats={monthlyDepositStats}
+                              logs={allLogsForAccount}
+                              accounts={[account]}
+                              isPro={isPro}
+                              onOpenProModal={openCompareModal}
                             />
-                            <button
-                              type="button"
-                              onClick={() => setOverviewViewMode('group')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                                overviewViewMode === 'group'
-                                  ? 'text-[var(--accent-orange)] font-extrabold'
-                                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                              }`}
-                            >
-                              <Layers className="w-3 h-3 shrink-0" />
-                              <span>자산군별</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setOverviewViewMode('asset')}
-                              className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
-                                overviewViewMode === 'asset'
-                                  ? 'text-[var(--accent-orange)] font-extrabold'
-                                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                              }`}
-                            >
-                              <List className="w-3 h-3 shrink-0" />
-                              <span>종목별</span>
-                            </button>
-                          </div>
-                        </div>
 
-                        {/* 가로 누적 비례 그래프 */}
-                        <PortfolioSegmentedBar segments={barSegments} />
-
-                        <SmoothHeight>
-                          {overviewViewMode === 'group' ? (
-                            <div className="space-y-2 pt-1">
-                              {currentSummary.groupItems.map((gr) => (
-                                <div
-                                  key={gr.groupId}
-                                  className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs"
-                                >
-                                  <div className="min-w-0 space-y-0.5">
-                                    <span className="font-extrabold text-[var(--text-primary)] block">
-                                      {gr.groupName}
-                                    </span>
-                                    <span className="text-[11px] text-[var(--text-secondary)] font-mono">
-                                      {gr.symbols.map((s) => s.name).join(' · ')}
-                                    </span>
-                                  </div>
-                                  <div className="text-right shrink-0 space-y-0.5 font-mono">
-                                    <p className="font-extrabold text-[var(--text-primary)]">{won(gr.evalKrw)}</p>
-                                    <div className="flex items-center justify-end gap-1.5 text-[11px]">
-                                      <span className="text-[var(--text-secondary)] font-bold">{gr.currentPct.toFixed(1)}%</span>
-                                      {gr.profitRate !== null && (
-                                        <span className={gr.profitRate >= 0 ? 'text-[var(--accent-emerald,#10B981)] font-bold' : 'text-[#F43F5E] font-bold'}>
-                                          ({gr.profitRate >= 0 ? '+' : ''}{gr.profitRate.toFixed(1)}%)
-                                        </span>
-                                      )}
-                                    </div>
+                            {/* 계좌 구성 스위처 & 가로 비례 바 차트 */}
+                            <div className="space-y-3.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-[var(--text-primary)]">
+                                    계좌 구성
+                                  </span>
+                                  {/* Apple HIG 2-Segmented Pill Controller (글래스모피즘 + 슬라이딩 인디케이터) */}
+                                  <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-44 sm:w-52">
+                                    {/* 슬라이딩 글래스모피즘 인디케이터 (Apple Snappy cubic-bezier & 주황 글로우) */}
+                                    <div
+                                      className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)] transition-transform duration-300 pointer-events-none"
+                                      style={{
+                                        width: 'calc((100% - 4px) / 2)',
+                                        transform: `translateX(${overviewViewMode === 'group' ? '0%' : '100%'})`,
+                                        transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setOverviewViewMode('group')}
+                                      className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                                        overviewViewMode === 'group'
+                                          ? 'text-[var(--accent-orange)] font-extrabold'
+                                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                      }`}
+                                    >
+                                      <Layers className="w-3 h-3 shrink-0" />
+                                      <span>자산군별</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setOverviewViewMode('asset')}
+                                      className={`relative z-10 w-full flex items-center justify-center py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[11px] sm:text-xs font-bold transition-colors duration-200 cursor-pointer text-center whitespace-nowrap select-none leading-none gap-1 ${
+                                        overviewViewMode === 'asset'
+                                          ? 'text-[var(--accent-orange)] font-extrabold'
+                                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                      }`}
+                                    >
+                                      <List className="w-3 h-3 shrink-0" />
+                                      <span>종목별</span>
+                                    </button>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="space-y-2 pt-1">
-                              {currentSummary.items.map((item, idx) => {
-                                const isCrypto = isCryptoSymbol(item.symbol);
-                                const unit = getSymbolUnit(item.symbol);
-                                return (
-                                  <div
-                                    key={`${item.symbol}-${idx}`}
-                                    className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs"
-                                  >
-                                    <div className="min-w-0 space-y-0.5">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="font-extrabold text-[var(--text-primary)]">{item.name}</span>
-                                        <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-main)] px-2 py-0.5 rounded-full border border-[var(--border-color)]/60">
-                                          {item.symbol}
-                                        </span>
-                                        <span className="text-[11px] text-[var(--text-secondary)]">· {item.groupName}</span>
-                                      </div>
-                                      <p className="text-[11px] font-mono text-[var(--text-secondary)]">
-                                        {formatQuantity(item.qty, isCrypto)}{unit} · {won(item.priceKrw)}
-                                      </p>
+
+                                {/* 가로 누적 비례 그래프 */}
+                                <PortfolioSegmentedBar segments={barSegments} />
+
+                                <SmoothHeight>
+                                  {overviewViewMode === 'group' ? (
+                                    <div className="space-y-2 pt-1">
+                                      {currentSummary.groupItems.map((gr) => (
+                                        <div
+                                          key={gr.groupId}
+                                          className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs"
+                                        >
+                                          <div className="min-w-0 space-y-0.5">
+                                            <span className="font-extrabold text-[var(--text-primary)] block">
+                                              {gr.groupName}
+                                            </span>
+                                            <span className="text-[11px] text-[var(--text-secondary)] font-mono">
+                                              {gr.symbols.map((s) => s.name).join(' · ')}
+                                            </span>
+                                          </div>
+                                          <div className="text-right shrink-0 space-y-0.5 font-mono">
+                                            <p className="font-extrabold text-[var(--text-primary)]">{won(gr.evalKrw)}</p>
+                                            <div className="flex items-center justify-end gap-1.5 text-[11px]">
+                                              <span className="text-[var(--text-secondary)] font-bold">{gr.currentPct.toFixed(1)}%</span>
+                                              {gr.profitRate !== null && (
+                                                <span className={gr.profitRate >= 0 ? 'text-[var(--accent-emerald,#10B981)] font-bold' : 'text-[#F43F5E] font-bold'}>
+                                                  ({gr.profitRate >= 0 ? '+' : ''}{gr.profitRate.toFixed(1)}%)
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                    <div className="text-right shrink-0 space-y-0.5 font-mono">
-                                      <p className="font-extrabold text-[var(--text-primary)]">{won(item.evalKrw)}</p>
-                                      <div className="flex items-center justify-end gap-1.5 text-[11px]">
-                                        <span className="text-[var(--text-secondary)]">{item.weightPct.toFixed(1)}%</span>
-                                        {item.profitRate !== null && (
-                                          <span className={item.profitRate >= 0 ? 'text-[var(--accent-emerald,#10B981)] font-bold' : 'text-[#F43F5E] font-bold'}>
-                                            ({item.profitRate >= 0 ? '+' : ''}{item.profitRate.toFixed(1)}%)
-                                          </span>
-                                        )}
-                                      </div>
+                                  ) : (
+                                    <div className="space-y-2 pt-1">
+                                      {currentSummary.items.map((item, idx) => {
+                                        const isCrypto = isCryptoSymbol(item.symbol);
+                                        const unit = getSymbolUnit(item.symbol);
+                                        return (
+                                          <div
+                                            key={`${item.symbol}-${idx}`}
+                                            className="p-3 rounded-xl bg-[var(--bg-main)]/50 border border-[var(--border-color)]/60 flex items-center justify-between gap-3 text-xs"
+                                          >
+                                            <div className="min-w-0 space-y-0.5">
+                                              <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="font-extrabold text-[var(--text-primary)]">{item.name}</span>
+                                                <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-main)] px-2 py-0.5 rounded-full border border-[var(--border-color)]/60">
+                                                  {item.symbol}
+                                                </span>
+                                                <span className="text-[11px] text-[var(--text-secondary)]">· {item.groupName}</span>
+                                              </div>
+                                              <p className="text-[11px] font-mono text-[var(--text-secondary)]">
+                                                {formatQuantity(item.qty, isCrypto)}{unit} · {won(item.priceKrw)}
+                                              </p>
+                                            </div>
+                                            <div className="text-right shrink-0 space-y-0.5 font-mono">
+                                              <p className="font-extrabold text-[var(--text-primary)]">{won(item.evalKrw)}</p>
+                                              <div className="flex items-center justify-end gap-1.5 text-[11px]">
+                                                <span className="text-[var(--text-secondary)]">{item.weightPct.toFixed(1)}%</span>
+                                                {item.profitRate !== null && (
+                                                  <span className={item.profitRate >= 0 ? 'text-[var(--accent-emerald,#10B981)] font-bold' : 'text-[#F43F5E] font-bold'}>
+                                                    ({item.profitRate >= 0 ? '+' : ''}{item.profitRate.toFixed(1)}%)
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
-                                  </div>
-                                );
-                              })}
+                                  )}
+                                </SmoothHeight>
+                              </div>
+
+                              {/* 하단 히스토리 아카이브 (월별 매매 실적 + CSV 다운로드 & 월별 입출금 현황 - PRO 회원 전용) */}
+                              {isPro && (
+                                <OverviewHistoryArchive
+                                  monthlyTradeStats={monthlyTradeStats}
+                                  monthlyDepositStats={monthlyDepositStats}
+                                  isPro={isPro}
+                                  onExportCsv={() => exportToCsv('csv-archive')}
+                                  onOpenProModal={openCompareModal}
+                                  proPopoverTarget={proPopoverTarget}
+                                  isProPopoverClosing={isProPopoverClosing}
+                                  onCloseProPopover={closeProPopover}
+                                />
+                              )}
                             </div>
                           )}
                         </SmoothHeight>
                       </div>
                     </div>
-                  ) : (
-                    <OverviewReportView
-                      summary={currentSummary}
-                      monthlyTradeStats={monthlyTradeStats}
-                      monthlyDepositStats={monthlyDepositStats}
-                      logs={account ? allLogsForAccount : data.logs}
-                      snapshots={account ? (account.snapshots || []) : (data.snapshots || [])}
-                      accounts={account ? [account] : data.accounts}
-                      isPro={isPro}
-                      onExportCsv={exportToCsv}
-                      onOpenProModal={openAuthPopover}
-                      proPopoverTarget={proPopoverTarget}
-                      isProPopoverClosing={isProPopoverClosing}
-                      onCloseProPopover={closeProPopover}
-                    />
                   )}
-                </SmoothHeight>
-              </div>
-            )}
 
             {/* 현금 및 운용 설정 카드 (평소 Read-Only & 카드 클릭 시 통합 편집 패널 열림) */}
             <div className={`${cardCls} p-5 sm:p-6 space-y-4`}>
@@ -4889,57 +5075,62 @@ export default function JournalPage() {
                 )}
               </SmoothHeight>
 
-              {/* 최근 입출금 내역 슬림 목록 (기록 확인 및 삭제 지원) */}
-              {account.deposits && account.deposits.length > 0 && (
-                <div className="pt-2 border-t border-[var(--border-color)]/50 space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
-                    <span className="font-bold flex items-center gap-1">
-                      최근 입출금 내역 ({account.deposits.length}건)
-                    </span>
-                    <span className="text-[11px] font-mono">
-                      순 입금: {won(account.deposits.reduce((acc, cur) => acc + (cur.type === 'IN' ? cur.amountKrw : -cur.amountKrw), 0))}
-                    </span>
-                  </div>
-                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                    {account.deposits.slice(0, 5).map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-center justify-between text-xs p-2 rounded-lg bg-[var(--bg-main)]/60 border border-[var(--border-color)]/60"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              log.type === 'IN'
-                                ? 'bg-[var(--accent-orange)]/15 text-[var(--accent-orange)]'
-                                : 'bg-[#F43F5E]/15 text-[#F43F5E]'
-                            }`}
-                          >
-                            {log.type === 'IN' ? '입금' : '출금'}
-                          </span>
-                          <span className="font-mono text-[var(--text-secondary)] text-[11px]">
-                            {formatLogDate(log.date)}
-                          </span>
-                          <span className="text-[var(--text-primary)] font-medium">{log.memo}</span>
+              {/* 최근 입출금 내역 슬림 목록 (기록 확인 및 삭제 지원, 무료 최신 10건 · PRO 전체 무제한) */}
+              {account.deposits && account.deposits.length > 0 && (() => {
+                const displayedDeposits = isPro ? account.deposits : account.deposits.slice(0, 10);
+                return (
+                  <div className="pt-1 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] gap-2">
+                      <span className="font-bold flex items-center gap-1 truncate">
+                        {isPro ? '전체 입출금 내역' : '최근 입출금 내역'} ({displayedDeposits.length}건)
+                      </span>
+                      <span className="text-[11px] font-mono whitespace-nowrap shrink-0">
+                        순 입금: {won(account.deposits.reduce((acc, cur) => acc + (cur.type === 'IN' ? cur.amountKrw : -cur.amountKrw), 0))}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {displayedDeposits.map((log) => (
+                        <div
+                          key={log.id}
+                          className="flex items-center justify-between text-xs p-2 rounded-lg bg-[var(--bg-main)]/60 border border-[var(--border-color)]/60 gap-2"
+                        >
+                          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                            <span
+                              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 ${
+                                log.type === 'IN'
+                                  ? 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25'
+                                  : 'bg-[#F43F5E]/10 text-[#F43F5E] border border-[#F43F5E]/25'
+                              }`}
+                            >
+                              {log.type === 'IN' ? '입금' : '출금'}
+                            </span>
+                            <span className="font-mono text-[var(--text-secondary)] text-[11px] whitespace-nowrap shrink-0">
+                              {formatLogDate(log.date)}
+                            </span>
+                            <span className="text-[var(--text-primary)] font-medium truncate min-w-0">
+                              {log.memo}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 whitespace-nowrap">
+                            <span className="font-mono font-bold text-[var(--text-primary)] whitespace-nowrap">
+                              {log.type === 'IN' ? '+' : '-'}{won(log.amountKrw)}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDeposit(log.id)}
+                              className="text-[var(--text-secondary)] hover:text-[#F43F5E] p-0.5 cursor-pointer transition-colors shrink-0"
+                              title="이 입출금 기록 삭제"
+                              aria-label="입출금 기록 삭제"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-[var(--text-primary)]">
-                            {log.type === 'IN' ? '+' : '-'}{won(log.amountKrw)}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveDeposit(log.id)}
-                            className="text-[var(--text-secondary)] hover:text-[#F43F5E] p-0.5 cursor-pointer transition-colors"
-                            title="이 입출금 기록 삭제"
-                            aria-label="입출금 기록 삭제"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* 토글 옵션 */}
               <div className="grid sm:grid-cols-2 gap-4 pt-3">
@@ -5051,64 +5242,59 @@ export default function JournalPage() {
 
             {/* 자산군 목표 비율 설정 */}
             <div className={`${cardCls} p-5 sm:p-6 space-y-4`}>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div>
-                  <h2 className="text-base font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-[var(--accent-orange)]" />
+              <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-base font-extrabold text-[var(--text-primary)] flex items-center gap-2 truncate">
+                    <Layers className="w-4 h-4 text-[var(--accent-orange)] shrink-0" />
                     <span>목표 비율 설정</span>
                   </h2>
-                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                    남은 비율은 &apos;목표 현금&apos;으로 자동 보존됩니다.
-                  </p>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  {account.groups.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsReorderingGroups((v) => !v);
-                        setEditingGroupId(null);
-                      }}
-                      className={
-                        isReorderingGroups
-                          ? 'p-1.5 text-[var(--accent-orange)] transition-colors cursor-pointer flex items-center justify-center'
-                          : 'p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer flex items-center justify-center'
-                      }
-                      title={isReorderingGroups ? '순서 저장 완료' : '자산군 순서 변경'}
-                      aria-label="자산군 순서 변경"
-                    >
-                      {isReorderingGroups ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <ArrowUpDown className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    {account.groups.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsReorderingGroups((v) => !v);
+                          setEditingGroupId(null);
+                        }}
+                        className={
+                          isReorderingGroups
+                            ? 'p-1.5 text-[var(--accent-orange)] transition-colors cursor-pointer flex items-center justify-center'
+                            : 'p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] transition-colors cursor-pointer flex items-center justify-center'
+                        }
+                        title={isReorderingGroups ? '순서 저장 완료' : '자산군 순서 변경'}
+                        aria-label="자산군 순서 변경"
+                      >
+                        {isReorderingGroups ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <ArrowUpDown className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
 
-                  {account.groups.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setIsAddGroupOpen((v) => !v)}
-                      className={
-                        isAddGroupOpen
-                          ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-[var(--accent-orange)] text-white shadow-sm hover:brightness-105 transition-all flex items-center gap-1.5 cursor-pointer'
-                          : 'px-3 py-1.5 rounded-full text-xs font-extrabold border border-[var(--accent-orange)]/70 bg-[var(--card-surface)] text-[var(--accent-orange)] hover:bg-[var(--accent-orange)] hover:text-white hover:shadow-[0_0_18px_rgba(241,143,1,0.25)] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs'
-                      }
-                      title={isAddGroupOpen ? '추가 폼 닫기' : '새 자산군 추가'}
-                    >
-                      {isAddGroupOpen ? (
-                        <>
-                          <X className="w-3.5 h-3.5" /> <span>닫기</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> <span>자산군 추가</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
+                    {account.groups.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddGroupOpen((v) => !v)}
+                        className={
+                          isAddGroupOpen
+                            ? 'px-3 py-1.5 rounded-full text-xs font-extrabold bg-[var(--accent-orange)] text-white shadow-sm hover:brightness-105 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0'
+                            : 'px-3 py-1.5 rounded-full text-xs font-extrabold border border-[var(--accent-orange)]/70 bg-[var(--card-surface)] text-[var(--accent-orange)] hover:bg-[var(--accent-orange)] hover:text-white hover:shadow-[0_0_18px_rgba(241,143,1,0.25)] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap shrink-0'
+                        }
+                        title={isAddGroupOpen ? '추가 폼 닫기' : '새 자산군 추가'}
+                      >
+                        {isAddGroupOpen ? (
+                          <>
+                            <X className="w-3.5 h-3.5" /> <span>닫기</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> <span>자산군 추가</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
               </div>
 
               {plan?.isOverAllocated && (
@@ -5216,7 +5402,7 @@ export default function JournalPage() {
                             <Check className="w-3.5 h-3.5 shrink-0" />
                             <span>{newGroupSymbolInfo.name || newGroupSymbol.trim()}</span>
                             <span className="font-mono text-[var(--text-secondary)] font-normal">
-                              · 현재 가격 {newGroupSymbolInfo.currency === 'USD' ? `$${newGroupSymbolInfo.price.toFixed(2)}` : won(newGroupSymbolInfo.price)}
+                              · 현재 가격 {won(newGroupSymbolInfo.priceKrw || newGroupSymbolInfo.price)}{newGroupSymbolInfo.currency === 'USD' ? ` ($${newGroupSymbolInfo.price.toFixed(2)})` : ''}
                             </span>
                           </div>
                         )}
@@ -5514,14 +5700,30 @@ export default function JournalPage() {
                                 </button>
                               </div>
                             ) : (
-                              <button
-                                onClick={() => removeGroup(g.id)}
-                                className="p-1 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer"
-                                aria-label="자산군 삭제"
-                                title="자산군 삭제"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedAddSymbolGroupId(isAddSymbolOpen ? null : g.id)}
+                                  className={`p-1 rounded-md transition-colors cursor-pointer border-0 outline-none ${
+                                    isAddSymbolOpen
+                                      ? 'text-[var(--accent-orange)]'
+                                      : 'text-[var(--text-secondary)] hover:text-[var(--accent-orange)]'
+                                  }`}
+                                  aria-label="같은 자산군에 종목 추가"
+                                  title="같은 자산군에 종목 추가"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeGroup(g.id)}
+                                  className="p-1 text-[var(--text-secondary)] hover:text-[#F43F5E] rounded-md transition-colors shrink-0 cursor-pointer border-0 outline-none"
+                                  aria-label="자산군 삭제"
+                                  title="자산군 삭제"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
                             )}
                           </div>
                         )}
@@ -5529,7 +5731,7 @@ export default function JournalPage() {
 
                       {/* 종목 카드 목록 */}
                       <div className="space-y-2.5">
-                        {g.symbols.map((sym) => {
+                        {g.symbols.map((sym, symIdx) => {
                           const p = priceKrw(sym, quotes);
                           const name = symbolName(sym, quotes);
                           const isBuy = g.buySymbol === sym;
@@ -5541,9 +5743,9 @@ export default function JournalPage() {
                             investAmount > 0 ? ((evalAmount - investAmount) / investAmount) * 100 : null;
                           const isCrypto = isCryptoSymbol(sym);
 
-                          // 달러 통화 자산 판별 (통화가 USD이거나 미국 티커)
+                          // 달러 통화 자산 판별 (통화가 USD인 미국 자산만 달러 모드 지원)
                           const quoteEntry = quotes.quotes[sym];
-                          const isUsdAsset = quoteEntry?.currency === 'USD' || (!isCrypto && sym !== 'GOLD_1G' && !/^\d{6}$/.test(sym));
+                          const isUsdAsset = quoteEntry?.currency === 'USD';
                           const currencyMode = avgPriceCurrencyMode[sym] || (isUsdAsset ? 'USD' : 'KRW');
                           const usdRate = quotes.usdKrw || 1350;
 
@@ -5558,34 +5760,41 @@ export default function JournalPage() {
                               className="bg-[var(--card-surface)] border border-[var(--border-color)]/70 rounded-xl p-3 space-y-2.5 shadow-2xs"
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateGroup(g.id, { buySymbol: sym })}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-colors cursor-pointer ${
-                                      isBuy
-                                        ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
-                                        : 'bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
-                                    }`}
-                                    title="새로운 자금으로 구매할 종목으로 선택"
-                                  >
-                                    {isBuy ? '✓ 구매종목' : '선택'}
-                                  </button>
+                                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                                  {g.symbols.length > 1 ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateGroup(g.id, { buySymbol: sym })}
+                                      className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold shrink-0 transition-colors cursor-pointer whitespace-nowrap ${
+                                        isBuy
+                                          ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
+                                          : 'bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]'
+                                      }`}
+                                      title="새로운 자금으로 구매할 종목으로 선택"
+                                    >
+                                      {isBuy ? '✓ 구매' : '선택'}
+                                    </button>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[var(--accent-orange)]/15 text-[var(--accent-orange)] shrink-0 whitespace-nowrap">
+                                      구매종목
+                                    </span>
+                                  )}
 
-                                  {/* 종목명 + 종목명 바로 옆 미니멀 X 삭제 버튼 */}
-                                  <div className="min-w-0 flex items-center gap-1.5">
-                                    <span className="font-bold text-xs sm:text-sm text-[var(--text-primary)] truncate">
+                                  {/* 종목명 + 티커 + 삭제 버튼 */}
+                                  <div className="min-w-0 flex-1 flex items-center gap-1 sm:gap-1.5">
+                                    <span className="font-extrabold text-xs sm:text-sm text-[var(--text-primary)] truncate">
                                       {name}
                                     </span>
-                                    <span className="font-mono text-[10px] text-[var(--text-secondary)]">
+                                    <span className="font-mono text-[10px] sm:text-[11px] text-[var(--text-secondary)] whitespace-nowrap shrink-0">
                                       ({sym})
                                     </span>
                                     {g.symbols.length > 1 && (
                                       <button
                                         type="button"
                                         onClick={() => removeSymbolFromGroup(g, sym)}
-                                        className="p-1 rounded-full text-[var(--text-secondary)] hover:text-[#F43F5E] hover:bg-[var(--bg-main)] transition-colors cursor-pointer shrink-0"
+                                        className="p-0.5 rounded-full text-[var(--text-secondary)] hover:text-[#F43F5E] hover:bg-[var(--bg-main)] transition-colors cursor-pointer shrink-0"
                                         title="종목 삭제"
+                                        aria-label="종목 삭제"
                                       >
                                         <X className="w-3 h-3" />
                                       </button>
@@ -5593,15 +5802,47 @@ export default function JournalPage() {
                                   </div>
                                 </div>
 
-                                <div className="text-right shrink-0">
+                                <div className="text-right shrink-0 whitespace-nowrap pl-2 flex items-center gap-2">
                                   <div className="flex flex-col items-end font-mono">
-                                    <span className="font-extrabold text-xs sm:text-sm text-[var(--text-primary)]">
+                                    <span className="font-extrabold text-xs sm:text-sm text-[var(--text-primary)] whitespace-nowrap">
                                       {won(evalAmount)}
                                     </span>
-                                    <span className="text-[10px] text-[var(--text-secondary)]">
+                                    <span className="text-[10px] text-[var(--text-secondary)] whitespace-nowrap">
                                       평가 금액
                                     </span>
                                   </div>
+                                  {isReorderingGroups && g.symbols.length > 1 && (
+                                    <div className="flex items-center gap-0.5 shrink-0 pl-1 border-l border-[var(--border-color)]/60">
+                                      <button
+                                        type="button"
+                                        disabled={symIdx === 0}
+                                        onClick={() => moveSymbolInGroup(g.id, symIdx, symIdx - 1)}
+                                        className={`p-1 rounded-md border border-[var(--border-color)]/80 transition-colors ${
+                                          symIdx === 0
+                                            ? 'opacity-25 cursor-not-allowed text-[var(--text-secondary)]'
+                                            : 'hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] text-[var(--text-secondary)] cursor-pointer bg-[var(--bg-main)]'
+                                        }`}
+                                        title="종목 순서 위로 이동"
+                                        aria-label="위로 이동"
+                                      >
+                                        <ChevronUp className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={symIdx === g.symbols.length - 1}
+                                        onClick={() => moveSymbolInGroup(g.id, symIdx, symIdx + 1)}
+                                        className={`p-1 rounded-md border border-[var(--border-color)]/80 transition-colors ${
+                                          symIdx === g.symbols.length - 1
+                                            ? 'opacity-25 cursor-not-allowed text-[var(--text-secondary)]'
+                                            : 'hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] text-[var(--text-secondary)] cursor-pointer bg-[var(--bg-main)]'
+                                        }`}
+                                        title="종목 순서 아래로 이동"
+                                        aria-label="아래로 이동"
+                                      >
+                                        <ChevronDown className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
@@ -5719,13 +5960,21 @@ export default function JournalPage() {
                                         <div className="flex items-center justify-between gap-1">
                                           <span className="text-[11px] font-bold text-[var(--text-secondary)]">평균 단가</span>
                                           {isUsdAsset && (
-                                            <div className="inline-flex rounded-full border border-[var(--border-color)] p-0.5 bg-[var(--card-surface)]/80 backdrop-blur-md">
+                                            <div className="relative inline-grid grid-cols-2 p-0.5 rounded-full bg-[var(--bg-main)]/90 backdrop-blur-md border border-[var(--border-color)]/90 shadow-2xs w-16 select-none">
+                                              <div
+                                                className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border border-[rgba(241,143,1,0.6)] shadow-[0_0_8px_rgba(241,143,1,0.25)] transition-transform duration-300 pointer-events-none"
+                                                style={{
+                                                  width: 'calc((100% - 4px) / 2)',
+                                                  transform: `translateX(${currencyMode === 'USD' ? '0%' : '100%'})`,
+                                                  transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+                                                }}
+                                              />
                                               <button
                                                 type="button"
                                                 onClick={() => setAvgPriceCurrencyMode((prev) => ({ ...prev, [sym]: 'USD' }))}
-                                                className={`px-2 py-0.5 text-[10px] font-bold rounded-full cursor-pointer ${
+                                                className={`relative z-10 w-full flex items-center justify-center py-0.5 px-1.5 rounded-full text-[10px] font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
                                                   currencyMode === 'USD'
-                                                    ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
+                                                    ? 'text-[var(--accent-orange)] font-extrabold'
                                                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                                 }`}
                                               >
@@ -5734,9 +5983,9 @@ export default function JournalPage() {
                                               <button
                                                 type="button"
                                                 onClick={() => setAvgPriceCurrencyMode((prev) => ({ ...prev, [sym]: 'KRW' }))}
-                                                className={`px-2 py-0.5 text-[10px] font-bold rounded-full cursor-pointer ${
+                                                className={`relative z-10 w-full flex items-center justify-center py-0.5 px-1.5 rounded-full text-[10px] font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
                                                   currencyMode === 'KRW'
-                                                    ? 'bg-[var(--accent-orange)] text-white shadow-2xs'
+                                                    ? 'text-[var(--accent-orange)] font-extrabold'
                                                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                                 }`}
                                               >
@@ -5880,8 +6129,8 @@ export default function JournalPage() {
                                       <div
                                         className={`absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-[var(--card-surface)] border transition-all duration-300 pointer-events-none ${
                                           manualTradeType === 'BUY'
-                                            ? 'border-[rgba(241,143,1,0.6)] shadow-[0_0_12px_rgba(241,143,1,0.22)]'
-                                            : 'border-rose-500/60 shadow-[0_0_12px_rgba(244,63,94,0.22)]'
+                                            ? 'border-[#10B981]/60 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+                                            : 'border-[#F43F5E]/60 shadow-[0_0_12px_rgba(244,63,94,0.25)]'
                                         }`}
                                         style={{
                                           width: 'calc((100% - 4px) / 2)',
@@ -5894,7 +6143,7 @@ export default function JournalPage() {
                                         onClick={() => setManualTradeType('BUY')}
                                         className={`relative z-10 w-full flex items-center justify-center py-1 px-2.5 sm:px-3 rounded-full text-xs font-bold transition-colors duration-200 cursor-pointer text-center select-none ${
                                           manualTradeType === 'BUY'
-                                            ? 'text-[var(--accent-orange)] font-extrabold'
+                                            ? 'text-[#10B981] font-extrabold'
                                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                       >
@@ -5987,7 +6236,7 @@ export default function JournalPage() {
                                     <button
                                       type="button"
                                       onClick={() => handleExecuteManualTrade(g.id, sym)}
-                                      className="ml-auto px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 transition-all flex items-center gap-1 cursor-pointer"
+                                      className="ml-auto px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-orange)] text-white hover:brightness-105 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] active:scale-98 transition-all flex items-center gap-1 cursor-pointer"
                                     >
                                       <Check className="w-3.5 h-3.5" /> 기록
                                     </button>
@@ -6002,6 +6251,8 @@ export default function JournalPage() {
                                       symbol: sym,
                                       tradeQty: manualTradeType === 'SELL' ? -qNum : qNum,
                                       price: pNum,
+                                      isUsdAsset,
+                                      currency: quoteEntry?.currency,
                                       currentHoldings: g.holdings[sym] || 0,
                                       currentCashKrw: account.cash || 0,
                                       currentCashUsd: account.cashUsd || 0,
@@ -6054,23 +6305,21 @@ export default function JournalPage() {
                           );
                         })}
 
-                        {/* 부가 종목 추가 접이식 UI */}
-                        <div className="pt-1">
-                          {isAddSymbolOpen ? (
-                            <AddSymbolInline
-                              onAdd={(s) => addSymbolToGroup(g, s)}
-                              onClose={() => setExpandedAddSymbolGroupId(null)}
-                            />
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setExpandedAddSymbolGroupId(g.id)}
-                              className="text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--accent-orange)] flex items-center gap-1 transition-colors cursor-pointer py-1"
-                            >
-                              <Plus className="w-3 h-3" /> 같은 자산군의 다른 종목 추가
-                            </button>
+                        {/* 부가 종목 추가 인라인 UI (헤더의 + 버튼으로 토글 & SmoothHeight 애니메이션 적용) */}
+                        <SmoothHeight>
+                          {isAddSymbolOpen && (
+                            <div className="pt-2 pb-1 px-1 space-y-2">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--accent-orange)]">
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>같은 자산군의 다른 종목 추가</span>
+                              </div>
+                              <AddSymbolInline
+                                onAdd={(s) => addSymbolToGroup(g, s)}
+                                onClose={() => setExpandedAddSymbolGroupId(null)}
+                              />
+                            </div>
                           )}
-                        </div>
+                        </SmoothHeight>
                       </div>
                     </div>
                   );
@@ -6078,14 +6327,14 @@ export default function JournalPage() {
               </div>
             </div>
 
-            {/* 이번에 살 수량 계산 결과 */}
+            {/* 주문 수량 계산 결과 */}
             {plan && account.groups.length > 0 && (
               <div className={`${cardCls} p-5 sm:p-6 space-y-4`}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-[var(--accent-orange)]" />
                     <h2 className="text-base font-extrabold text-[var(--text-primary)]">
-                      이번에 살 수량 계산
+                      주문 수량 계산
                     </h2>
                   </div>
                   {(appliedLineGroupIds.length > 0 || Object.keys(customQuantities).length > 0) && (
@@ -6140,17 +6389,63 @@ export default function JournalPage() {
                   )
                 ) : (
                   <div className="space-y-2.5">
-                    {/* 다종목 보유 자산군 판매 안내 팁: 실제로 대표 종목이 아닌 서브 종목(다른 종목)을 판매할 때만 노출 */}
-                    {plan.lines.some((l) => {
-                      if (l.qty >= 0) return false;
-                      const gr = account?.groups.find((g) => g.id === l.groupId);
-                      return gr && l.symbol !== gr.buySymbol;
+                    {/* 다종목 보유 자산군 판매 안내 및 대표 종목 보존 우선 정리 토글 */}
+                    {account?.groups.some((gr) => {
+                      const hasSellLine = plan.lines.some((l) => l.groupId === gr.id && l.qty < 0);
+                      if (!hasSellLine) return false;
+                      const subHeldCount = gr.symbols.filter((s) => s !== gr.buySymbol && (gr.holdings[s] || 0) > 0).length;
+                      return subHeldCount > 0;
                     }) && (
-                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2 text-xs text-[var(--text-secondary)] leading-relaxed animate-fadeIn">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                        <span>
-                          <b className="text-[var(--text-primary)]">다종목 보유 자산군</b>: 앞으로 모아갈 대표 종목을 보존하기 위해, 대표 종목이 아닌 다른 보유 종목부터 우선 정리하도록 계산됩니다.
-                        </span>
+                      <div
+                        className={`p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs leading-relaxed transition-all duration-300 shadow-2xs ${
+                          prioritizeSubAssetLiquidation
+                            ? 'bg-amber-500/10 border-amber-500/25'
+                            : 'bg-[var(--card-surface)]/80 border-[var(--border-color)]/90'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2 min-w-0">
+                          {prioritizeSubAssetLiquidation ? (
+                            <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                          ) : (
+                            <Layers className="w-4 h-4 text-[var(--text-secondary)] shrink-0 mt-0.5" />
+                          )}
+                          <span className="text-[var(--text-secondary)] text-[11px] sm:text-xs">
+                            <b className="text-[var(--text-primary)]">다종목 보유 자산군</b>:{' '}
+                            {prioritizeSubAssetLiquidation
+                              ? '앞으로 모아갈 대표 종목을 보존하기 위해, 다른 보유 종목부터 먼저 팔도록 계산됩니다.'
+                              : '대표 종목을 보존하지 않고, 목표 비중에 맞춰 대표 종목을 직접 먼저 팔도록 계산됩니다.'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={prioritizeSubAssetLiquidation}
+                          onClick={() => setPrioritizeSubAssetLiquidation((prev) => !prev)}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-main)]/90 border border-[var(--border-color)]/90 hover:border-[var(--accent-orange)]/60 transition-all cursor-pointer shadow-2xs shrink-0 select-none self-end sm:self-auto"
+                        >
+                          <span
+                            className={`text-[10px] sm:text-[11px] font-bold whitespace-nowrap transition-colors min-w-[70px] text-center ${
+                              prioritizeSubAssetLiquidation
+                                ? 'text-[var(--accent-orange)]'
+                                : 'text-[var(--text-secondary)]'
+                            }`}
+                          >
+                            {prioritizeSubAssetLiquidation ? '다른 종목 팔기' : '대표 종목 팔기'}
+                          </span>
+                          <div
+                            className={`relative w-8 h-4.5 rounded-full transition-colors duration-300 flex items-center p-0.5 ${
+                              prioritizeSubAssetLiquidation
+                                ? 'bg-[var(--accent-orange)] shadow-[0_0_10px_rgba(241,143,1,0.35)]'
+                                : 'bg-slate-300 dark:bg-slate-700'
+                            }`}
+                          >
+                            <div
+                              className={`w-3.5 h-3.5 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                                prioritizeSubAssetLiquidation ? 'translate-x-3.5' : 'translate-x-0'
+                              }`}
+                            />
+                          </div>
+                        </button>
                       </div>
                     )}
                     {plan.lines.map((l) => {
@@ -6237,7 +6532,7 @@ export default function JournalPage() {
 
                             {/* 개별 행 반영 버튼 */}
                             {isLineApplied ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)] border border-[var(--accent-emerald,#10B981)]/30 font-mono">
+                              <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 font-mono">
                                 <Check className="w-3.5 h-3.5" /> 반영됨
                               </span>
                             ) : (
@@ -6248,7 +6543,7 @@ export default function JournalPage() {
                                 className={`inline-flex items-center gap-1 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs transition-all ${
                                   effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))
                                     ? 'bg-[var(--border-color)] text-[var(--text-secondary)] opacity-50 cursor-not-allowed'
-                                    : 'bg-[var(--accent-orange)] text-white hover:brightness-105 cursor-pointer active:scale-95'
+                                    : 'bg-[var(--accent-orange)] text-white hover:brightness-105 hover:shadow-[0_0_14px_rgba(241,143,1,0.3)] cursor-pointer active:scale-95'
                                 }`}
                                 title={
                                   effectiveQty > 0 && effectiveAmountKrw > (account.cash || 0) + Math.floor((account.cashUsd || 0) * (quotes.usdKrw || 1350))
@@ -6291,7 +6586,7 @@ export default function JournalPage() {
 
                     <div className="pt-2 space-y-2">
                       {plan.lines.every((l) => appliedLineGroupIds.includes(l.groupId)) ? (
-                        <div className="p-3 rounded-full text-center text-xs font-bold bg-[var(--accent-emerald,#10B981)]/10 text-[var(--accent-emerald,#10B981)] border border-[var(--accent-emerald,#10B981)]/30 flex items-center justify-center gap-1.5 font-mono">
+                        <div className="p-3 rounded-full text-center text-xs font-bold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/30 flex items-center justify-center gap-1.5 font-mono">
                           <Check className="w-4 h-4" /> 모든 매매 내역이 계좌에 반영되었습니다
                         </div>
                       ) : (
@@ -6322,31 +6617,31 @@ export default function JournalPage() {
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm font-extrabold text-[var(--text-primary)]">
-                      최근 매매 기록
+                      {isPro ? '전체 매매 기록' : '최근 매매 기록'}
                     </h2>
                     <span className="text-[10px] text-[var(--text-secondary)] font-mono">
-                      (총 {allSortedLogs.length}건)
+                      ({isPro ? `총 ${allSortedLogs.length}건` : `최근 ${displayedLogs.length}건`})
                     </span>
                   </div>
 
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={exportToCsv}
+                      onClick={() => exportToCsv('csv-logs')}
                       className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent-orange)] hover:bg-[var(--accent-orange)]/10 rounded-lg transition-colors cursor-pointer"
                       title="매매 기록 CSV 엑셀 다운로드"
                       aria-label="CSV 저장"
                     >
                       <Download className="w-4 h-4" />
                     </button>
-                    {proPopoverTarget === 'csv' && (
+                    {proPopoverTarget === 'csv-logs' && (
                       <ProMiniPopover
                         title="매매 기록 CSV 내보내기"
                         description="PRO 멤버십에 가입하면 모든 계좌의 전체 매매 기록과 계좌 잔고를 엑셀 CSV 파일로 무제한 저장할 수 있습니다."
                         align="right"
                         isClosing={isProPopoverClosing}
                         onClose={closeProPopover}
-                        onAction={openAuthPopover}
+                        onAction={openCompareModal}
                       />
                     )}
                   </div>
@@ -6376,18 +6671,16 @@ export default function JournalPage() {
                             <span
                               className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
                                 isSell
-                                  ? 'bg-[#F43F5E]/15 text-[#F43F5E]'
-                                  : 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
+                                  ? 'text-[#F43F5E] border border-[#F43F5E]/40'
+                                  : 'text-[#10B981] border border-[#10B981]/40'
                               }`}
                             >
                               {isSell ? '판매' : '구매'}
                             </span>
                             {log.realizedProfit !== undefined && log.realizedProfit !== 0 && (
                               <span
-                                className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${
-                                  log.realizedProfit >= 0
-                                    ? 'bg-[var(--accent-emerald,#10B981)]/15 text-[var(--accent-emerald,#10B981)]'
-                                    : 'bg-[#F43F5E]/15 text-[#F43F5E]'
+                                className={`text-[10px] font-bold font-mono ${
+                                  log.realizedProfit >= 0 ? 'text-[#10B981]' : 'text-[#F43F5E]'
                                 }`}
                               >
                                 실현손익 {log.realizedProfit >= 0 ? '+' : ''}{won(log.realizedProfit)}
@@ -6400,7 +6693,7 @@ export default function JournalPage() {
                                 <span className="font-extrabold text-[var(--text-primary)]">
                                   {firstItem.name || firstItem.symbol} ({firstItem.symbol})
                                 </span>
-                                <span className={isSell ? 'text-[#F43F5E] font-bold' : 'text-[var(--accent-orange)] font-bold'}>
+                                <span className="text-[var(--text-primary)] font-bold">
                                   {formatQuantity(qty, isCrypto)}{unit} {isSell ? '판매' : '구매'}
                                 </span>
                                 <span className="text-[var(--text-secondary)]">
@@ -6414,7 +6707,7 @@ export default function JournalPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveLog(log.id)}
-                          className="p-1.5 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer rounded-lg hover:bg-[var(--card-surface)]"
+                          className="p-1.5 text-[var(--text-secondary)] hover:text-[#F43F5E] transition-colors shrink-0 cursor-pointer border-0 outline-none"
                           title="이 거래 기록 삭제"
                           aria-label="거래 기록 삭제"
                         >
@@ -6424,30 +6717,6 @@ export default function JournalPage() {
                     );
                   })}
                 </div>
-
-                {hiddenLogsCount > 0 && (
-                  <div className="relative pt-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => openProPopover('history')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent-orange)]/10 hover:bg-[var(--accent-orange)]/15 border border-[var(--accent-orange)]/25 text-[var(--accent-orange)] text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>이전 매매 기록 {hiddenLogsCount}건이 더 보관되어 있습니다.</span>
-                      <span className="text-[10px] underline ml-0.5">전체 보기</span>
-                    </button>
-                    {proPopoverTarget === 'history' && (
-                      <ProMiniPopover
-                        title="과거 매매 기록 무제한 조회"
-                        description={`무료 회원은 최근 10건의 매매 기록이 표시되며, 이전 ${hiddenLogsCount}건의 기록은 안전하게 보관되어 있습니다. PRO 멤버십으로 업그레이드하면 기간 제한 없이 모든 과거 매매 기록을 확인할 수 있습니다.`}
-                        align="center"
-                        isClosing={isProPopoverClosing}
-                        onClose={closeProPopover}
-                        onAction={openAuthPopover}
-                      />
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -6483,6 +6752,7 @@ export default function JournalPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -6517,7 +6787,7 @@ function AddSymbolInline({ onAdd, onClose }: { onAdd: (s: string) => void; onClo
       <button
         type="button"
         onClick={onClose}
-        className={btnSecondaryPillCls}
+        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold border border-[var(--border-color)]/90 bg-[var(--card-surface)]/90 text-[var(--text-primary)] hover:border-[var(--accent-orange)] hover:text-[var(--accent-orange)] hover:shadow-[0_0_16px_rgba(241,143,1,0.22)] active:scale-98 transition-all cursor-pointer whitespace-nowrap"
       >
         닫기
       </button>

@@ -17,6 +17,7 @@ import CommentSection from '@/components/CommentSection';
 import RevealOnScroll from '@/components/common/RevealOnScroll';
 import SmoothHeight from '@/components/SmoothHeight';
 import AnimatedNumber from '@/components/AnimatedNumber';
+import { formatChartWon, getNiceTicks } from '@/utils/formatChart';
 import { 
   LineChart, 
   TrendingUp, 
@@ -70,7 +71,7 @@ const SIMULATOR_SETTINGS_KEY = 'jusik_custom_simulator_settings';
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const allAssets = backtestJson.assets;
-  const { user, isPro, updateSimulatorSettings, openAuthPopover, redeemPromoCode } = useAuth();
+  const { user, isPro, updateSimulatorSettings, openAuthPopover, redeemPromoCode, openCompareModal } = useAuth();
 
   const [proPopoverOpen, setProPopoverOpen] = useState<boolean>(false);
   const [isProPopoverClosing, setIsProPopoverClosing] = useState<boolean>(false);
@@ -1241,6 +1242,30 @@ function SimulatorContent() {
     return chartHeight - 8 - ((val - renderMinVal) / (renderMaxVal - renderMinVal || 1)) * (chartHeight - 16);
   };
 
+  // Y좌표로부터 현재 스케일(선형/로그)에 일치하는 금액을 역산하는 함수
+  const getValueFromY = (y: number): number => {
+    const ratio = Math.max(0, Math.min(1, (chartHeight - 8 - y) / (chartHeight - 16 || 1)));
+    if (chartScale === 'log') {
+      const logVal = logMin + ratio * (logMax - logMin);
+      return Math.pow(10, logVal);
+    }
+    return renderMinVal + ratio * (renderMaxVal - renderMinVal);
+  };
+
+  // 차트 Y축 전용 나이스 넘버 눈금 (500만 원, 1,000만 원, 1억 원 등 정갈한 단위 및 쉼표 표기)
+  const yTicks = useMemo(() => {
+    const minKrw = renderMinVal * 10000;
+    const maxKrw = renderMaxVal * 10000;
+    const tickValues = getNiceTicks(minKrw, maxKrw, 3);
+    return tickValues
+      .map((valKrw) => ({
+        y: getY(valKrw / 10000),
+        label: formatChartWon(valKrw),
+      }))
+      .filter((t) => t.y >= 16 && t.y <= chartHeight - 14);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartHeight, renderMinVal, renderMaxVal, chartScale, safeLogMin, safeLogMax, logMin, logMax]);
+
   const getSvgPath = (values: number[]) => {
     if (values.length === 0) return '';
     const points = values.map((val, idx) => `${getX(idx)},${getY(val)}`);
@@ -1722,31 +1747,17 @@ function SimulatorContent() {
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium">
                         2000년 닷컴 버블(-80%), 2008년 리먼 사태(-55%) 등 <strong>과거 30년 역사적 위기 구간</strong>을 통과 검증하는 프리미엄 기능입니다.
                       </p>
-                      {!user ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            closeProPopover();
-                            openAuthPopover();
-                          }}
-                          className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          <Crown className="w-3.5 h-3.5" />
-                          로그인 / 가입하고 둘러보기
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            closeProPopover();
-                            openAuthPopover();
-                          }}
-                          className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                        >
-                          <Crown className="w-3.5 h-3.5" />
-                          PRO 코드 인증
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeProPopover();
+                          openCompareModal();
+                        }}
+                        className="w-full py-2.5 rounded-full bg-[var(--accent-orange)] border border-[rgba(241,143,1,0.5)] hover:brightness-110 hover:shadow-[0_0_16px_rgba(241,143,1,0.3)] text-white font-extrabold text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <Crown className="w-3.5 h-3.5" />
+                        멤버십 플랜 알아보기
+                      </button>
                     </div>
                   )}
 
@@ -1856,7 +1867,8 @@ function SimulatorContent() {
 
         {/* Integrated Clean Full-Width Chart Canvas */}
         <div className="relative z-10 overflow-hidden transition-all duration-300">
-          <svg
+          <div className="relative w-full">
+            <svg
             ref={svgRef}
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             className="w-full h-auto overflow-visible cursor-crosshair touch-none"
@@ -1944,10 +1956,20 @@ function SimulatorContent() {
               </linearGradient>
             </defs>
 
-            {/* Horizontal Grid lines */}
-            <line x1="0" y1={chartHeight - 24} x2={chartWidth} y2={chartHeight - 24} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.6" />
-            <line x1="0" y1={chartHeight * 0.66} x2={chartWidth} y2={chartHeight * 0.66} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.4" />
-            <line x1="0" y1={chartHeight * 0.33} x2={chartWidth} y2={chartHeight * 0.33} stroke="var(--border-color)" strokeDasharray="4 4" opacity="0.4" />
+            {/* Horizontal Grid lines (순수 SVG 그리드선) */}
+            {yTicks.map((tick, i) => (
+              <line
+                key={`y-grid-${i}`}
+                x1="0"
+                y1={tick.y}
+                x2={chartWidth}
+                y2={tick.y}
+                stroke="var(--border-color)"
+                strokeDasharray="4 4"
+                opacity={i === 2 ? 0.6 : 0.4}
+                className="pointer-events-none"
+              />
+            ))}
 
             {/* Dynamic Vertical Year Grid Lines */}
             {yearTicks.map((tick, i) => (
@@ -2122,11 +2144,28 @@ function SimulatorContent() {
                 strokeDasharray="3 3"
               />
             )}
-
             {hoverIndex !== null && (
               <line x1={getX(hoverIndex)} y1="0" x2={getX(hoverIndex)} y2={chartHeight} stroke="var(--accent-orange)" strokeWidth="1.5" strokeDasharray="2 2" />
             )}
           </svg>
+
+          {/* Responsive Native HTML Y-Axis Value Labels (토스/트레이딩뷰 금융 표준: X축 연도와 100% 동일한 크기/두께) */}
+          <div className="absolute inset-0 pointer-events-none select-none z-10">
+            {yTicks.map((tick, i) => (
+              <span
+                key={`html-y-tick-${i}`}
+                className="absolute font-mono text-[11px] sm:text-xs font-bold text-[var(--text-secondary)] opacity-75 -translate-y-1/2 select-none"
+                style={{
+                  top: `${(tick.y / chartHeight) * 100}%`,
+                  left: `${(proLeftOffset / chartWidth) * 100}%`,
+                  paddingLeft: '8px',
+                }}
+              >
+                {tick.label}
+              </span>
+            ))}
+          </div>
+        </div>
 
           {/* Responsive Native HTML X-Axis Year Timeline Bar (Crisp on Mobile & Desktop) */}
           <div className="relative w-full h-4 select-none pointer-events-none -mt-1 mb-1 px-1">

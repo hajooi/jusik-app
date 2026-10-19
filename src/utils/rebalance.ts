@@ -79,6 +79,8 @@ export interface QuoteMap {
   usdKrw: number | null;
   jpyKrw?: number | null;
   hkdKrw?: number | null;
+  eurKrw?: number | null;
+  cnyKrw?: number | null;
 }
 
 export interface PlanLine {
@@ -208,6 +210,8 @@ export function priceKrw(symbol: string, q: QuoteMap): number | null {
   if (item.currency === 'USD') return q.usdKrw ? Math.round(item.price * q.usdKrw) : null;
   if (item.currency === 'JPY') return q.jpyKrw ? Math.round(item.price * q.jpyKrw) : null;
   if (item.currency === 'HKD') return q.hkdKrw ? Math.round(item.price * q.hkdKrw) : null;
+  if (item.currency === 'EUR') return q.eurKrw ? Math.round(item.price * q.eurKrw) : null;
+  if (item.currency === 'CNY') return q.cnyKrw ? Math.round(item.price * q.cnyKrw) : null;
   return null;
 }
 
@@ -525,7 +529,11 @@ export function calcAllAccountsSummary(accounts: JournalAccount[], q: QuoteMap):
 }
 
 // 리밸런싱 계산기 (예수금 + 추가금 단일 공식 & 현금 목표 비중 자동 보존)
-export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
+export function calcPlan(
+  account: JournalAccount,
+  q: QuoteMap,
+  options?: { prioritizeSubAssetLiquidation?: boolean }
+): PlanResult {
   const missing = new Set<string>();
   const groups = account.groups;
   const cashUsdKrw = (account.cashUsd || 0) * (q.usdKrw || 1350);
@@ -614,52 +622,56 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
   let spent = 0;
 
   groups.forEach((gr, i) => {
-    // 1) 판매(비중 축소)인 경우: 대표 종목 외의 서브 종목부터 우선 판매하여 보유 한도 내에서 정리
+    // 1) 판매(비중 축소)인 경우:
     if (alloc[i] < 0) {
       let remainingSellAmount = Math.abs(alloc[i]);
+      const shouldPrioritizeSub = options?.prioritizeSubAssetLiquidation !== false;
 
-      // 서브 종목들 (대표 종목이 아닌 보유 종목들)
-      const subSymbols = gr.symbols.filter(
-        (sym) => sym !== gr.buySymbol && (gr.holdings[sym] || 0) > 0
-      );
-
-      for (const sym of subSymbols) {
-        if (remainingSellAmount <= 0) break;
-        const p = priceKrw(sym, q);
-        if (p === null || p <= 0) continue;
-        const heldQty = gr.holdings[sym] || 0;
-        if (heldQty <= 0) continue;
-
-        const allowFractional = isFractionalAllowed(sym, account.fractional);
-        const isCrypto = isCryptoSymbol(sym);
-        const digits = isCrypto ? 8 : 4;
-
-        const rawNeeded = remainingSellAmount / p;
-        const qtyToSell = Math.min(
-          heldQty,
-          allowFractional ? floorTo(rawNeeded, digits) : Math.floor(rawNeeded + 1e-9)
+      // 1-A) 대표 종목 외 서브 종목 우선 정리 (옵션이 ON인 경우)
+      if (shouldPrioritizeSub) {
+        const subSymbols = gr.symbols.filter(
+          (sym) => sym !== gr.buySymbol && (gr.holdings[sym] || 0) > 0
         );
 
-        if (qtyToSell > 0) {
-          const sellAmountKrw = Math.round(qtyToSell * p);
-          // 전량 정리이거나 최소 주문 금액(5,000원) 이상일 때만 판매 라인 생성
-          if (sellAmountKrw >= MIN_TRADE_AMOUNT_KRW || heldQty <= qtyToSell) {
-            lines.push({
-              groupId: gr.id,
-              groupName: gr.name,
-              symbol: sym,
-              qty: -qtyToSell,
-              priceKrw: p,
-              amountKrw: -sellAmountKrw,
-            });
-            remainingSellAmount -= sellAmountKrw;
-            groupSellDelta[i] += sellAmountKrw;
-            spent -= sellAmountKrw;
+        for (const sym of subSymbols) {
+          if (remainingSellAmount <= 0) break;
+          const p = priceKrw(sym, q);
+          if (p === null || p <= 0) continue;
+          const heldQty = gr.holdings[sym] || 0;
+          if (heldQty <= 0) continue;
+
+          const allowFractional = isFractionalAllowed(sym, account.fractional);
+          const isCrypto = isCryptoSymbol(sym);
+          const digits = isCrypto ? 8 : 4;
+
+          const rawNeeded = remainingSellAmount / p;
+          const qtyToSell = Math.min(
+            heldQty,
+            allowFractional ? floorTo(rawNeeded, digits) : Math.floor(rawNeeded + 1e-9)
+          );
+
+          if (qtyToSell > 0) {
+            const sellAmountKrw = Math.round(qtyToSell * p);
+            if (sellAmountKrw >= MIN_TRADE_AMOUNT_KRW || heldQty <= qtyToSell) {
+              lines.push({
+                groupId: gr.id,
+                groupName: gr.name,
+                symbol: sym,
+                qty: -qtyToSell,
+                priceKrw: p,
+                amountKrw: -sellAmountKrw,
+              });
+              remainingSellAmount -= sellAmountKrw;
+              groupSellDelta[i] += sellAmountKrw;
+              spent -= sellAmountKrw;
+            }
           }
         }
       }
 
-      // 서브 종목을 다 판매하고도 더 줄여야 할 때만 대표 종목(buySymbol) 판매 (실제 보유량 한도 캡)
+      // 1-B) 대표 종목(buySymbol) 판매
+      // - shouldPrioritizeSub가 true일 때: 서브 종목을 다 판매하고도 더 줄여야 할 때 판매
+      // - shouldPrioritizeSub가 false일 때: 서브 종목 보존 대신 대표 종목부터 직접 판매
       if (remainingSellAmount > 0) {
         const p = priceKrw(gr.buySymbol, q);
         const heldQty = gr.holdings[gr.buySymbol] || 0;
@@ -692,6 +704,49 @@ export function calcPlan(account: JournalAccount, q: QuoteMap): PlanResult {
           }
         }
       }
+
+      // 1-C) 대표 종목을 먼저 판매했으나 잔여 축소 금액이 남아 있는 경우 서브 종목 정리 (목표 비중 완전 달성 보장)
+      if (!shouldPrioritizeSub && remainingSellAmount > 0) {
+        const subSymbols = gr.symbols.filter(
+          (sym) => sym !== gr.buySymbol && (gr.holdings[sym] || 0) > 0
+        );
+
+        for (const sym of subSymbols) {
+          if (remainingSellAmount <= 0) break;
+          const p = priceKrw(sym, q);
+          if (p === null || p <= 0) continue;
+          const heldQty = gr.holdings[sym] || 0;
+          if (heldQty <= 0) continue;
+
+          const allowFractional = isFractionalAllowed(sym, account.fractional);
+          const isCrypto = isCryptoSymbol(sym);
+          const digits = isCrypto ? 8 : 4;
+
+          const rawNeeded = remainingSellAmount / p;
+          const qtyToSell = Math.min(
+            heldQty,
+            allowFractional ? floorTo(rawNeeded, digits) : Math.floor(rawNeeded + 1e-9)
+          );
+
+          if (qtyToSell > 0) {
+            const sellAmountKrw = Math.round(qtyToSell * p);
+            if (sellAmountKrw >= MIN_TRADE_AMOUNT_KRW || heldQty <= qtyToSell) {
+              lines.push({
+                groupId: gr.id,
+                groupName: gr.name,
+                symbol: sym,
+                qty: -qtyToSell,
+                priceKrw: p,
+                amountKrw: -sellAmountKrw,
+              });
+              remainingSellAmount -= sellAmountKrw;
+              groupSellDelta[i] += sellAmountKrw;
+              spent -= sellAmountKrw;
+            }
+          }
+        }
+      }
+
       return;
     }
 
@@ -860,6 +915,8 @@ export function calculateTradeSettlement({
   symbol,
   tradeQty,
   price,
+  isUsdAsset,
+  currency,
   currentHoldings = 0,
   currentAvgKrw = 0,
   currentAvgUsd = 0,
@@ -871,6 +928,8 @@ export function calculateTradeSettlement({
   symbol: string;
   tradeQty: number;
   price: number;
+  isUsdAsset?: boolean;
+  currency?: string;
   currentHoldings?: number;
   currentAvgKrw?: number;
   currentAvgUsd?: number;
@@ -880,7 +939,9 @@ export function calculateTradeSettlement({
   usdRate?: number;
 }): TradeSettlementResult {
   const isCrypto = isCryptoSymbol(symbol);
-  const isUsd = !isCrypto && symbol !== 'GOLD_1G' && !/^\d{6}$/.test(symbol);
+  const isUsd = isUsdAsset !== undefined
+    ? isUsdAsset
+    : (currency ? currency === 'USD' : (!isCrypto && symbol !== 'GOLD_1G' && /^[A-Z]{1,5}$/.test(symbol)));
   const absQty = Math.abs(tradeQty);
   const isBuy = tradeQty > 0;
 

@@ -38,7 +38,7 @@ const RAW_TOOLS: ToolItem[] = [
   {
     id: 'journal',
     title: '투자일지',
-    description: '계좌별 목표 비율과 구매 수량 자동 계산',
+    description: '계좌별 목표 비율과 수량 자동 계산',
     href: '/tools/journal',
     icon: BookOpen,
     isComingSoon: false,

@@ -15,10 +15,15 @@ const MAX_ACCOUNTS = 20;
 // 투자일지 저장소는 계좌 구성/목표 비율/보유 수량만 다룹니다. (증권사 API 키 등 비밀값 저장 금지)
 function sanitizeJournal(input: any) {
   if (!input || typeof input !== 'object') return null;
-  const accounts = Array.isArray(input.accounts) ? input.accounts.slice(0, MAX_ACCOUNTS) : [];
+  const accounts = Array.isArray(input.accounts)
+    ? input.accounts.slice(0, MAX_ACCOUNTS).map((a: any) => {
+        const copy = { ...a };
+        delete copy.snapshots;
+        return copy;
+      })
+    : [];
   const logs = Array.isArray(input.logs) ? input.logs.slice(0, 200) : [];
-  const snapshots = Array.isArray(input.snapshots) ? input.snapshots.slice(-365) : [];
-  const out = { accounts, logs, snapshots };
+  const out = { accounts, logs };
   if (JSON.stringify(out).length > MAX_JOURNAL_BYTES) return null;
   return out;
 }
