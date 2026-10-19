@@ -273,13 +273,17 @@ async function fetchCpiYoy(eventDate: string, isCore = false): Promise<string | 
 
 async function fetchCorePceYoy(eventDate: string): Promise<string | null> {
   const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
-  const obs = await fetchFredSeries('PCEPILFE', refMonthStr, 14);
+  const obs = await fetchFredSeries('PCEPILFE', refMonthStr, 15);
   if (obs.length < 2) return null;
 
   const current = obs.find(o => o.date <= refMonthStr);
-  const prevYear = obs[obs.length - 1];
+  if (!current) return null;
 
-  if (!current || !prevYear) return null;
+  const [y, m, d] = current.date.split('-');
+  const prevYearDate = `${parseInt(y, 10) - 1}-${m}-${d}`;
+  const prevYear = obs.find((o) => o.date === prevYearDate);
+
+  if (!prevYear) return null;
 
   const currentVal = parseFloat(current.value);
   const prevYearVal = parseFloat(prevYear.value);
@@ -330,17 +334,22 @@ async function fetchGdpGrowth(eventDate: string): Promise<string | null> {
   return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`;
 }
 
-// ─── 미국 생산자물가 YoY 수집 (FRED: PPIACO) ─────────────────────────────────
+// ─── 미국 생산자물가 YoY 수집 (FRED: PPIFIS - 최종수요 생산자물가지수) ──────────
+// 공식 헤드라인 생산자물가는 원자재 중심의 구형 지표(PPIACO)가 아닌, 최종수요 지표(PPIFIS)를 기준으로 집계합니다.
 
 async function fetchPpiYoy(eventDate: string): Promise<string | null> {
   const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
-  const obs = await fetchFredSeries('PPIACO', refMonthStr, 14);
+  const obs = await fetchFredSeries('PPIFIS', refMonthStr, 15);
   if (obs.length < 2) return null;
 
   const current = obs.find(o => o.date <= refMonthStr);
-  const prevYear = obs[obs.length - 1];
+  if (!current) return null;
 
-  if (!current || !prevYear) return null;
+  const [y, m, d] = current.date.split('-');
+  const prevYearDate = `${parseInt(y, 10) - 1}-${m}-${d}`;
+  const prevYear = obs.find((o) => o.date === prevYearDate);
+
+  if (!prevYear) return null;
 
   const currentVal = parseFloat(current.value);
   const prevYearVal = parseFloat(prevYear.value);
@@ -355,13 +364,17 @@ async function fetchPpiYoy(eventDate: string): Promise<string | null> {
 
 async function fetchRetailSalesYoy(eventDate: string): Promise<string | null> {
   const refMonthStr = getPrevMonthFirstDay(eventDate, 1);
-  const obs = await fetchFredSeries('RSAFS', refMonthStr, 14);
+  const obs = await fetchFredSeries('RSAFS', refMonthStr, 15);
   if (obs.length < 2) return null;
 
   const current = obs.find(o => o.date <= refMonthStr);
-  const prevYear = obs[obs.length - 1];
+  if (!current) return null;
 
-  if (!current || !prevYear) return null;
+  const [y, m, d] = current.date.split('-');
+  const prevYearDate = `${parseInt(y, 10) - 1}-${m}-${d}`;
+  const prevYear = obs.find((o) => o.date === prevYearDate);
+
+  if (!prevYear) return null;
 
   const currentVal = parseFloat(current.value);
   const prevYearVal = parseFloat(prevYear.value);

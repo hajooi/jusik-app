@@ -11122,11 +11122,11 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 8월 생산자물가지수 (PPI) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "생산자물가가 전년 대비 5.4%를 기록하며 도매 물가 흐름이 완만하게 이어졌습니다.",
+    "simpleSummary": "생산자물가가 전년 대비 5.6%를 기록하며 도매 물가 흐름이 완만하게 이어졌습니다.",
     "impactTag": "관망",
     "importance": 2,
-    "actual": "5.4%",
-    "expected": "5.2%",
+    "actual": "5.6%",
+    "expected": "5.4%",
     "previous": "4.7%"
   },
   {
@@ -11378,9 +11378,12 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "title": "미국 9월 생산자물가지수 (PPI) 발표",
     "type": "economic",
     "region": "us",
-    "simpleSummary": "기업들의 원자재 및 도매 가격 변동 추이를 살펴보는 지표예요.",
-    "impactTag": "관망",
-    "importance": 2
+    "simpleSummary": "생산자물가가 전년 대비 6.3% 상승하며 에너지 가격 급등의 영향으로 물가 압력이 높아졌습니다.",
+    "impactTag": "변동성 주의",
+    "importance": 2,
+    "actual": "6.3%",
+    "expected": "5.8%",
+    "previous": "5.6%"
   },
   {
     "id": "oct-26-tsla",
@@ -11646,7 +11649,8 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
     "region": "us",
     "simpleSummary": "소비자물가에 선행하는 도매 물가의 흐름을 파악해요.",
     "impactTag": "관망",
-    "importance": 2
+    "importance": 2,
+    "previous": "6.3%"
   },
   {
     "id": "nov-26-nvda",
