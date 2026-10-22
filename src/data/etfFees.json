@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-21 12:57:03",
+  "updatedAt": "2026-10-22 12:59:17",
   "kofiaBaseDate": "2026.09.30",
   "categories": [
     {
@@ -66,7 +66,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 5.36,
+      "dividendYield": 5.32,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.015,
       "etcFee": 0.03,
@@ -74,10 +74,10 @@
       "tradeFee": 0.006,
       "actualFee": 0.056,
       "feeSource": "kofia_official",
-      "price": 8005,
-      "marketCap": 5982,
-      "return3m": -3.94,
-      "return1y": -8.79,
+      "price": 8060,
+      "marketCap": 6002,
+      "return3m": -3.7,
+      "return1y": -8.16,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -284,8 +284,8 @@
           "close": 8015.0
         },
         {
-          "date": "20261021",
-          "close": 8005.0
+          "date": "20261022",
+          "close": 8060.0
         }
       ],
       "isDomestic": true
@@ -306,10 +306,10 @@
       "tradeFee": 0.0051,
       "actualFee": 0.0951,
       "feeSource": "kofia_official",
-      "price": 8125,
-      "marketCap": 215,
-      "return3m": -4.71,
-      "return1y": -9.62,
+      "price": 8190,
+      "marketCap": 217,
+      "return3m": -4.07,
+      "return1y": -8.9,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -516,8 +516,8 @@
           "close": 8145.0
         },
         {
-          "date": "20261021",
-          "close": 8125.0
+          "date": "20261022",
+          "close": 8190.0
         }
       ],
       "isDomestic": true
@@ -530,7 +530,7 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 4.76,
+      "dividendYield": 4.72,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.05,
       "etcFee": 0.07,
@@ -538,10 +538,10 @@
       "tradeFee": 0.0118,
       "actualFee": 0.1318,
       "feeSource": "kofia_official",
-      "price": 8365,
-      "marketCap": 4224,
-      "return3m": -13.71,
-      "return1y": -14.55,
+      "price": 8430,
+      "marketCap": 4316,
+      "return3m": -13.12,
+      "return1y": -13.88,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -748,8 +748,8 @@
           "close": 8415.0
         },
         {
-          "date": "20261021",
-          "close": 8365.0
+          "date": "20261022",
+          "close": 8430.0
         }
       ],
       "isDomestic": true
@@ -762,7 +762,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 4.23,
+      "dividendYield": 4.2,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.05,
       "etcFee": 0.07,
@@ -770,10 +770,10 @@
       "tradeFee": 0.0123,
       "actualFee": 0.1323,
       "feeSource": "kofia_official",
-      "price": 6990,
-      "marketCap": 14644,
-      "return3m": -3.77,
-      "return1y": -8.84,
+      "price": 7055,
+      "marketCap": 14710,
+      "return3m": -3.43,
+      "return1y": -7.99,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -980,8 +980,8 @@
           "close": 6980.0
         },
         {
-          "date": "20261021",
-          "close": 6990.0
+          "date": "20261022",
+          "close": 7055.0
         }
       ],
       "isDomestic": true
@@ -994,7 +994,7 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 5.37,
+      "dividendYield": 5.32,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.05,
       "etcFee": 0.09,
@@ -1002,10 +1002,10 @@
       "tradeFee": 0.0191,
       "actualFee": 0.1591,
       "feeSource": "kofia_official",
-      "price": 7990,
-      "marketCap": 280,
-      "return3m": -14.4,
-      "return1y": -16.86,
+      "price": 8060,
+      "marketCap": 282,
+      "return3m": -13.74,
+      "return1y": -16.13,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -1212,8 +1212,8 @@
           "close": 8035.0
         },
         {
-          "date": "20261021",
-          "close": 7990.0
+          "date": "20261022",
+          "close": 8060.0
         }
       ],
       "isDomestic": true
@@ -1226,7 +1226,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.64,
+      "dividendYield": 3.59,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.03,
@@ -1234,10 +1234,10 @@
       "tradeFee": 0.0053,
       "actualFee": 0.1853,
       "feeSource": "kofia_official",
-      "price": 6425,
-      "marketCap": 1558,
-      "return3m": -12.65,
-      "return1y": -20.37,
+      "price": 6520,
+      "marketCap": 1581,
+      "return3m": -12.31,
+      "return1y": -19.2,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -1444,8 +1444,8 @@
           "close": 6485.0
         },
         {
-          "date": "20261021",
-          "close": 6425.0
+          "date": "20261022",
+          "close": 6520.0
         }
       ],
       "isDomestic": true
@@ -1458,7 +1458,7 @@
       "category": "bonds",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.56,
+      "dividendYield": 0.55,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.05,
@@ -1466,10 +1466,10 @@
       "tradeFee": 0.0112,
       "actualFee": 0.2112,
       "feeSource": "kofia_official",
-      "price": 33390,
-      "marketCap": 3794,
-      "return3m": -6.8,
-      "return1y": -17.17,
+      "price": 33915,
+      "marketCap": 3841,
+      "return3m": -6.3,
+      "return1y": -15.87,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -1676,8 +1676,8 @@
           "close": 33265.0
         },
         {
-          "date": "20261021",
-          "close": 33390.0
+          "date": "20261022",
+          "close": 33915.0
         }
       ],
       "isDomestic": true
@@ -1690,7 +1690,7 @@
       "category": "bonds",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.68,
+      "dividendYield": 3.62,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.09,
@@ -1698,10 +1698,10 @@
       "tradeFee": 0.0218,
       "actualFee": 0.2618,
       "feeSource": "kofia_official",
-      "price": 6960,
-      "marketCap": 599,
-      "return3m": -12.23,
-      "return1y": -20.13,
+      "price": 7065,
+      "marketCap": 608,
+      "return3m": -11.58,
+      "return1y": -18.92,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -1908,8 +1908,8 @@
           "close": 7025.0
         },
         {
-          "date": "20261021",
-          "close": 6960.0
+          "date": "20261022",
+          "close": 7065.0
         }
       ],
       "isDomestic": true
@@ -1922,7 +1922,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.32,
+      "dividendYield": 13.17,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.07,
@@ -1930,10 +1930,10 @@
       "tradeFee": 0.0048,
       "actualFee": 0.3248,
       "feeSource": "kofia_official",
-      "price": 7115,
-      "marketCap": 7225,
-      "return3m": -2.99,
-      "return1y": -7.34,
+      "price": 7200,
+      "marketCap": 7312,
+      "return3m": -3.32,
+      "return1y": -6.24,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -2140,8 +2140,8 @@
           "close": 7125.0
         },
         {
-          "date": "20261021",
-          "close": 7115.0
+          "date": "20261022",
+          "close": 7200.0
         }
       ],
       "isDomestic": true
@@ -2154,7 +2154,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 11.41,
+      "dividendYield": 11.36,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.07,
@@ -2162,10 +2162,10 @@
       "tradeFee": 0.0197,
       "actualFee": 0.3397,
       "feeSource": "kofia_official",
-      "price": 7345,
-      "marketCap": 408,
-      "return3m": -14.53,
-      "return1y": -14.2,
+      "price": 7380,
+      "marketCap": 410,
+      "return3m": -13.97,
+      "return1y": -13.8,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -2372,8 +2372,8 @@
           "close": 7390.0
         },
         {
-          "date": "20261021",
-          "close": 7345.0
+          "date": "20261022",
+          "close": 7380.0
         }
       ],
       "isDomestic": true
@@ -2386,7 +2386,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.23,
+      "dividendYield": 13.17,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.1,
@@ -2394,10 +2394,10 @@
       "tradeFee": 0.0,
       "actualFee": 0.35,
       "feeSource": "kofia_official",
-      "price": 7500,
-      "marketCap": 2708,
-      "return3m": -12.84,
-      "return1y": -11.79,
+      "price": 7530,
+      "marketCap": 2718,
+      "return3m": -12.45,
+      "return1y": -11.43,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -2604,8 +2604,8 @@
           "close": 7535.0
         },
         {
-          "date": "20261021",
-          "close": 7500.0
+          "date": "20261022",
+          "close": 7530.0
         }
       ],
       "isDomestic": true
@@ -2618,7 +2618,7 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 13.63,
+      "dividendYield": 13.52,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.39,
       "etcFee": 0.08,
@@ -2626,10 +2626,10 @@
       "tradeFee": 0.3029,
       "actualFee": 0.7729,
       "feeSource": "kofia_official",
-      "price": 6545,
-      "marketCap": 7556,
-      "return3m": -4.62,
-      "return1y": -8.65,
+      "price": 6600,
+      "marketCap": 7564,
+      "return3m": -4.12,
+      "return1y": -7.89,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -2836,8 +2836,8 @@
           "close": 6540.0
         },
         {
-          "date": "20261021",
-          "close": 6545.0
+          "date": "20261022",
+          "close": 6600.0
         }
       ],
       "isDomestic": true
@@ -2858,10 +2858,10 @@
       "tradeFee": 0.0117,
       "actualFee": 0.0417,
       "feeSource": "kofia_official",
-      "price": 33695,
-      "marketCap": 8441,
-      "return3m": -16.2,
-      "return1y": 55.85,
+      "price": 32575,
+      "marketCap": 8111,
+      "return3m": -16.72,
+      "return1y": 50.67,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -3068,8 +3068,8 @@
           "close": 33350.0
         },
         {
-          "date": "20261021",
-          "close": 33695.0
+          "date": "20261022",
+          "close": 32575.0
         }
       ],
       "isDomestic": true
@@ -3082,7 +3082,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.12,
+      "dividendYield": 1.16,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.017,
       "etcFee": 0.02,
@@ -3090,10 +3090,10 @@
       "tradeFee": 0.0118,
       "actualFee": 0.0518,
       "feeSource": "kofia_official",
-      "price": 90365,
-      "marketCap": 37727,
-      "return3m": -16.25,
-      "return1y": 55.7,
+      "price": 87360,
+      "marketCap": 36516,
+      "return3m": -16.97,
+      "return1y": 50.52,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -3300,8 +3300,8 @@
           "close": 89495.0
         },
         {
-          "date": "20261021",
-          "close": 90365.0
+          "date": "20261022",
+          "close": 87360.0
         }
       ],
       "isDomestic": true
@@ -3314,7 +3314,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.19,
+      "dividendYield": 1.23,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.01,
       "etcFee": 0.03,
@@ -3322,10 +3322,10 @@
       "tradeFee": 0.012,
       "actualFee": 0.052,
       "feeSource": "kofia_official",
-      "price": 89800,
-      "marketCap": 6151,
-      "return3m": -16.12,
-      "return1y": 55.99,
+      "price": 86750,
+      "marketCap": 5769,
+      "return3m": -16.67,
+      "return1y": 50.7,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -3532,8 +3532,8 @@
           "close": 88875.0
         },
         {
-          "date": "20261021",
-          "close": 89800.0
+          "date": "20261022",
+          "close": 86750.0
         }
       ],
       "isDomestic": true
@@ -3554,10 +3554,10 @@
       "tradeFee": 0.012,
       "actualFee": 0.052,
       "feeSource": "kofia_official",
-      "price": 117805,
-      "marketCap": 14490,
-      "return3m": -16.22,
-      "return1y": 55.68,
+      "price": 113815,
+      "marketCap": 13999,
+      "return3m": -16.93,
+      "return1y": 50.41,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -3764,8 +3764,8 @@
           "close": 116640.0
         },
         {
-          "date": "20261021",
-          "close": 117805.0
+          "date": "20261022",
+          "close": 113815.0
         }
       ],
       "isDomestic": true
@@ -3778,7 +3778,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.08,
+      "dividendYield": 1.12,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.017,
       "etcFee": 0.02,
@@ -3786,10 +3786,10 @@
       "tradeFee": 0.0249,
       "actualFee": 0.0549,
       "feeSource": "kofia_official",
-      "price": 89965,
-      "marketCap": 14484,
-      "return3m": -16.22,
-      "return1y": 55.38,
+      "price": 86850,
+      "marketCap": 13983,
+      "return3m": -16.69,
+      "return1y": 50.0,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -3996,8 +3996,8 @@
           "close": 88915.0
         },
         {
-          "date": "20261021",
-          "close": 89965.0
+          "date": "20261022",
+          "close": 86850.0
         }
       ],
       "isDomestic": true
@@ -4018,10 +4018,10 @@
       "tradeFee": 0.015,
       "actualFee": 0.055,
       "feeSource": "kofia_official",
-      "price": 60400,
-      "marketCap": 1450,
-      "return3m": -15.95,
-      "return1y": 55.27,
+      "price": 58275,
+      "marketCap": 1399,
+      "return3m": -16.74,
+      "return1y": 49.81,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -4228,8 +4228,8 @@
           "close": 59700.0
         },
         {
-          "date": "20261021",
-          "close": 60400.0
+          "date": "20261022",
+          "close": 58275.0
         }
       ],
       "isDomestic": true
@@ -4242,7 +4242,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.99,
+      "dividendYield": 1.02,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.036,
       "etcFee": 0.02,
@@ -4250,10 +4250,10 @@
       "tradeFee": 0.0092,
       "actualFee": 0.0592,
       "feeSource": "kofia_official",
-      "price": 90215,
-      "marketCap": 3609,
-      "return3m": -16.09,
-      "return1y": 56.04,
+      "price": 87055,
+      "marketCap": 3482,
+      "return3m": -16.65,
+      "return1y": 50.58,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -4460,8 +4460,8 @@
           "close": 89150.0
         },
         {
-          "date": "20261021",
-          "close": 90215.0
+          "date": "20261022",
+          "close": 87055.0
         }
       ],
       "isDomestic": true
@@ -4482,10 +4482,10 @@
       "tradeFee": 0.0195,
       "actualFee": 0.0595,
       "feeSource": "kofia_official",
-      "price": 50995,
-      "marketCap": 4233,
-      "return3m": -16.29,
-      "return1y": 55.4,
+      "price": 49245,
+      "marketCap": 4063,
+      "return3m": -16.65,
+      "return1y": 50.07,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -4692,8 +4692,8 @@
           "close": 50405.0
         },
         {
-          "date": "20261021",
-          "close": 50995.0
+          "date": "20261022",
+          "close": 49245.0
         }
       ],
       "isDomestic": true
@@ -4714,10 +4714,10 @@
       "tradeFee": 0.0075,
       "actualFee": 0.0675,
       "feeSource": "kofia_official",
-      "price": 117815,
-      "marketCap": 1649,
-      "return3m": -16.2,
-      "return1y": 55.48,
+      "price": 113780,
+      "marketCap": 1593,
+      "return3m": -16.83,
+      "return1y": 50.16,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -4924,8 +4924,8 @@
           "close": 116615.0
         },
         {
-          "date": "20261021",
-          "close": 117815.0
+          "date": "20261022",
+          "close": 113780.0
         }
       ],
       "isDomestic": true
@@ -4938,7 +4938,7 @@
       "category": "kospi200",
       "subCategory": "active",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.48,
+      "dividendYield": 1.54,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.01,
       "etcFee": 0.02,
@@ -4946,10 +4946,10 @@
       "tradeFee": 0.0535,
       "actualFee": 0.0835,
       "feeSource": "kofia_official",
-      "price": 28625,
-      "marketCap": 3650,
-      "return3m": -16.72,
-      "return1y": 53.62,
+      "price": 27610,
+      "marketCap": 3520,
+      "return3m": -17.05,
+      "return1y": 48.17,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -5156,8 +5156,8 @@
           "close": 28305.0
         },
         {
-          "date": "20261021",
-          "close": 28625.0
+          "date": "20261022",
+          "close": 27610.0
         }
       ],
       "isDomestic": true
@@ -5170,7 +5170,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.03,
+      "dividendYield": 1.07,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.05,
       "etcFee": 0.02,
@@ -5178,10 +5178,10 @@
       "tradeFee": 0.0144,
       "actualFee": 0.0844,
       "feeSource": "kofia_official",
-      "price": 90055,
-      "marketCap": 88074,
-      "return3m": -16.09,
-      "return1y": 56.31,
+      "price": 86980,
+      "marketCap": 85197,
+      "return3m": -16.58,
+      "return1y": 50.97,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -5388,8 +5388,8 @@
           "close": 89060.0
         },
         {
-          "date": "20261021",
-          "close": 90055.0
+          "date": "20261022",
+          "close": 86980.0
         }
       ],
       "isDomestic": true
@@ -5402,7 +5402,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.07,
+      "dividendYield": 1.1,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.017,
       "etcFee": 0.02,
@@ -5410,10 +5410,10 @@
       "tradeFee": 0.0466,
       "actualFee": 0.0866,
       "feeSource": "kofia_official",
-      "price": 91070,
-      "marketCap": 12158,
-      "return3m": -16.55,
-      "return1y": 55.43,
+      "price": 87990,
+      "marketCap": 11747,
+      "return3m": -16.77,
+      "return1y": 50.18,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -5620,8 +5620,8 @@
           "close": 90100.0
         },
         {
-          "date": "20261021",
-          "close": 91070.0
+          "date": "20261022",
+          "close": 87990.0
         }
       ],
       "isDomestic": true
@@ -5642,10 +5642,10 @@
       "tradeFee": 0.0429,
       "actualFee": 0.0929,
       "feeSource": "kofia_official",
-      "price": 106150,
-      "marketCap": 478,
-      "return3m": -16.92,
-      "return1y": 54.55,
+      "price": 103085,
+      "marketCap": 464,
+      "return3m": -17.43,
+      "return1y": 50.08,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -5852,8 +5852,8 @@
           "close": 106385.0
         },
         {
-          "date": "20261021",
-          "close": 106150.0
+          "date": "20261022",
+          "close": 103085.0
         }
       ],
       "isDomestic": true
@@ -5874,10 +5874,10 @@
       "tradeFee": 0.0183,
       "actualFee": 0.0983,
       "feeSource": "kofia_official",
-      "price": 32485,
-      "marketCap": 64125,
-      "return3m": -16.5,
-      "return1y": 55.73,
+      "price": 31395,
+      "marketCap": 62162,
+      "return3m": -16.72,
+      "return1y": 50.5,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -6084,8 +6084,8 @@
           "close": 32150.0
         },
         {
-          "date": "20261021",
-          "close": 32485.0
+          "date": "20261022",
+          "close": 31395.0
         }
       ],
       "isDomestic": true
@@ -6106,10 +6106,10 @@
       "tradeFee": 0.0293,
       "actualFee": 0.1493,
       "feeSource": "kofia_official",
-      "price": 52405,
-      "marketCap": 2935,
-      "return3m": -16.54,
-      "return1y": 54.91,
+      "price": 50660,
+      "marketCap": 2837,
+      "return3m": -16.62,
+      "return1y": 49.75,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -6316,8 +6316,8 @@
           "close": 51875.0
         },
         {
-          "date": "20261021",
-          "close": 52405.0
+          "date": "20261022",
+          "close": 50660.0
         }
       ],
       "isDomestic": true
@@ -6330,7 +6330,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.95,
+      "dividendYield": 0.98,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.01,
@@ -6338,10 +6338,10 @@
       "tradeFee": 0.0177,
       "actualFee": 0.1777,
       "feeSource": "kofia_official",
-      "price": 89725,
-      "marketCap": 220634,
-      "return3m": -16.49,
-      "return1y": 55.48,
+      "price": 86525,
+      "marketCap": 213414,
+      "return3m": -16.86,
+      "return1y": 49.93,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -6548,8 +6548,8 @@
           "close": 88750.0
         },
         {
-          "date": "20261021",
-          "close": 89725.0
+          "date": "20261022",
+          "close": 86525.0
         }
       ],
       "isDomestic": true
@@ -6562,7 +6562,7 @@
       "category": "kospi200",
       "subCategory": "active",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.0,
+      "dividendYield": 1.04,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.01,
@@ -6570,10 +6570,10 @@
       "tradeFee": 0.0328,
       "actualFee": 0.1928,
       "feeSource": "kofia_official",
-      "price": 25815,
-      "marketCap": 8390,
-      "return3m": -16.39,
-      "return1y": 55.14,
+      "price": 24920,
+      "marketCap": 8049,
+      "return3m": -16.91,
+      "return1y": 49.76,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -6780,8 +6780,8 @@
           "close": 25530.0
         },
         {
-          "date": "20261021",
-          "close": 25815.0
+          "date": "20261022",
+          "close": 24920.0
         }
       ],
       "isDomestic": true
@@ -6794,7 +6794,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 7.49,
+      "dividendYield": 7.74,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.03,
@@ -6802,10 +6802,10 @@
       "tradeFee": 0.0537,
       "actualFee": 0.3337,
       "feeSource": "kofia_official",
-      "price": 17125,
-      "marketCap": 1764,
-      "return3m": -16.86,
-      "return1y": 52.05,
+      "price": 16570,
+      "marketCap": 1707,
+      "return3m": -16.84,
+      "return1y": 47.12,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -7012,8 +7012,8 @@
           "close": 16975.0
         },
         {
-          "date": "20261021",
-          "close": 17125.0
+          "date": "20261022",
+          "close": 16570.0
         }
       ],
       "isDomestic": true
@@ -7026,7 +7026,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.23,
+      "dividendYield": 12.65,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.3,
       "etcFee": 0.02,
@@ -7034,10 +7034,10 @@
       "tradeFee": 0.0287,
       "actualFee": 0.3487,
       "feeSource": "kofia_official",
-      "price": 9630,
-      "marketCap": 5412,
-      "return3m": -16.28,
-      "return1y": 1.9,
+      "price": 9310,
+      "marketCap": 5297,
+      "return3m": -16.83,
+      "return1y": -1.48,
       "weeklyPrices": [
         {
           "date": "20260320",
@@ -7164,8 +7164,8 @@
           "close": 9550.0
         },
         {
-          "date": "20261021",
-          "close": 9630.0
+          "date": "20261022",
+          "close": 9310.0
         }
       ],
       "isDomestic": true
@@ -7178,7 +7178,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.46,
+      "dividendYield": 1.48,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.03,
@@ -7186,10 +7186,10 @@
       "tradeFee": 0.0735,
       "actualFee": 0.3535,
       "feeSource": "kofia_official",
-      "price": 16895,
-      "marketCap": 101,
-      "return3m": -0.76,
-      "return1y": 11.77,
+      "price": 16640,
+      "marketCap": 100,
+      "return3m": -1.49,
+      "return1y": 10.08,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -7396,8 +7396,8 @@
           "close": 17080.0
         },
         {
-          "date": "20261021",
-          "close": 16895.0
+          "date": "20261022",
+          "close": 16640.0
         }
       ],
       "isDomestic": true
@@ -7410,7 +7410,7 @@
       "category": "kospi200",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.98,
+      "dividendYield": 2.02,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.03,
@@ -7418,10 +7418,10 @@
       "tradeFee": 0.1123,
       "actualFee": 0.3923,
       "feeSource": "kofia_official",
-      "price": 17655,
-      "marketCap": 71,
-      "return3m": -1.43,
-      "return1y": 10.72,
+      "price": 17325,
+      "marketCap": 69,
+      "return3m": -2.54,
+      "return1y": 8.65,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -7628,8 +7628,8 @@
           "close": 17955.0
         },
         {
-          "date": "20261021",
-          "close": 17655.0
+          "date": "20261022",
+          "close": 17325.0
         }
       ],
       "isDomestic": true
@@ -7642,7 +7642,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 19.58,
+      "dividendYield": 20.21,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.39,
       "etcFee": 0.03,
@@ -7650,10 +7650,10 @@
       "tradeFee": 0.0841,
       "actualFee": 0.5041,
       "feeSource": "kofia_official",
-      "price": 16525,
-      "marketCap": 52731,
-      "return3m": -16.45,
-      "return1y": 42.88,
+      "price": 16005,
+      "marketCap": 51104,
+      "return3m": -16.52,
+      "return1y": 38.38,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -7860,8 +7860,8 @@
           "close": 16340.0
         },
         {
-          "date": "20261021",
-          "close": 16525.0
+          "date": "20261022",
+          "close": 16005.0
         }
       ],
       "isDomestic": true
@@ -7874,7 +7874,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 7.32,
+      "dividendYield": 7.56,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.5,
       "etcFee": 0.01,
@@ -7882,9 +7882,9 @@
       "tradeFee": 0.0355,
       "actualFee": 0.5455,
       "feeSource": "kofia_official",
-      "price": 6760,
-      "marketCap": 9951,
-      "return3m": -18.39,
+      "price": 6545,
+      "marketCap": 9772,
+      "return3m": -18.52,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -7954,7 +7954,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 7.4,
+      "dividendYield": 7.63,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.491,
       "etcFee": 0.01,
@@ -7962,9 +7962,9 @@
       "tradeFee": 0.1149,
       "actualFee": 0.6149,
       "feeSource": "kofia_official",
-      "price": 5920,
-      "marketCap": 681,
-      "return3m": -17.51,
+      "price": 5740,
+      "marketCap": 666,
+      "return3m": -17.83,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -8046,7 +8046,7 @@
       "category": "kospi200",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.8,
+      "dividendYield": 0.86,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.3,
       "etcFee": 0.02,
@@ -8054,10 +8054,10 @@
       "tradeFee": 0.3086,
       "actualFee": 0.6286,
       "feeSource": "kofia_official",
-      "price": 29515,
-      "marketCap": 325,
-      "return3m": -38.32,
-      "return1y": 64.07,
+      "price": 27490,
+      "marketCap": 302,
+      "return3m": -38.74,
+      "return1y": 52.82,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -8264,8 +8264,8 @@
           "close": 28930.0
         },
         {
-          "date": "20261021",
-          "close": 29515.0
+          "date": "20261022",
+          "close": 27490.0
         }
       ],
       "isDomestic": true
@@ -8286,10 +8286,10 @@
       "tradeFee": 0.3029,
       "actualFee": 0.6329,
       "feeSource": "kofia_official",
-      "price": 10560,
-      "marketCap": 7524,
-      "return3m": -16.25,
-      "return1y": 15.27,
+      "price": 10280,
+      "marketCap": 7330,
+      "return3m": -16.09,
+      "return1y": 12.21,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -8496,8 +8496,8 @@
           "close": 10440.0
         },
         {
-          "date": "20261021",
-          "close": 10560.0
+          "date": "20261022",
+          "close": 10280.0
         }
       ],
       "isDomestic": true
@@ -8510,7 +8510,7 @@
       "category": "kospi200",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 8.06,
+      "dividendYield": 8.29,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.38,
       "etcFee": 0.04,
@@ -8518,10 +8518,10 @@
       "tradeFee": 0.294,
       "actualFee": 0.714,
       "feeSource": "kofia_official",
-      "price": 11435,
-      "marketCap": 263,
-      "return3m": -3.73,
-      "return1y": 31.98,
+      "price": 11125,
+      "marketCap": 267,
+      "return3m": -2.71,
+      "return1y": 28.4,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -8728,8 +8728,8 @@
           "close": 11310.0
         },
         {
-          "date": "20261021",
-          "close": 11435.0
+          "date": "20261022",
+          "close": 11125.0
         }
       ],
       "isDomestic": true
@@ -8742,7 +8742,7 @@
       "category": "kospi200",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.64,
+      "dividendYield": 0.68,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.022,
       "etcFee": 0.02,
@@ -8750,10 +8750,10 @@
       "tradeFee": 1.127,
       "actualFee": 1.167,
       "feeSource": "kofia_official",
-      "price": 72395,
-      "marketCap": 1955,
-      "return3m": -38.11,
-      "return1y": 64.56,
+      "price": 67335,
+      "marketCap": 1751,
+      "return3m": -38.79,
+      "return1y": 53.05,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -8960,8 +8960,8 @@
           "close": 71050.0
         },
         {
-          "date": "20261021",
-          "close": 72395.0
+          "date": "20261022",
+          "close": 67335.0
         }
       ],
       "isDomestic": true
@@ -8982,10 +8982,10 @@
       "tradeFee": 0.7135,
       "actualFee": 1.3635,
       "feeSource": "kofia_official",
-      "price": 71740,
-      "marketCap": 47026,
-      "return3m": -38.62,
-      "return1y": 61.09,
+      "price": 66770,
+      "marketCap": 42766,
+      "return3m": -39.24,
+      "return1y": 49.93,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -9192,8 +9192,8 @@
           "close": 70415.0
         },
         {
-          "date": "20261021",
-          "close": 71740.0
+          "date": "20261022",
+          "close": 66770.0
         }
       ],
       "isDomestic": true
@@ -9206,7 +9206,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.62,
+      "dividendYield": 0.63,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0062,
       "etcFee": 0.09,
@@ -9214,10 +9214,10 @@
       "tradeFee": 0.0306,
       "actualFee": 0.1306,
       "feeSource": "kofia_official",
-      "price": 28960,
-      "marketCap": 15552,
-      "return3m": -7.38,
-      "return1y": 6.36,
+      "price": 28660,
+      "marketCap": 15390,
+      "return3m": -7.8,
+      "return1y": 5.26,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -9424,8 +9424,8 @@
           "close": 29405.0
         },
         {
-          "date": "20261021",
-          "close": 28960.0
+          "date": "20261022",
+          "close": 28660.0
         }
       ],
       "isDomestic": true
@@ -9446,10 +9446,10 @@
       "tradeFee": 0.0345,
       "actualFee": 0.1345,
       "feeSource": "kofia_official",
-      "price": 29900,
-      "marketCap": 34445,
-      "return3m": -7.38,
-      "return1y": 6.18,
+      "price": 29585,
+      "marketCap": 34141,
+      "return3m": -7.79,
+      "return1y": 5.06,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -9656,8 +9656,8 @@
           "close": 30355.0
         },
         {
-          "date": "20261021",
-          "close": 29900.0
+          "date": "20261022",
+          "close": 29585.0
         }
       ],
       "isDomestic": true
@@ -9678,10 +9678,10 @@
       "tradeFee": 0.0462,
       "actualFee": 0.1462,
       "feeSource": "kofia_official",
-      "price": 173825,
-      "marketCap": 115993,
-      "return3m": -7.42,
-      "return1y": 6.12,
+      "price": 172000,
+      "marketCap": 115309,
+      "return3m": -7.85,
+      "return1y": 5.01,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -9888,8 +9888,8 @@
           "close": 176775.0
         },
         {
-          "date": "20261021",
-          "close": 173825.0
+          "date": "20261022",
+          "close": 172000.0
         }
       ],
       "isDomestic": true
@@ -9902,7 +9902,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.08,
+      "dividendYield": 1.1,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0062,
       "etcFee": 0.09,
@@ -9910,10 +9910,10 @@
       "tradeFee": 0.0604,
       "actualFee": 0.1604,
       "feeSource": "kofia_official",
-      "price": 26005,
-      "marketCap": 98000,
-      "return3m": -7.38,
-      "return1y": 6.27,
+      "price": 25725,
+      "marketCap": 96958,
+      "return3m": -7.82,
+      "return1y": 5.12,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -10120,8 +10120,8 @@
           "close": 26410.0
         },
         {
-          "date": "20261021",
-          "close": 26005.0
+          "date": "20261022",
+          "close": 25725.0
         }
       ],
       "isDomestic": true
@@ -10142,10 +10142,10 @@
       "tradeFee": 0.0552,
       "actualFee": 0.1752,
       "feeSource": "kofia_official",
-      "price": 22315,
-      "marketCap": 5534,
-      "return3m": 2.86,
-      "return1y": 12.04,
+      "price": 22100,
+      "marketCap": 5547,
+      "return3m": 2.32,
+      "return1y": 10.96,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -10352,8 +10352,8 @@
           "close": 22505.0
         },
         {
-          "date": "20261021",
-          "close": 22315.0
+          "date": "20261022",
+          "close": 22100.0
         }
       ],
       "isDomestic": true
@@ -10366,7 +10366,7 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.46,
+      "dividendYield": 0.47,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0055,
       "etcFee": 0.09,
@@ -10374,10 +10374,10 @@
       "tradeFee": 0.0957,
       "actualFee": 0.1957,
       "feeSource": "kofia_official",
-      "price": 16480,
-      "marketCap": 1343,
-      "return3m": -7.38,
-      "return1y": 6.14,
+      "price": 16305,
+      "marketCap": 1329,
+      "return3m": -7.83,
+      "return1y": 5.01,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -10584,8 +10584,8 @@
           "close": 16730.0
         },
         {
-          "date": "20261021",
-          "close": 16480.0
+          "date": "20261022",
+          "close": 16305.0
         }
       ],
       "isDomestic": true
@@ -10606,10 +10606,10 @@
       "tradeFee": 0.1383,
       "actualFee": 0.3183,
       "feeSource": "kofia_official",
-      "price": 22995,
-      "marketCap": 4162,
-      "return3m": 2.61,
-      "return1y": 11.78,
+      "price": 22770,
+      "marketCap": 4099,
+      "return3m": 2.03,
+      "return1y": 10.69,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -10816,8 +10816,8 @@
           "close": 23215.0
         },
         {
-          "date": "20261021",
-          "close": 22995.0
+          "date": "20261022",
+          "close": 22770.0
         }
       ],
       "isDomestic": true
@@ -10838,10 +10838,10 @@
       "tradeFee": 0.1778,
       "actualFee": 0.3478,
       "feeSource": "kofia_official",
-      "price": 13000,
-      "marketCap": 1976,
-      "return3m": -7.5,
-      "return1y": 5.85,
+      "price": 12850,
+      "marketCap": 2069,
+      "return3m": -7.83,
+      "return1y": 4.62,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -11048,8 +11048,8 @@
           "close": 13190.0
         },
         {
-          "date": "20261021",
-          "close": 13000.0
+          "date": "20261022",
+          "close": 12850.0
         }
       ],
       "isDomestic": true
@@ -11062,7 +11062,7 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.03,
+      "dividendYield": 1.05,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.09,
@@ -11070,10 +11070,10 @@
       "tradeFee": 0.0194,
       "actualFee": 0.3594,
       "feeSource": "kofia_official",
-      "price": 36930,
-      "marketCap": 6906,
-      "return3m": -15.49,
-      "return1y": 3.68,
+      "price": 36145,
+      "marketCap": 6904,
+      "return3m": -16.18,
+      "return1y": 1.48,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -11280,8 +11280,8 @@
           "close": 38200.0
         },
         {
-          "date": "20261021",
-          "close": 36930.0
+          "date": "20261022",
+          "close": 36145.0
         }
       ],
       "isDomestic": true
@@ -11294,7 +11294,7 @@
       "category": "nasdaq100",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.48,
+      "dividendYield": 0.49,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.04,
       "etcFee": 0.13,
@@ -11302,10 +11302,10 @@
       "tradeFee": 0.1938,
       "actualFee": 0.3638,
       "feeSource": "kofia_official",
-      "price": 22985,
-      "marketCap": 919,
-      "return3m": 2.54,
-      "return1y": 11.73,
+      "price": 22750,
+      "marketCap": 910,
+      "return3m": 1.98,
+      "return1y": 10.59,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -11512,8 +11512,8 @@
           "close": 23205.0
         },
         {
-          "date": "20261021",
-          "close": 22985.0
+          "date": "20261022",
+          "close": 22750.0
         }
       ],
       "isDomestic": true
@@ -11526,7 +11526,7 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.61,
+      "dividendYield": 0.62,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.3,
       "etcFee": 0.09,
@@ -11534,10 +11534,10 @@
       "tradeFee": 0.0608,
       "actualFee": 0.4508,
       "feeSource": "kofia_official",
-      "price": 19950,
-      "marketCap": 2444,
-      "return3m": 3.68,
-      "return1y": 18.3,
+      "price": 19590,
+      "marketCap": 2400,
+      "return3m": 2.7,
+      "return1y": 16.16,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -11744,8 +11744,8 @@
           "close": 20400.0
         },
         {
-          "date": "20261021",
-          "close": 19950.0
+          "date": "20261022",
+          "close": 19590.0
         }
       ],
       "isDomestic": true
@@ -11758,7 +11758,7 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 16.46,
+      "dividendYield": 16.62,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.09,
@@ -11766,10 +11766,10 @@
       "tradeFee": 0.1148,
       "actualFee": 0.4548,
       "feeSource": "kofia_official",
-      "price": 9975,
-      "marketCap": 24803,
-      "return3m": -7.86,
-      "return1y": 4.64,
+      "price": 9880,
+      "marketCap": 24705,
+      "return3m": -8.36,
+      "return1y": 3.64,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -11976,8 +11976,8 @@
           "close": 10120.0
         },
         {
-          "date": "20261021",
-          "close": 9975.0
+          "date": "20261022",
+          "close": 9880.0
         }
       ],
       "isDomestic": true
@@ -11990,7 +11990,7 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.88,
+      "dividendYield": 12.95,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.37,
       "etcFee": 0.1,
@@ -11998,10 +11998,10 @@
       "tradeFee": 0.0164,
       "actualFee": 0.4864,
       "feeSource": "kofia_official",
-      "price": 10440,
-      "marketCap": 2746,
-      "return3m": -4.58,
-      "return1y": 9.25,
+      "price": 10390,
+      "marketCap": 2733,
+      "return3m": -5.25,
+      "return1y": 8.73,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -12208,8 +12208,8 @@
           "close": 10640.0
         },
         {
-          "date": "20261021",
-          "close": 10440.0
+          "date": "20261022",
+          "close": 10390.0
         }
       ],
       "isDomestic": true
@@ -12222,7 +12222,7 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 23.63,
+      "dividendYield": 23.84,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.1,
@@ -12230,10 +12230,10 @@
       "tradeFee": 0.1533,
       "actualFee": 0.5033,
       "feeSource": "kofia_official",
-      "price": 8485,
-      "marketCap": 10097,
-      "return3m": -9.44,
-      "return1y": -1.69,
+      "price": 8410,
+      "marketCap": 10042,
+      "return3m": -9.94,
+      "return1y": -2.56,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -12440,8 +12440,8 @@
           "close": 8590.0
         },
         {
-          "date": "20261021",
-          "close": 8485.0
+          "date": "20261022",
+          "close": 8410.0
         }
       ],
       "isDomestic": true
@@ -12462,10 +12462,10 @@
       "tradeFee": 0.5855,
       "actualFee": 1.4755,
       "feeSource": "kofia_official",
-      "price": 42030,
-      "marketCap": 23436,
-      "return3m": -12.92,
-      "return1y": 12.78,
+      "price": 41295,
+      "marketCap": 23043,
+      "return3m": -13.15,
+      "return1y": 10.81,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -12672,8 +12672,8 @@
           "close": 42825.0
         },
         {
-          "date": "20261021",
-          "close": 42030.0
+          "date": "20261022",
+          "close": 41295.0
         }
       ],
       "isDomestic": true
@@ -12694,10 +12694,10 @@
       "tradeFee": 0.0464,
       "actualFee": 0.1064,
       "feeSource": "kofia_official",
-      "price": 14555,
-      "marketCap": 44385,
-      "return3m": -5.63,
-      "return1y": 23.88,
+      "price": 14570,
+      "marketCap": 44468,
+      "return3m": -4.61,
+      "return1y": 24.01,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -12904,8 +12904,8 @@
           "close": 14410.0
         },
         {
-          "date": "20261021",
-          "close": 14555.0
+          "date": "20261022",
+          "close": 14570.0
         }
       ],
       "isDomestic": true
@@ -12926,10 +12926,10 @@
       "tradeFee": 0.0824,
       "actualFee": 0.1524,
       "feeSource": "kofia_official",
-      "price": 14785,
-      "marketCap": 9714,
-      "return3m": -5.64,
-      "return1y": 24.3,
+      "price": 14800,
+      "marketCap": 9709,
+      "return3m": -4.59,
+      "return1y": 24.42,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -13136,8 +13136,8 @@
           "close": 14635.0
         },
         {
-          "date": "20261021",
-          "close": 14785.0
+          "date": "20261022",
+          "close": 14800.0
         }
       ],
       "isDomestic": true
@@ -13159,8 +13159,8 @@
       "actualFee": 0.1711,
       "feeSource": "kofia_official",
       "price": 13355,
-      "marketCap": 10457,
-      "return3m": -5.98,
+      "marketCap": 10404,
+      "return3m": -4.46,
       "return1y": 23.94,
       "weeklyPrices": [
         {
@@ -13368,7 +13368,7 @@
           "close": 13200.0
         },
         {
-          "date": "20261021",
+          "date": "20261022",
           "close": 13355.0
         }
       ],
@@ -13382,7 +13382,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.99,
+      "dividendYield": 2.98,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0099,
       "etcFee": 0.07,
@@ -13390,10 +13390,10 @@
       "tradeFee": 0.0959,
       "actualFee": 0.1759,
       "feeSource": "kofia_official",
-      "price": 12510,
-      "marketCap": 6293,
-      "return3m": -5.76,
-      "return1y": 23.86,
+      "price": 12530,
+      "marketCap": 6290,
+      "return3m": -4.52,
+      "return1y": 24.06,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -13600,8 +13600,8 @@
           "close": 12400.0
         },
         {
-          "date": "20261021",
-          "close": 12510.0
+          "date": "20261022",
+          "close": 12530.0
         }
       ],
       "isDomestic": true
@@ -13614,7 +13614,7 @@
       "category": "schd",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 3.03,
+      "dividendYield": 3.04,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.01,
       "etcFee": 0.08,
@@ -13622,10 +13622,10 @@
       "tradeFee": 0.1037,
       "actualFee": 0.1937,
       "feeSource": "kofia_official",
-      "price": 12340,
+      "price": 12310,
       "marketCap": 259,
-      "return3m": -5.93,
-      "return1y": 24.11,
+      "return3m": -4.42,
+      "return1y": 23.81,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -13832,8 +13832,8 @@
           "close": 12200.0
         },
         {
-          "date": "20261021",
-          "close": 12340.0
+          "date": "20261022",
+          "close": 12310.0
         }
       ],
       "isDomestic": true
@@ -13846,7 +13846,7 @@
       "category": "schd",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.76,
+      "dividendYield": 2.77,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.05,
       "etcFee": 0.07,
@@ -13854,10 +13854,10 @@
       "tradeFee": 0.1256,
       "actualFee": 0.2456,
       "feeSource": "kofia_official",
-      "price": 13595,
-      "marketCap": 2284,
-      "return3m": 4.68,
-      "return1y": 31.31,
+      "price": 13560,
+      "marketCap": 2265,
+      "return3m": 6.27,
+      "return1y": 30.98,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -14064,8 +14064,8 @@
           "close": 13365.0
         },
         {
-          "date": "20261021",
-          "close": 13595.0
+          "date": "20261022",
+          "close": 13560.0
         }
       ],
       "isDomestic": true
@@ -14078,7 +14078,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.44,
+      "dividendYield": 12.42,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.07,
@@ -14086,10 +14086,10 @@
       "tradeFee": 0.1716,
       "actualFee": 0.4916,
       "feeSource": "kofia_official",
-      "price": 9500,
-      "marketCap": 3097,
-      "return3m": -6.07,
-      "return1y": 22.75,
+      "price": 9515,
+      "marketCap": 3102,
+      "return3m": -4.84,
+      "return1y": 22.95,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -14296,8 +14296,8 @@
           "close": 9415.0
         },
         {
-          "date": "20261021",
-          "close": 9500.0
+          "date": "20261022",
+          "close": 9515.0
         }
       ],
       "isDomestic": true
@@ -14310,7 +14310,7 @@
       "category": "schd",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 10.29,
+      "dividendYield": 10.31,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.39,
       "etcFee": 0.06,
@@ -14318,10 +14318,10 @@
       "tradeFee": 0.1195,
       "actualFee": 0.5695,
       "feeSource": "kofia_official",
-      "price": 10620,
-      "marketCap": 6749,
-      "return3m": -5.84,
-      "return1y": 24.11,
+      "price": 10600,
+      "marketCap": 6736,
+      "return3m": -4.84,
+      "return1y": 23.88,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -14528,8 +14528,8 @@
           "close": 10460.0
         },
         {
-          "date": "20261021",
-          "close": 10620.0
+          "date": "20261022",
+          "close": 10600.0
         }
       ],
       "isDomestic": true
@@ -14551,8 +14551,8 @@
       "actualFee": 0.5831,
       "feeSource": "kofia_official",
       "price": 9915,
-      "marketCap": 1755,
-      "return3m": -6.21,
+      "marketCap": 1745,
+      "return3m": -5.13,
       "return1y": 23.69,
       "weeklyPrices": [
         {
@@ -14760,7 +14760,7 @@
           "close": 9790.0
         },
         {
-          "date": "20261021",
+          "date": "20261022",
           "close": 9915.0
         }
       ],
@@ -14782,10 +14782,10 @@
       "tradeFee": 0.1157,
       "actualFee": 0.5857,
       "feeSource": "kofia_official",
-      "price": 12540,
+      "price": 12545,
       "marketCap": 665,
-      "return3m": -6.21,
-      "return1y": 23.64,
+      "return3m": -4.73,
+      "return1y": 23.69,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -14992,8 +14992,8 @@
           "close": 12405.0
         },
         {
-          "date": "20261021",
-          "close": 12540.0
+          "date": "20261022",
+          "close": 12545.0
         }
       ],
       "isDomestic": true
@@ -15006,7 +15006,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.98,
+      "dividendYield": 0.99,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0047,
       "etcFee": 0.06,
@@ -15014,10 +15014,10 @@
       "tradeFee": 0.024,
       "actualFee": 0.094,
       "feeSource": "kofia_official",
-      "price": 25695,
-      "marketCap": 39159,
-      "return3m": -7.02,
-      "return1y": 5.52,
+      "price": 25565,
+      "marketCap": 38987,
+      "return3m": -6.86,
+      "return1y": 4.99,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -15224,8 +15224,8 @@
           "close": 25920.0
         },
         {
-          "date": "20261021",
-          "close": 25695.0
+          "date": "20261022",
+          "close": 25565.0
         }
       ],
       "isDomestic": true
@@ -15246,10 +15246,10 @@
       "tradeFee": 0.0356,
       "actualFee": 0.0956,
       "feeSource": "kofia_official",
-      "price": 25425,
-      "marketCap": 208879,
-      "return3m": -7.01,
-      "return1y": 5.49,
+      "price": 25285,
+      "marketCap": 207893,
+      "return3m": -6.88,
+      "return1y": 4.91,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -15456,8 +15456,8 @@
           "close": 25650.0
         },
         {
-          "date": "20261021",
-          "close": 25425.0
+          "date": "20261022",
+          "close": 25285.0
         }
       ],
       "isDomestic": true
@@ -15478,10 +15478,10 @@
       "tradeFee": 0.03,
       "actualFee": 0.1,
       "feeSource": "kofia_official",
-      "price": 22175,
-      "marketCap": 14702,
-      "return3m": -7.0,
-      "return1y": 5.78,
+      "price": 22050,
+      "marketCap": 14619,
+      "return3m": -6.78,
+      "return1y": 5.19,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -15688,8 +15688,8 @@
           "close": 22340.0
         },
         {
-          "date": "20261021",
-          "close": 22175.0
+          "date": "20261022",
+          "close": 22050.0
         }
       ],
       "isDomestic": true
@@ -15702,7 +15702,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.07,
+      "dividendYield": 2.08,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0062,
       "etcFee": 0.07,
@@ -15710,10 +15710,10 @@
       "tradeFee": 0.0392,
       "actualFee": 0.1092,
       "feeSource": "kofia_official",
-      "price": 23110,
-      "marketCap": 104099,
-      "return3m": -7.04,
-      "return1y": 5.54,
+      "price": 22985,
+      "marketCap": 103501,
+      "return3m": -6.88,
+      "return1y": 4.97,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -15920,8 +15920,8 @@
           "close": 23320.0
         },
         {
-          "date": "20261021",
-          "close": 23110.0
+          "date": "20261022",
+          "close": 22985.0
         }
       ],
       "isDomestic": true
@@ -15942,10 +15942,10 @@
       "tradeFee": 0.0645,
       "actualFee": 0.1445,
       "feeSource": "kofia_official",
-      "price": 21215,
-      "marketCap": 2991,
-      "return3m": -7.04,
-      "return1y": 5.25,
+      "price": 21090,
+      "marketCap": 2974,
+      "return3m": -6.88,
+      "return1y": 4.63,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -16152,8 +16152,8 @@
           "close": 21390.0
         },
         {
-          "date": "20261021",
-          "close": 21215.0
+          "date": "20261022",
+          "close": 21090.0
         }
       ],
       "isDomestic": true
@@ -16174,10 +16174,10 @@
       "tradeFee": 0.0394,
       "actualFee": 0.1594,
       "feeSource": "kofia_official",
-      "price": 17270,
-      "marketCap": 10690,
-      "return3m": 3.33,
-      "return1y": 11.51,
+      "price": 17185,
+      "marketCap": 10638,
+      "return3m": 3.38,
+      "return1y": 10.96,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -16384,8 +16384,8 @@
           "close": 17310.0
         },
         {
-          "date": "20261021",
-          "close": 17270.0
+          "date": "20261022",
+          "close": 17185.0
         }
       ],
       "isDomestic": true
@@ -16398,7 +16398,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.0,
+      "dividendYield": 1.01,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0047,
       "etcFee": 0.13,
@@ -16406,10 +16406,10 @@
       "tradeFee": 0.0754,
       "actualFee": 0.2054,
       "feeSource": "kofia_official",
-      "price": 18255,
-      "marketCap": 858,
-      "return3m": 3.2,
-      "return1y": 12.09,
+      "price": 18170,
+      "marketCap": 854,
+      "return3m": 3.25,
+      "return1y": 11.57,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -16616,8 +16616,8 @@
           "close": 18305.0
         },
         {
-          "date": "20261021",
-          "close": 18255.0
+          "date": "20261022",
+          "close": 18170.0
         }
       ],
       "isDomestic": true
@@ -16638,10 +16638,10 @@
       "tradeFee": 0.1402,
       "actualFee": 0.2302,
       "feeSource": "kofia_official",
-      "price": 30165,
-      "marketCap": 875,
-      "return3m": 1.62,
-      "return1y": 10.72,
+      "price": 30005,
+      "marketCap": 870,
+      "return3m": 1.77,
+      "return1y": 10.13,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -16848,8 +16848,8 @@
           "close": 30255.0
         },
         {
-          "date": "20261021",
-          "close": 30165.0
+          "date": "20261022",
+          "close": 30005.0
         }
       ],
       "isDomestic": true
@@ -16862,7 +16862,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.91,
+      "dividendYield": 0.92,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.07,
       "etcFee": 0.09,
@@ -16870,10 +16870,10 @@
       "tradeFee": 0.0824,
       "actualFee": 0.2424,
       "feeSource": "kofia_official",
-      "price": 17880,
-      "marketCap": 4863,
-      "return3m": 2.98,
-      "return1y": 11.28,
+      "price": 17795,
+      "marketCap": 4849,
+      "return3m": 3.06,
+      "return1y": 10.75,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -17080,8 +17080,8 @@
           "close": 17925.0
         },
         {
-          "date": "20261021",
-          "close": 17880.0
+          "date": "20261022",
+          "close": 17795.0
         }
       ],
       "isDomestic": true
@@ -17102,10 +17102,10 @@
       "tradeFee": 0.1108,
       "actualFee": 0.2708,
       "feeSource": "kofia_official",
-      "price": 19515,
-      "marketCap": 878,
-      "return3m": -7.06,
-      "return1y": 5.46,
+      "price": 19385,
+      "marketCap": 872,
+      "return3m": -6.85,
+      "return1y": 4.76,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -17312,8 +17312,8 @@
           "close": 19675.0
         },
         {
-          "date": "20261021",
-          "close": 19515.0
+          "date": "20261022",
+          "close": 19385.0
         }
       ],
       "isDomestic": true
@@ -17326,7 +17326,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.7,
+      "dividendYield": 0.71,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.045,
       "etcFee": 0.23,
@@ -17334,10 +17334,10 @@
       "tradeFee": 0.0029,
       "actualFee": 0.2829,
       "feeSource": "kofia_official",
-      "price": 19070,
-      "marketCap": 153,
-      "return3m": -7.16,
-      "return1y": 5.09,
+      "price": 18975,
+      "marketCap": 152,
+      "return3m": -6.95,
+      "return1y": 4.56,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -17544,8 +17544,8 @@
           "close": 19250.0
         },
         {
-          "date": "20261021",
-          "close": 19070.0
+          "date": "20261022",
+          "close": 18975.0
         }
       ],
       "isDomestic": true
@@ -17558,7 +17558,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.98,
+      "dividendYield": 0.99,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0055,
       "etcFee": 0.13,
@@ -17566,10 +17566,10 @@
       "tradeFee": 0.149,
       "actualFee": 0.289,
       "feeSource": "kofia_official",
-      "price": 12410,
-      "marketCap": 3376,
-      "return3m": -7.07,
-      "return1y": 5.17,
+      "price": 12340,
+      "marketCap": 3455,
+      "return3m": -6.82,
+      "return1y": 4.58,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -17776,8 +17776,8 @@
           "close": 12510.0
         },
         {
-          "date": "20261021",
-          "close": 12410.0
+          "date": "20261022",
+          "close": 12340.0
         }
       ],
       "isDomestic": true
@@ -17790,7 +17790,7 @@
       "category": "sp500",
       "subCategory": "leverage",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.75,
+      "dividendYield": 0.76,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.06,
@@ -17798,10 +17798,10 @@
       "tradeFee": 0.0153,
       "actualFee": 0.3253,
       "feeSource": "kofia_official",
-      "price": 67940,
-      "marketCap": 557,
-      "return3m": 5.22,
-      "return1y": 19.18,
+      "price": 67285,
+      "marketCap": 552,
+      "return3m": 5.27,
+      "return1y": 18.04,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -18008,8 +18008,8 @@
           "close": 68430.0
         },
         {
-          "date": "20261021",
-          "close": 67940.0
+          "date": "20261022",
+          "close": 67285.0
         }
       ],
       "isDomestic": true
@@ -18022,7 +18022,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.96,
+      "dividendYield": 0.97,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.0062,
       "etcFee": 0.13,
@@ -18030,10 +18030,10 @@
       "tradeFee": 0.2051,
       "actualFee": 0.3351,
       "feeSource": "kofia_official",
-      "price": 18900,
-      "marketCap": 737,
-      "return3m": -7.1,
-      "return1y": 5.43,
+      "price": 18805,
+      "marketCap": 733,
+      "return3m": -7.03,
+      "return1y": 4.9,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -18240,8 +18240,8 @@
           "close": 19065.0
         },
         {
-          "date": "20261021",
-          "close": 18900.0
+          "date": "20261022",
+          "close": 18805.0
         }
       ],
       "isDomestic": true
@@ -18254,7 +18254,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.04,
+      "dividendYield": 1.05,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.021,
       "etcFee": 0.15,
@@ -18262,10 +18262,10 @@
       "tradeFee": 0.1941,
       "actualFee": 0.3641,
       "feeSource": "kofia_official",
-      "price": 20350,
-      "marketCap": 794,
-      "return3m": -6.78,
-      "return1y": 5.17,
+      "price": 20240,
+      "marketCap": 789,
+      "return3m": -6.84,
+      "return1y": 4.6,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -18472,8 +18472,8 @@
           "close": 20530.0
         },
         {
-          "date": "20261021",
-          "close": 20350.0
+          "date": "20261022",
+          "close": 20240.0
         }
       ],
       "isDomestic": true
@@ -18486,7 +18486,7 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.51,
+      "dividendYield": 1.52,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.2,
       "etcFee": 0.12,
@@ -18494,10 +18494,10 @@
       "tradeFee": 0.0934,
       "actualFee": 0.4134,
       "feeSource": "kofia_official",
-      "price": 12080,
-      "marketCap": 1075,
-      "return3m": -9.96,
-      "return1y": 8.21,
+      "price": 12035,
+      "marketCap": 1071,
+      "return3m": -8.8,
+      "return1y": 7.81,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -18704,8 +18704,8 @@
           "close": 12120.0
         },
         {
-          "date": "20261021",
-          "close": 12080.0
+          "date": "20261022",
+          "close": 12035.0
         }
       ],
       "isDomestic": true
@@ -18718,7 +18718,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 11.99,
+      "dividendYield": 12.06,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.07,
@@ -18726,10 +18726,10 @@
       "tradeFee": 0.1085,
       "actualFee": 0.4285,
       "feeSource": "kofia_official",
-      "price": 11175,
-      "marketCap": 6800,
-      "return3m": -7.31,
-      "return1y": 5.1,
+      "price": 11115,
+      "marketCap": 6741,
+      "return3m": -6.99,
+      "return1y": 4.53,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -18936,8 +18936,8 @@
           "close": 11260.0
         },
         {
-          "date": "20261021",
-          "close": 11175.0
+          "date": "20261022",
+          "close": 11115.0
         }
       ],
       "isDomestic": true
@@ -18950,7 +18950,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 0.95,
+      "dividendYield": 0.96,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.04,
       "etcFee": 0.23,
@@ -18958,10 +18958,10 @@
       "tradeFee": 0.1691,
       "actualFee": 0.4391,
       "feeSource": "kofia_official",
-      "price": 18755,
-      "marketCap": 338,
-      "return3m": 2.56,
-      "return1y": 11.12,
+      "price": 18660,
+      "marketCap": 336,
+      "return3m": 2.68,
+      "return1y": 10.56,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -19168,8 +19168,8 @@
           "close": 18815.0
         },
         {
-          "date": "20261021",
-          "close": 18755.0
+          "date": "20261022",
+          "close": 18660.0
         }
       ],
       "isDomestic": true
@@ -19182,7 +19182,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.81,
+      "dividendYield": 1.8,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.1,
       "etcFee": 0.45,
@@ -19190,10 +19190,10 @@
       "tradeFee": 0.0,
       "actualFee": 0.55,
       "feeSource": "kofia_official",
-      "price": 10840,
-      "marketCap": 70,
-      "return3m": -5.01,
-      "return1y": -2.08,
+      "price": 10865,
+      "marketCap": 71,
+      "return3m": -4.79,
+      "return1y": -1.85,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -19400,8 +19400,8 @@
           "close": 11000.0
         },
         {
-          "date": "20261021",
-          "close": 10840.0
+          "date": "20261022",
+          "close": 10865.0
         }
       ],
       "isDomestic": true
@@ -19414,7 +19414,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 16.54,
+      "dividendYield": 16.62,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.11,
@@ -19422,10 +19422,10 @@
       "tradeFee": 0.1993,
       "actualFee": 0.5593,
       "feeSource": "kofia_official",
-      "price": 8955,
-      "marketCap": 2006,
-      "return3m": -8.22,
-      "return1y": 4.08,
+      "price": 8910,
+      "marketCap": 1996,
+      "return3m": -7.87,
+      "return1y": 3.56,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -19632,8 +19632,8 @@
           "close": 9035.0
         },
         {
-          "date": "20261021",
-          "close": 8955.0
+          "date": "20261022",
+          "close": 8910.0
         }
       ],
       "isDomestic": true
@@ -19646,7 +19646,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 2.22,
+      "dividendYield": 2.23,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.39,
       "etcFee": 0.15,
@@ -19654,10 +19654,10 @@
       "tradeFee": 0.0944,
       "actualFee": 0.6344,
       "feeSource": "kofia_official",
-      "price": 11010,
-      "marketCap": 259,
-      "return3m": -6.96,
-      "return1y": 3.2,
+      "price": 10960,
+      "marketCap": 258,
+      "return3m": -6.13,
+      "return1y": 2.73,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -19864,8 +19864,8 @@
           "close": 11115.0
         },
         {
-          "date": "20261021",
-          "close": 11010.0
+          "date": "20261022",
+          "close": 10960.0
         }
       ],
       "isDomestic": true
@@ -19878,7 +19878,7 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "기초지수",
-      "dividendYield": 12.66,
+      "dividendYield": 12.77,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.25,
       "etcFee": 0.24,
@@ -19886,10 +19886,10 @@
       "tradeFee": 0.1602,
       "actualFee": 0.6502,
       "feeSource": "kofia_official",
-      "price": 9010,
-      "marketCap": 315,
-      "return3m": -7.65,
-      "return1y": 2.29,
+      "price": 8935,
+      "marketCap": 313,
+      "return3m": -7.34,
+      "return1y": 1.44,
       "weeklyPrices": [
         {
           "date": "20251226",
@@ -20064,8 +20064,8 @@
           "close": 9095.0
         },
         {
-          "date": "20261021",
-          "close": 9010.0
+          "date": "20261022",
+          "close": 8935.0
         }
       ],
       "isDomestic": true
@@ -20086,8 +20086,8 @@
       "tradeFee": 0.1427,
       "actualFee": 0.6827,
       "feeSource": "kofia_official",
-      "price": 10120,
-      "marketCap": 106,
+      "price": 9945,
+      "marketCap": 104,
       "return3m": 0.0,
       "return1y": 0.0,
       "weeklyPrices": [
@@ -20154,10 +20154,10 @@
       "tradeFee": 0.2967,
       "actualFee": 0.8367,
       "feeSource": "kofia_official",
-      "price": 15435,
-      "marketCap": 1374,
-      "return3m": -9.47,
-      "return1y": 12.0,
+      "price": 15310,
+      "marketCap": 1363,
+      "return3m": -9.15,
+      "return1y": 11.09,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -20364,8 +20364,8 @@
           "close": 15655.0
         },
         {
-          "date": "20261021",
-          "close": 15435.0
+          "date": "20261022",
+          "close": 15310.0
         }
       ],
       "isDomestic": true
@@ -20378,7 +20378,7 @@
       "category": "sp500",
       "subCategory": "hedged",
       "trackingIndex": "기초지수",
-      "dividendYield": 1.14,
+      "dividendYield": 1.13,
       "dividendSource": "krx_yahoo_1y",
       "totalFee": 0.15,
       "etcFee": 0.71,
@@ -20386,10 +20386,10 @@
       "tradeFee": 0.0635,
       "actualFee": 0.9235,
       "feeSource": "kofia_official",
-      "price": 10445,
-      "marketCap": 52,
-      "return3m": -5.73,
-      "return1y": -1.67,
+      "price": 10515,
+      "marketCap": 53,
+      "return3m": -5.21,
+      "return1y": -1.01,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -20596,8 +20596,8 @@
           "close": 10660.0
         },
         {
-          "date": "20261021",
-          "close": 10445.0
+          "date": "20261022",
+          "close": 10515.0
         }
       ],
       "isDomestic": true
@@ -20618,10 +20618,10 @@
       "tradeFee": 0.3355,
       "actualFee": 1.2155,
       "feeSource": "kofia_official",
-      "price": 30160,
-      "marketCap": 3885,
-      "return3m": -10.13,
-      "return1y": 9.14,
+      "price": 29940,
+      "marketCap": 3862,
+      "return3m": -10.1,
+      "return1y": 8.34,
       "weeklyPrices": [
         {
           "date": "20251031",
@@ -20828,8 +20828,8 @@
           "close": 30610.0
         },
         {
-          "date": "20261021",
-          "close": 30160.0
+          "date": "20261022",
+          "close": 29940.0
         }
       ],
       "isDomestic": true
@@ -21070,7 +21070,7 @@
           "close": 70.75
         },
         {
-          "date": "20261020",
+          "date": "20261021",
           "close": 70.75
         }
       ],
@@ -21090,12 +21090,12 @@
       "expenseRatio": 0.03,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 95.27,
+      "price": 95.3,
       "aumBillions": 135.7,
       "aumSource": "yahoo_info",
-      "return1m": 0.72,
-      "return3m": -2.39,
-      "return1y": -5.8,
+      "return1m": 0.75,
+      "return3m": -2.36,
+      "return1y": -5.77,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -21307,11 +21307,11 @@
         },
         {
           "date": "20261019",
-          "close": 95.27
+          "close": 95.3
         },
         {
-          "date": "20261020",
-          "close": 95.27
+          "date": "20261021",
+          "close": 95.3
         }
       ],
       "isDomestic": false
@@ -21330,12 +21330,12 @@
       "expenseRatio": 0.09,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 100.61,
+      "price": 100.62,
       "aumBillions": 112.3,
       "aumSource": "yahoo_info",
-      "return1m": 0.1,
-      "return3m": 0.13,
-      "return1y": -0.04,
+      "return1m": 0.11,
+      "return3m": 0.14,
+      "return1y": -0.03,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -21547,11 +21547,11 @@
         },
         {
           "date": "20261019",
-          "close": 100.61
+          "close": 100.62
         },
         {
-          "date": "20261020",
-          "close": 100.61
+          "date": "20261021",
+          "close": 100.62
         }
       ],
       "isDomestic": false
@@ -21570,12 +21570,12 @@
       "expenseRatio": 0.1353,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 91.58,
+      "price": 91.6,
       "aumBillions": 49.8,
       "aumSource": "yahoo_info",
-      "return1m": 0.08,
-      "return3m": 0.11,
-      "return1y": -0.13,
+      "return1m": 0.1,
+      "return3m": 0.13,
+      "return1y": -0.11,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -21787,11 +21787,11 @@
         },
         {
           "date": "20261019",
-          "close": 91.58
+          "close": 91.6
         },
         {
-          "date": "20261020",
-          "close": 91.58
+          "date": "20261021",
+          "close": 91.6
         }
       ],
       "isDomestic": false
@@ -21810,12 +21810,12 @@
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 110.26,
+      "price": 110.27,
       "aumBillions": 22.8,
       "aumSource": "yahoo_info",
-      "return1m": 0.08,
-      "return3m": 0.1,
-      "return1y": -0.15,
+      "return1m": 0.09,
+      "return3m": 0.11,
+      "return1y": -0.14,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -22027,11 +22027,11 @@
         },
         {
           "date": "20261019",
-          "close": 110.26
+          "close": 110.27
         },
         {
-          "date": "20261020",
-          "close": 110.26
+          "date": "20261021",
+          "close": 110.27
         }
       ],
       "isDomestic": false
@@ -22045,17 +22045,17 @@
       "category": "bonds",
       "subCategory": "standard",
       "trackingIndex": "ICE US Treasury 20+ Year",
-      "dividendYield": 4.86,
+      "dividendYield": 4.85,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 80.13,
+      "price": 80.24,
       "aumBillions": 46.2,
       "aumSource": "yahoo_info",
-      "return1m": 2.76,
-      "return3m": -3.18,
-      "return1y": -12.4,
+      "return1m": 2.9,
+      "return3m": -3.04,
+      "return1y": -12.28,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -22267,11 +22267,11 @@
         },
         {
           "date": "20261019",
-          "close": 80.13
+          "close": 80.24
         },
         {
-          "date": "20261020",
-          "close": 80.13
+          "date": "20261021",
+          "close": 80.24
         }
       ],
       "isDomestic": false
@@ -22290,12 +22290,12 @@
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 90.25,
+      "price": 90.23,
       "aumBillions": 41.6,
       "aumSource": "yahoo_info",
-      "return1m": 0.95,
-      "return3m": -3.13,
-      "return1y": -7.43,
+      "return1m": 0.93,
+      "return3m": -3.16,
+      "return1y": -7.45,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -22507,11 +22507,11 @@
         },
         {
           "date": "20261019",
-          "close": 90.25
+          "close": 90.23
         },
         {
-          "date": "20261020",
-          "close": 90.25
+          "date": "20261021",
+          "close": 90.23
         }
       ],
       "isDomestic": false
@@ -22525,17 +22525,17 @@
       "category": "bonds",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe TLT BuyWrite",
-      "dividendYield": 11.54,
+      "dividendYield": 11.51,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 20.68,
+      "price": 20.74,
       "aumBillions": 1.7,
       "aumSource": "yahoo_info",
-      "return1m": 2.89,
-      "return3m": -3.18,
-      "return1y": -13.69,
+      "return1m": 3.18,
+      "return3m": -2.9,
+      "return1y": -13.44,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -22747,11 +22747,11 @@
         },
         {
           "date": "20261019",
-          "close": 20.68
+          "close": 20.74
         },
         {
-          "date": "20261020",
-          "close": 20.68
+          "date": "20261021",
+          "close": 20.74
         }
       ],
       "isDomestic": false
@@ -22765,17 +22765,17 @@
       "category": "bonds",
       "subCategory": "leverage",
       "trackingIndex": "ICE US Treasury 20+ Year 3X",
-      "dividendYield": 4.98,
+      "dividendYield": 4.95,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.9,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 28.09,
+      "price": 28.22,
       "aumBillions": 2.0,
       "aumSource": "yahoo_info",
-      "return1m": 8.08,
-      "return3m": -10.63,
-      "return1y": -34.89,
+      "return1m": 8.58,
+      "return3m": -10.21,
+      "return1y": -34.59,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -22987,11 +22987,11 @@
         },
         {
           "date": "20261019",
-          "close": 28.09
+          "close": 28.22
         },
         {
-          "date": "20261020",
-          "close": 28.09
+          "date": "20261021",
+          "close": 28.22
         }
       ],
       "isDomestic": false
@@ -23010,12 +23010,12 @@
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 57.36,
+      "price": 57.35,
       "aumBillions": 45.3,
       "aumSource": "yahoo_info",
-      "return1m": 1.04,
-      "return3m": -0.38,
-      "return1y": -0.17,
+      "return1m": 1.02,
+      "return3m": -0.4,
+      "return1y": -0.19,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -23227,11 +23227,11 @@
         },
         {
           "date": "20261019",
-          "close": 57.36
+          "close": 57.35
         },
         {
-          "date": "20261020",
-          "close": 57.36
+          "date": "20261021",
+          "close": 57.35
         }
       ],
       "isDomestic": false
@@ -23245,17 +23245,17 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "Nasdaq-100 Covered Call",
-      "dividendYield": 11.58,
+      "dividendYield": 11.49,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.35,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 59.44,
+      "price": 59.95,
       "aumBillions": 44.3,
       "aumSource": "yahoo_info",
-      "return1m": -2.7,
-      "return3m": -0.5,
-      "return1y": 1.52,
+      "return1m": -1.87,
+      "return3m": 0.35,
+      "return1y": 2.39,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -23467,11 +23467,11 @@
         },
         {
           "date": "20261019",
-          "close": 59.44
+          "close": 59.95
         },
         {
-          "date": "20261020",
-          "close": 59.44
+          "date": "20261021",
+          "close": 59.95
         }
       ],
       "isDomestic": false
@@ -23485,17 +23485,17 @@
       "category": "income",
       "subCategory": "covered_call",
       "trackingIndex": "Enhanced Dividend Income",
-      "dividendYield": 6.28,
+      "dividendYield": 6.26,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.56,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 48.02,
+      "price": 48.17,
       "aumBillions": 7.7,
       "aumSource": "yahoo_info",
-      "return1m": 1.22,
-      "return3m": 0.04,
-      "return1y": 6.12,
+      "return1m": 1.54,
+      "return3m": 0.35,
+      "return1y": 6.45,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -23707,11 +23707,11 @@
         },
         {
           "date": "20261019",
-          "close": 48.02
+          "close": 48.17
         },
         {
-          "date": "20261020",
-          "close": 48.02
+          "date": "20261021",
+          "close": 48.17
         }
       ],
       "isDomestic": false
@@ -23730,11 +23730,11 @@
       "expenseRatio": 0.1,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 24.29,
+      "price": 24.57,
       "aumBillions": 0.4,
       "aumSource": "yahoo_info",
-      "return1m": -4.56,
-      "return3m": -0.82,
+      "return1m": -3.46,
+      "return3m": 0.33,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23807,11 +23807,11 @@
         },
         {
           "date": "20261019",
-          "close": 24.29
+          "close": 24.57
         },
         {
-          "date": "20261020",
-          "close": 24.29
+          "date": "20261021",
+          "close": 24.57
         }
       ],
       "isDomestic": false
@@ -23830,11 +23830,11 @@
       "expenseRatio": 0.1,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 24.28,
+      "price": 24.55,
       "aumBillions": 0.6,
       "aumSource": "yahoo_info",
-      "return1m": -4.52,
-      "return3m": -0.74,
+      "return1m": -3.46,
+      "return3m": 0.37,
       "return1y": 0.0,
       "weeklyPrices": [
         {
@@ -23899,11 +23899,11 @@
         },
         {
           "date": "20261019",
-          "close": 24.28
+          "close": 24.55
         },
         {
-          "date": "20261020",
-          "close": 24.28
+          "date": "20261021",
+          "close": 24.55
         }
       ],
       "isDomestic": false
@@ -23917,17 +23917,17 @@
       "category": "nasdaq100",
       "subCategory": "standard",
       "trackingIndex": "NASDAQ-100",
-      "dividendYield": 0.45,
+      "dividendYield": 0.44,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.15,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 295.59,
+      "price": 298.64,
       "aumBillions": 109.8,
       "aumSource": "yahoo_info",
-      "return1m": -4.46,
-      "return3m": -0.71,
-      "return1y": 16.36,
+      "return1m": -3.47,
+      "return3m": 0.32,
+      "return1y": 17.57,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -24139,11 +24139,11 @@
         },
         {
           "date": "20261019",
-          "close": 295.59
+          "close": 298.64
         },
         {
-          "date": "20261020",
-          "close": 295.59
+          "date": "20261021",
+          "close": 298.64
         }
       ],
       "isDomestic": false
@@ -24162,12 +24162,12 @@
       "expenseRatio": 0.18,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 717.63,
+      "price": 725.2,
       "aumBillions": 498.9,
       "aumSource": "yahoo_info",
-      "return1m": -4.48,
-      "return3m": -0.75,
-      "return1y": 16.29,
+      "return1m": -3.47,
+      "return3m": 0.3,
+      "return1y": 17.52,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -24379,11 +24379,11 @@
         },
         {
           "date": "20261019",
-          "close": 717.63
+          "close": 725.2
         },
         {
-          "date": "20261020",
-          "close": 717.63
+          "date": "20261021",
+          "close": 725.2
         }
       ],
       "isDomestic": false
@@ -24397,17 +24397,17 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe Nasdaq-100 BuyWrite",
-      "dividendYield": 12.67,
+      "dividendYield": 11.66,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.6,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 18.28,
+      "price": 18.38,
       "aumBillions": 8.5,
       "aumSource": "yahoo_info",
-      "return1m": -2.19,
-      "return3m": 0.77,
-      "return1y": 5.36,
+      "return1m": -1.66,
+      "return3m": 1.32,
+      "return1y": 5.94,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -24619,11 +24619,11 @@
         },
         {
           "date": "20261019",
-          "close": 18.28
+          "close": 18.38
         },
         {
-          "date": "20261020",
-          "close": 18.28
+          "date": "20261021",
+          "close": 18.38
         }
       ],
       "isDomestic": false
@@ -24637,17 +24637,17 @@
       "category": "nasdaq100",
       "subCategory": "covered_call",
       "trackingIndex": "Nasdaq-100 High Income",
-      "dividendYield": 14.11,
+      "dividendYield": 15.33,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.68,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 54.16,
+      "price": 54.0,
       "aumBillions": 14.9,
       "aumSource": "yahoo_info",
-      "return1m": -3.75,
-      "return3m": -1.96,
-      "return1y": -1.26,
+      "return1m": -4.03,
+      "return3m": -2.24,
+      "return1y": -1.55,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -24859,11 +24859,11 @@
         },
         {
           "date": "20261019",
-          "close": 54.16
+          "close": 54.0
         },
         {
-          "date": "20261020",
-          "close": 54.16
+          "date": "20261021",
+          "close": 54.0
         }
       ],
       "isDomestic": false
@@ -24877,17 +24877,17 @@
       "category": "nasdaq100",
       "subCategory": "leverage",
       "trackingIndex": "NASDAQ-100 3X",
-      "dividendYield": 0.69,
+      "dividendYield": 0.67,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.78,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 70.41,
+      "price": 72.61,
       "aumBillions": 37.9,
       "aumSource": "yahoo_info",
-      "return1m": -13.37,
-      "return3m": -5.45,
-      "return1y": 27.37,
+      "return1m": -10.67,
+      "return3m": -2.5,
+      "return1y": 31.35,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -25099,11 +25099,11 @@
         },
         {
           "date": "20261019",
-          "close": 70.41
+          "close": 72.61
         },
         {
-          "date": "20261020",
-          "close": 70.41
+          "date": "20261021",
+          "close": 72.61
         }
       ],
       "isDomestic": false
@@ -25122,12 +25122,12 @@
       "expenseRatio": 0.89,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 89.54,
+      "price": 91.46,
       "aumBillions": 15.1,
       "aumSource": "yahoo_info",
-      "return1m": -9.02,
-      "return3m": -2.9,
-      "return1y": 24.38,
+      "return1m": -7.07,
+      "return3m": -0.81,
+      "return1y": 27.05,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -25339,11 +25339,11 @@
         },
         {
           "date": "20261019",
-          "close": 89.54
+          "close": 91.46
         },
         {
-          "date": "20261020",
-          "close": 89.54
+          "date": "20261021",
+          "close": 91.46
         }
       ],
       "isDomestic": false
@@ -25362,12 +25362,12 @@
       "expenseRatio": 0.04,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 243.07,
+      "price": 243.66,
       "aumBillions": 127.6,
       "aumSource": "yahoo_info",
-      "return1m": 1.68,
-      "return3m": -0.88,
-      "return1y": 11.24,
+      "return1m": 1.93,
+      "return3m": -0.64,
+      "return1y": 11.51,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -25579,11 +25579,11 @@
         },
         {
           "date": "20261019",
-          "close": 243.07
+          "close": 243.66
         },
         {
-          "date": "20261020",
-          "close": 243.07
+          "date": "20261021",
+          "close": 243.66
         }
       ],
       "isDomestic": false
@@ -25602,12 +25602,12 @@
       "expenseRatio": 0.06,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 34.69,
+      "price": 34.66,
       "aumBillions": 107.9,
       "aumSource": "yahoo_info",
-      "return1m": 4.99,
-      "return3m": 2.33,
-      "return1y": 28.34,
+      "return1m": 4.9,
+      "return3m": 2.24,
+      "return1y": 28.23,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -25819,11 +25819,11 @@
         },
         {
           "date": "20261019",
-          "close": 34.69
+          "close": 34.66
         },
         {
-          "date": "20261020",
-          "close": 34.69
+          "date": "20261021",
+          "close": 34.66
         }
       ],
       "isDomestic": false
@@ -25842,12 +25842,12 @@
       "expenseRatio": 0.08,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 79.26,
+      "price": 79.37,
       "aumBillions": 41.9,
       "aumSource": "yahoo_info",
-      "return1m": 2.55,
-      "return3m": -0.26,
-      "return1y": 15.35,
+      "return1m": 2.69,
+      "return3m": -0.13,
+      "return1y": 15.51,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -26059,11 +26059,11 @@
         },
         {
           "date": "20261019",
-          "close": 79.26
+          "close": 79.37
         },
         {
-          "date": "20261020",
-          "close": 79.26
+          "date": "20261021",
+          "close": 79.37
         }
       ],
       "isDomestic": false
@@ -26077,17 +26077,17 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 1.01,
+      "dividendYield": 1.0,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.02,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 90.53,
+      "price": 90.99,
       "aumBillions": 173.6,
       "aumSource": "yahoo_info",
-      "return1m": -1.21,
-      "return3m": -0.53,
-      "return1y": 13.63,
+      "return1m": -0.71,
+      "return3m": -0.02,
+      "return1y": 14.21,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -26299,11 +26299,11 @@
         },
         {
           "date": "20261019",
-          "close": 90.53
+          "close": 90.99
         },
         {
-          "date": "20261020",
-          "close": 90.53
+          "date": "20261021",
+          "close": 90.99
         }
       ],
       "isDomestic": false
@@ -26322,12 +26322,12 @@
       "expenseRatio": 0.03,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 706.8,
+      "price": 710.72,
       "aumBillions": 1729.3,
       "aumSource": "yahoo_info",
-      "return1m": -1.23,
-      "return3m": -0.55,
-      "return1y": 13.53,
+      "return1m": -0.68,
+      "return3m": 0.0,
+      "return1y": 14.16,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -26539,11 +26539,11 @@
         },
         {
           "date": "20261019",
-          "close": 706.8
+          "close": 710.72
         },
         {
-          "date": "20261020",
-          "close": 706.8
+          "date": "20261021",
+          "close": 710.72
         }
       ],
       "isDomestic": false
@@ -26557,17 +26557,17 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 1.09,
+      "dividendYield": 1.08,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.03,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 772.35,
+      "price": 776.65,
       "aumBillions": 881.3,
       "aumSource": "yahoo_info",
-      "return1m": -1.23,
-      "return3m": -0.56,
-      "return1y": 13.49,
+      "return1m": -0.68,
+      "return3m": -0.01,
+      "return1y": 14.13,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -26779,11 +26779,11 @@
         },
         {
           "date": "20261019",
-          "close": 772.35
+          "close": 776.65
         },
         {
-          "date": "20261020",
-          "close": 772.35
+          "date": "20261021",
+          "close": 776.65
         }
       ],
       "isDomestic": false
@@ -26797,17 +26797,17 @@
       "category": "sp500",
       "subCategory": "standard",
       "trackingIndex": "S&P 500",
-      "dividendYield": 0.99,
+      "dividendYield": 0.98,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.0945,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기 (3,6,9,12월)",
-      "price": 769.05,
+      "price": 773.09,
       "aumBillions": 809.2,
       "aumSource": "yahoo_info",
-      "return1m": -1.22,
-      "return3m": -0.54,
-      "return1y": 13.55,
+      "return1m": -0.7,
+      "return3m": -0.02,
+      "return1y": 14.15,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -27019,11 +27019,11 @@
         },
         {
           "date": "20261019",
-          "close": 769.05
+          "close": 773.09
         },
         {
-          "date": "20261020",
-          "close": 769.05
+          "date": "20261021",
+          "close": 773.09
         }
       ],
       "isDomestic": false
@@ -27037,17 +27037,17 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "Cboe S&P 500 BuyWrite",
-      "dividendYield": 11.2,
+      "dividendYield": 10.21,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.6,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 41.4,
+      "price": 41.54,
       "aumBillions": 3.4,
       "aumSource": "yahoo_info",
-      "return1m": -1.26,
-      "return3m": -0.41,
-      "return1y": 4.07,
+      "return1m": -0.93,
+      "return3m": -0.07,
+      "return1y": 4.42,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -27259,11 +27259,11 @@
         },
         {
           "date": "20261019",
-          "close": 41.4
+          "close": 41.54
         },
         {
-          "date": "20261020",
-          "close": 41.4
+          "date": "20261021",
+          "close": 41.54
         }
       ],
       "isDomestic": false
@@ -27277,17 +27277,17 @@
       "category": "sp500",
       "subCategory": "covered_call",
       "trackingIndex": "S&P 500 High Income",
-      "dividendYield": 11.81,
+      "dividendYield": 12.83,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.68,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "월배당",
-      "price": 53.7,
+      "price": 53.41,
       "aumBillions": 12.2,
       "aumSource": "yahoo_info",
-      "return1m": -0.72,
-      "return3m": -0.89,
-      "return1y": 2.21,
+      "return1m": -1.26,
+      "return3m": -1.42,
+      "return1y": 1.66,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -27499,11 +27499,11 @@
         },
         {
           "date": "20261019",
-          "close": 53.7
+          "close": 53.41
         },
         {
-          "date": "20261020",
-          "close": 53.7
+          "date": "20261021",
+          "close": 53.41
         }
       ],
       "isDomestic": false
@@ -27517,17 +27517,17 @@
       "category": "sp500",
       "subCategory": "leverage",
       "trackingIndex": "S&P 500 2X",
-      "dividendYield": 0.68,
+      "dividendYield": 0.67,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.84,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 70.27,
+      "price": 71.0,
       "aumBillions": 8.4,
       "aumSource": "yahoo_info",
-      "return1m": -2.57,
-      "return3m": -1.97,
-      "return1y": 21.95,
+      "return1m": -1.55,
+      "return3m": -0.95,
+      "return1y": 23.22,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -27739,11 +27739,11 @@
         },
         {
           "date": "20261019",
-          "close": 70.27
+          "close": 71.0
         },
         {
-          "date": "20261020",
-          "close": 70.27
+          "date": "20261021",
+          "close": 71.0
         }
       ],
       "isDomestic": false
@@ -27757,17 +27757,17 @@
       "category": "sp500",
       "subCategory": "leverage",
       "trackingIndex": "S&P 500 3X",
-      "dividendYield": 0.76,
+      "dividendYield": 0.74,
       "dividendSource": "us_yahoo_1y",
       "expenseRatio": 0.88,
       "expenseSource": "yahoo_info",
       "dividendSchedule": "분기",
-      "price": 149.58,
+      "price": 152.01,
       "aumBillions": 5.3,
       "aumSource": "yahoo_info",
-      "return1m": -3.94,
-      "return3m": -3.53,
-      "return1y": 29.22,
+      "return1m": -2.38,
+      "return3m": -1.97,
+      "return1y": 31.31,
       "weeklyPrices": [
         {
           "date": "20251020",
@@ -27979,11 +27979,11 @@
         },
         {
           "date": "20261019",
-          "close": 149.58
+          "close": 152.01
         },
         {
-          "date": "20261020",
-          "close": 149.58
+          "date": "20261021",
+          "close": 152.01
         }
       ],
       "isDomestic": false
