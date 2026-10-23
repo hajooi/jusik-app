@@ -11,13 +11,29 @@
   - 텔레그램 봇 토큰, Supabase 키, Gemini/FRED/BOK API 키, DB 자격증명 등 모든 비밀값(Secrets)은 코드 파일(`*.ts`, `*.tsx`, `*.py`, `*.yml`, `*.json` 등 Git 추적 대상 파일)에 절대로 직접 문자열로 적거나 기본 폴백값(fallback)으로 포함하지 않음 (100% 금지).
   - 비밀값은 오직 `.env.local` (로컬 전용, `.gitignore` 필수), **Vercel Environment Variables**, **GitHub Actions Repository Secrets**를 통해서만 안전하게 주입받도록 구현.
   - 모든 커밋(`git commit`) 및 푸시(`git push`) 전에는 반드시 `git diff`를 정밀 검토하여 시크릿 또는 토큰 패턴(`[0-9]{9,10}:[a-zA-Z0-9_-]{35}`, `AIza`, `sk-`, `sb_secret` 등)이 우발적으로 포함되지 않았는지 상시 점검 완료 후 진행.
-- **Loop Engineering & Continuous Verification (루프 엔지니어링 및 자동 검증 의무화)**:
-  - 모든 코드 수정 후 사용자에게 완료를 보고하기 전 반드시 루프 엔지니어링 검증(`npm run verify` 또는 `python3 scripts/verify_loop.py`)을 통과해야 함.
-  - `.agents/hooks.json`의 `Stop` 훅이 연동되어 있어 보안 누출, 도메인 금지어(매수/매도/주가/시가총액/수관형사), TypeScript 타입 오류 발견 시 시스템이 작업 종료를 강제 차단하고 에이전트가 통과할 때까지 자율 자가 수정(Self-Correction)을 수행함.
-  - 배포 및 프로덕션 빌드 전에는 `npm run verify:full`로 37개 전체 라우트 빌드 무결성을 최종 검증.
 - **100% Transparent Change Sharing (코드 변경 시 모든 수정 내용 전수 보고 의무화)**:
   - 어떤 파일이든 수정 완료 후에는 변경된 모든 파일 목록과 '수정 전 ➔ 수정 후' 세부 내용을 빠짐없이 사용자에게 100% 투명하게 공유해야 함.
   - 실제 증권사 앱(MTS) 모션 실습 화면(`StockTradeMotionSimulator.tsx` 등)이나 퀴즈 데이터(`termsQuizData.ts` 등) 맥락상 '매수/매도'가 필요한 고유 콘텐츠는 절대 임의로 변경하지 않음.
+- **Dual Orchestration & Continuous Oversight (감독관-실행자 하이브리드 파이프라인)**:
+  - **착수 전 선제 안내 (Pre-Task `/direct` Reminder)**:
+    - 단순 질문, 정보 조회, 단순 텍스트/오탈자 수정 시에는 불필요하게 묻지 않고 즉시 답변/수행.
+    - 그러나 **새로운 기능 구현, 컴포넌트 추가, 로직/상태 개편 등 실제 코드 개발 작업**을 요청받았을 때는 에이전트(Gemini)가 냅다 코드부터 수정하지 않고, **사용자가 새 창에서 그대로 복사해 쓸 수 있는 구체적인 `/direct [작업 요약]` 명령어가 포함된 안내 템플릿**을 반드시 출력하여 의사를 물어야 함:
+      ```markdown
+      💡 **감독관(Claude Sonnet)의 정밀 설계 청사진을 먼저 받아보시겠습니까?**
+      더 높은 완성도와 아키텍처/엣지 케이스 방어를 위해, 새 창(`Cmd + L`)에서 모델을 **Claude Sonnet (Medium)**으로 두고 아래 박스를 그대로 복사해 입력해 주세요:
+
+      `/direct [사용자가 요청한 작업 요약 문구]`
+
+      (※ 만약 설계 단계 없이 제가 바로 코드를 작성하길 원하시면 **"그냥 바로 해줘"**라고 말씀해 주시면 즉시 착수합니다!)
+      ```
+  - **완료 후 감리 안내 (Post-Task `/audit` Reminder)**:
+    - 코드 수정 완료 후 보고서 최하단에 항상 다음 감리 가이드를 출력:
+      ```markdown
+      🔍 **감독관 품질 준공 검사 안내**:
+      새 창(`Cmd + L`)을 열고 모델을 **Claude Sonnet (Medium)**으로 선택한 뒤, 아래 명령어를 입력하시면 방금 수정한 코드의 결함과 사이드 이펙트를 시니어 감독관이 최종 감리합니다:
+
+      `/audit`
+      ```
 - **Autonomous Dev Server Lifecycle**:
   - 개발 서버 종료/오류/HMR 충돌 발생 시 사용자가 요청하기 전에 자율적으로 확인 및 즉시 재시작.
 
@@ -32,8 +48,6 @@
   - **클라이언트 측**: 초기 마운트 직후(무변경 상태)에는 자동 저장을 발화하지 않으며, 서버 응답이 일시적으로 비어 있더라도 동일 계정의 브라우저 로컬 캐시에 유효한 계좌가 있다면 절대 빈 배열로 덮어쓰지 않고 보존.
 - **Strict Separation of Local Sandbox vs Production DB (로컬 더미 데이터와 실제 운영 DB 혼동 절대 금지)**:
   - `.data/users.json` 등 로컬 파일은 `NODE_ENV=development` 전용 샌드박스 테스트 데이터일 뿐이며, 실제 운영 데이터(Supabase Production DB)와 절대 혼동하거나 로컬 테스트 데이터를 운영 복구용으로 제안하지 않음.
-- **Substantive Executable Unit Testing in Loop Engineering (보여주기식 루프 배제 및 실제 유닛 테스트 의무화)**:
-  - `scripts/verify_loop.py`는 토큰만 낭비하는 장식용 출력 대신, `scripts/test_engine.ts`를 실제로 실행하여 ① 백엔드 데이터 보존 및 Anti-Wipe 가드, ② 다중 통화(`KRW`, `USD`, `JPY`, `HKD`) 환산 및 원화 결제 정산 수식, ③ 기간별 수익률(`MTD`, `YTD`, `1Y`, `Total`) 입출금 이중 차감 방지 회계 항등식을 코드 레벨에서 매번 검증해야 함.
 
 ## 1. Project Stack & Identity
 - **Tech Stack**: Next.js (App Router), Tailwind CSS, Lucide React (`lucide-react`), PWA

@@ -153,7 +153,7 @@ export default function MacroDataGuide() {
                 </a>
               </div>
               <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] font-medium leading-relaxed break-keep">
-                채권 시장이 체감하는 기업 부도 위험입니다. 스프레드가 급등하면 금융 시장에 긴장감이 커진 신호입니다.
+                채권 시장이 체감하는 기업 부도 위험입니다. 연준 및 채권 시장의 공인 위험선인 5.0%를 기준으로 자금 시장 긴장 신호를 감지합니다.
               </p>
             </div>
 
